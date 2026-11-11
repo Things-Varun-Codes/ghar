@@ -1,0 +1,48 @@
+includes:
+  - vendor/larastan/larastan/extension.neon
+
+parameters:
+  level: 4
+  paths:
+    - app
+    - database
+    - routes
+    - tests
+  excludePaths:
+    - bootstrap/cache
+  # Rate-limiter callbacks fire on unauthenticated requests despite the
+  # non-null docblocks, so defensive nullsafe calls are correct.
+  treatPhpDocTypesAsCertain: false
+  ignoreErrors:
+    # The fluent chain loses its type after ->format('webp').
+    - identifier: method.notFound
+      path: app/MiniApps/History/Models/Event.php
+      message: '#Call to an undefined method Spatie\\Image\\Drivers\\ImageDriver::queued\(\)#'
+    # Fortify's PHPDoc doesn't match what Password::default() returns.
+    - identifier: return.type
+      path: app/Concerns/PasswordValidationRules.php
+    # Larastan narrows $request->user() to non-null; these run unauthenticated too.
+    - identifier: nullsafe.neverNull
+      path: app/Providers/AppServiceProvider.php
+    # TestResponse proxies getSession() through __call().
+    - identifier: method.notFound
+      path: tests/Feature/Auth/PasswordResetTest.php
+      message: '#TestResponse::getSession#'
+    - identifier: method.notFound
+      path: tests/Feature/RateLimit/ForgotPasswordRateLimitTest.php
+      message: '#TestResponse::getSession#'
+    - identifier: method.alreadyNarrowedType
+      path: tests/Feature/Mail/MailConfigTest.php
+    # Media::model() is a MorphTo and can resolve null once the event is gone.
+    - identifier: nullsafe.neverNull
+      path: app/MiniApps/History/Controllers/GalleryController.php
+    - identifier: nullsafe.neverNull
+      path: app/MiniApps/History/Http/Resources/EventResource.php
+    # PHPStan doesn't honour @property on interfaces (phpstan/phpstan#3349).
+    - identifier: property.notFound
+      path: app/MiniApps/Corner/Actions/ToggleListItemDone.php
+      message: '#ListItemContract::\$done_at#'
+    # Collection's TValue isn't declared covariant in Larastan's stubs.
+    - identifier: return.type
+      path: app/Shell/Services/LinkableEntities.php
+      message: '#referencesTo\(\) should return#'

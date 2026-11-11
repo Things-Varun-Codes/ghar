@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<phpunit xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:noNamespaceSchemaLocation="vendor/phpunit/phpunit/phpunit.xsd"
+         bootstrap="vendor/autoload.php"
+         colors="true"
+>
+    <testsuites>
+        <testsuite name="Unit">
+            <directory>tests/Unit</directory>
+        </testsuite>
+        <testsuite name="Feature">
+            <directory>tests/Feature</directory>
+        </testsuite>
+    </testsuites>
+    <source>
+        <include>
+            <directory>app</directory>
+        </include>
+    </source>
+    <php>
+        <!-- Parallel workers accumulate memory and intermittently OOM at PHP's default 128M. -->
+        <ini name="memory_limit" value="1024M"/>
+        <env name="APP_ENV" value="testing"/>
+        <env name="APP_NAME" value="Ghar" force="true"/>
+        <env name="APP_MAINTENANCE_DRIVER" value="file"/>
+        <env name="BCRYPT_ROUNDS" value="4"/>
+        <env name="CACHE_STORE" value="array"/>
+        <!--
+            Tests run on PostgreSQL, like production. Start the dev database with
+            `docker compose -f docker-compose.override.yml up -d postgres`; its init
+            script creates `ghar_test`. Not forced, so a real environment variable
+            (e.g. on a different host or port) wins over these defaults.
+        -->
+        <env name="DB_CONNECTION" value="pgsql"/>
+        <env name="DB_HOST" value="127.0.0.1"/>
+        <env name="DB_PORT" value="5432"/>
+        <env name="DB_DATABASE" value="ghar_test"/>
+        <env name="DB_USERNAME" value="ghar"/>
+        <env name="DB_PASSWORD" value="ghar"/>
+        <env name="DB_URL" value=""/>
+        <env name="MAIL_MAILER" value="array"/>
+        <!-- Pinned so a local .env can't bleed in: tests fake the 'r2' disk specifically. -->
+        <env name="MEDIA_DISK" value="s3" force="true"/>
+        <env name="QUEUE_CONNECTION" value="sync"/>
+        <env name="SESSION_DRIVER" value="array"/>
+        <env name="TELESCOPE_ENABLED" value="false"/>
+        <env name="RESEND_API_KEY" value="re_test"/>
+        <env name="APP_KEY" value="base64:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=" force="true"/>
+        <!-- Empty so a local .env doesn't activate the Google Maps CSP origins. -->
+        <env name="GOOGLE_MAPS_API_KEY" value="" force="true"/>
+    </php>
+</phpunit>

@@ -1,0 +1,56 @@
+.os-settings-card {
+    background-color: var(--card);
+    border: 1px solid var(--border);
+}
+
+.os-settings-input {
+    min-height: 44px;
+    font-size: var(--text-body);
+    background-color: var(--background);
+    color: var(--foreground);
+    border: 1px solid var(--border);
+}
+
+/* Source order matters: must be authored after .os-settings-input so the
+   override wins — same specificity, different source position. Driven by
+   FormField's cloneElement aria injection, the sole trigger for this rule. */
+.os-settings-input[aria-invalid='true'] {
+    border-color: var(--destructive);
+}
+
+.os-settings-submit {
+    min-height: 44px;
+    font-size: var(--text-small);
+    font-weight: 600;
+    color: var(--primary-foreground);
+    background-color: var(--primary);
+}
+
+.os-settings-link {
+    font-size: var(--text-small);
+    color: var(--muted-foreground);
+}
+
+.os-settings-row-label {
+    font-size: var(--text-small);
+    font-weight: 600;
+    color: var(--foreground);
+}
+
+.os-settings-row-status {
+    font-size: var(--text-meta);
+    font-weight: 400;
+    color: var(--muted-foreground);
+}
+
+/* Source order matters: must be authored after .os-settings-row-status so
+   the override wins — same specificity, different source position. */
+.os-settings-row-status--danger {
+    color: var(--destructive);
+}
+
+.os-settings-notice {
+    font-size: var(--text-small);
+    font-weight: 600;
+    color: var(--foreground);
+}

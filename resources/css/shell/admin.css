@@ -1,0 +1,213 @@
+.os-admin-surface {
+    background-color: var(--card);
+    border-color: var(--border);
+}
+
+.os-admin-tap {
+    min-height: 44px;
+}
+
+.os-admin-tap-center {
+    display: inline-flex;
+    align-items: center;
+}
+
+.os-admin-row-action {
+    min-height: 44px;
+    min-width: 44px;
+    padding: 0 16px;
+}
+
+.os-admin-fill-primary {
+    background-color: var(--primary);
+    color: var(--primary-foreground);
+}
+
+.os-admin-fill-accent {
+    background-color: var(--accent);
+    color: var(--foreground);
+}
+
+.os-admin-fill-destructive {
+    background-color: var(--destructive);
+    color: var(--destructive-foreground);
+}
+
+.os-admin-outline-destructive {
+    background-color: transparent;
+    color: var(--destructive);
+    border: 1px solid color-mix(in oklab, var(--destructive) 45%, transparent);
+}
+
+.os-admin-outline-destructive:hover {
+    background-color: color-mix(in oklab, var(--destructive) 8%, transparent);
+}
+
+.os-admin-submit {
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.os-admin-cancel-link {
+    font-size: 14px;
+    color: var(--muted-foreground);
+}
+
+.os-admin-control {
+    min-height: 44px;
+    font-size: 16px;
+    background-color: var(--background);
+    color: var(--foreground);
+    border-color: var(--border);
+}
+
+/* Source order matters: must be authored after .os-admin-control so the
+   override wins — same specificity, different source position. */
+.os-admin-control--invalid {
+    border-color: var(--destructive);
+}
+
+.os-admin-input {
+    min-height: 44px;
+    font-size: 16px;
+}
+
+.os-admin-textarea {
+    font-size: 16px;
+}
+
+.os-admin-section-title {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--foreground);
+}
+
+.os-admin-strong {
+    font-weight: 600;
+}
+
+.os-admin-muted {
+    color: var(--muted-foreground);
+}
+
+.os-admin-meta {
+    color: var(--muted-foreground);
+    font-size: 13px;
+}
+
+.os-admin-flash {
+    font-size: 14px;
+    background-color: var(--accent);
+    color: var(--foreground);
+}
+
+/* Source order matters: must be authored after .os-admin-flash so the
+   override wins — same specificity, different source position. */
+.os-admin-flash--error {
+    background-color: color-mix(
+        in oklab,
+        var(--destructive) 10%,
+        var(--background)
+    );
+    color: var(--destructive);
+}
+
+.os-admin-group-label {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--foreground);
+}
+
+.os-admin-group-help {
+    font-size: 14px;
+    color: var(--muted-foreground);
+}
+
+.os-admin-group-help--invalid {
+    color: var(--destructive);
+}
+
+.os-admin-required-mark {
+    color: var(--destructive);
+    margin-left: 2px;
+}
+
+.os-admin-option-name {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--foreground);
+}
+
+.os-admin-option-desc {
+    font-size: 14px;
+    color: var(--muted-foreground);
+}
+
+.os-admin-field-error {
+    font-size: 14px;
+    color: var(--destructive);
+}
+
+.os-admin-theme-card {
+    background-color: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 20px;
+    min-height: 96px;
+    min-width: 240px;
+    overflow: visible;
+}
+
+.os-admin-theme-preview {
+    margin-top: 12px;
+    width: 160px;
+    height: 80px;
+    border-radius: 6px;
+    border: 1px solid var(--border);
+    padding: 8px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    position: relative;
+}
+
+.os-admin-theme-preview-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 6px;
+}
+
+.os-admin-theme-wordmark {
+    font-family: var(--font-wordmark);
+    font-size: 14px;
+    font-weight: 400;
+    letter-spacing: -0.01em;
+    line-height: 1;
+}
+
+.os-admin-theme-pill {
+    display: inline-block;
+    height: 14px;
+    width: 52px;
+    border-radius: 999px;
+}
+
+.os-admin-theme-cta {
+    display: inline-block;
+    height: 14px;
+    width: 40px;
+    border-radius: 4px;
+}
+
+.os-admin-theme-active {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background-color: transparent;
+    color: var(--shell-accent-text);
+    font-size: 13px;
+    font-weight: 600;
+    line-height: 1;
+    padding: 0;
+}

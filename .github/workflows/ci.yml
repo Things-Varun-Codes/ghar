@@ -1,0 +1,140 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  # The release workflow runs the same checks before it publishes an image.
+  workflow_call:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  PHP_VERSION: '8.5'
+  PHP_EXTENSIONS: pdo_pgsql, mbstring, bcmath, intl, zip, gd, exif
+  NODE_VERSION: '22'
+
+jobs:
+  checks:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    services:
+      postgres:
+        image: postgres:17.11-alpine3.24
+        env:
+          POSTGRES_USER: ghar
+          POSTGRES_PASSWORD: ghar
+          POSTGRES_DB: ghar_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U ghar -d ghar_test"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: shivammathur/setup-php@eb7c497e18156a6bbabfef1d3a82760b9eda3962 # 2.40.0
+        with:
+          php-version: ${{ env.PHP_VERSION }}
+          extensions: ${{ env.PHP_EXTENSIONS }}
+          coverage: none
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+      - run: composer install --no-interaction --no-progress
+      - run: npm ci --no-audit --no-fund
+      - name: Prepare .env
+        run: cp .env.example .env && php artisan key:generate
+      - run: php artisan wayfinder:generate --with-form
+      - run: ./scripts/check-boundaries.sh
+      - run: ./scripts/check-bare-catch.sh
+      - run: ./scripts/check-env-deploy-sync.sh
+      - run: npm run types:check
+      - run: npm run lint:check
+      - run: npm test
+      - run: npm run test:rules
+      - run: vendor/bin/pint --test
+      - run: vendor/bin/phpstan analyse --no-progress --memory-limit=1G
+      - run: php artisan test
+      - run: npm run build
+
+  smoke:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    services:
+      postgres:
+        image: postgres:17.11-alpine3.24
+        env:
+          POSTGRES_USER: ghar
+          POSTGRES_PASSWORD: ghar
+          POSTGRES_DB: ghar_smoke
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U ghar -d ghar_smoke"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: shivammathur/setup-php@eb7c497e18156a6bbabfef1d3a82760b9eda3962 # 2.40.0
+        with:
+          php-version: ${{ env.PHP_VERSION }}
+          extensions: ${{ env.PHP_EXTENSIONS }}
+          coverage: none
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+      - run: composer install --no-interaction --no-progress
+      - run: npm ci --no-audit --no-fund
+      - name: Prepare .env
+        run: cp .env.example .env && php artisan key:generate
+      - run: npx playwright install --with-deps chromium
+      - run: node scripts/check-smoke-routes.mjs
+      - run: npm run smoke
+
+  # Builds the production image and starts it the way a self-hoster would, so a
+  # broken Dockerfile or entrypoint fails here and not on a release tag.
+  image:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4.4.1
+      - uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7.4.0
+        with:
+          context: .
+          load: true
+          tags: ghar-ci:local
+          # Same scope as the release build, which can read what `main` cached.
+          cache-from: type=gha,scope=amd64
+          cache-to: type=gha,mode=max,scope=amd64
+      - name: Start the self-host stack
+        run: |
+          sed -e 's#^APP_URL=.*#APP_URL=http://localhost:8080#' \
+              -e 's#^DB_PASSWORD=.*#DB_PASSWORD=ci-only#' \
+              -e 's#^GHAR_ADMIN_EMAIL=.*#GHAR_ADMIN_EMAIL=admin@example.test#' \
+              -e 's#^GHAR_VERSION=.*#GHAR_VERSION=local#' \
+              .env.selfhost.example > .env
+          echo 'GHAR_IMAGE=ghar-ci' >> .env
+          docker compose -f docker-compose.selfhost.yml up -d --wait --wait-timeout 180
+      - name: Check it answers
+        run: |
+          curl -fsS http://localhost:8080/healthz
+          curl -fsS -o /dev/null http://localhost:8080/login
+          docker compose -f docker-compose.selfhost.yml logs app | grep -q 'Admin account created'
+      - name: Check a restart keeps its keys
+        run: |
+          docker compose -f docker-compose.selfhost.yml restart app
+          docker compose -f docker-compose.selfhost.yml up -d --wait --wait-timeout 180
+          test "$(docker compose -f docker-compose.selfhost.yml logs app | grep -c 'generated APP_KEY')" = 1
+      - if: failure()
+        run: docker compose -f docker-compose.selfhost.yml logs

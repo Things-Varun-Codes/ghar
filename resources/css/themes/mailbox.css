@@ -1,0 +1,1128 @@
+[data-app='our-mailbox'] {
+    --mailbox-bg: var(--shell-bg);
+    --mailbox-paper: var(--shell-surface);
+    --mailbox-card: var(--shell-surface);
+    --mailbox-ink: var(--shell-text);
+    --mailbox-ink-soft: var(--shell-text-muted);
+    --mailbox-border: var(--shell-border);
+    --mailbox-accent: var(--shell-accent);
+    --mailbox-accent-fg: var(--shell-accent-fg);
+    --mailbox-accent-text: var(--shell-accent-text);
+    --mailbox-action: var(--shell-action);
+    --mailbox-action-fg: var(--shell-action-fg);
+    --mailbox-destructive: var(--shell-destructive);
+    --mailbox-focus-ring:
+        0 0 0 2px var(--shell-bg), 0 0 0 4px var(--shell-accent-text);
+
+    --mailbox-font-hand: 'Patrick Hand', 'Comic Sans MS', cursive;
+
+    --mailbox-margin-color: color-mix(
+        in oklab,
+        var(--shell-destructive) 55%,
+        transparent
+    );
+    --mailbox-rule-color: color-mix(
+        in oklab,
+        var(--shell-text) 11%,
+        transparent
+    );
+
+    --mailbox-paper-bg-image:
+        linear-gradient(
+            to right,
+            transparent 0,
+            transparent 31px,
+            var(--mailbox-margin-color) 31px,
+            var(--mailbox-margin-color) 32px,
+            transparent 32px
+        ),
+        repeating-linear-gradient(
+            to bottom,
+            transparent 0,
+            transparent 31px,
+            var(--mailbox-rule-color) 31px,
+            var(--mailbox-rule-color) 32px
+        );
+
+    --mailbox-type-scale-eyebrow: var(--text-eyebrow); /* 13px — label/UI */
+    --mailbox-type-scale-body: var(--text-body); /* 16px */
+
+    --mailbox-amber-warn: #b45309;
+
+    --mailbox-ease: 0.2s ease-out;
+
+    --mailbox-challan-font:
+        'Special Elite', 'Courier New', ui-monospace, monospace;
+
+    --mailbox-challan-faint: color-mix(
+        in oklab,
+        var(--shell-text) 22%,
+        transparent
+    );
+
+    --mailbox-challan-masthead-bg: color-mix(
+        in oklab,
+        var(--shell-accent) 10%,
+        var(--shell-surface)
+    );
+
+    --mailbox-challan-seal-color: var(--shell-accent-text);
+
+    --mailbox-challan-seal-size: 64px;
+    --mailbox-challan-stamp-rotate: -13deg;
+
+    --mailbox-coupon-font-display: var(--mailbox-font-hand);
+    --mailbox-coupon-font-mono:
+        'Special Elite', 'Courier New', ui-monospace, monospace;
+
+    --mailbox-coupon-seal: var(--shell-accent-text);
+
+    --mailbox-coupon-tint: color-mix(
+        in oklab,
+        var(--shell-accent) 9%,
+        var(--shell-surface)
+    );
+
+    --mailbox-coupon-rule: color-mix(
+        in oklab,
+        var(--shell-text) 20%,
+        transparent
+    );
+}
+
+[data-app='our-mailbox'] .mailbox-page {
+    background-color: var(--mailbox-bg);
+    color: var(--mailbox-ink);
+    min-height: 100vh;
+}
+
+[data-app='our-mailbox'] .mailbox-card.mailbox-note {
+    position: relative;
+    background-color: var(--mailbox-card);
+    background-image: var(--mailbox-paper-bg-image);
+    background-position: 0 12px;
+    color: var(--mailbox-ink);
+    font-family: var(--mailbox-font-hand);
+    line-height: 32px;
+    border: none;
+    border-radius: 6px;
+    padding: 12px 20px 8px 48px;
+    box-shadow:
+        0 1px 2px color-mix(in oklab, var(--shell-text) 7%, transparent),
+        0 12px 24px -18px
+            color-mix(in oklab, var(--shell-action) 40%, transparent);
+}
+
+[data-app='our-mailbox'] .mailbox-hand {
+    font-family: var(--mailbox-font-hand);
+    font-size: var(--mailbox-type-scale-body);
+    color: var(--mailbox-ink);
+    line-height: 1.4;
+}
+
+[data-app='our-mailbox'] .mailbox-hand-meta {
+    font-family: var(--font-sans);
+    font-size: var(--mailbox-type-scale-eyebrow);
+    color: var(--mailbox-ink-soft);
+    line-height: 1.3;
+}
+
+[data-app='our-mailbox'] .mailbox-card {
+    background: var(--mailbox-paper);
+    color: var(--mailbox-ink);
+    border: 1px solid var(--mailbox-border);
+    border-radius: 22px;
+    padding: 16px 18px;
+}
+
+@media (hover: hover) {
+    [data-app='our-mailbox'] .mailbox-card.shell-card-stretch {
+        transition: border-color 0.15s ease;
+    }
+    [data-app='our-mailbox'] .mailbox-card.shell-card-stretch:hover {
+        border-color: var(--mailbox-ink-soft);
+    }
+}
+
+[data-app='our-mailbox'] textarea:focus-visible,
+[data-app='our-mailbox'] input:focus-visible {
+    outline: none;
+    box-shadow: var(--mailbox-focus-ring);
+}
+
+[data-app='our-mailbox'] .mailbox-challan-doc {
+    position: relative;
+    background: var(--mailbox-paper);
+    color: var(--mailbox-ink);
+    border: 1.5px solid var(--mailbox-accent-text);
+    border-radius: 18px;
+    overflow: hidden;
+    max-width: 640px;
+    margin: 0 auto;
+}
+
+[data-app='our-mailbox'] .mailbox-challan-watermark {
+    position: absolute;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    pointer-events: none;
+    overflow: hidden;
+}
+[data-app='our-mailbox'] .mailbox-challan-watermark span {
+    font-family: var(--mailbox-challan-font);
+    font-size: 190px;
+    font-weight: 700;
+    letter-spacing: 6px;
+    color: var(--mailbox-challan-seal-color);
+    opacity: 0.05;
+    transform: rotate(-8deg);
+    white-space: nowrap;
+}
+
+[data-app='our-mailbox'] .mailbox-challan-masthead {
+    position: relative;
+    z-index: 2;
+    display: flex;
+    gap: 14px;
+    align-items: center;
+    padding: 16px 20px;
+    background: var(--mailbox-challan-masthead-bg);
+    border-bottom: 2px solid var(--mailbox-ink);
+}
+[data-app='our-mailbox'] .mailbox-challan-title {
+    font-family: var(--mailbox-challan-font);
+    font-size: 18px;
+    letter-spacing: 0.5px;
+    color: var(--mailbox-ink);
+}
+[data-app='our-mailbox'] .mailbox-challan-sub {
+    font-size: 11.5px;
+    letter-spacing: 1px;
+    margin-top: 2px;
+    color: var(--mailbox-ink-soft);
+}
+
+[data-app='our-mailbox'] .mailbox-challan-seal {
+    position: relative;
+    flex: none;
+    width: var(--mailbox-challan-seal-size);
+    height: var(--mailbox-challan-seal-size);
+    border-radius: 999px;
+    border: 2px solid var(--mailbox-challan-seal-color);
+    color: var(--mailbox-challan-seal-color);
+    display: grid;
+    place-items: center;
+    font-family: var(--mailbox-challan-font);
+    line-height: 1;
+}
+[data-app='our-mailbox'] .mailbox-challan-seal::before {
+    content: '';
+    position: absolute;
+    inset: 4px;
+    border-radius: 999px;
+    border: 1px dashed var(--mailbox-challan-seal-color);
+    opacity: 0.6;
+}
+[data-app='our-mailbox'] .mailbox-challan-seal .mailbox-challan-monogram {
+    font-size: 20px;
+    font-weight: 700;
+    letter-spacing: 1px;
+}
+
+[data-app='our-mailbox'] .mailbox-challan-confidential {
+    position: absolute;
+    top: 10px;
+    right: 16px;
+    z-index: 3;
+    font-family: var(--mailbox-challan-font);
+    font-size: 10px;
+    letter-spacing: 2px;
+    color: var(--mailbox-destructive);
+    border: 1px solid var(--mailbox-destructive);
+    border-radius: 2px;
+    padding: 2px 6px;
+}
+
+[data-app='our-mailbox'] .mailbox-challan-stamp {
+    position: absolute;
+    top: 100px;
+    right: 20px;
+    z-index: 3;
+    font-family: var(--mailbox-challan-font);
+    font-size: 30px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    padding: 6px 16px;
+    border: 4px double currentColor;
+    border-radius: 8px;
+    box-shadow: inset 0 0 0 1px currentColor;
+    background: transparent;
+    opacity: 0.82;
+    transform: rotate(var(--mailbox-challan-stamp-rotate));
+    pointer-events: none;
+    user-select: none;
+}
+
+@media (max-width: 520px) {
+    [data-app='our-mailbox'] .mailbox-challan-masthead {
+        padding-top: 38px;
+    }
+    [data-app='our-mailbox'] .mailbox-challan-confidential {
+        top: 10px;
+        right: 14px;
+    }
+    [data-app='our-mailbox'] .mailbox-challan-stamp {
+        top: 114px;
+        right: 14px;
+        font-size: 19px;
+        letter-spacing: 2px;
+        padding: 4px 10px;
+        border-width: 3px;
+    }
+}
+[data-app='our-mailbox'] .mailbox-challan-stamp--issued {
+    color: var(--mailbox-destructive);
+}
+[data-app='our-mailbox'] .mailbox-challan-stamp--paid {
+    color: var(--mailbox-accent-text);
+}
+
+[data-app='our-mailbox'] .mailbox-challan-body {
+    position: relative;
+    z-index: 2;
+    padding: 18px 20px 20px;
+}
+[data-app='our-mailbox'] .mailbox-challan-refrow {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 2px;
+    margin-bottom: 14px;
+    font-family: var(--mailbox-challan-font);
+    font-size: 13px;
+    color: var(--mailbox-ink-soft);
+}
+
+[data-app='our-mailbox'] .mailbox-challan-fieldset {
+    border: 1px solid var(--mailbox-challan-faint);
+    border-radius: 3px;
+    padding: 12px 14px;
+    margin: 0 0 12px;
+}
+[data-app='our-mailbox'] .mailbox-challan-legend {
+    font-family: var(--mailbox-challan-font);
+    font-size: 11px;
+    letter-spacing: 1px;
+    padding: 0 8px;
+    color: var(--mailbox-ink-soft);
+}
+[data-app='our-mailbox'] .mailbox-challan-grid2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px 16px;
+}
+[data-app='our-mailbox'] .mailbox-challan-field-label {
+    font-family: var(--mailbox-challan-font);
+    font-size: 11px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: var(--mailbox-ink-soft);
+    margin-bottom: 2px;
+}
+[data-app='our-mailbox'] .mailbox-challan-field-value,
+[data-app='our-mailbox'] .mailbox-challan-field-value--hand {
+    font-family: var(--mailbox-font-hand);
+    font-size: 21px;
+    line-height: 1.3;
+    color: var(--mailbox-ink);
+}
+
+[data-app='our-mailbox'] .mailbox-challan-penalty {
+    background: var(--mailbox-challan-masthead-bg);
+    border: 1px dashed var(--mailbox-challan-faint);
+    border-radius: 3px;
+    padding: 10px 12px;
+    font-family: var(--mailbox-challan-font);
+    font-size: 16px;
+    color: var(--mailbox-ink);
+}
+
+[data-app='our-mailbox'] .mailbox-challan-footer {
+    position: relative;
+    z-index: 2;
+    border-top: 1px solid var(--mailbox-border);
+    padding: 12px 20px;
+    text-align: center;
+    font-size: 11px;
+    color: var(--mailbox-ink-soft);
+}
+[data-app='our-mailbox'] .mailbox-challan-footer .mailbox-challan-heart {
+    color: var(--mailbox-destructive);
+}
+
+[data-app='our-mailbox'] .mailbox-board {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px;
+}
+
+@media (max-width: 639px) {
+    [data-app='our-mailbox'] .mailbox-board {
+        grid-template-columns: minmax(0, 1fr);
+    }
+}
+
+[data-app='our-mailbox'] .mailbox-pin-card {
+    display: block;
+    padding: 20px 24px;
+    border-radius: 22px;
+    background: var(--mailbox-card);
+    border: 1px solid var(--mailbox-border);
+    transition:
+        transform 0.25s cubic-bezier(0.34, 1.4, 0.64, 1),
+        border-color 0.15s ease;
+}
+
+[data-app='our-mailbox'] .mailbox-pin-card:focus-visible {
+    outline: none;
+    box-shadow: var(--mailbox-focus-ring);
+}
+
+@media (hover: hover) {
+    [data-app='our-mailbox'] .mailbox-pin-card:hover {
+        transform: translateY(-3px);
+        border-color: var(--mailbox-accent);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    [data-app='our-mailbox'] .mailbox-pin-card {
+        transition: border-color 0.15s ease;
+    }
+
+    [data-app='our-mailbox'] .mailbox-pin-card:hover {
+        transform: none;
+    }
+}
+
+[data-app='our-mailbox'] .mailbox-coupon-doc {
+    position: relative;
+    background: var(--mailbox-paper);
+    color: var(--mailbox-ink);
+    border: 1.5px solid var(--mailbox-accent-text);
+    border-radius: 18px;
+    overflow: hidden;
+    max-width: 640px;
+    margin: 0 auto;
+}
+[data-app='our-mailbox'] .mailbox-coupon-doc.is-depleted {
+    opacity: 0.66;
+}
+
+[data-app='our-mailbox'] .mailbox-coupon-head {
+    position: relative;
+    padding: 20px 24px 16px;
+    background: var(--mailbox-coupon-tint);
+    border-bottom: 2px solid var(--mailbox-ink);
+}
+[data-app='our-mailbox'] .mailbox-coupon-eyebrow {
+    font-family: var(--mailbox-coupon-font-mono);
+    font-size: 11px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--mailbox-coupon-seal);
+    padding-right: 60px;
+}
+[data-app='our-mailbox'] .mailbox-coupon-title {
+    font-family: var(--mailbox-coupon-font-display);
+    font-size: 30px;
+    line-height: 1.06;
+    margin: 4px 0 2px;
+    color: var(--mailbox-ink);
+    padding-right: 60px;
+}
+[data-app='our-mailbox'] .mailbox-coupon-desc {
+    font-family: var(--mailbox-font-hand);
+    font-size: 18px;
+    color: var(--mailbox-ink-soft);
+    line-height: 1.35;
+}
+[data-app='our-mailbox'] .mailbox-coupon-seal {
+    position: absolute;
+    top: 16px;
+    right: 20px;
+    width: 52px;
+    height: 52px;
+    border-radius: 999px;
+    border: 2px solid var(--mailbox-coupon-seal);
+    color: var(--mailbox-coupon-seal);
+    display: grid;
+    place-items: center;
+    font-family: var(--mailbox-coupon-font-mono);
+    font-weight: 700;
+    font-size: 17px;
+    letter-spacing: 1px;
+}
+
+[data-app='our-mailbox'] .mailbox-coupon-body {
+    padding: 22px 24px 20px;
+}
+[data-app='our-mailbox'] .mailbox-coupon-punchlabel {
+    font-family: var(--mailbox-coupon-font-mono);
+    font-size: 10px;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--mailbox-ink-soft);
+    margin-bottom: 14px;
+    text-align: center;
+}
+[data-app='our-mailbox'] .mailbox-coupon-grid {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+    flex-wrap: wrap;
+    margin-bottom: 4px;
+}
+[data-app='our-mailbox'] .mailbox-coupon-box {
+    position: relative;
+    width: 52px;
+    height: 52px;
+    border-radius: 6px;
+    border: 2px solid
+        color-mix(in oklab, var(--mailbox-coupon-seal) 40%, transparent);
+    background: var(--mailbox-paper);
+    display: grid;
+    place-items: center;
+    font-family: var(--mailbox-coupon-font-mono);
+    font-size: 26px;
+    font-weight: 700;
+    line-height: 1;
+    color: var(--mailbox-coupon-seal);
+}
+[data-app='our-mailbox'] .mailbox-coupon-box .mailbox-coupon-box-n {
+    position: absolute;
+    top: 3px;
+    left: 5px;
+    font-size: 9px;
+    font-weight: 400;
+    color: var(--mailbox-ink-soft);
+    opacity: 0.7;
+}
+[data-app='our-mailbox'] .mailbox-coupon-box.is-checked {
+    border-color: var(--mailbox-coupon-seal);
+    background: var(--mailbox-coupon-tint);
+}
+[data-app='our-mailbox'] .mailbox-coupon-box.is-checked .mailbox-coupon-check {
+    display: inline-block;
+    transform: rotate(-9deg);
+}
+[data-app='our-mailbox'] .mailbox-coupon-box.is-next {
+    border-style: dashed;
+    border-color: var(--mailbox-accent-text);
+    background: color-mix(
+        in oklab,
+        var(--mailbox-accent-text) 8%,
+        var(--mailbox-paper)
+    );
+    font-size: 20px;
+}
+[data-app='our-mailbox'] .mailbox-coupon-remaining {
+    text-align: center;
+    font-family: var(--mailbox-coupon-font-mono);
+    font-size: 13px;
+    color: var(--mailbox-ink);
+    margin-top: 10px;
+}
+[data-app='our-mailbox'] .mailbox-coupon-remaining b {
+    color: var(--mailbox-coupon-seal);
+    font-size: 15px;
+}
+
+[data-app='our-mailbox'] .mailbox-coupon-stamp {
+    display: inline-block;
+    margin-left: 8px;
+    font-family: var(--mailbox-coupon-font-mono);
+    font-size: 14px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    padding: 2px 8px;
+    border: 3px double currentColor;
+    border-radius: 6px;
+    transform: rotate(-3deg);
+    opacity: 0.84;
+}
+[data-app='our-mailbox'] .mailbox-coupon-stamp--requested {
+    color: var(--mailbox-accent-text);
+}
+[data-app='our-mailbox'] .mailbox-coupon-stamp--depleted {
+    color: var(--mailbox-ink-soft);
+}
+[data-app='our-mailbox'] .mailbox-coupon-stamp--expired {
+    color: var(--mailbox-ink-soft);
+}
+
+[data-app='our-mailbox'] .mailbox-coupon-await {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    margin: 16px auto 0;
+    max-width: 560px;
+    padding: 9px 14px;
+    border-radius: 8px;
+    background: color-mix(
+        in oklab,
+        var(--mailbox-accent) 12%,
+        var(--mailbox-paper)
+    );
+    border: 1px solid
+        color-mix(in oklab, var(--mailbox-accent) 40%, transparent);
+    color: var(--mailbox-ink);
+    font-size: 13px;
+    text-align: center;
+}
+
+[data-app='our-mailbox'] .mailbox-coupon-foot {
+    display: flex;
+    justify-content: space-between;
+    gap: 16px;
+    flex-wrap: wrap;
+    border-top: 1px dashed var(--mailbox-coupon-rule);
+    margin: 18px 24px 0;
+    padding: 14px 0 20px;
+    font-family: var(--mailbox-coupon-font-mono);
+    font-size: 12px;
+    color: var(--mailbox-ink-soft);
+}
+[data-app='our-mailbox'] .mailbox-coupon-foot .mailbox-coupon-foot-lbl {
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    font-size: 10px;
+    display: block;
+    margin-bottom: 2px;
+}
+[data-app='our-mailbox'] .mailbox-coupon-foot .mailbox-coupon-foot-val {
+    color: var(--mailbox-ink);
+    font-size: 13px;
+}
+
+[data-app='our-mailbox'] .mailbox-coupon-pips {
+    display: flex;
+    gap: 4px;
+    flex-wrap: wrap;
+}
+[data-app='our-mailbox'] .mailbox-coupon-pip {
+    width: 14px;
+    height: 14px;
+    border-radius: 3px;
+    border: 1.5px solid
+        color-mix(in oklab, var(--mailbox-coupon-seal) 45%, transparent);
+    background: var(--mailbox-paper);
+}
+[data-app='our-mailbox'] .mailbox-coupon-pip.is-checked {
+    border-color: var(--mailbox-coupon-seal);
+    background: var(--mailbox-coupon-seal);
+}
+
+[data-app='our-mailbox'] .mailbox-feed {
+    margin-top: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: var(--mailbox-feed-gap, 12px);
+}
+
+[data-app='our-mailbox'] .mailbox-feed:has(> .mailbox-note),
+[data-app='our-mailbox'] .mailbox-feed:has(> .mailbox-bouquet) {
+    display: grid;
+    gap: 18px;
+    align-items: start;
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 340px), 1fr));
+}
+
+[data-app='our-mailbox'] .mailbox-feed > :not(article) {
+    grid-column: 1 / -1;
+}
+
+[data-app='our-mailbox'] .mailbox-bouquet {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: 12px;
+}
+
+[data-app='our-mailbox'] .mailbox-written {
+    font-family: var(--mailbox-font-hand);
+    font-size: 21px;
+    line-height: 1.3;
+    color: var(--mailbox-ink);
+    text-decoration: none;
+}
+
+[data-app='our-mailbox'] .mailbox-artifact-page {
+    max-width: 640px;
+    margin-inline: auto;
+}
+
+[data-app='our-mailbox'] .mailbox-composer-paper {
+    background-color: var(--mailbox-card);
+    background-image: var(--mailbox-paper-bg-image);
+    background-attachment: local;
+    background-position: 0 12px;
+    padding: 12px 16px 8px 48px;
+}
+
+[data-app='our-mailbox'] .mailbox-recipients {
+    border: 0;
+    margin: 0;
+    padding: 0;
+    min-width: 0;
+}
+
+[data-app='our-mailbox'] .mailbox-recipients-legend {
+    padding: 0;
+    margin-bottom: 6px;
+    font-size: var(--mailbox-type-scale-eyebrow);
+    color: var(--mailbox-ink-soft);
+}
+
+[data-app='our-mailbox'] .mailbox-recipient-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+[data-app='our-mailbox'] .mailbox-recipient-chip {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+    padding: 0 16px;
+    border: 1px solid var(--mailbox-border);
+    border-radius: 999px;
+    color: var(--mailbox-ink);
+    cursor: pointer;
+    transition: background-color 120ms ease;
+}
+
+[data-app='our-mailbox'] .mailbox-recipient-chip:has(input:checked) {
+    border-color: var(--mailbox-accent-text);
+    background-color: color-mix(
+        in oklab,
+        var(--mailbox-accent) 35%,
+        var(--mailbox-paper)
+    );
+}
+
+[data-app='our-mailbox'] .mailbox-recipient-chip:has(input:focus-visible) {
+    box-shadow: var(--mailbox-focus-ring);
+}
+
+[data-app='our-mailbox'] .mailbox-recipient-solo {
+    margin: 0;
+    color: var(--mailbox-ink);
+}
+
+[data-app='our-mailbox'] .mailbox-recipients-error {
+    margin: 6px 0 0;
+    font-size: 13px;
+    color: var(--mailbox-destructive);
+}
+
+@media (prefers-reduced-motion: reduce) {
+    [data-app='our-mailbox'] .mailbox-recipient-chip {
+        transition: none;
+    }
+}
+
+[data-app='our-mailbox'] .mailbox-bouquet-image-button {
+    position: relative;
+    display: block;
+    width: 100%;
+    aspect-ratio: 4 / 5;
+    border-radius: 14px;
+    overflow: hidden;
+    border: none;
+    padding: 0;
+    background: transparent;
+    cursor: pointer;
+}
+
+[data-app='our-mailbox'] .mailbox-bouquet-expand {
+    position: absolute;
+    right: 4px;
+    bottom: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 20px;
+    height: 20px;
+    border-radius: 6px;
+    background: rgba(0, 0, 0, 0.45);
+    color: #fff;
+}
+
+[data-app='our-mailbox'] .mailbox-bouquet-note {
+    font-family: var(--mailbox-font-hand);
+    font-size: 21px;
+    line-height: 28px;
+    margin: 0 0 6px;
+    color: var(--mailbox-ink);
+    white-space: pre-wrap;
+    word-break: break-word;
+}
+
+[data-app='our-mailbox'] .mailbox-bouquet-flowers {
+    font-family: var(--font-sans);
+    font-size: var(--mailbox-type-scale-eyebrow);
+    margin: 0;
+    color: var(--mailbox-ink-soft);
+    line-height: 1.4;
+}
+
+[data-app='our-mailbox'] .mailbox-bouquet-meta {
+    font-family: var(--mailbox-font-hand);
+    font-size: var(--mailbox-type-scale-eyebrow);
+    margin: 0;
+    color: var(--mailbox-ink-soft);
+}
+
+[data-app='our-mailbox'] .mailbox-card-menu-square {
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    border: none;
+    background: transparent;
+    color: var(--mailbox-ink);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+[data-app='our-mailbox'].mailbox-bouquet-lightbox {
+    background: var(--mailbox-bg);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    max-width: 94vw;
+    width: auto;
+    border: none;
+}
+
+[data-app='our-mailbox'] .mailbox-lightbox-image {
+    display: block;
+    max-width: 90vw;
+    max-height: 80vh;
+    object-fit: contain;
+    border-radius: 8px;
+}
+
+[data-app='our-mailbox'].mailbox-sheet-content {
+    background: var(--mailbox-paper);
+    color: var(--mailbox-ink);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+[data-app='our-mailbox'] .mailbox-sheet-scroll {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    -webkit--overflow-scrolling: touch;
+}
+
+[data-app='our-mailbox'] .mailbox-flower-chip {
+    padding: 6px 12px;
+    border-radius: 999px;
+    font-size: var(--mailbox-type-scale-eyebrow);
+    transition:
+        background var(--mailbox-ease),
+        border-color var(--mailbox-ease),
+        color var(--mailbox-ease);
+}
+
+[data-app='our-mailbox'] .mailbox-field-label {
+    display: block;
+    font-size: var(--mailbox-type-scale-eyebrow);
+    color: var(--mailbox-ink-soft);
+    margin-bottom: 6px;
+}
+
+[data-app='our-mailbox'] .mailbox-bouquet-mood-input {
+    width: 100%;
+    font-family: var(--mailbox-font-hand);
+    font-size: var(--mailbox-type-scale-body);
+    color: var(--mailbox-ink);
+    background: transparent;
+    border: 1px solid var(--mailbox-border);
+    border-radius: 8px;
+    padding: 10px 12px;
+    box-sizing: border-box;
+}
+
+[data-app='our-mailbox'] .mailbox-btn-arrange {
+    background: var(--mailbox-accent);
+    color: var(--mailbox-accent-fg);
+    border: none;
+    border-radius: 8px;
+    min-height: 44px;
+    font-family: inherit;
+}
+
+[data-app='our-mailbox'] .mailbox-bouquet-stage {
+    border-radius: 8px;
+    overflow: hidden;
+    border: 1px solid var(--mailbox-border);
+    background: var(--mailbox-bg);
+    height: 300px;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+[data-app='our-mailbox'] .mailbox-bouquet-shimmer {
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(
+        90deg,
+        var(--mailbox-border) 25%,
+        var(--mailbox-paper) 50%,
+        var(--mailbox-border) 75%
+    );
+    background-size: 200% 100%;
+    animation: mailbox-shimmer 1.4s ease-in-out infinite;
+    border-radius: 8px;
+}
+
+[data-app='our-mailbox'] .mailbox-link-retry {
+    background: transparent;
+    color: var(--mailbox-accent-text);
+    border: none;
+    cursor: pointer;
+    font-size: var(--mailbox-type-scale-eyebrow);
+    text-decoration: underline;
+}
+
+[data-app='our-mailbox'] .mailbox-bouquet-note-input {
+    font-family: var(--mailbox-font-hand);
+    font-size: var(--mailbox-type-scale-body);
+    line-height: 24px;
+    color: var(--mailbox-ink);
+    background: transparent;
+    border: 1px solid var(--mailbox-border);
+    border-radius: 8px;
+    padding: 12px;
+    resize: vertical;
+    min-height: 100px;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+[data-app='our-mailbox'] .mailbox-status-pill {
+    font-size: var(--text-meta);
+    font-weight: 600;
+    border-radius: 999px;
+    padding: 2px 8px;
+    white-space: nowrap;
+}
+
+[data-app='our-mailbox'] .mailbox-check-label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: var(--mailbox-type-scale-eyebrow);
+    color: var(--mailbox-ink);
+    cursor: pointer;
+}
+
+[data-app='our-mailbox'] .mailbox-hand-textarea {
+    font-family: var(--mailbox-font-hand);
+    line-height: 24px;
+    resize: vertical;
+    min-height: 80px;
+}
+
+[data-app='our-mailbox'] .mailbox-btn-submit {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--mailbox-accent-fg);
+    background-color: var(--mailbox-accent);
+    border: none;
+    border-radius: 8px;
+    padding: 10px 24px;
+    min-height: 44px;
+}
+
+[data-app='our-mailbox'] .mailbox-note-input {
+    font-family: var(--mailbox-font-hand);
+    font-size: 21px;
+    line-height: 32px;
+    color: var(--mailbox-ink);
+    border-radius: 8px;
+    padding: 12px;
+    resize: vertical;
+    min-height: 160px;
+    width: 100%;
+}
+
+[data-app='our-mailbox'] .mailbox-btn-send-another {
+    background: transparent;
+    color: var(--mailbox-ink-soft);
+    border: 1px solid var(--mailbox-border);
+    border-radius: 8px;
+    padding: 10px 16px;
+    font-size: 14px;
+    min-height: 44px;
+}
+
+[data-app='our-mailbox'] .mailbox-coupon-card-title {
+    text-decoration: none;
+    color: var(--mailbox-ink);
+    font-family: var(--mailbox-coupon-font-display);
+    font-size: 20px;
+    line-height: 1.15;
+}
+
+[data-app='our-mailbox'] .mailbox-coupon-quantity {
+    font-family: var(--mailbox-coupon-font-display);
+    font-size: 24px;
+    min-width: 2ch;
+    text-align: center;
+    color: var(--mailbox-ink);
+}
+
+[data-app='our-mailbox'] .mailbox-pin-title {
+    font-family: var(--mailbox-font-hand);
+    font-size: 30px;
+    line-height: 1.1;
+    color: var(--mailbox-ink);
+}
+
+[data-app='our-mailbox'] .mailbox-pin-preview {
+    font-family: var(--mailbox-font-hand);
+    font-size: 20px;
+    line-height: 1.3;
+    margin: 8px 0 0;
+    color: var(--mailbox-ink);
+}
+
+[data-app='our-mailbox'] .mailbox-note-body {
+    font-family: var(--mailbox-font-hand);
+    font-size: 21px;
+    line-height: 32px;
+    margin: 0;
+    color: var(--mailbox-ink);
+    white-space: pre-wrap;
+    word-break: break-word;
+}
+
+[data-app='our-mailbox'] .mailbox-note-meta {
+    font-family: var(--font-sans);
+    font-size: var(--mailbox-type-scale-eyebrow);
+    margin: 0;
+    color: var(--mailbox-ink-soft);
+}
+
+[data-app='our-mailbox'] .mailbox-card-menu {
+    width: 32px;
+    height: 32px;
+    border-radius: 999px;
+    border: none;
+    background: transparent;
+    color: var(--mailbox-ink);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+@keyframes mailbox-shimmer {
+    0% {
+        background-position: 200% 0;
+    }
+    100% {
+        background-position: -200% 0;
+    }
+}
+
+[data-app='our-mailbox'] #challan-date,
+[data-app='our-mailbox'] #coupon-expiry {
+    -webkit-appearance: none;
+    appearance: none;
+    min-width: 0;
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+}
+
+@media (max-width: 720px) {
+    [data-app='our-mailbox'] .challan-incident-grid {
+        grid-template-columns: minmax(0, 1fr);
+    }
+}
+
+[data-app='our-mailbox'] .mailbox-field {
+    width: 100%;
+    font-size: var(--mailbox-type-scale-body);
+    color: var(--mailbox-ink);
+    background: transparent;
+    border: 1px solid var(--mailbox-border);
+    border-radius: 8px;
+    padding: 10px 12px;
+    box-sizing: border-box;
+    min-width: 0;
+}
+
+[data-app='our-mailbox'] .mailbox-field-error {
+    font-size: 13px;
+    color: var(--mailbox-destructive);
+    margin: 4px 0 0;
+}
+
+[data-app='our-mailbox'] .mailbox-coupon-step {
+    width: 44px;
+    height: 44px;
+    border-radius: 8px;
+    border: 1px solid var(--mailbox-border);
+    background: transparent;
+    color: var(--mailbox-ink);
+    font-size: 20px;
+    line-height: 1;
+    cursor: pointer;
+}
+
+[data-app='our-mailbox'] .mailbox-btn-neutral {
+    padding: 8px 14px;
+    border-radius: 999px;
+    background: transparent;
+    color: var(--mailbox-ink);
+    border: 1px solid var(--mailbox-border);
+    font-size: 14px;
+    cursor: pointer;
+}
+
+[data-app='our-mailbox'] .mailbox-btn-primary {
+    padding: 10px 16px;
+    border-radius: 999px;
+    background: var(--mailbox-action);
+    color: var(--mailbox-action-fg);
+    border: none;
+    font-weight: 600;
+    font-size: 14px;
+    cursor: pointer;
+}
+
+[data-app='our-mailbox'] .mailbox-btn-primary-row {
+    padding: 10px 16px;
+    border-radius: 999px;
+    background: transparent;
+    color: var(--mailbox-ink);
+    border: 1px solid var(--mailbox-border);
+    font-weight: 600;
+    font-size: 14px;
+    cursor: pointer;
+}
