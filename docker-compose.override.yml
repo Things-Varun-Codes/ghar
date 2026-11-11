@@ -22,7 +22,7 @@
 
 services:
   postgres:
-    image: postgres:17.11-alpine3.24
+    image: postgres:18.4-alpine3.24
     restart: unless-stopped
     ports:
       - "127.0.0.1:${GHAR_DB_PORT:-5432}:5432"
