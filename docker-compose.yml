@@ -1,0 +1,121 @@
+# Production stack: one container running PHP-FPM, nginx and supervisord. No
+# `ports:` block; a reverse proxy on the same Docker network reaches it through
+# EXPOSE 80. PostgreSQL 17 is provisioned separately (DB_HOST). Env vars come from
+# your host at deploy time, never from a baked-in .env.
+#
+# `docker-compose.override.yml` is local-dev only. For Postgres and a published
+# port without a separate database or proxy, see
+# docker-compose.selfhost.yml.
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      # Build-time only. Deliberately not in `environment:`, to keep the upload token
+      # out of the runtime container.
+      args:
+        SENTRY_URL: ${SENTRY_URL:-}
+        SENTRY_AUTH_TOKEN: ${SENTRY_AUTH_TOKEN:-}
+        SENTRY_ORG: ${SENTRY_ORG:-}
+        SENTRY_PROJECT: ${SENTRY_PROJECT:-}
+    restart: unless-stopped
+    environment:
+      APP_NAME: ${APP_NAME:-Ghar}
+      APP_ENV: ${APP_ENV:-production}
+      # Empty: generated on first start and kept in the storage volume.
+      APP_KEY: ${APP_KEY:-}
+      APP_PREVIOUS_KEYS: ${APP_PREVIOUS_KEYS:-}
+      APP_DEBUG: ${APP_DEBUG:-false}
+      APP_URL: ${APP_URL}
+      APP_LOCALE: ${APP_LOCALE:-en}
+      APP_FALLBACK_LOCALE: ${APP_FALLBACK_LOCALE:-en}
+      APP_MAINTENANCE_DRIVER: ${APP_MAINTENANCE_DRIVER:-file}
+      BCRYPT_ROUNDS: ${BCRYPT_ROUNDS:-12}
+      # Who may set X-Forwarded-*: `private` (a proxy on this host or Docker network),
+      # `cloudflare`, CIDRs, or a comma-separated mix. See DEPLOY.md.
+      TRUSTED_PROXIES: ${TRUSTED_PROXIES:-private}
+      # `stack` would append to a file in app_storage with no rotation. `stderr` goes
+      # to the Docker log driver, which can rotate.
+      LOG_CHANNEL: ${LOG_CHANNEL:-stderr}
+      LOG_STACK: ${LOG_STACK:-single}
+      LOG_DEPRECATIONS_CHANNEL: ${LOG_DEPRECATIONS_CHANNEL:-null}
+      LOG_LEVEL: ${LOG_LEVEL:-warning}
+
+      DB_CONNECTION: pgsql
+      DB_HOST: ${DB_HOST:-}
+      DB_PORT: ${DB_PORT:-5432}
+      DB_DATABASE: ${DB_DATABASE:-}
+      DB_USERNAME: ${DB_USERNAME:-}
+      DB_PASSWORD: ${DB_PASSWORD}
+      DB_SSLMODE: ${DB_SSLMODE:-prefer}
+
+      # Sessions + cache live in the database so a container restart doesn't
+      # invalidate user sessions or wipe the warmed cache.
+      SESSION_DRIVER: database
+      SESSION_LIFETIME: ${SESSION_LIFETIME:-43200}
+      SESSION_ENCRYPT: ${SESSION_ENCRYPT:-false}
+      SESSION_PATH: ${SESSION_PATH:-/}
+      SESSION_DOMAIN: ${SESSION_DOMAIN:-null}
+      SESSION_SECURE_COOKIE: ${SESSION_SECURE_COOKIE:-}
+      CACHE_STORE: database
+      QUEUE_CONNECTION: database
+      FILESYSTEM_DISK: local
+
+      # Mail. MAIL_MAILER is `resend` (needs RESEND_API_KEY and a verified
+      # domain) or `smtp` for any other provider (MAIL_HOST and friends).
+      MAIL_MAILER: ${MAIL_MAILER:-resend}
+      MAIL_FROM_ADDRESS: ${MAIL_FROM_ADDRESS:-}
+      MAIL_FROM_NAME: ${MAIL_FROM_NAME:-Ghar}
+      RESEND_API_KEY: ${RESEND_API_KEY:-}
+      MAIL_HOST: ${MAIL_HOST:-}
+      MAIL_PORT: ${MAIL_PORT:-587}
+      MAIL_USERNAME: ${MAIL_USERNAME:-}
+      MAIL_PASSWORD: ${MAIL_PASSWORD:-}
+      MAIL_SCHEME: ${MAIL_SCHEME:-}
+
+      # Media: `local` (the `media` volume below) or `s3` (any S3-compatible bucket).
+      MEDIA_DISK: ${MEDIA_DISK:-local}
+      S3_ACCESS_KEY_ID: ${S3_ACCESS_KEY_ID:-}
+      S3_SECRET_ACCESS_KEY: ${S3_SECRET_ACCESS_KEY:-}
+      S3_BUCKET: ${S3_BUCKET:-}
+      S3_ENDPOINT: ${S3_ENDPOINT:-}
+      S3_REGION: ${S3_REGION:-auto}
+      S3_USE_PATH_STYLE_ENDPOINT: ${S3_USE_PATH_STYLE_ENDPOINT:-true}
+
+      # First start only: creates this admin and prints its password to the log.
+      GHAR_ADMIN_EMAIL: ${GHAR_ADMIN_EMAIL:-}
+      GHAR_ADMIN_NAME: ${GHAR_ADMIN_NAME:-}
+
+      # Web Push. Empty keys are generated on first start; the subject defaults to APP_URL.
+      VAPID_PUBLIC_KEY: ${VAPID_PUBLIC_KEY:-}
+      VAPID_PRIVATE_KEY: ${VAPID_PRIVATE_KEY:-}
+      VAPID_SUBJECT: ${VAPID_SUBJECT:-}
+
+      # Error tracking. Empty DSN turns it off.
+      SENTRY_LARAVEL_DSN: ${SENTRY_LARAVEL_DSN:-}
+      SENTRY_BROWSER_DSN: ${SENTRY_BROWSER_DSN:-}
+
+      # Optional. Public, referrer-restricted; empty disables the location field.
+      GOOGLE_MAPS_API_KEY: ${GOOGLE_MAPS_API_KEY:-}
+
+      # AI bouquets (Our Mailbox). No `fake` fallback on purpose: unset, the
+      # flowers feature fails loudly instead of silently serving a placeholder.
+      BOUQUET_IMAGE_PROVIDER: ${BOUQUET_IMAGE_PROVIDER:-}
+      CLOUDFLARE_ACCOUNT_ID: ${CLOUDFLARE_ACCOUNT_ID:-}
+      CLOUDFLARE_WORKERS_AI_TOKEN: ${CLOUDFLARE_WORKERS_AI_TOKEN:-}
+      CLOUDFLARE_AI_IMAGE_MODEL: ${CLOUDFLARE_AI_IMAGE_MODEL:-@cf/black-forest-labs/flux-1-schnell}
+    volumes:
+      - app_storage:/var/www/html/storage
+      # Photos and videos when MEDIA_DISK=local. Back this up.
+      - media:/var/www/html/storage/app/private
+    healthcheck:
+      test: ['CMD-SHELL', 'wget -q -O- http://localhost/up || exit 1']
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 60s
+
+volumes:
+  app_storage:
+  media:

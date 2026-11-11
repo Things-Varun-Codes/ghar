@@ -1,0 +1,54 @@
+# Ghar — local development services.
+#
+# Compose auto-merges this file on top of docker-compose.yml when you run
+# `docker compose up` locally. Production deploys must read only
+# docker-compose.yml (pass `-f docker-compose.yml` explicitly if your host runs
+# plain `docker compose`), so anything defined here NEVER reaches production.
+#
+# Start just the dev dependencies (no app image build needed):
+#
+#   docker compose -f docker-compose.override.yml up -d postgres mailpit
+#
+# `npm run dev-setup` does this for you. Postgres listens on 127.0.0.1:5432
+# (user/password `ghar`/`ghar`). The `ghar` database is created on first start;
+# PHPUnit uses `ghar_test` and the smoke scripts use `ghar_smoke` (both created
+# on first start by the init script, and by the scripts themselves if missing).
+#
+# Mailpit captures outbound mail at smtp://127.0.0.1:1025 (web UI at
+# http://127.0.0.1:8025); .env.example already points the app at it.
+#
+# If a port is taken, set GHAR_DB_PORT, GHAR_MAILPIT_SMTP_PORT or
+# GHAR_MAILPIT_UI_PORT before starting.
+
+services:
+  postgres:
+    image: postgres:17.11-alpine3.24
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:${GHAR_DB_PORT:-5432}:5432"
+    environment:
+      POSTGRES_USER: ghar
+      POSTGRES_PASSWORD: ghar
+      POSTGRES_DB: ghar
+    volumes:
+      - ghar_postgres:/var/lib/postgresql/data
+      - ./docker/postgres/init:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ghar -d ghar"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  mailpit:
+    image: axllent/mailpit:v1.33.1
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:${GHAR_MAILPIT_SMTP_PORT:-1025}:1025" # SMTP
+      - "127.0.0.1:${GHAR_MAILPIT_UI_PORT:-8025}:8025" # Web UI
+    environment:
+      MP_MAX_MESSAGES: 5000
+      MP_SMTP_AUTH_ACCEPT_ANY: 1
+      MP_SMTP_AUTH_ALLOW_INSECURE: 1
+
+volumes:
+  ghar_postgres:

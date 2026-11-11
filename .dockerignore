@@ -1,0 +1,101 @@
+# Ghar — exclude from Docker build context.
+# The build copies the whole repo into the image; everything here stays out.
+
+# Dependencies (re-installed inside the image)
+/node_modules
+/vendor
+
+# Vite output (re-built inside the image)
+/public/build
+/public/hot
+/public/storage
+
+# Wayfinder + Vite-generated TS (re-generated inside the image)
+/resources/js/actions
+/resources/js/routes
+/resources/js/wayfinder
+
+# Secrets — never leak into the image
+.env
+.env.*
+!.env.example
+
+# Local dev artifacts. The `!` exceptions keep each directory's
+# .gitignore marker in the build context so the directory itself
+# survives into the image — without them, Laravel fails at build
+# time (package:discover writes to bootstrap/cache) and at runtime
+# (log/session/view caches need a writable parent).
+/storage/logs/*
+!/storage/logs/.gitignore
+/storage/framework/cache/*
+!/storage/framework/cache/.gitignore
+/storage/framework/sessions/*
+!/storage/framework/sessions/.gitignore
+/storage/framework/views/*
+!/storage/framework/views/.gitignore
+/storage/framework/testing/*
+!/storage/framework/testing/.gitignore
+/storage/pail
+/storage/app/public/*
+/storage/app/private/*
+/storage/app/generated-secrets.env
+/storage/*.key
+/bootstrap/cache/*
+!/bootstrap/cache/.gitignore
+
+# Test + lint artifacts
+/.phpunit.cache
+/.phpunit.result.cache
+
+# IDE + OS
+.idea
+.vscode
+.DS_Store
+
+# Git
+/.git
+/.gitignore
+/.gitattributes
+/.github
+
+# Agent tooling (irrelevant to the image)
+/.claude
+/.agents
+/.mcp.json
+/skills-lock.json
+
+# Build + orchestration metadata (not read inside the image)
+/Dockerfile
+/.dockerignore
+/docker-compose.yml
+/docker-compose.override.yml
+/docker-compose.selfhost.yml
+
+# Dev-only tests, tooling, and scripts
+/tests
+/tools
+/scripts
+/phpunit.xml
+/phpstan.neon
+/pint.json
+/lefthook.yml
+/eslint.config.js
+/vitest.config.ts
+
+# Local scratch / smoke artifacts (git-ignored, but exclude for local builds)
+/.playwright-mcp
+
+# Docs not needed at runtime
+/CLAUDE.md
+/CONTRIBUTING.md
+/DEPLOY.md
+/README.md
+/ROADMAP.md
+/SECURITY.md
+/CHANGELOG.md
+/docs
+
+# Nested env files — the root `.env` glob does NOT match these
+**/.env
+**/.env.*
+!**/.env.example

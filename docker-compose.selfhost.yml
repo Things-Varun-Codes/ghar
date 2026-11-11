@@ -1,0 +1,63 @@
+# Ghar on your own machine: the published image, PostgreSQL 17 and one port.
+# Everything else is read from a `.env` next to this file; see .env.selfhost.example.
+#
+#   curl -LO https://raw.githubusercontent.com/Things-Varun-Codes/ghar/main/docker-compose.selfhost.yml
+#   curl -L -o .env https://raw.githubusercontent.com/Things-Varun-Codes/ghar/main/.env.selfhost.example
+#   docker compose -f docker-compose.selfhost.yml up -d
+#
+# Upgrading: read CHANGELOG.md, back up, change GHAR_VERSION, then `pull` and `up -d`.
+
+services:
+  app:
+    image: ${GHAR_IMAGE:-ghcr.io/things-varun-codes/ghar}:${GHAR_VERSION:-1}
+    restart: unless-stopped
+    ports:
+      - '${GHAR_PORT:-8080}:80'
+    env_file: .env
+    # Fixed for this stack, whatever .env says.
+    environment:
+      APP_ENV: production
+      APP_DEBUG: 'false'
+      DB_CONNECTION: pgsql
+      DB_HOST: db
+      DB_PORT: '5432'
+      DB_DATABASE: ghar
+      DB_USERNAME: ghar
+      SESSION_DRIVER: database
+      CACHE_STORE: database
+      QUEUE_CONNECTION: database
+      FILESYSTEM_DISK: local
+      LOG_CHANNEL: stderr
+    volumes:
+      - app_storage:/var/www/html/storage
+      # Photos and videos when MEDIA_DISK=local (the default). Back this up.
+      - ${GHAR_MEDIA_PATH:-media}:/var/www/html/storage/app/private
+    depends_on:
+      db:
+        condition: service_healthy
+    healthcheck:
+      test: ['CMD-SHELL', 'wget -q -O- http://localhost/up || exit 1']
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 60s
+
+  db:
+    image: postgres:17.11-alpine3.24
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ghar
+      POSTGRES_PASSWORD: ${DB_PASSWORD:?Set DB_PASSWORD in .env}
+      POSTGRES_DB: ghar
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U ghar -d ghar']
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+volumes:
+  app_storage:
+  media:
+  postgres_data:

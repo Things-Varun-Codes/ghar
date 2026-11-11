@@ -1,0 +1,40 @@
+name: Bug report
+description: Something in Ghar doesn't work the way it should.
+labels: [bug]
+body:
+  - type: textarea
+    id: steps
+    attributes:
+      label: What you did
+      description: Steps to repeat it. The sample accounts from `npm run dev-setup` make this easy to follow.
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: What you expected, and what happened
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: Ghar version
+      description: The image tag you run (`GHAR_VERSION`), or the commit if you build from source.
+    validations:
+      required: true
+  - type: dropdown
+    id: install
+    attributes:
+      label: How you run it
+      options:
+        - docker-compose.selfhost.yml
+        - Built from source (docker-compose.yml or a PaaS)
+        - Local development
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs
+      description: Anything relevant from `docker compose logs app` or the browser console. Remove passwords, keys and addresses first.
+      render: text

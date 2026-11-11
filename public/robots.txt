@@ -1,0 +1,6 @@
+# Ghar is a private app for a household. No crawlers, no indexing.
+# The per-page <meta name="robots" content="noindex,nofollow"> tag lives on
+# GuestLayout and AppLayout so any layer that bypasses robots.txt (e.g. some
+# AI crawlers, screenshot bots) still sees the noindex signal.
+User-agent: *
+Disallow: /
