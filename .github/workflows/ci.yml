@@ -99,7 +99,9 @@ jobs:
       - run: npm ci --no-audit --no-fund
       - name: Prepare .env
         run: cp .env.example .env && php artisan key:generate
-      - run: npx playwright install --with-deps chromium
+      # The runner image already has Chromium's libraries; --with-deps only adds
+      # fonts, so an unreachable apt mirror shouldn't fail the job.
+      - run: npx playwright install --with-deps chromium || npx playwright install chromium
       - run: node scripts/check-smoke-routes.mjs
       - run: npm run smoke
 
