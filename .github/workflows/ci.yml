@@ -63,8 +63,9 @@ jobs:
       - run: npm run test:rules
       - run: vendor/bin/pint --test
       - run: vendor/bin/phpstan analyse --no-progress --memory-limit=1G
-      - run: php artisan test
+      # The feature tests render pages, which read the built Vite manifest.
       - run: npm run build
+      - run: php artisan test
 
   smoke:
     runs-on: ubuntu-24.04
