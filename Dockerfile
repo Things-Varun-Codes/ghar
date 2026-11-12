@@ -5,13 +5,14 @@
 # PHP must sit alongside Node in the builder: the Wayfinder Vite plugin shells
 # out to `php artisan` during `npm run build`.
 
-# Pinned so a rebuild is reproducible. Keep both PHP stages on the same tag: the
-# runtime stage copies compiled extensions from the builder.
-FROM composer:2.11.2 AS composer
-FROM node:22.23.4-alpine3.24 AS node
+# Pinned by tag and digest so a rebuild is reproducible and a re-pushed tag can't
+# change it; Dependabot moves both together. Keep both PHP stages on the same
+# image: the runtime stage copies compiled extensions from the builder.
+FROM composer:2.11.2@sha256:5bcb28b8d0edc4091125f8218f9d088f998bdfc843f8fbb9a4beb4dcd8625684 AS composer
+FROM node:22.23.4-alpine3.24@sha256:0e1754758c2df4cfa3e68d59e2e1b7374bb7fd9ea6328eaaacf15cc934af8202 AS node
 
 # ─── Stage 1: builder ─────────────────────────────────────────────────
-FROM php:8.5.12-fpm-alpine3.24 AS builder
+FROM php:8.5.12-fpm-alpine3.24@sha256:951fb5b1780219b81d5daffa4cebef8e0077c537f3893d9790a5dfcd66ca334d AS builder
 
 # Extensions compile once, here: the runtime stage copies the .so files, because
 # compiling ICU/intl in both stages in parallel OOM-kills a 4 GB host. gd's
@@ -102,7 +103,7 @@ RUN composer dump-autoload --optimize --classmap-authoritative \
     && rm -rf node_modules /root/.npm /root/.composer /tmp/*
 
 # ─── Stage 2: runtime ────────────────────────────────────────────────
-FROM php:8.5.12-fpm-alpine3.24 AS runtime
+FROM php:8.5.12-fpm-alpine3.24@sha256:951fb5b1780219b81d5daffa4cebef8e0077c537f3893d9790a5dfcd66ca334d AS runtime
 
 # Only the shared libs the copied extensions link against (verified with ldd):
 # icu-libs (intl), libpng/libjpeg-turbo/freetype/libwebp (gd), libzip (zip),

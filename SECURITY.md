@@ -2,8 +2,9 @@
 
 ## Reporting a vulnerability
 
-Please report it privately through GitHub: open the repository's **Security** tab and choose
-**Report a vulnerability**. Don't open a public issue.
+Please report it privately through GitHub, with
+[this form](https://github.com/Things-Varun-Codes/ghar/security/advisories/new) (it's also under
+the repository's **Security** tab, **Report a vulnerability**). Don't open a public issue.
 
 Include what you found, how to reproduce it and what an attacker could do with it. This is a spare-time
 project, so a reply can take a few days. Once there's a fix, you'll be credited if you'd like to be.

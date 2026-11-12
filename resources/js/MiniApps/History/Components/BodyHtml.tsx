@@ -1,5 +1,6 @@
 import React from 'react';
 
+import { internalHref, thumbnailSrc } from '@/MiniApps/History/lib/pillUrls';
 import { entityIcon } from '@/Shell/linkables/entityIcon';
 
 type BodyHtmlProps = {
@@ -22,29 +23,6 @@ const ALLOWED_TAGS = new Set([
     'li',
 ]);
 
-/* Corner links are absolute URLs from route(), so same-origin http(s) must pass as well as root-relative paths. */
-function isSafeInternalHref(href: string): boolean {
-    if (!href) {
-        return false;
-    }
-
-    if (href.startsWith('/')) {
-        return !href.startsWith('//');
-    }
-
-    try {
-        const url = new URL(href, window.location.origin);
-
-        return (
-            (url.protocol === 'http:' || url.protocol === 'https:') &&
-            url.origin === window.location.origin
-        );
-        // eslint-disable-next-line local/no-silent-error -- an unparseable href is simply not a safe internal link.
-    } catch {
-        return false;
-    }
-}
-
 function CornerLinkRead({
     type,
     title,
@@ -57,6 +35,8 @@ function CornerLinkRead({
     href: string;
 }) {
     const label = title || 'Corner link';
+    const safeHref = internalHref(href);
+    const safeThumbnail = thumbnailSrc(thumbnail);
     const iconEl = React.createElement(entityIcon(type), {
         size: 14,
         'aria-hidden': true,
@@ -67,9 +47,9 @@ function CornerLinkRead({
             <span className="tt-pill-glyph" aria-hidden="true">
                 {iconEl}
             </span>
-            {thumbnail ? (
+            {safeThumbnail ? (
                 <img
-                    src={thumbnail}
+                    src={safeThumbnail}
                     alt=""
                     className="history-body-pill-thumb"
                 />
@@ -78,11 +58,11 @@ function CornerLinkRead({
         </>
     );
 
-    if (isSafeInternalHref(href)) {
+    if (safeHref) {
         return (
             <a
                 className="tt-pill"
-                href={href}
+                href={safeHref}
                 onClick={(e) => e.stopPropagation()}
             >
                 {inner}
