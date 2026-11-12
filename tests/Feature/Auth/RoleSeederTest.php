@@ -10,27 +10,14 @@ class RoleSeederTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_role_seeder_creates_admin_role(): void
-    {
-        $this->seed(\Database\Seeders\RoleSeeder::class);
-
-        $this->assertDatabaseHas('roles', ['name' => 'admin', 'guard_name' => 'web']);
-    }
-
-    public function test_role_seeder_creates_user_role(): void
-    {
-        $this->seed(\Database\Seeders\RoleSeeder::class);
-
-        $this->assertDatabaseHas('roles', ['name' => 'user', 'guard_name' => 'web']);
-    }
-
-    public function test_role_seeder_is_idempotent(): void
+    public function test_role_seeder_creates_each_web_role_exactly_once(): void
     {
         // Running twice must not throw or produce duplicate rows.
         $this->seed(\Database\Seeders\RoleSeeder::class);
         $this->seed(\Database\Seeders\RoleSeeder::class);
 
-        $this->assertSame(1, Role::where('name', 'admin')->count());
-        $this->assertSame(1, Role::where('name', 'user')->count());
+        $this->assertSame(1, Role::where(['name' => 'admin', 'guard_name' => 'web'])->count());
+        $this->assertSame(1, Role::where(['name' => 'user', 'guard_name' => 'web'])->count());
+        $this->assertSame(2, Role::count());
     }
 }

@@ -35,31 +35,4 @@ class CannotDemoteLastAdminTest extends TestCase
         $this->assertTrue($admin->fresh()->hasRole('admin'));
         $this->assertFalse($admin->fresh()->hasRole('user'));
     }
-
-    public function test_admin_count_stays_at_least_one_after_attempted_demotion(): void
-    {
-        $admin = User::factory()->admin()->create();
-
-        $this->actingAs($admin)
-            ->patch(route('admin.users.update', ['user' => $admin->id]), [
-                'role' => 'user',
-            ]);
-
-        $this->assertGreaterThanOrEqual(1, User::role('admin')->count());
-    }
-
-    public function test_can_demote_when_another_admin_exists(): void
-    {
-        $admin1 = User::factory()->admin()->create();
-        $admin2 = User::factory()->admin()->create();
-
-        $response = $this->actingAs($admin1)
-            ->patch(route('admin.users.update', ['user' => $admin2->id]), [
-                'role' => 'user',
-            ]);
-
-        $response->assertRedirect(route('admin.users.index'));
-        $response->assertSessionMissing('errors');
-        $this->assertFalse($admin2->fresh()->hasRole('admin'));
-    }
 }

@@ -20,7 +20,7 @@ class EmailChangeRequiresConfirmTest extends TestCase
         $this->seed(RoleSeeder::class);
     }
 
-    public function test_changing_email_sends_verification_to_new_address(): void
+    public function test_changing_email_sends_verification_and_leaves_the_address_unchanged(): void
     {
         Notification::fake();
 
@@ -33,21 +33,8 @@ class EmailChangeRequiresConfirmTest extends TestCase
             ]);
 
         Notification::assertSentTo($user, VerifyChangedEmailNotification::class);
-    }
 
-    public function test_email_is_not_changed_until_link_is_clicked(): void
-    {
-        Notification::fake();
-
-        $user = User::factory()->create(['email' => 'old@example.com']);
-
-        $this->actingAs($user)
-            ->patch(route('settings.profile.update'), [
-                'name' => $user->name,
-                'email' => 'new@example.com',
-            ]);
-
-        // Email should NOT be changed yet
+        // Nothing changes until the emailed link is clicked.
         $this->assertSame('old@example.com', $user->fresh()->email);
     }
 
