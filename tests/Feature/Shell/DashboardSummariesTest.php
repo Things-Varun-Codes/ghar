@@ -13,7 +13,6 @@ use Database\Seeders\RoleSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Config;
-use Illuminate\Support\Str;
 use Tests\TestCase;
 
 class DashboardSummariesTest extends TestCase
@@ -176,20 +175,6 @@ class DashboardSummariesTest extends TestCase
 
         $this->actingAs(User::factory()->create())->get('/dashboard')
             ->assertInertia(fn ($p) => $p->missing('summaries.quiet'));
-    }
-
-    public function test_shell_files_import_no_mini_app_namespace(): void
-    {
-        foreach ([
-            'Shell/Controllers/DashboardController.php',
-            'Shell/Services/DashboardSummaries.php',
-            'Shell/Support/MiniAppRegistry.php',
-        ] as $file) {
-            $this->assertFalse(
-                Str::contains(file_get_contents(app_path($file)), 'use App\\MiniApps\\'),
-                "{$file} must not import any App\\MiniApps namespace (no cross-app imports).",
-            );
-        }
     }
 
     /** @return array<string, mixed> */

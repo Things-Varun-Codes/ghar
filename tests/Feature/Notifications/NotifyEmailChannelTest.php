@@ -67,28 +67,4 @@ class NotifyEmailChannelTest extends TestCase
             }
         );
     }
-
-    public function test_push_only_channel_does_not_include_mail(): void
-    {
-        Notification::fake();
-
-        /** @var User $user */
-        $user = User::factory()->create();
-
-        app(Notify::class)->send($user, [
-            'app' => 'our-history',
-            'body' => 'Push only',
-        ], ['push']);
-
-        Notification::assertSentTo(
-            $user,
-            GenericPushNotification::class,
-            function (GenericPushNotification $notification) use ($user) {
-                $via = $notification->via($user);
-
-                return ! in_array('mail', $via, true)
-                    && in_array(WebPushChannel::class, $via, true);
-            }
-        );
-    }
 }

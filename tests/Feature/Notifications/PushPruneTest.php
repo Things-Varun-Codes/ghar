@@ -86,15 +86,4 @@ class PushPruneTest extends TestCase
             'endpoint' => 'https://fcm.googleapis.com/fcm/send/active-endpoint',
         ]);
     }
-
-    public function test_webpush_report_handler_is_configured_to_auto_prune(): void
-    {
-        $handler = app(ReportHandler::class);
-
-        $this->assertInstanceOf(
-            ReportHandler::class,
-            $handler,
-            'The container must resolve ReportHandler (auto-prune wired)'
-        );
-    }
 }

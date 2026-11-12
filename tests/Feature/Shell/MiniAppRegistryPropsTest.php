@@ -51,7 +51,7 @@ class MiniAppRegistryPropsTest extends TestCase
         ];
     }
 
-    public function test_enabled_public_mini_apps_are_shared_with_non_admin_users(): void
+    public function test_non_admin_users_get_enabled_public_mini_apps_only(): void
     {
         Config::set('miniapps', $this->fixtureRegistry);
 
@@ -66,28 +66,11 @@ class MiniAppRegistryPropsTest extends TestCase
 
         $slugs = array_column($miniApps, 'slug');
         $this->assertContains('treasure-hunt', $slugs, 'Enabled public mini-app must be in miniApps props');
+        $this->assertNotContains('admin-tool', $slugs, 'admin_only mini-apps must NOT reach non-admin users');
+        $this->assertNotContains('coming-soon', $slugs, 'Disabled mini-apps must never appear');
     }
 
-    public function test_admin_only_mini_apps_are_excluded_for_non_admin_users(): void
-    {
-        Config::set('miniapps', $this->fixtureRegistry);
-
-        $user = User::factory()->create();
-        $response = $this->actingAs($user)->get(route('dashboard'));
-
-        $response->assertOk();
-        $page = json_decode(json_encode($response->viewData('page')), true);
-        $miniApps = $page['props']['miniApps'] ?? [];
-
-        $slugs = array_column($miniApps, 'slug');
-        $this->assertNotContains(
-            'admin-tool',
-            $slugs,
-            'admin_only mini-apps must NOT be in miniApps props for non-admin users'
-        );
-    }
-
-    public function test_admin_only_mini_apps_are_included_for_admin_users(): void
+    public function test_admin_users_also_get_admin_only_mini_apps_but_never_disabled_ones(): void
     {
         Config::set('miniapps', $this->fixtureRegistry);
 
@@ -105,26 +88,7 @@ class MiniAppRegistryPropsTest extends TestCase
             $slugs,
             'admin_only mini-apps MUST be in miniApps props for admin users'
         );
-    }
-
-    public function test_disabled_mini_apps_are_excluded_for_all_users(): void
-    {
-        Config::set('miniapps', $this->fixtureRegistry);
-
-        $admin = User::factory()->create();
-        $admin->assignRole('admin');
-        $response = $this->actingAs($admin)->get(route('dashboard'));
-
-        $response->assertOk();
-        $page = json_decode(json_encode($response->viewData('page')), true);
-        $miniApps = $page['props']['miniApps'] ?? [];
-
-        $slugs = array_column($miniApps, 'slug');
-        $this->assertNotContains(
-            'coming-soon',
-            $slugs,
-            'Disabled mini-apps must never appear in miniApps props'
-        );
+        $this->assertNotContains('coming-soon', $slugs, 'Disabled mini-apps must never appear, even for admins');
     }
 
     public function test_every_registry_entry_declares_what_the_shell_relies_on(): void
