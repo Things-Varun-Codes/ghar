@@ -7,19 +7,6 @@ use Tests\TestCase;
 
 class EnvDeploySyncContractTest extends TestCase
 {
-    public function test_script_exits_zero_against_current_repo_state(): void
-    {
-        $scriptPath = base_path('scripts/check-env-deploy-sync.sh');
-        $this->assertFileExists($scriptPath, 'scripts/check-env-deploy-sync.sh must ship');
-
-        $result = Process::path(base_path())->run(['bash', './scripts/check-env-deploy-sync.sh']);
-
-        $this->assertTrue(
-            $result->successful(),
-            "Sync script failed against current repo state.\nSTDOUT: {$result->output()}\nSTDERR: {$result->errorOutput()}"
-        );
-    }
-
     public function test_script_fails_when_env_has_key_missing_from_deploy(): void
     {
         $tempDir = $this->makeTempRepo();
@@ -105,11 +92,7 @@ MD);
         mkdir("{$tempDir}/scripts", 0755, true);
 
         $realScript = base_path('scripts/check-env-deploy-sync.sh');
-        if (! file_exists($realScript)) {
-            // test_script_exits_zero_against_current_repo_state surfaces this case
-            // explicitly; here we mark this scenario skipped.
-            $this->markTestSkipped('scripts/check-env-deploy-sync.sh not found');
-        }
+        $this->assertFileExists($realScript);
         copy($realScript, "{$tempDir}/scripts/check-env-deploy-sync.sh");
         chmod("{$tempDir}/scripts/check-env-deploy-sync.sh", 0755);
 

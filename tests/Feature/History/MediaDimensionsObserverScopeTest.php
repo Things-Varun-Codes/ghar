@@ -7,6 +7,7 @@ use App\MiniApps\History\Observers\MediaDimensionsObserver;
 use App\Shell\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Exceptions;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use PHPUnit\Framework\Attributes\DataProvider;
@@ -40,6 +41,18 @@ class MediaDimensionsObserverScopeTest extends TestCase
 
         $this->assertSame(640, $media->custom_properties['width'] ?? null);
         $this->assertSame(480, $media->custom_properties['height'] ?? null);
+    }
+
+    public function test_an_unreadable_file_is_reported_instead_of_thrown(): void
+    {
+        Exceptions::fake();
+        $media = $this->seedMediaOnDisk(collection: 'photos', width: 64, height: 48);
+        Storage::disk('local')->delete("{$media->id}/{$media->file_name}");
+
+        (new MediaDimensionsObserver)->created($media);
+
+        Exceptions::assertReportedCount(1);
+        $this->assertArrayNotHasKey('width', $media->custom_properties);
     }
 
     public function test_observer_no_ops_for_unknown_collection(): void

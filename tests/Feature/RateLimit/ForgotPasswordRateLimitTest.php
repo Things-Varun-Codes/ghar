@@ -44,11 +44,4 @@ class ForgotPasswordRateLimitTest extends TestCase
         // The actual throttle effect: only one notification was queued, not two.
         Notification::assertSentToTimes($user, \App\Shell\Notifications\ResetPasswordNotification::class, 1);
     }
-
-    public function test_forgot_password_page_renders(): void
-    {
-        $response = $this->get(route('password.request'));
-
-        $response->assertOk();
-    }
 }

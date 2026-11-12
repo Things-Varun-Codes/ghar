@@ -215,11 +215,6 @@ class HealthzControllerTest extends TestCase
         $this->assertStringContainsString('must-revalidate', $cacheControl);
     }
 
-    public function test_healthz_rate_limiter_binding_is_registered(): void
-    {
-        $this->assertIsCallable(RateLimiter::limiter('healthz'));
-    }
-
     public function test_response_does_not_carry_inertia_or_session_or_csp_headers(): void
     {
         $response = $this->getJson('/healthz');

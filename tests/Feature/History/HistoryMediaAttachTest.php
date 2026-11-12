@@ -8,6 +8,8 @@ use App\MiniApps\History\Models\Event;
 use App\Shell\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Exceptions;
+use Illuminate\Support\Facades\Queue;
 use Illuminate\Support\Facades\Storage;
 use Spatie\MediaLibrary\MediaCollections\Models\Media;
 use Tests\TestCase;
@@ -198,5 +200,23 @@ class HistoryMediaAttachTest extends TestCase
             Media::find($mediaB->id),
             'Cross-event detach attempt must not delete the media row',
         );
+    }
+
+    public function test_a_photo_whose_dimensions_cannot_be_read_still_attaches_and_is_reported(): void
+    {
+        Exceptions::fake();
+        Queue::fake();
+
+        /** @var User $user */
+        $user = User::factory()->create();
+        /** @var Event $event */
+        $event = Event::factory()->create(['creator_id' => $user->id]);
+
+        app(AttachMedia::class)->photo($event, UploadedFile::fake()->create('broken.jpg', 1, 'image/jpeg'), $user);
+
+        Exceptions::assertReportedCount(1);
+        $media = $event->fresh()->getMedia('photos')->first();
+        $this->assertNotNull($media);
+        $this->assertArrayNotHasKey('width', $media->custom_properties);
     }
 }
