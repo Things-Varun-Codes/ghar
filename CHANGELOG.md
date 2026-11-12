@@ -19,4 +19,5 @@ The first public release.
   NFC tags.
 - Photos stay on your own disk by default, behind signed links that expire. Any S3-compatible
   bucket works instead.
+- Sessions and background jobs in Postgres, with a small Valkey cache next to it.
 - Images for amd64 and arm64 at `ghcr.io/things-varun-codes/ghar`.

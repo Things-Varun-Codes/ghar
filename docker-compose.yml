@@ -50,15 +50,20 @@ services:
       DB_PASSWORD: ${DB_PASSWORD}
       DB_SSLMODE: ${DB_SSLMODE:-prefer}
 
-      # Sessions + cache live in the database so a container restart doesn't
-      # invalidate user sessions or wipe the warmed cache.
+      # Sessions live in the database so a restart doesn't sign anyone out.
       SESSION_DRIVER: database
       SESSION_LIFETIME: ${SESSION_LIFETIME:-43200}
       SESSION_ENCRYPT: ${SESSION_ENCRYPT:-false}
       SESSION_PATH: ${SESSION_PATH:-/}
       SESSION_DOMAIN: ${SESSION_DOMAIN:-null}
       SESSION_SECURE_COOKIE: ${SESSION_SECURE_COOKIE:-}
-      CACHE_STORE: database
+      # `database` needs nothing else. `redis` uses a Valkey or Redis you provision
+      # separately, like Postgres (REDIS_HOST).
+      CACHE_STORE: ${CACHE_STORE:-database}
+      REDIS_HOST: ${REDIS_HOST:-}
+      REDIS_PORT: ${REDIS_PORT:-6379}
+      REDIS_USERNAME: ${REDIS_USERNAME:-}
+      REDIS_PASSWORD: ${REDIS_PASSWORD:-}
       QUEUE_CONNECTION: database
       FILESYSTEM_DISK: local
 

@@ -1,4 +1,4 @@
-# Ghar on your own machine: the published image, PostgreSQL 17 and one port.
+# Ghar on your own machine: the published image, PostgreSQL 17, a Valkey cache and one port.
 # Everything else is read from a `.env` next to this file; see .env.selfhost.example.
 #
 #   curl -LO https://raw.githubusercontent.com/Things-Varun-Codes/ghar/main/docker-compose.selfhost.yml
@@ -24,7 +24,9 @@ services:
       DB_DATABASE: ghar
       DB_USERNAME: ghar
       SESSION_DRIVER: database
-      CACHE_STORE: database
+      CACHE_STORE: redis
+      REDIS_HOST: cache
+      REDIS_PORT: '6379'
       QUEUE_CONNECTION: database
       FILESYSTEM_DISK: local
       LOG_CHANNEL: stderr
@@ -34,6 +36,8 @@ services:
       - ${GHAR_MEDIA_PATH:-media}:/var/www/html/storage/app/private
     depends_on:
       db:
+        condition: service_healthy
+      cache:
         condition: service_healthy
     healthcheck:
       test: ['CMD-SHELL', 'wget -q -O- http://localhost/up || exit 1']
@@ -53,6 +57,18 @@ services:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
       test: ['CMD-SHELL', 'pg_isready -U ghar -d ghar']
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  # Rate limits and health heartbeats. Nothing here needs to survive a restart, so
+  # it keeps no data on disk and is reachable only from the app.
+  cache:
+    image: valkey/valkey:9.0.1-alpine3.23
+    restart: unless-stopped
+    command: ['valkey-server', '--save', '', '--appendonly', 'no', '--maxmemory', '64mb', '--maxmemory-policy', 'allkeys-lru']
+    healthcheck:
+      test: ['CMD', 'valkey-cli', 'ping']
       interval: 5s
       timeout: 3s
       retries: 10

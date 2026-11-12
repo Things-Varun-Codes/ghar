@@ -48,6 +48,8 @@ Meera have synthetic push subscriptions that can't deliver; test real push by su
 - **Framework:** Laravel + Inertia.js + React — no Next.js (CVE track record).
 - **Database:** PostgreSQL 17 only — prod, local dev, PHPUnit and smoke. Dev runs it from
   `docker-compose.override.yml`.
+- **Cache:** `CACHE_STORE=database` in dev and for source builds, `redis` (Valkey) in the self-host
+  stack; PHPUnit uses `array`. Sessions and the queue always stay in Postgres.
 - **File storage:** `MEDIA_DISK=local` (default; Laravel's signed `/storage/…` URLs) or `s3` (any
   S3-compatible bucket, presigned URLs). Both private; never store a URL, only the object key.
 - **Hosting:** any Docker host, amd64 or arm64. Release images at `ghcr.io/<owner>/ghar` come from
@@ -60,7 +62,7 @@ Meera have synthetic push subscriptions that can't deliver; test real push by su
   **no cross-app imports and no cross-app database foreign keys** (`scripts/check-boundaries.sh`).
 - **Compose contract:** `docker-compose.yml` builds from source for a PaaS and has no database
   service. `docker-compose.override.yml` is local-dev only (Postgres, Mailpit on `127.0.0.1:1025` /
-  `:8025`). `docker-compose.selfhost.yml` stands alone: the published image, Postgres, a port, and a
+  `:8025`). `docker-compose.selfhost.yml` stands alone: the published image, Postgres, a Valkey cache, a port, and a
   `.env` from `.env.selfhost.example`. **Never add dev services to either production file.**
 - **First start:** `docker/docker-entrypoint.sh` generates `APP_KEY` and VAPID keys into
   `storage/app/generated-secrets.env` when unset, migrates, seeds roles, and creates the
