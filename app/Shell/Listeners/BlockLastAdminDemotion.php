@@ -4,7 +4,7 @@ namespace App\Shell\Listeners;
 
 use App\Shell\Models\User;
 use Illuminate\Auth\Access\AuthorizationException;
-use Spatie\Permission\Events\RoleDetached;
+use Spatie\Permission\Events\RoleDetachedEvent;
 
 /**
  * Fires inside syncRoles()/removeRole(), before the surrounding transaction commits, so
@@ -12,7 +12,7 @@ use Spatie\Permission\Events\RoleDetached;
  */
 class BlockLastAdminDemotion
 {
-    public function handle(RoleDetached $event): void
+    public function handle(RoleDetachedEvent $event): void
     {
         $roleNames = $this->resolveRoleNames($event->rolesOrIds);
 

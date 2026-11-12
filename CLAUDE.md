@@ -78,7 +78,7 @@ Meera have synthetic push subscriptions that can't deliver; test real push by su
 | React                                            | ^19.2.7                             |
 | Vite                                             | ^8                                  |
 | Tailwind CSS                                     | ^4 (no `tailwind.config.js`)        |
-| TypeScript                                       | ^5.7                                |
+| TypeScript                                       | ^6.0                                |
 | shadcn/ui on Radix primitives                    | current                             |
 | Vitest                                           | ^5                                  |
 

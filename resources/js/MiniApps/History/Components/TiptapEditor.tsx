@@ -219,8 +219,7 @@ export default function TiptapEditor({
         setLinkAnchorRect({ top, left: centreLeft });
 
         const existing = editor.getAttributes('link').href as
-            | string
-            | undefined;
+            string | undefined;
         setLinkUrl(existing ?? '');
         setLinkError(null);
         setLinkOpen(true);

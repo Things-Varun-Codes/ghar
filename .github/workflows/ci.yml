@@ -18,7 +18,7 @@ concurrency:
 env:
   PHP_VERSION: '8.5'
   PHP_EXTENSIONS: pdo_pgsql, mbstring, bcmath, intl, zip, gd, exif
-  NODE_VERSION: '22'
+  NODE_VERSION: '26'
 
 jobs:
   checks:

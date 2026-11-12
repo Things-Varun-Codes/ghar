@@ -40,11 +40,7 @@ type ApiResultRow = {
 };
 
 type FilterKey =
-    | 'all'
-    | 'corner.song'
-    | 'corner.movie'
-    | 'corner.place'
-    | 'corner.activity';
+    'all' | 'corner.song' | 'corner.movie' | 'corner.place' | 'corner.activity';
 
 const FILTER_CHIPS: { key: FilterKey; label: string }[] = [
     { key: 'all', label: 'All' },

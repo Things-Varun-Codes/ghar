@@ -20,7 +20,7 @@ class NotificationsController
     public function subscribe(Request $request): RedirectResponse
     {
         $validated = $request->validate([
-            'endpoint' => 'required|url|max:500',
+            'endpoint' => 'required|url|max:1024',
             'p256dh' => 'required|string',
             'auth' => 'required|string',
             'content_encoding' => 'nullable|string|in:aesgcm,aes128gcm',
@@ -41,7 +41,7 @@ class NotificationsController
     public function unsubscribe(Request $request): RedirectResponse
     {
         $validated = $request->validate([
-            'endpoint' => 'required|url|max:500',
+            'endpoint' => 'required|url|max:1024',
         ]);
 
         $request->user()->deletePushSubscription($validated['endpoint']);
