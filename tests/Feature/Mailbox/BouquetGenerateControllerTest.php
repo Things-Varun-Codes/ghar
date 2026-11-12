@@ -38,7 +38,6 @@ class BouquetGenerateControllerTest extends TestCase
                 'refine' => 'soft light',
             ]);
 
-        // PRIMARY RED: route absent → 404; assertStatus(200) fails.
         $response->assertStatus(200);
 
         // Response structure.

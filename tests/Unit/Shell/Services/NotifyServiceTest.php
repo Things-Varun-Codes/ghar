@@ -79,4 +79,55 @@ class NotifyServiceTest extends TestCase
         Notification::assertSentTo($recipient, GenericPushNotification::class);
         Notification::assertNotSentTo($other, GenericPushNotification::class);
     }
+
+    public function test_email_channel_routes_through_mail(): void
+    {
+        Notification::fake();
+
+        /** @var User $user */
+        $user = User::factory()->create();
+
+        app(Notify::class)->send($user, [
+            'app' => 'shell',
+            'title' => 'Test',
+            'body' => 'Hello from Ghar',
+        ], ['email']);
+
+        // The notification was dispatched (Notify::send did its job)
+        Notification::assertSentTo(
+            $user,
+            GenericPushNotification::class,
+            function (GenericPushNotification $notification) use ($user) {
+                // Verify via() includes 'mail' for the email channel
+                $via = $notification->via($user);
+
+                return in_array('mail', $via, true);
+            }
+        );
+    }
+
+    public function test_both_channels_route_through_push_and_mail(): void
+    {
+        Notification::fake();
+
+        /** @var User $user */
+        $user = User::factory()->create();
+
+        app(Notify::class)->send($user, [
+            'app' => 'our-history',
+            'title' => 'New memory',
+            'body' => 'A memory was added',
+        ], ['push', 'email']);
+
+        Notification::assertSentTo(
+            $user,
+            GenericPushNotification::class,
+            function (GenericPushNotification $notification) use ($user) {
+                $via = $notification->via($user);
+
+                return in_array(WebPushChannel::class, $via, true)
+                    && in_array('mail', $via, true);
+            }
+        );
+    }
 }
