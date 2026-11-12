@@ -56,4 +56,20 @@ class CouponModelTest extends TestCase
         $this->assertNull($coupon->redeemed_count);
         $this->assertSame($recipient->id, $coupon->recipient_id);
     }
+
+    public function test_visibility_scope_is_issuer_or_recipient_only(): void
+    {
+        $issuer = User::factory()->create();
+        $recipient = User::factory()->create();
+        $bystander = User::factory()->create();
+
+        $coupon = Coupon::factory()->create([
+            'issuer_id' => $issuer->id,
+            'recipient_id' => $recipient->id,
+        ]);
+
+        $this->assertTrue(Coupon::query()->visibleTo($issuer)->whereKey($coupon->id)->exists());
+        $this->assertTrue(Coupon::query()->visibleTo($recipient)->whereKey($coupon->id)->exists());
+        $this->assertFalse(Coupon::query()->visibleTo($bystander)->whereKey($coupon->id)->exists());
+    }
 }

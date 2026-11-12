@@ -41,4 +41,20 @@ class ChallanModelTest extends TestCase
         $this->assertNull($challan->issuer_id);
         $this->assertSame($recipient->id, $challan->recipient_id);
     }
+
+    public function test_visibility_scope_is_issuer_or_recipient_only(): void
+    {
+        $issuer = User::factory()->create();
+        $recipient = User::factory()->create();
+        $bystander = User::factory()->create();
+
+        $challan = Challan::factory()->create([
+            'issuer_id' => $issuer->id,
+            'recipient_id' => $recipient->id,
+        ]);
+
+        $this->assertTrue(Challan::query()->visibleTo($issuer)->whereKey($challan->id)->exists());
+        $this->assertTrue(Challan::query()->visibleTo($recipient)->whereKey($challan->id)->exists());
+        $this->assertFalse(Challan::query()->visibleTo($bystander)->whereKey($challan->id)->exists());
+    }
 }
