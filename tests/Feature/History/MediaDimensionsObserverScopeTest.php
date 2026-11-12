@@ -9,6 +9,7 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use PHPUnit\Framework\Attributes\DataProvider;
 use Spatie\MediaLibrary\MediaCollections\Models\Media;
 use Tests\TestCase;
 
@@ -24,34 +25,21 @@ class MediaDimensionsObserverScopeTest extends TestCase
         Storage::fake('local');
     }
 
-    public function test_observer_fires_for_history_photos_collection(): void
+    /** @return array<string, array{string}> */
+    public static function historyCollections(): array
     {
-        $media = $this->seedMediaOnDisk(collection: 'photos', width: 640, height: 480);
+        return ['photos' => ['photos'], 'videos' => ['videos'], 'video posters' => ['video-posters']];
+    }
+
+    #[DataProvider('historyCollections')]
+    public function test_observer_records_dimensions_for_a_history_collection(string $collection): void
+    {
+        $media = $this->seedMediaOnDisk(collection: $collection, width: 640, height: 480);
 
         (new MediaDimensionsObserver)->created($media);
 
         $this->assertSame(640, $media->custom_properties['width'] ?? null);
         $this->assertSame(480, $media->custom_properties['height'] ?? null);
-    }
-
-    public function test_observer_fires_for_history_videos_collection(): void
-    {
-        $media = $this->seedMediaOnDisk(collection: 'videos', width: 320, height: 180);
-
-        (new MediaDimensionsObserver)->created($media);
-
-        $this->assertSame(320, $media->custom_properties['width'] ?? null);
-        $this->assertSame(180, $media->custom_properties['height'] ?? null);
-    }
-
-    public function test_observer_fires_for_history_video_posters_collection(): void
-    {
-        $media = $this->seedMediaOnDisk(collection: 'video-posters', width: 240, height: 180);
-
-        (new MediaDimensionsObserver)->created($media);
-
-        $this->assertSame(240, $media->custom_properties['width'] ?? null);
-        $this->assertSame(180, $media->custom_properties['height'] ?? null);
     }
 
     public function test_observer_no_ops_for_unknown_collection(): void

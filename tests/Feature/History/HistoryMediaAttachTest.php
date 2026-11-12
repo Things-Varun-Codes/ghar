@@ -57,26 +57,8 @@ class HistoryMediaAttachTest extends TestCase
             Storage::disk('s3')->exists($media->getPathRelativeToRoot('medium')),
             'medium conversion missing on fake bucket disk',
         );
-    }
 
-    public function test_photo_dimensions_observed(): void
-    {
-        /** @var User $user */
-        $user = User::factory()->create();
-        /** @var Event $event */
-        $event = Event::factory()->create(['creator_id' => $user->id]);
-
-        $file = UploadedFile::fake()->image('photo.jpg', 800, 600);
-
-        $this->actingAs($user)->post(
-            "/apps/our-history/events/{$event->id}/media",
-            ['media' => $file],
-        );
-
-        $media = $event->fresh()->getMedia('photos')->first();
-        $this->assertNotNull($media);
-
-        // AttachMedia::photo() captures dimensions from getRealPath() before upload
+        // AttachMedia::photo() records the dimensions before upload.
         $this->assertEquals(800, $media->custom_properties['width'] ?? null);
         $this->assertEquals(600, $media->custom_properties['height'] ?? null);
     }

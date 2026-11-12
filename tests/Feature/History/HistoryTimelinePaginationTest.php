@@ -85,26 +85,12 @@ class HistoryTimelinePaginationTest extends TestCase
         );
         // Keyset paginator: offset meta must be absent.
         $this->assertNull($response->inertiaProps('events.last_page'));
-    }
 
-    public function test_page_two_has_remaining_events(): void
-    {
-        /** @var User $user */
-        $user = User::factory()->create();
-
-        Event::factory()->count(25)->create(['creator_id' => $user->id]);
-
-        $nextPageUrl = $this->actingAs($user)
-            ->get('/apps/our-history')
-            ->inertiaProps('events.next_page_url');
-
-        $this->assertNotNull($nextPageUrl, 'Page 1 must hand out a next-page cursor.');
-
-        $eventsData = $this->actingAs($user)
-            ->get($nextPageUrl)
-            ->inertiaProps('events.data');
-
-        $this->assertCount(5, $eventsData, 'Following the cursor must return the remaining 5 events');
+        $this->assertCount(
+            5,
+            $this->actingAs($user)->get($nextPageUrl)->inertiaProps('events.data'),
+            'Following the cursor must return the remaining 5 events',
+        );
     }
 
     public function test_same_day_events_tiebreak_by_created_at_desc(): void
