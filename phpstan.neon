@@ -42,7 +42,3 @@ parameters:
     - identifier: property.notFound
       path: app/MiniApps/Corner/Actions/ToggleListItemDone.php
       message: '#ListItemContract::\$done_at#'
-    # Collection's TValue isn't declared covariant in Larastan's stubs.
-    - identifier: return.type
-      path: app/Shell/Services/LinkableEntities.php
-      message: '#referencesTo\(\) should return#'
