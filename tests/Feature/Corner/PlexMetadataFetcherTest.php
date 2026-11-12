@@ -6,7 +6,9 @@ use App\MiniApps\Corner\Services\PlexMetadataFetcher;
 use App\Shell\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\Client\ConnectionException;
+use Illuminate\Http\Client\Request;
 use Illuminate\Support\Facades\Http;
+use PHPUnit\Framework\Attributes\DataProvider;
 use Tests\TestCase;
 
 class PlexMetadataFetcherTest extends TestCase
@@ -59,6 +61,46 @@ class PlexMetadataFetcherTest extends TestCase
 
         $this->assertNull($result);
         Http::assertNothingSent();
+    }
+
+    public function test_follows_a_redirect_that_stays_on_plex(): void
+    {
+        Http::fake([
+            'l.plex.tv/*' => Http::response('', 302, ['Location' => 'https://watch.plex.tv/movie/the-man-from-earth']),
+            'watch.plex.tv/*' => Http::response(
+                file_get_contents(base_path('tests/Fixtures/Corner/plex-watch-the-man-from-earth.html')),
+                200
+            ),
+        ]);
+
+        $result = $this->fetcher->fetch('https://l.plex.tv/abc12345');
+
+        $this->assertIsArray($result);
+        $this->assertSame('https://watch.plex.tv/movie/the-man-from-earth', $result['watch_url']);
+    }
+
+    #[DataProvider('redirectsOffPlex')]
+    public function test_refuses_a_redirect_that_leaves_plex(string $location): void
+    {
+        Http::fake([
+            'l.plex.tv/*' => Http::response('', 302, ['Location' => $location]),
+            '*' => Http::response('<meta property="og:title" content="internal">', 200),
+        ]);
+
+        $result = $this->fetcher->fetch('https://l.plex.tv/abc12345');
+
+        $this->assertNull($result);
+        Http::assertNotSent(fn (Request $request): bool => ! str_starts_with($request->url(), 'https://l.plex.tv/'));
+    }
+
+    /** @return array<string, array{string}> */
+    public static function redirectsOffPlex(): array
+    {
+        return [
+            'cloud metadata address' => ['http://169.254.169.254/latest/meta-data'],
+            'another host over https' => ['https://internal.example/admin'],
+            'plex over plain http' => ['http://watch.plex.tv/movie/x'],
+        ];
     }
 
     public function test_rejects_subdomain_spoof_host(): void

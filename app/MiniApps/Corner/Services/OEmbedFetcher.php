@@ -44,7 +44,7 @@ class OEmbedFetcher
 
         try {
             $response = Http::timeout(self::TIMEOUT_SECONDS)
-                ->withOptions(['allow_redirects' => true])
+                ->withOptions(['allow_redirects' => HostAllowlist::redirectOptions(['youtube.com', 'spotify.com'])])
                 ->get($endpoint, [
                     'url' => $url,
                     'format' => 'json',
