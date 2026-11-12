@@ -1,5 +1,7 @@
 # Weekly for application dependencies; monthly for base images and actions,
-# which change less often.
+# which change less often. Minor and patch updates arrive as one pull request
+# per ecosystem; a major version gets its own. Security updates ignore the
+# schedule and the cooldown.
 version: 2
 updates:
   - package-ecosystem: 'composer'
@@ -7,27 +9,67 @@ updates:
     schedule:
       interval: 'weekly'
     open-pull-requests-limit: 5
+    # A release has to be a week old first: most bad or hijacked ones are pulled by then.
+    cooldown:
+      default-days: 7
+    commit-message:
+      prefix: 'chore(deps)'
+    groups:
+      minor-and-patch:
+        update-types: ['minor', 'patch']
 
   - package-ecosystem: 'npm'
     directory: '/'
     schedule:
       interval: 'weekly'
     open-pull-requests-limit: 5
+    # A release has to be a week old first: most bad or hijacked ones are pulled by then.
+    cooldown:
+      default-days: 7
+    commit-message:
+      prefix: 'chore(deps)'
+    groups:
+      minor-and-patch:
+        update-types: ['minor', 'patch']
 
   - package-ecosystem: 'docker'
     directory: '/'
     schedule:
       interval: 'monthly'
     open-pull-requests-limit: 5
+    # A release has to be a week old first: most bad or hijacked ones are pulled by then.
+    cooldown:
+      default-days: 7
+    commit-message:
+      prefix: 'chore(deps)'
+    groups:
+      minor-and-patch:
+        update-types: ['minor', 'patch']
 
   - package-ecosystem: 'docker-compose'
     directory: '/'
     schedule:
       interval: 'monthly'
     open-pull-requests-limit: 5
+    # A release has to be a week old first: most bad or hijacked ones are pulled by then.
+    cooldown:
+      default-days: 7
+    commit-message:
+      prefix: 'chore(deps)'
+    groups:
+      minor-and-patch:
+        update-types: ['minor', 'patch']
 
   - package-ecosystem: 'github-actions'
     directory: '/'
     schedule:
       interval: 'monthly'
     open-pull-requests-limit: 5
+    # A release has to be a week old first: most bad or hijacked ones are pulled by then.
+    cooldown:
+      default-days: 7
+    commit-message:
+      prefix: 'chore(deps)'
+    groups:
+      minor-and-patch:
+        update-types: ['minor', 'patch']

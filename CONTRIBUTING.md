@@ -1,7 +1,11 @@
 # Contributing to Ghar
 
 Thanks for helping. This covers getting set up, the checks your change has to pass, and how the
-code is organised.
+code is organised. Everyone taking part is expected to follow the
+[code of conduct](./CODE_OF_CONDUCT.md).
+
+For anything bigger than a bug fix, open an issue or a discussion before writing the code, so
+nobody builds something that can't be merged.
 
 ## Getting set up
 
@@ -56,13 +60,18 @@ with `--no-verify`.
 GitHub Actions runs types, lint, formatting, static analysis, the tests and the headless smoke on
 every pull request. It also builds the production image and starts it with
 `docker-compose.selfhost.yml`, so a change to the Dockerfile or the entrypoint is tested before a
-release.
+release. A pull request that adds a dependency with a known vulnerability, or under a GPL or AGPL
+licence, fails the dependency review.
+
+`main` only takes pull requests, squash-merged once those checks pass. Workflows from a first-time
+contributor wait for a maintainer to start them.
 
 ## Pull requests
 
 - Keep each one to one change and explain why, not just what.
 - Commits follow [Conventional Commits](https://www.conventionalcommits.org): `fix(corner): …`.
 - Add a test that fails without your change.
+- Third-party GitHub Actions are pinned to a full commit SHA, with the version in a comment.
 - New environment variables go in `.env.example` and the env block in `DEPLOY.md`, and in
   `docker-compose.yml` if the running app reads them.
 - Comments explain why the code is the way it is. No ticket or planning references.

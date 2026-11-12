@@ -8,7 +8,21 @@ Please report it privately through GitHub: open the repository's **Security** ta
 Include what you found, how to reproduce it and what an attacker could do with it. This is a spare-time
 project, so a reply can take a few days. Once there's a fix, you'll be credited if you'd like to be.
 
-Fixes go into the latest release; older versions don't get them.
+Fixes go into the latest release; older versions don't get them. A fix that matters to people
+running Ghar is published as a security advisory on this repository, with the version to upgrade to.
+
+## Checking an image
+
+Release images are built by this repository's release workflow and nowhere else. Each one carries a
+signed record of that, and a list of the packages inside it (an SBOM). To check an image before you
+run it:
+
+```sh
+gh attestation verify oci://ghcr.io/things-varun-codes/ghar:1 --repo Things-Varun-Codes/ghar
+```
+
+The latest image is also scanned every week for vulnerabilities in its system packages, and
+dependencies are watched by Dependabot.
 
 ## What Ghar is designed for
 
