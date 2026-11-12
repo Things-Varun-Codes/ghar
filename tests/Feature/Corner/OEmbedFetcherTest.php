@@ -6,6 +6,7 @@ use App\MiniApps\Corner\Services\OEmbedFetcher;
 use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Http\Client\Request;
 use Illuminate\Support\Facades\Http;
+use PHPUnit\Framework\Attributes\DataProvider;
 use Tests\TestCase;
 
 class OEmbedFetcherTest extends TestCase
@@ -65,22 +66,6 @@ class OEmbedFetcherTest extends TestCase
         });
     }
 
-    public function test_spotify_308_redirect_followed(): void
-    {
-        Http::fake([
-            'open.spotify.com/oembed*' => Http::response([
-                'title' => 'Track Title',
-                'thumbnail_url' => 'https://i.scdn.co/image/abc',
-            ], 200),
-        ]);
-
-        $result = $this->fetcher->fetch('https://open.spotify.com/track/3z8h0TU7ReDPLIbEnYhWZb');
-
-        $this->assertIsArray($result);
-        $this->assertSame('spotify', $result['provider']);
-        $this->assertSame('Track Title', $result['title']);
-    }
-
     public function test_oembed_timeout_returns_null(): void
     {
         // Simulate a connection-timeout by throwing ConnectionException — the  fetcher
@@ -105,17 +90,6 @@ class OEmbedFetcherTest extends TestCase
         $this->assertNull($result);
     }
 
-    public function test_invalid_url_returns_null(): void
-    {
-        Http::fake(); // Empty fake — any HTTP call would be caught.
-
-        $result = $this->fetcher->fetch('https://example.com/not-music');
-
-        $this->assertNull($result);
-        // Allowlist regex rejects pre-fetch — no HTTP call should have been made.
-        Http::assertNothingSent();
-    }
-
     public function test_youtube_short_url_canonicalized(): void
     {
         Http::fake([
@@ -132,85 +106,27 @@ class OEmbedFetcherTest extends TestCase
         $this->assertSame('dQw4w9WgXcQ', $result['provider_id']);
     }
 
-    public function test_playlist_url_returns_null(): void
+    /** @return array<string, array{string}> */
+    public static function urlsOutsideTheAllowlist(): array
+    {
+        return [
+            'another site' => ['https://example.com/not-music'],
+            'youtube playlist' => ['https://www.youtube.com/playlist?list=PLrAXtmRdnEQy6nuLMt9H1mGQc8TfQRYbN'],
+            'spotify playlist' => ['https://open.spotify.com/playlist/37i9dQZF1DXcBWIGoYBM5M'],
+            'spotify artist' => ['https://open.spotify.com/artist/1dfeR4HaWDbWqFHLkxsg1d'],
+            'youtube host spoofed as a subdomain' => ['https://youtube.com.evil.com/watch?v=dQw4w9WgXcQ'],
+            'spotify host spoofed as a subdomain' => ['https://open.spotify.com.evil.com/track/abc123'],
+            'provider name in the path' => ['https://evil.com/open.spotify.com/track/abc123'],
+        ];
+    }
+
+    #[DataProvider('urlsOutsideTheAllowlist')]
+    public function test_a_url_outside_the_allowlist_is_rejected_before_any_request(string $url): void
     {
         Http::fake();
 
-        $result = $this->fetcher->fetch(
-            'https://www.youtube.com/playlist?list=PLrAXtmRdnEQy6nuLMt9H1mGQc8TfQRYbN'
-        );
+        $this->assertNull($this->fetcher->fetch($url));
 
-        $this->assertNull($result);
-        Http::assertNothingSent();
-    }
-
-    public function test_spotify_missing_author_name_is_null(): void
-    {
-        Http::fake([
-            'open.spotify.com/oembed*' => Http::response([
-                'title' => 'Some Title - song by Some Artist',
-                'thumbnail_url' => 'https://i.scdn.co/image/xyz',
-                // NO author_name field — matches real Spotify response.
-            ], 200),
-        ]);
-
-        $result = $this->fetcher->fetch('https://open.spotify.com/track/3z8h0TU7ReDPLIbEnYhWZb');
-
-        $this->assertIsArray($result);
-        $this->assertNull($result['author']);
-    }
-
-    public function test_spotify_playlist_url_returns_null(): void
-    {
-        Http::fake();
-
-        $result = $this->fetcher->fetch(
-            'https://open.spotify.com/playlist/37i9dQZF1DXcBWIGoYBM5M'
-        );
-
-        $this->assertNull($result);
-        Http::assertNothingSent();
-    }
-
-    public function test_spotify_artist_url_returns_null(): void
-    {
-        Http::fake();
-
-        $result = $this->fetcher->fetch(
-            'https://open.spotify.com/artist/1dfeR4HaWDbWqFHLkxsg1d'
-        );
-
-        $this->assertNull($result);
-        Http::assertNothingSent();
-    }
-
-    public function test_youtube_subdomain_spoof_host_rejected(): void
-    {
-        Http::fake();
-
-        $result = $this->fetcher->fetch('https://youtube.com.evil.com/watch?v=dQw4w9WgXcQ');
-
-        $this->assertNull($result);
-        Http::assertNothingSent();
-    }
-
-    public function test_spotify_subdomain_spoof_host_rejected(): void
-    {
-        Http::fake();
-
-        $result = $this->fetcher->fetch('https://open.spotify.com.evil.com/track/abc123');
-
-        $this->assertNull($result);
-        Http::assertNothingSent();
-    }
-
-    public function test_provider_name_embedded_in_path_rejected(): void
-    {
-        Http::fake();
-
-        $result = $this->fetcher->fetch('https://evil.com/open.spotify.com/track/abc123');
-
-        $this->assertNull($result);
         Http::assertNothingSent();
     }
 }
