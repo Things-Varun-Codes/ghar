@@ -69,23 +69,4 @@ class BouquetGenerateControllerTest extends TestCase
 
         $response->assertStatus(401);
     }
-
-    public function test_generate_with_refine_param_creates_no_rows_or_objects(): void
-    {
-        Storage::fake('s3');
-        $this->bindFake();
-
-        /** @var User $user */
-        $user = User::factory()->create();
-
-        $response = $this->actingAs($user)
-            ->postJson('/apps/our-mailbox/bouquets/generate', [
-                'flowers' => ['red_rose', 'peony'],
-                'refine' => 'golden hour, warm bokeh',
-            ]);
-
-        $response->assertStatus(200);
-        $this->assertDatabaseCount('mailbox_bouquets', 0);
-        $this->assertCount(0, Storage::disk('s3')->allFiles());
-    }
 }

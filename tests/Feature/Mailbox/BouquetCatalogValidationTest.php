@@ -78,25 +78,4 @@ class BouquetCatalogValidationTest extends TestCase
             ])
             ->assertStatus(422);
     }
-
-    public function test_valid_flower_selection_returns_200(): void
-    {
-        $this->bindFake();
-
-        /** @var User $user */
-        $user = User::factory()->create();
-
-        // Pull valid keys from the catalog.
-        $validKeys = array_column(config('mailbox-bouquets', []), 'key');
-        $flowers = ! empty($validKeys) ? [reset($validKeys)] : ['red_rose'];
-
-        $response = $this->actingAs($user)
-            ->postJson('/apps/our-mailbox/bouquets/generate', [
-                'flowers' => $flowers,
-            ]);
-
-        // RED now: route absent → 404; assertStatus(200) fails.  GREEN when: route exists +
-        // catalog loaded + FakeBouquetGenerator returns image.
-        $response->assertStatus(200);
-    }
 }

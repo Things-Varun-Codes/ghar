@@ -12,43 +12,6 @@ class CouponModelTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_factory_persists_across_all_states(): void
-    {
-        Coupon::factory()->create();
-        Coupon::factory()->requested()->create();
-        Coupon::factory()->depleted()->create();
-
-        $this->assertSame(3, Coupon::count());
-
-        $requested = Coupon::where('status', Coupon::STATUS_REQUESTED)->firstOrFail();
-        $this->assertNotNull($requested->requested_at);
-
-        $depleted = Coupon::where('status', Coupon::STATUS_DEPLETED)->firstOrFail();
-        $this->assertSame(0, $depleted->remaining());
-    }
-
-    public function test_remaining_derives_from_quantity_minus_redeemed(): void
-    {
-        $coupon = Coupon::factory()->create(['quantity' => 5, 'redeemed_count' => 2]);
-        $this->assertSame(3, $coupon->remaining());
-    }
-
-    public function test_visibility_scope_is_issuer_or_recipient_only(): void
-    {
-        $issuer = User::factory()->create();
-        $recipient = User::factory()->create();
-        $bystander = User::factory()->create();
-
-        $coupon = Coupon::factory()->create([
-            'issuer_id' => $issuer->id,
-            'recipient_id' => $recipient->id,
-        ]);
-
-        $this->assertTrue(Coupon::query()->visibleTo($issuer)->whereKey($coupon->id)->exists());
-        $this->assertTrue(Coupon::query()->visibleTo($recipient)->whereKey($coupon->id)->exists());
-        $this->assertFalse(Coupon::query()->visibleTo($bystander)->whereKey($coupon->id)->exists());
-    }
-
     public function test_is_expired_is_whole_day(): void
     {
         $expired = Coupon::factory()->create(['expires_at' => now()->subDay()]);

@@ -279,6 +279,10 @@ class CouponAuthorizationTest extends TestCase
         $this->actingAs($recipient)
             ->get("/apps/our-mailbox/coupons/{$issued->id}")
             ->assertInertia(fn (Assert $page) => $page
+                ->component('MiniApps/Mailbox/Pages/Coupons/Show')
+                ->where('coupon.code', $issued->code)
+                ->where('coupon.status', Coupon::STATUS_ISSUED)
+                ->where('coupon.remaining', $issued->quantity)
                 ->where('coupon.available_actions', ['request'])
             );
 
@@ -315,6 +319,30 @@ class CouponAuthorizationTest extends TestCase
         $this->actingAs($recipient)
             ->get("/apps/our-mailbox/coupons/{$depleted->id}")
             ->assertInertia(fn (Assert $page) => $page
+                ->where('coupon.available_actions', [])
+            );
+    }
+
+    public function test_expired_coupon_is_flagged_and_offers_no_action(): void
+    {
+        $issuer = User::factory()->create();
+        $recipient = User::factory()->create();
+        // Issued at rest, but past its valid-until date.
+        $coupon = Coupon::factory()->create([
+            'issuer_id' => $issuer->id,
+            'recipient_id' => $recipient->id,
+            'status' => Coupon::STATUS_ISSUED,
+            'expires_at' => now()->subDay(),
+        ]);
+
+        // The recipient sees the coupon flagged expired AND gets no request  action — so the
+        // UI can show "Expired" instead of a silent, actionless  "Ready" card.
+        $this->actingAs($recipient)
+            ->get("/apps/our-mailbox/coupons/{$coupon->id}")
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('coupon.is_expired', true)
+                ->where('coupon.status', Coupon::STATUS_ISSUED)
                 ->where('coupon.available_actions', [])
             );
     }

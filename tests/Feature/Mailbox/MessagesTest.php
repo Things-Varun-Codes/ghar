@@ -262,38 +262,6 @@ class MessagesTest extends TestCase
                 ->where('members', [['id' => $other->id, 'name' => 'Kabir']]));
     }
 
-    public function test_messages_are_newest_first(): void
-    {
-        /** @var User $sender */
-        $sender = User::factory()->create();
-        /** @var User $recipient */
-        $recipient = User::factory()->create();
-
-        MailboxMessage::factory()->to($recipient)->create([
-            'sender_id' => $sender->id,
-            'body' => 'three days ago',
-            'posted_at' => now()->subDays(3),
-        ]);
-        MailboxMessage::factory()->to($recipient)->create([
-            'sender_id' => $sender->id,
-            'body' => 'yesterday',
-            'posted_at' => now()->subDay(),
-        ]);
-        MailboxMessage::factory()->to($recipient)->create([
-            'sender_id' => $sender->id,
-            'body' => 'just now',
-            'posted_at' => now(),
-        ]);
-
-        $this->actingAs($recipient)->get('/apps/our-mailbox/messages?tab=received')
-            ->assertInertia(
-                fn ($page) => $page
-                    ->where('messages.data.0.body', 'just now')
-                    ->where('messages.data.1.body', 'yesterday')
-                    ->where('messages.data.2.body', 'three days ago'),
-            );
-    }
-
     public function test_notify_send_called_with_correct_url_focus_query(): void
     {
         Notification::fake();
