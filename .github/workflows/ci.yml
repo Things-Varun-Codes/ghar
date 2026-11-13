@@ -141,6 +141,11 @@ jobs:
           curl -fsS http://localhost:8080/healthz
           curl -fsS -o /dev/null http://localhost:8080/login
           docker compose -f docker-compose.selfhost.yml logs app | grep -q 'Admin account created'
+      # The image is a copy of the fonts and packages; their notices have to be in it.
+      - name: Check the licence files are in the image
+        run: |
+          docker compose -f docker-compose.selfhost.yml exec -T app \
+            sh -c 'test -s LICENSE && test -s THIRD_PARTY_NOTICES.md && test -s LICENSES/OFL-1.1.txt && test -s LICENSES/Apache-2.0.txt'
       - name: Check a restart keeps its keys
         run: |
           docker compose -f docker-compose.selfhost.yml restart app
