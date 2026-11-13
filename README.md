@@ -116,4 +116,5 @@ report one and what Ghar does and doesn't protect against.
 
 ## License
 
-[MIT](./LICENSE)
+[MIT](./LICENSE). The fonts Ghar serves keep their own licences, listed in
+[`THIRD_PARTY_NOTICES.md`](./THIRD_PARTY_NOTICES.md).
