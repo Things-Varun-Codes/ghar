@@ -141,6 +141,8 @@ jobs:
           curl -fsS http://localhost:8080/healthz
           curl -fsS -o /dev/null http://localhost:8080/login
           docker compose -f docker-compose.selfhost.yml logs app | grep -q 'Admin account created'
+          # The /healthz rate limit above writes through the cache, so Valkey must hold a key.
+          test "$(docker compose -f docker-compose.selfhost.yml exec -T cache valkey-cli -n 1 dbsize)" -gt 0
       # The image is a copy of the fonts and packages; their notices have to be in it.
       - name: Check the licence files are in the image
         run: |

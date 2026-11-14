@@ -1,8 +1,9 @@
 # Self-hosting Ghar
 
-Ghar is one container (nginx, PHP-FPM, a queue worker and the scheduler) plus PostgreSQL 17. It
-runs on anything with Docker: a home server, a small VPS, an arm64 board such as a Raspberry Pi 4 or
-5, or a PaaS such as Coolify, Dokploy or CapRover. Images are published for amd64 and arm64.
+Ghar is one container (nginx, PHP-FPM, a queue worker and the scheduler) plus PostgreSQL 17 and, in
+the self-host stack, a small Valkey cache. It runs on anything with Docker: a home server, a small
+VPS, an arm64 board such as a Raspberry Pi 4 or 5, or a PaaS such as Coolify, Dokploy or CapRover.
+Images are published for amd64 and arm64.
 
 It uses about 200 MB of RAM when idle. Photos and videos stay on your own disk unless you point it
 at a bucket. Mail is the only outside service you need, and even that can wait until you invite
@@ -143,6 +144,22 @@ Also set `S3_BUCKET`, `S3_ACCESS_KEY_ID` and `S3_SECRET_ACCESS_KEY`, with read a
 that bucket only. Use the provider's API endpoint, not a custom domain: presigned links only work
 against the API. Browsers load files straight from the bucket, and Ghar adds the bucket's address to
 its Content Security Policy by itself.
+
+---
+
+## Cache
+
+Rate limits (login, invites) and the health heartbeats go through the cache. Nothing in it needs to
+outlive a restart; sessions and the job queue stay in Postgres.
+
+`docker-compose.selfhost.yml` runs [Valkey](https://valkey.io), the open-source Redis fork, as the
+`cache` service. It holds at most 64 MB, writes nothing to disk and has no published port, so
+there is nothing to configure or back up. After it restarts, `/healthz` can report `queue` and
+`scheduler` as failing for up to a minute, until the next heartbeat.
+
+Building from source with `docker-compose.yml`, the cache defaults to Postgres
+(`CACHE_STORE=database`). To use Valkey or Redis, provision one next to the app and set
+`CACHE_STORE=redis`, `REDIS_HOST` and, if it needs them, `REDIS_PASSWORD` and `REDIS_USERNAME`.
 
 ---
 
@@ -321,6 +338,8 @@ below. A self-host install only needs the few in `.env.selfhost.example`, becaus
 - `SESSION_DRIVER` / `SESSION_LIFETIME` / `SESSION_ENCRYPT` / `SESSION_PATH` / `SESSION_DOMAIN`:
   `database` / `43200` (30 days, so "Remember me" lasts) / `false` / `/` / `null`.
 - `CACHE_STORE` / `QUEUE_CONNECTION` / `FILESYSTEM_DISK`: `database` / `database` / `local`.
+- `REDIS_HOST` / `REDIS_PORT` / `REDIS_USERNAME` / `REDIS_PASSWORD`: only read when
+  `CACHE_STORE=redis`. See [Cache](#cache).
 - `MEDIA_DISK` and `S3_*`: see [Media storage](#media-storage).
 - `MAIL_*` and `RESEND_API_KEY`: see [Mail](#mail).
 - `SENTRY_LARAVEL_DSN` / `SENTRY_BROWSER_DSN`: error tracking; empty turns it off.
@@ -361,6 +380,10 @@ SESSION_ENCRYPT=
 SESSION_PATH=
 SESSION_DOMAIN=
 CACHE_STORE=
+REDIS_HOST=
+REDIS_PORT=
+REDIS_USERNAME=
+REDIS_PASSWORD=
 QUEUE_CONNECTION=
 FILESYSTEM_DISK=
 MEDIA_DISK=

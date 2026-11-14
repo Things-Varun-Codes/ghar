@@ -8,6 +8,16 @@ Minor and patch versions don't.
 Before any upgrade, back up the database and the media volume (DEPLOY.md, "Backups and restore").
 Migrations only run forward.
 
+## [1.1.0] - 2026-11-14
+
+- The self-host stack keeps its cache (rate limits and the health heartbeats) in a small Valkey
+  container instead of Postgres. Sessions and background jobs stay in Postgres.
+- The image includes PHP's `redis` extension. A source build can use Valkey or Redis by setting
+  `CACHE_STORE=redis` and `REDIS_HOST`; it stays on Postgres otherwise.
+
+An existing install keeps working as it is. To move a self-host install to the Valkey cache,
+download the new `docker-compose.selfhost.yml` before `pull` and `up -d`.
+
 ## [1.0.0] - 2026-11-13
 
 The first public release.

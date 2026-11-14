@@ -40,7 +40,9 @@ RUN apk add --no-cache \
         intl \
         zip \
         gd \
-        exif
+        exif \
+    && pecl install redis-6.3.0 \
+    && docker-php-ext-enable redis
 
 # Build tools come from the pinned stages above; apk versions move underneath a
 # fixed Alpine release. The node binary links libstdc++ (above).
