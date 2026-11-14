@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\HealthzController;
+use App\Http\Controllers\ManifestController;
 use App\Http\Middleware\AddSecurityHeaders;
 use App\Http\Middleware\HandleAppearance;
 use App\Http\Middleware\HandleInertiaRequests;
@@ -39,6 +40,17 @@ Route::get('/healthz', HealthzController::class)
         PreventRequestForgery::class,
     ])
     ->name('healthz');
+
+Route::get('/manifest.webmanifest', ManifestController::class)
+    ->withoutMiddleware([
+        HandleAppearance::class,
+        HandleInertiaRequests::class,
+        AddLinkHeadersForPreloadedAssets::class,
+        StartSession::class,
+        ShareErrorsFromSession::class,
+        PreventRequestForgery::class,
+    ])
+    ->name('manifest');
 
 Route::get('/', function () {
     return redirect()->to(Auth::check() ? '/dashboard' : '/login');

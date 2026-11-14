@@ -98,7 +98,10 @@ ENV GHAR_VERSION=$GHAR_VERSION \
     SENTRY_PROJECT=$SENTRY_PROJECT
 
 # Before `npm run build`: the Wayfinder plugin needs a working autoloader.
-RUN composer dump-autoload --optimize --classmap-authoritative \
+# The VERSION file is what the sidebar shows: a self-host .env sets GHAR_VERSION to a floating
+# "1" for the image tag, and env_file passes that over the baked variable.
+RUN printf "%s" "$GHAR_VERSION" > VERSION \
+    && composer dump-autoload --optimize --classmap-authoritative \
     && php artisan package:discover --ansi \
     && npm run build \
     && rm -rf node_modules /root/.npm /root/.composer /tmp/*
