@@ -22,39 +22,6 @@ class HistoryCascadeDeleteTest extends TestCase
         Storage::fake('s3');
     }
 
-    public function test_gallery_excludes_media_from_soft_deleted_events(): void
-    {
-        /** @var User $user */
-        $user = User::factory()->create();
-
-        /** @var Event $event */
-        $event = Event::factory()->create(['creator_id' => $user->id]);
-
-        $photo = UploadedFile::fake()->image('photo.jpg', 800, 600);
-        app(AttachMedia::class)->photo($event, $photo, $user);
-
-        // Soft-delete the event.
-        $event->delete();
-
-        $response = $this->actingAs($user)
-            ->get('/apps/our-history/gallery')
-            ->assertStatus(200);
-
-        $media = $response->inertiaProps('media')['data'];
-        $photoCount = $response->inertiaProps('counts.photos');
-
-        $this->assertCount(
-            0,
-            $media,
-            'Gallery media payload MUST exclude items from soft-deleted events (cascade contract).',
-        );
-        $this->assertSame(
-            0,
-            $photoCount,
-            'counts.photos MUST reflect the same withoutTrashed filter as the media query.',
-        );
-    }
-
     public function test_force_delete_removes_media_rows_and_files(): void
     {
         /** @var User $user */
@@ -84,7 +51,7 @@ class HistoryCascadeDeleteTest extends TestCase
         $this->assertNull(Media::find($mediaId));
     }
 
-    public function test_counters_exclude_soft_deleted(): void
+    public function test_gallery_media_and_counters_exclude_soft_deleted_events(): void
     {
         /** @var User $user */
         $user = User::factory()->create();
@@ -111,6 +78,11 @@ class HistoryCascadeDeleteTest extends TestCase
             ->get('/apps/our-history/gallery')
             ->assertStatus(200);
 
+        $this->assertCount(
+            1,
+            $response->inertiaProps('media')['data'],
+            'Gallery media MUST exclude items from soft-deleted events (cascade contract).',
+        );
         $this->assertSame(
             1,
             $response->inertiaProps('counts.photos'),

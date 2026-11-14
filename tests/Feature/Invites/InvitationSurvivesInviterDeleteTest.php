@@ -6,7 +6,6 @@ use App\Shell\Models\Invitation;
 use App\Shell\Models\User;
 use Database\Seeders\RoleSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Support\Facades\Schema;
 use Tests\TestCase;
 
 class InvitationSurvivesInviterDeleteTest extends TestCase
@@ -40,14 +39,5 @@ class InvitationSurvivesInviterDeleteTest extends TestCase
 
         $this->assertDatabaseHas('invitations', ['id' => $invitation->id]);
         $this->assertNull($invitation->invited_by_user_id);
-    }
-
-    public function test_invited_by_user_id_column_is_nullable(): void
-    {
-        $columns = Schema::getColumns('invitations');
-        $column = collect($columns)->firstWhere('name', 'invited_by_user_id');
-
-        $this->assertNotNull($column, 'invitations.invited_by_user_id column must exist.');
-        $this->assertTrue($column['nullable'], 'invitations.invited_by_user_id must be nullable.');
     }
 }

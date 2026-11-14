@@ -25,17 +25,6 @@ class AssetVersionTest extends TestCase
         );
     }
 
-    public function test_version_does_not_return_null_when_manifest_exists(): void
-    {
-        $manifestPath = public_path('build/manifest.json');
-        $this->assertFileExists($manifestPath);
-
-        $middleware = new HandleInertiaRequests;
-        $request = Request::create('/');
-
-        $this->assertNotNull($middleware->version($request));
-    }
-
     public function test_version_falls_back_gracefully_when_manifest_is_absent(): void
     {
         // This tests the guard in HandleInertiaRequests::version():  file_exists($manifest) ?

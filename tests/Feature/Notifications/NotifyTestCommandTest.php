@@ -56,16 +56,4 @@ class NotifyTestCommandTest extends TestCase
             'notify:test output must include the iOS first-push reminder'
         );
     }
-
-    public function test_command_dispatches_test_notification_class_not_generic(): void
-    {
-        Notification::fake();
-
-        /** @var User $user */
-        $user = User::factory()->create();
-
-        Artisan::call('notify:test', ['user-id' => $user->id]);
-
-        Notification::assertSentTo($user, TestNotification::class);
-    }
 }

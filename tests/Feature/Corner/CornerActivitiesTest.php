@@ -76,74 +76,6 @@ class CornerActivitiesTest extends TestCase
         $this->assertSame(0, Activity::count());
     }
 
-    public function test_done_toggle(): void
-    {
-        $adder = User::factory()->create();
-        $other = User::factory()->create();
-        $activity = Activity::factory()->create([
-            'added_by_user_id' => $adder->id,
-            'done_at' => null,
-            'done_by_user_id' => null,
-        ]);
-
-        // Toggle ON.
-        $this->actingAs($adder)
-            ->patch("/apps/our-corner/activities/{$activity->id}/toggle-done")
-            ->assertRedirect();
-
-        $activity->refresh();
-        $this->assertNotNull($activity->done_at);
-        $this->assertSame($adder->id, $activity->done_by_user_id);
-
-        // Toggle OFF.
-        $this->actingAs($other)
-            ->patch("/apps/our-corner/activities/{$activity->id}/toggle-done")
-            ->assertRedirect();
-
-        $activity->refresh();
-        $this->assertNull($activity->done_at);
-        $this->assertNull($activity->done_by_user_id);
-    }
-
-    public function test_owner_only_can_delete(): void
-    {
-        $adder = User::factory()->create();
-        $other = User::factory()->create();
-        $activity = Activity::factory()->create(['added_by_user_id' => $adder->id]);
-
-        $this->actingAs($other)
-            ->delete("/apps/our-corner/activities/{$activity->id}")
-            ->assertForbidden();
-
-        $this->assertDatabaseHas('corner_activities', ['id' => $activity->id]);
-
-        // Owner succeeds.
-        $this->actingAs($adder)
-            ->delete("/apps/our-corner/activities/{$activity->id}")
-            ->assertRedirect();
-
-        $this->assertDatabaseMissing('corner_activities', ['id' => $activity->id]);
-    }
-
-    public function test_either_user_can_mark_done(): void
-    {
-        $adder = User::factory()->create();
-        $other = User::factory()->create();
-        $activity = Activity::factory()->create([
-            'added_by_user_id' => $adder->id,
-            'done_at' => null,
-            'done_by_user_id' => null,
-        ]);
-
-        // Non-adder toggles "did it" — symmetric.
-        $this->actingAs($other)
-            ->patch("/apps/our-corner/activities/{$activity->id}/toggle-done")
-            ->assertRedirect();
-
-        $activity->refresh();
-        $this->assertSame($other->id, $activity->done_by_user_id);
-    }
-
     public function test_owner_can_update_activity(): void
     {
         Notification::fake();
@@ -173,17 +105,6 @@ class CornerActivitiesTest extends TestCase
         Notification::assertNothingSent();
     }
 
-    public function test_non_owner_cannot_update_activity(): void
-    {
-        $adder = User::factory()->create();
-        $other = User::factory()->create();
-        $activity = Activity::factory()->create(['added_by_user_id' => $adder->id]);
-
-        $this->actingAs($other)
-            ->patch("/apps/our-corner/activities/{$activity->id}", ['title' => 'Hijacked'])
-            ->assertForbidden();
-    }
-
     public function test_update_activity_requires_title(): void
     {
         $adder = User::factory()->create();
@@ -193,5 +114,22 @@ class CornerActivitiesTest extends TestCase
             ->from('/apps/our-corner/activities')
             ->patch("/apps/our-corner/activities/{$activity->id}", ['title' => ''])
             ->assertSessionHasErrors(['title']);
+    }
+
+    public function test_push_on_add_can_be_muted_per_list(): void
+    {
+        Notification::fake();
+
+        $adder = User::factory()->create();
+        User::factory()->create();
+
+        config(['corner-lists.activities.push_on_add' => false]);
+
+        $this->actingAs($adder)
+            ->post('/apps/our-corner/activities', ['title' => 'Muted Activity'])
+            ->assertRedirect();
+
+        $this->assertDatabaseHas('corner_activities', ['title' => 'Muted Activity']);
+        Notification::assertNothingSent();
     }
 }

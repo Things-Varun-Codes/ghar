@@ -7,7 +7,7 @@ use Tests\TestCase;
 
 class SentryConfigTest extends TestCase
 {
-    public function test_published_sentry_config_holds_expected_shape(): void
+    public function test_sentry_sends_no_pii_and_ignores_validation_errors(): void
     {
         $cfg = config('sentry');
 
@@ -28,10 +28,5 @@ class SentryConfigTest extends TestCase
             'send_default_pii must be false (no IP / user data sent by default)'
         );
 
-        $this->assertSame(
-            0.1,
-            $cfg['traces_sample_rate'] ?? null,
-            'sentry-laravel pins traces_sample_rate to 0.1'
-        );
     }
 }

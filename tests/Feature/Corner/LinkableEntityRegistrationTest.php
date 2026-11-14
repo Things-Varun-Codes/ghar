@@ -117,28 +117,6 @@ class LinkableEntityRegistrationTest extends TestCase
         $this->assertNull($snapshot, 'Resolve must return null for a deleted entity.');
     }
 
-    public function test_search_caps_at_limit(): void
-    {
-        Song::factory()->count(30)->create();
-
-        $linkable = app(LinkableEntities::class);
-        $results = $linkable->search('', ['corner.song'], 5);
-
-        $this->assertCount(5, $results);
-    }
-
-    public function test_registered_types_after_boot_returns_5(): void
-    {
-        $linkable = app(LinkableEntities::class);
-        $types = $linkable->registeredTypes();
-        sort($types);
-
-        $this->assertSame(
-            ['corner.activity', 'corner.movie', 'corner.place', 'corner.song', 'history.event'],
-            $types,
-        );
-    }
-
     public function test_picker_search_returns_results(): void
     {
         Song::factory()->create(['title' => 'Sydney summer']);

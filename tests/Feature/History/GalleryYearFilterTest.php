@@ -64,6 +64,7 @@ class GalleryYearFilterTest extends TestCase
         $midYear = $this->photoEvent($user, "{$targetYear}-06-15");
         $dec31 = $this->photoEvent($user, "{$targetYear}-12-31");
         $adjacentYear = $this->photoEvent($user, ($targetYear + 1).'-01-01');
+        $priorYear = $this->photoEvent($user, ($targetYear - 1).'-12-31');
 
         $response = $this->actingAs($user)
             ->get("/apps/our-history/gallery?year={$targetYear}")
@@ -79,28 +80,13 @@ class GalleryYearFilterTest extends TestCase
             $this->assertContains($mediaId, $ids, 'in-year media (including Jan 1 and Dec 31) must be returned');
         }
 
-        $adjacentMediaId = $adjacentYear->fresh()->media()->first()->id;
-        $this->assertNotContains($adjacentMediaId, $ids, 'the adjacent-year item must not leak into the target year');
-    }
-
-    public function test_year_filter_excludes_adjacent_years(): void
-    {
-        $user = User::factory()->admin()->create();
-        $targetYear = 2024;
-
-        $target = $this->photoEvent($user, "{$targetYear}-06-15");
-        $before = $this->photoEvent($user, ($targetYear - 1).'-06-15');
-        $after = $this->photoEvent($user, ($targetYear + 1).'-06-15');
-
-        $response = $this->actingAs($user)
-            ->get("/apps/our-history/gallery?year={$targetYear}")
-            ->assertStatus(200);
-
-        $ids = $this->mediaIds($response);
-
-        $this->assertContains($target->fresh()->media()->first()->id, $ids);
-        $this->assertNotContains($before->fresh()->media()->first()->id, $ids, 'the prior-year neighbour must be excluded');
-        $this->assertNotContains($after->fresh()->media()->first()->id, $ids, 'the following-year neighbour must be excluded');
+        foreach ([$adjacentYear, $priorYear] as $neighbour) {
+            $this->assertNotContains(
+                $neighbour->fresh()->media()->first()->id,
+                $ids,
+                'a neighbouring year must not leak into the target year',
+            );
+        }
     }
 
     public function test_unfiltered_gallery_still_returns_every_item(): void

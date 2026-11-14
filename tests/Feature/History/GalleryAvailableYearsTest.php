@@ -72,6 +72,8 @@ class GalleryAvailableYearsTest extends TestCase
         $this->photoEvent('2024-06-15');
         $this->photoEvent('2024-09-01'); // duplicate year
         $this->photoEvent('2026-01-20');
+        // A year whose only moment has no media stays off the rail.
+        Event::factory()->create(['occurred_on' => '2020-02-10', 'creator_id' => $this->user->id]);
 
         $years = $this->actingAs($this->user)
             ->get('/apps/our-history/gallery')
