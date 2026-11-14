@@ -51,6 +51,11 @@ updates:
     schedule:
       interval: 'monthly'
     open-pull-requests-limit: 5
+    # A new Postgres major can't open the previous one's data directory, so it is
+    # a planned dump and restore in a major Ghar release, never a routine bump.
+    ignore:
+      - dependency-name: 'postgres'
+        update-types: ['version-update:semver-major']
     # A release has to be a week old first: most bad or hijacked ones are pulled by then.
     cooldown:
       default-days: 7

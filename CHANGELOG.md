@@ -8,7 +8,7 @@ Minor and patch versions don't.
 Before any upgrade, back up the database and the media volume (DEPLOY.md, "Backups and restore").
 Migrations only run forward.
 
-## [1.0.0] - unreleased
+## [1.0.0] - 2026-11-13
 
 The first public release.
 
