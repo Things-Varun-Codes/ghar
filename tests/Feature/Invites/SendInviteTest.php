@@ -41,20 +41,6 @@ class SendInviteTest extends TestCase
         Notification::assertSentOnDemand(InvitationNotification::class);
     }
 
-    public function test_non_admin_cannot_send_invite(): void
-    {
-        $user = User::factory()->create();
-
-        $response = $this->actingAs($user)
-            ->post(route('admin.invites.store'), [
-                'email' => 'invitee@example.com',
-                'role' => 'user',
-            ]);
-
-        $response->assertForbidden();
-        $this->assertDatabaseMissing('invitations', ['email' => 'invitee@example.com']);
-    }
-
     public function test_guest_cannot_send_invite(): void
     {
         $response = $this->post(route('admin.invites.store'), [
@@ -82,6 +68,9 @@ class SendInviteTest extends TestCase
         // token_hash should be a 64-char hex string (sha256)
         $this->assertSame(64, strlen($invitation->token_hash));
         $this->assertMatchesRegularExpression('/^[0-9a-f]{64}$/', $invitation->token_hash);
+
+        // 7-day expiry.
+        $this->assertTrue($invitation->expires_at->between(now()->addDays(7)->subMinute(), now()->addDays(7)));
     }
 
     public function test_invite_email_validation_rejects_invalid_email(): void

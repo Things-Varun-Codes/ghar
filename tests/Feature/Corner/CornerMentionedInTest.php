@@ -116,11 +116,5 @@ class CornerMentionedInTest extends TestCase
                 ->has('mentioned_in', 1)
                 ->where('mentioned_in.0.from_id', $event->id),
         );
-
-        // Sanity: the LinkableEntities service is the one wiring this.
-        $this->assertGreaterThanOrEqual(
-            5,
-            count(app(LinkableEntities::class)->registeredTypes()),
-        );
     }
 }

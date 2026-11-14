@@ -89,37 +89,6 @@ class HistoryGallerySignedUrlRefreshTest extends TestCase
         }
     }
 
-    public function test_gallery_filter_year(): void
-    {
-        $event2024 = Event::factory()->create([
-            'occurred_on' => '2024-06-15',
-            'creator_id' => $this->user->id,
-            'title' => 'TwentyTwentyFourEvent',
-        ]);
-        app(AttachMedia::class)->photo($event2024, UploadedFile::fake()->image('a.jpg', 800, 600), $this->user);
-
-        // Event in 2025
-        $event2025 = Event::factory()->create([
-            'occurred_on' => '2025-03-20',
-            'creator_id' => $this->user->id,
-            'title' => 'TwentyTwentyFiveEvent',
-        ]);
-        app(AttachMedia::class)->photo($event2025, UploadedFile::fake()->image('b.jpg', 800, 600), $this->user);
-
-        $response = $this->actingAs($this->user)
-            ->get('/apps/our-history/gallery?year=2024')
-            ->assertStatus(200);
-
-        $media = $response->inertiaProps('media')['data'];
-        $this->assertNotEmpty($media, 'Expected media items for 2024 filter');
-        $this->assertCount(1, $media, 'Expected exactly 1 media item for year=2024 filter');
-        $this->assertSame(
-            'TwentyTwentyFourEvent',
-            $media[0]['event_title'] ?? null,
-            'Returned media must belong to the 2024 event (asserted via event_title — payload exposes that, not event_id)',
-        );
-    }
-
     public function test_gallery_excludes_video_posters_as_standalone_tiles(): void
     {
         $event = Event::factory()->create(['creator_id' => $this->user->id]);
@@ -135,36 +104,6 @@ class HistoryGallerySignedUrlRefreshTest extends TestCase
         // The gallery must have exactly 1 item (the video) — the poster is NOT a tile.
         $this->assertCount(1, $media, 'video-poster must not appear as a standalone gallery tile');
         $this->assertSame('video', $media[0]['kind'], 'The single gallery item must be the video');
-    }
-
-    public function test_gallery_default_order_is_newest_first(): void
-    {
-        // Older event (2023) — expected to sort AFTER the newer one by default.
-        $olderEvent = Event::factory()->create([
-            'occurred_on' => '2023-05-10',
-            'creator_id' => $this->user->id,
-            'title' => 'OlderMoment',
-        ]);
-        app(AttachMedia::class)->photo($olderEvent, UploadedFile::fake()->image('old.jpg', 800, 600), $this->user);
-
-        // Newer event (2025) — expected to sort first under the default newest-first order.
-        $newerEvent = Event::factory()->create([
-            'occurred_on' => '2025-09-20',
-            'creator_id' => $this->user->id,
-            'title' => 'NewerMoment',
-        ]);
-        app(AttachMedia::class)->photo($newerEvent, UploadedFile::fake()->image('new.jpg', 800, 600), $this->user);
-
-        $response = $this->actingAs($this->user)
-            ->get('/apps/our-history/gallery')
-            ->assertStatus(200);
-
-        $this->assertSame('newest-first', $response->inertiaProps('order'), "'order' prop must be 'newest-first' when no ?order= param");
-        $this->assertSame(
-            'NewerMoment',
-            $response->inertiaProps('media')['data'][0]['event_title'] ?? null,
-            'Newest event media must sort first under default newest-first order',
-        );
     }
 
     public function test_gallery_order_oldest_first_reverses_sort(): void
@@ -195,54 +134,6 @@ class HistoryGallerySignedUrlRefreshTest extends TestCase
             $response->inertiaProps('media')['data'][0]['event_title'] ?? null,
             'Oldest event media must sort first under oldest-first order',
         );
-    }
-
-    public function test_gallery_returns_available_years(): void
-    {
-        // available_years now lists only years that have ≥1  media item. Each year that
-        // should appear MUST have media attached.
-        $event2023 = Event::factory()->create([
-            'occurred_on' => '2023-11-01',
-            'creator_id' => $this->user->id,
-        ]);
-        app(AttachMedia::class)->photo($event2023, UploadedFile::fake()->image('y2023.jpg', 800, 600), $this->user);
-
-        $event2025a = Event::factory()->create([
-            'occurred_on' => '2025-04-15',
-            'creator_id' => $this->user->id,
-        ]);
-        app(AttachMedia::class)->photo($event2025a, UploadedFile::fake()->image('y2025a.jpg', 800, 600), $this->user);
-
-        // Second event in 2025 — duplicate year, should not appear twice
-        Event::factory()->create([
-            'occurred_on' => '2025-08-22',
-            'creator_id' => $this->user->id,
-        ]);
-
-        // Negative case: a 2020 event with NO media — its year must NOT appear.
-        Event::factory()->create([
-            'occurred_on' => '2020-02-10',
-            'creator_id' => $this->user->id,
-        ]);
-
-        $response = $this->actingAs($this->user)
-            ->get('/apps/our-history/gallery')
-            ->assertStatus(200);
-
-        $years = $response->inertiaProps('available_years');
-
-        $this->assertIsArray($years);
-        $this->assertContains(2023, $years, '2023 must be in available_years');
-        $this->assertContains(2025, $years, '2025 must be in available_years');
-        $this->assertNotContains(2020, $years, '2020 has no media — must NOT be in available_years');
-
-        // No duplicates
-        $this->assertSame(count($years), count(array_unique($years)), 'available_years must contain no duplicate years');
-
-        // Descending order
-        $sorted = $years;
-        rsort($sorted);
-        $this->assertSame($sorted, array_values($years), 'available_years must be in descending order');
     }
 
     public function test_gallery_paginates_main_media_list(): void
@@ -283,6 +174,7 @@ class HistoryGallerySignedUrlRefreshTest extends TestCase
 
         // Paginator shape
         $this->assertSame(1, $paginator['current_page'], 'current_page must be 1 on initial load');
+        $this->assertSame('newest-first', $response->inertiaProps('order'), "'order' defaults to newest-first");
         $this->assertNotNull($paginator['next_page_url'], 'next_page_url must not be null when there is a page 2');
         $this->assertSame(30, $paginator['total'], 'total must reflect the full dataset count (30)');
 

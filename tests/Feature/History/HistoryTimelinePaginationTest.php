@@ -85,26 +85,12 @@ class HistoryTimelinePaginationTest extends TestCase
         );
         // Keyset paginator: offset meta must be absent.
         $this->assertNull($response->inertiaProps('events.last_page'));
-    }
 
-    public function test_page_two_has_remaining_events(): void
-    {
-        /** @var User $user */
-        $user = User::factory()->create();
-
-        Event::factory()->count(25)->create(['creator_id' => $user->id]);
-
-        $nextPageUrl = $this->actingAs($user)
-            ->get('/apps/our-history')
-            ->inertiaProps('events.next_page_url');
-
-        $this->assertNotNull($nextPageUrl, 'Page 1 must hand out a next-page cursor.');
-
-        $eventsData = $this->actingAs($user)
-            ->get($nextPageUrl)
-            ->inertiaProps('events.data');
-
-        $this->assertCount(5, $eventsData, 'Following the cursor must return the remaining 5 events');
+        $this->assertCount(
+            5,
+            $this->actingAs($user)->get($nextPageUrl)->inertiaProps('events.data'),
+            'Following the cursor must return the remaining 5 events',
+        );
     }
 
     public function test_same_day_events_tiebreak_by_created_at_desc(): void
@@ -117,21 +103,21 @@ class HistoryTimelinePaginationTest extends TestCase
         $t2 = Carbon::parse('2024-06-01 10:00:00');
         $t3 = Carbon::parse('2024-06-01 14:00:00');
 
-        $event1 = Event::factory()->create([
+        Event::factory()->create([
             'occurred_on' => '2024-06-01',
             'title' => 'Morning',
             'creator_id' => $user->id,
             'created_at' => $t1,
         ]);
 
-        $event2 = Event::factory()->create([
+        Event::factory()->create([
             'occurred_on' => '2024-06-01',
             'title' => 'Midday',
             'creator_id' => $user->id,
             'created_at' => $t2,
         ]);
 
-        $event3 = Event::factory()->create([
+        Event::factory()->create([
             'occurred_on' => '2024-06-01',
             'title' => 'Afternoon',
             'creator_id' => $user->id,
@@ -147,10 +133,5 @@ class HistoryTimelinePaginationTest extends TestCase
         $this->assertEquals('Afternoon', $titles[0], 'Created at 14:00 must be first (newest)');
         $this->assertEquals('Midday', $titles[1], 'Created at 10:00 must be second');
         $this->assertEquals('Morning', $titles[2], 'Created at 08:00 must be third');
-
-        // Suppress unused variable warnings — IDs are not compared but we want to  ensure
-        // the factory creates distinct events. Use them.
-        $this->assertNotEquals($event1->id, $event2->id);
-        $this->assertNotEquals($event2->id, $event3->id);
     }
 }

@@ -54,20 +54,8 @@ class UsersEditTest extends TestCase
             ]);
 
         $response->assertRedirect(route('admin.users.index'));
+        $response->assertSessionMissing('errors');
         $this->assertFalse($admin2->fresh()->hasRole('admin'));
         $this->assertTrue($admin2->fresh()->hasRole('user'));
-    }
-
-    public function test_non_admin_cannot_edit_users(): void
-    {
-        $user = User::factory()->create();
-        $target = User::factory()->create();
-
-        $response = $this->actingAs($user)
-            ->patch(route('admin.users.update', ['user' => $target->id]), [
-                'role' => 'admin',
-            ]);
-
-        $response->assertForbidden();
     }
 }

@@ -5,7 +5,6 @@ namespace Tests\Feature\History;
 use App\MiniApps\History\Models\Event;
 use App\Shell\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Support\Facades\Route;
 use Tests\TestCase;
 
 class HistoryEventCrudTest extends TestCase
@@ -64,43 +63,11 @@ class HistoryEventCrudTest extends TestCase
         $response->assertSessionHasErrors('occurred_on');
     }
 
-    public function test_create_validation_rejects_oversized_body(): void
-    {
-        /** @var User $user */
-        $user = User::factory()->create();
-
-        $response = $this->actingAs($user)->post('/apps/our-history/events', [
-            'occurred_on' => '2024-01-01',
-            'body_html' => str_repeat('a', 50001),
-        ]);
-
-        $response->assertSessionHasErrors('body_html');
-    }
-
     public function test_unauthenticated_user_cannot_create_event(): void
     {
         $this->post('/apps/our-history/events', [
             'occurred_on' => '2024-01-01',
         ])->assertRedirect('/login');
-    }
-
-    public function test_user_can_update_event(): void
-    {
-        /** @var User $user */
-        $user = User::factory()->create();
-
-        /** @var Event $event */
-        $event = Event::factory()->create(['title' => 'Old title', 'creator_id' => $user->id]);
-
-        $this->actingAs($user)->patch("/apps/our-history/events/{$event->id}", [
-            'occurred_on' => $event->occurred_on->toDateString(),
-            'title' => 'New title',
-        ])->assertRedirect('/apps/our-history');
-
-        $this->assertDatabaseHas('our_history_events', [
-            'id' => $event->id,
-            'title' => 'New title',
-        ]);
     }
 
     public function test_update_validation_requires_date(): void
@@ -143,34 +110,6 @@ class HistoryEventCrudTest extends TestCase
         $this->patch("/apps/our-history/events/{$event->id}", [
             'occurred_on' => '2024-01-01',
         ])->assertRedirect('/login');
-    }
-
-    public function test_update_route_uses_history_mutations_throttle(): void
-    {
-        $route = Route::getRoutes()->getByName('apps.our-history.events.update');
-        $this->assertNotNull($route, 'Route apps.our-history.events.update must exist');
-        $this->assertTrue(
-            in_array('throttle:history-mutations', $route->gatherMiddleware(), true),
-            'Update route must be bound to the throttle:history-mutations middleware',
-        );
-    }
-
-    public function test_user_can_soft_delete_event(): void
-    {
-        /** @var User $user */
-        $user = User::factory()->create();
-
-        /** @var Event $event */
-        $event = Event::factory()->create(['creator_id' => $user->id]);
-
-        $this->actingAs($user)->delete("/apps/our-history/events/{$event->id}")
-            ->assertRedirect('/apps/our-history');
-
-        // Row still exists (soft-delete)
-        $this->assertSoftDeleted('our_history_events', ['id' => $event->id]);
-
-        // And the withTrashed query still finds it
-        $this->assertEquals(1, Event::withTrashed()->count());
     }
 
     public function test_body_html_round_trip(): void

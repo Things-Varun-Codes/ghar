@@ -36,6 +36,7 @@ class InertiaRolesPropTest extends TestCase
 
         $this->assertIsArray($authUser['roles']);
         $this->assertEmpty($authUser['roles']);
+        $this->assertArrayNotHasKey('is_admin', $authUser);
     }
 
     public function test_authenticated_admin_has_admin_in_roles_array(): void
@@ -51,17 +52,5 @@ class InertiaRolesPropTest extends TestCase
 
         $this->assertIsArray($authUser['roles']);
         $this->assertContains('admin', $authUser['roles']);
-    }
-
-    public function test_is_admin_key_is_not_in_auth_user_props(): void
-    {
-        $user = User::factory()->create();
-        $response = $this->actingAs($user)->get(route('dashboard'));
-
-        $response->assertOk();
-        $page = json_decode(json_encode($response->viewData('page')), true);
-        $authUser = $page['props']['auth']['user'];
-
-        $this->assertArrayNotHasKey('is_admin', $authUser);
     }
 }

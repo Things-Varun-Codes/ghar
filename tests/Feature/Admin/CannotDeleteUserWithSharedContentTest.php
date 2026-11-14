@@ -34,42 +34,14 @@ class CannotDeleteUserWithSharedContentTest extends TestCase
         $response->assertRedirect(route('admin.users.index'));
         $response->assertSessionHasErrors('delete');
 
+        // The refusal names what is in the way.
+        $refusal = session('errors')->getBag('default')->first('delete');
+        $this->assertStringContainsString('Corner songs', $refusal);
+        $this->assertStringContainsString('Mailbox messages', $refusal);
+
         $this->assertDatabaseHas('users', ['id' => $target->id]);
         $this->assertDatabaseHas('corner_songs', ['id' => $song->id]);
         $this->assertDatabaseHas('mailbox_messages', ['id' => $message->id]);
-    }
-
-    public function test_refusal_message_names_the_blocking_content(): void
-    {
-        $admin = User::factory()->admin()->create();
-        $target = User::factory()->create();
-        $other = User::factory()->create();
-
-        Song::factory()->create(['added_by_user_id' => $target->id]);
-        MailboxMessage::factory()->to($other)->create(['sender_id' => $target->id]);
-
-        $response = $this->actingAs($admin)
-            ->delete(route('admin.users.destroy', ['user' => $target->id]));
-
-        $response->assertSessionHasErrors('delete');
-
-        $errors = session('errors')->getBag('default');
-        $message = $errors->get('delete')[0] ?? '';
-
-        $this->assertStringContainsString('Corner songs', $message);
-        $this->assertStringContainsString('Mailbox messages', $message);
-    }
-
-    public function test_a_user_with_no_content_is_still_deletable(): void
-    {
-        $admin = User::factory()->admin()->create();
-        $target = User::factory()->create();
-
-        $response = $this->actingAs($admin)
-            ->delete(route('admin.users.destroy', ['user' => $target->id]));
-
-        $response->assertRedirect(route('admin.users.index'));
-        $this->assertDatabaseMissing('users', ['id' => $target->id]);
     }
 
     public function test_recipient_side_content_also_blocks_the_delete(): void

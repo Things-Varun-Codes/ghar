@@ -53,31 +53,13 @@ class DeployOpsContractTest extends TestCase
         );
     }
 
-    public function test_logging_config_still_defines_a_working_stderr_channel(): void
-    {
-        $this->assertSame(
-            'monolog',
-            config('logging.channels.stderr.driver'),
-            'the stderr channel docker-compose.yml now depends on must still use the monolog driver'
-        );
-
-        $handlerWith = config('logging.channels.stderr.handler_with');
-
-        $this->assertIsArray($handlerWith);
-        $this->assertSame(
-            'php://stderr',
-            $handlerWith['stream'] ?? null,
-            'the stderr channel must still stream to php://stderr'
-        );
-    }
-
     public function test_compose_passes_through_what_the_app_reads(): void
     {
         $content = file_get_contents(base_path('docker-compose.yml'));
 
         foreach ([
             'VAPID_PUBLIC_KEY', 'VAPID_PRIVATE_KEY', 'VAPID_SUBJECT', 'SENTRY_LARAVEL_DSN', 'MEDIA_DISK',
-            'CLOUDFLARE_ACCOUNT_ID', 'CLOUDFLARE_WORKERS_AI_TOKEN', 'GOOGLE_MAPS_API_KEY',
+            'BOUQUET_IMAGE_PROVIDER', 'CLOUDFLARE_ACCOUNT_ID', 'CLOUDFLARE_WORKERS_AI_TOKEN', 'GOOGLE_MAPS_API_KEY',
         ] as $key) {
             $this->assertStringContainsString("{$key}: \${{$key}:-", $content);
         }

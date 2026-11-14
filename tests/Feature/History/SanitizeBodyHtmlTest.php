@@ -92,6 +92,8 @@ class SanitizeBodyHtmlTest extends TestCase
 
         $this->assertStringNotContainsString('<form', $output);
         $this->assertStringNotContainsString('<input', $output);
+
+        $this->assertStringNotContainsString('<div', ($this->action)('<div onclick=alert(1)>X</div>'));
     }
 
     public function test_preserves_corner_link_attrs(): void

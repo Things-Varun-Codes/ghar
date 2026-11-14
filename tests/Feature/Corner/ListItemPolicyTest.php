@@ -69,6 +69,11 @@ class ListItemPolicyTest extends TestCase
         $this->assertNotNull($item->fresh()->done_at);
         $this->assertSame($this->member->id, $item->fresh()->done_by_user_id);
 
+        // Anyone may also take it back, and that clears who marked it.
+        $this->actingAs($this->adder)->from($url)->patch("{$url}/toggle-done")->assertRedirect($url);
+        $this->assertNull($item->fresh()->done_at);
+        $this->assertNull($item->fresh()->done_by_user_id);
+
         $this->actingAs($this->member)
             ->get($url)
             ->assertInertia(fn ($page) => $page->where("{$prop}.can", ['update' => false, 'delete' => false]));

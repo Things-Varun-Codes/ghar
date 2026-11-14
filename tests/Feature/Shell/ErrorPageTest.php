@@ -62,16 +62,7 @@ class ErrorPageTest extends TestCase
             ->assertNotFound()
             ->assertInertia(fn (Assert $page) => $page
                 ->component('Shell/Pages/Error')
-                ->where('status', 404)
-            );
-    }
-
-    public function test_error_page_carries_only_the_status_never_exception_text(): void
-    {
-        $this->actingAs(User::factory()->create())
-            ->get('/apps/our-mailbox/challans/999999')
-            ->assertInertia(fn (Assert $page) => $page
-                ->component('Shell/Pages/Error')
+                // Only the status travels: never the exception text.
                 ->whereAll(['status' => 404])
                 ->missing('message')
                 ->missing('exception')

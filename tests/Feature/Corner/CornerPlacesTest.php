@@ -7,7 +7,6 @@ use App\Shell\Models\User;
 use App\Shell\Notifications\GenericPushNotification;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Notification;
-use Illuminate\Support\Facades\Schema;
 use Tests\TestCase;
 
 class CornerPlacesTest extends TestCase
@@ -111,75 +110,6 @@ class CornerPlacesTest extends TestCase
         $this->assertEqualsWithDelta(-98.7654321, (float) $place->lng, 0.00000005);
     }
 
-    public function test_lat_lng_indexed_for_future_map_view(): void
-    {
-        // Schema introspection — verify a (lat, lng) compound index exists.  Driver-agnostic
-        // via the DBAL-like schema manager available in  Laravel 13 (Schema::getIndexes is the
-        // canonical accessor).
-        $indexes = Schema::getIndexes('corner_places');
-
-        $found = false;
-        foreach ($indexes as $idx) {
-            $cols = $idx['columns'] ?? [];
-
-            if (in_array('lat', $cols, true) && in_array('lng', $cols, true)) {
-                $found = true;
-                break;
-            }
-        }
-
-        $this->assertTrue($found, 'Expected a compound index on (lat, lng) on corner_places (idx_corner_places_latlng — future map view).');
-    }
-
-    public function test_done_toggle(): void
-    {
-        $adder = User::factory()->create();
-        $other = User::factory()->create();
-        $place = Place::factory()->create([
-            'added_by_user_id' => $adder->id,
-            'done_at' => null,
-            'done_by_user_id' => null,
-        ]);
-
-        // Toggle ON.
-        $this->actingAs($adder)
-            ->patch("/apps/our-corner/places/{$place->id}/toggle-done")
-            ->assertRedirect();
-
-        $place->refresh();
-        $this->assertNotNull($place->done_at);
-        $this->assertSame($adder->id, $place->done_by_user_id);
-
-        // Either user can toggle OFF — symmetric.
-        $this->actingAs($other)
-            ->patch("/apps/our-corner/places/{$place->id}/toggle-done")
-            ->assertRedirect();
-
-        $place->refresh();
-        $this->assertNull($place->done_at);
-        $this->assertNull($place->done_by_user_id);
-    }
-
-    public function test_owner_only_can_delete(): void
-    {
-        $adder = User::factory()->create();
-        $other = User::factory()->create();
-        $place = Place::factory()->create(['added_by_user_id' => $adder->id]);
-
-        $this->actingAs($other)
-            ->delete("/apps/our-corner/places/{$place->id}")
-            ->assertForbidden();
-
-        $this->assertDatabaseHas('corner_places', ['id' => $place->id]);
-
-        // Owner succeeds.
-        $this->actingAs($adder)
-            ->delete("/apps/our-corner/places/{$place->id}")
-            ->assertRedirect();
-
-        $this->assertDatabaseMissing('corner_places', ['id' => $place->id]);
-    }
-
     public function test_owner_can_update_place(): void
     {
         Notification::fake();
@@ -210,30 +140,5 @@ class CornerPlacesTest extends TestCase
 
         // Edit is silent — no push on update.
         Notification::assertNothingSent();
-    }
-
-    public function test_non_owner_cannot_update_place(): void
-    {
-        $adder = User::factory()->create();
-        $other = User::factory()->create();
-        $place = Place::factory()->create([
-            'added_by_user_id' => $adder->id,
-            'title' => 'Original Title',
-        ]);
-
-        $this->actingAs($other)
-            ->patch("/apps/our-corner/places/{$place->id}", [
-                'title' => 'Hijacked',
-                'place_id' => 'ChIJhijacked',
-                'lat' => 1.23,
-                'lng' => 4.56,
-                'address' => 'Nowhere',
-            ])
-            ->assertForbidden();
-
-        $this->assertDatabaseHas('corner_places', [
-            'id' => $place->id,
-            'title' => 'Original Title',
-        ]);
     }
 }

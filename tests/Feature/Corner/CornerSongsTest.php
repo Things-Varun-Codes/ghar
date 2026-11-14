@@ -143,54 +143,6 @@ class CornerSongsTest extends TestCase
         Notification::assertSentTimes(GenericPushNotification::class, 1);
     }
 
-    public function test_loved_toggle(): void
-    {
-        $adder = User::factory()->create();
-        $other = User::factory()->create();
-        $song = Song::factory()->create([
-            'added_by_user_id' => $adder->id,
-            'done_at' => null,
-            'done_by_user_id' => null,
-        ]);
-
-        // Toggle ON.
-        $this->actingAs($other)
-            ->patch("/apps/our-corner/songs/{$song->id}/toggle-done")
-            ->assertRedirect();
-
-        $song->refresh();
-        $this->assertNotNull($song->done_at);
-        $this->assertSame($other->id, $song->done_by_user_id);
-
-        // Toggle OFF (symmetric).
-        $this->actingAs($other)
-            ->patch("/apps/our-corner/songs/{$song->id}/toggle-done")
-            ->assertRedirect();
-
-        $song->refresh();
-        $this->assertNull($song->done_at);
-        $this->assertNull($song->done_by_user_id);
-    }
-
-    public function test_either_user_can_toggle_loved(): void
-    {
-        $adder = User::factory()->create();
-        $other = User::factory()->create();
-        $song = Song::factory()->create([
-            'added_by_user_id' => $adder->id,
-            'done_at' => null,
-            'done_by_user_id' => null,
-        ]);
-
-        // The non-adder toggles loved — symmetric.
-        $this->actingAs($other)
-            ->patch("/apps/our-corner/songs/{$song->id}/toggle-done")
-            ->assertRedirect();
-
-        $song->refresh();
-        $this->assertSame($other->id, $song->done_by_user_id);
-    }
-
     public function test_invalid_url_returns_validation_error(): void
     {
         $adder = User::factory()->create();
@@ -204,26 +156,6 @@ class CornerSongsTest extends TestCase
         $response->assertSessionHasErrors([
             'url' => "That doesn't look like a YouTube or Spotify link.",
         ]);
-    }
-
-    public function test_owner_only_can_delete(): void
-    {
-        $adder = User::factory()->create();
-        $other = User::factory()->create();
-        $song = Song::factory()->create(['added_by_user_id' => $adder->id]);
-
-        $this->actingAs($other)
-            ->delete("/apps/our-corner/songs/{$song->id}")
-            ->assertForbidden();
-
-        $this->assertDatabaseHas('corner_songs', ['id' => $song->id]);
-
-        // Owner succeeds.
-        $this->actingAs($adder)
-            ->delete("/apps/our-corner/songs/{$song->id}")
-            ->assertRedirect();
-
-        $this->assertDatabaseMissing('corner_songs', ['id' => $song->id]);
     }
 
     public function test_oembed_preview_endpoint(): void
@@ -289,21 +221,6 @@ class CornerSongsTest extends TestCase
 
         // Edit is silent — no push on update.
         Notification::assertNothingSent();
-    }
-
-    public function test_non_owner_cannot_update_song(): void
-    {
-        $this->fakeYouTube();
-
-        $adder = User::factory()->create();
-        $other = User::factory()->create();
-        $song = Song::factory()->create(['added_by_user_id' => $adder->id]);
-
-        $this->actingAs($other)
-            ->patch("/apps/our-corner/songs/{$song->id}", [
-                'url' => 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
-            ])
-            ->assertForbidden();
     }
 
     public function test_update_song_requires_url(): void

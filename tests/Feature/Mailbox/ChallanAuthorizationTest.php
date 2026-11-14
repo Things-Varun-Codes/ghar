@@ -179,6 +179,9 @@ class ChallanAuthorizationTest extends TestCase
         $this->actingAs($recipient)
             ->get("/apps/our-mailbox/challans/{$issued->id}")
             ->assertInertia(fn (Assert $page) => $page
+                ->component('MiniApps/Mailbox/Pages/Challans/Show')
+                ->where('challan.ref_no', $issued->ref_no)
+                ->where('challan.status', Challan::STATUS_ISSUED)
                 ->where('challan.available_actions', ['pay'])
             );
 

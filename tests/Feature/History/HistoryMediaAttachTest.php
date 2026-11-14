@@ -8,6 +8,8 @@ use App\MiniApps\History\Models\Event;
 use App\Shell\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Exceptions;
+use Illuminate\Support\Facades\Queue;
 use Illuminate\Support\Facades\Storage;
 use Spatie\MediaLibrary\MediaCollections\Models\Media;
 use Tests\TestCase;
@@ -57,26 +59,8 @@ class HistoryMediaAttachTest extends TestCase
             Storage::disk('s3')->exists($media->getPathRelativeToRoot('medium')),
             'medium conversion missing on fake bucket disk',
         );
-    }
 
-    public function test_photo_dimensions_observed(): void
-    {
-        /** @var User $user */
-        $user = User::factory()->create();
-        /** @var Event $event */
-        $event = Event::factory()->create(['creator_id' => $user->id]);
-
-        $file = UploadedFile::fake()->image('photo.jpg', 800, 600);
-
-        $this->actingAs($user)->post(
-            "/apps/our-history/events/{$event->id}/media",
-            ['media' => $file],
-        );
-
-        $media = $event->fresh()->getMedia('photos')->first();
-        $this->assertNotNull($media);
-
-        // AttachMedia::photo() captures dimensions from getRealPath() before upload
+        // AttachMedia::photo() records the dimensions before upload.
         $this->assertEquals(800, $media->custom_properties['width'] ?? null);
         $this->assertEquals(600, $media->custom_properties['height'] ?? null);
     }
@@ -216,5 +200,23 @@ class HistoryMediaAttachTest extends TestCase
             Media::find($mediaB->id),
             'Cross-event detach attempt must not delete the media row',
         );
+    }
+
+    public function test_a_photo_whose_dimensions_cannot_be_read_still_attaches_and_is_reported(): void
+    {
+        Exceptions::fake();
+        Queue::fake();
+
+        /** @var User $user */
+        $user = User::factory()->create();
+        /** @var Event $event */
+        $event = Event::factory()->create(['creator_id' => $user->id]);
+
+        app(AttachMedia::class)->photo($event, UploadedFile::fake()->create('broken.jpg', 1, 'image/jpeg'), $user);
+
+        Exceptions::assertReportedCount(1);
+        $media = $event->fresh()->getMedia('photos')->first();
+        $this->assertNotNull($media);
+        $this->assertArrayNotHasKey('width', $media->custom_properties);
     }
 }

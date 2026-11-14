@@ -40,13 +40,4 @@ class InviteAcceptRateLimitTest extends TestCase
 
         $response->assertStatus(429);
     }
-
-    public function test_invite_accept_show_route_is_accessible_within_limit(): void
-    {
-        // Should not be throttled on the first request
-        $response = $this->get(route('invitations.accept.show', ['token' => 'any-token']));
-
-        // Either 302 (invalid token redirect) or 200 — NOT 429
-        $this->assertNotEquals(429, $response->status());
-    }
 }

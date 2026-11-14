@@ -39,8 +39,7 @@ class BouquetFailureTest extends TestCase
                 'flowers' => ['red_rose'],
             ]);
 
-        // PRIMARY RED: route absent → 404, NOT in [422, 500] → assertTrue fails.  GREEN:
-        // generator throws → controller catches → returns 422 (safety) or 500 (other).
+        // The controller catches the failure: 422 for a safety refusal, 500 otherwise.
         $this->assertTrue(
             in_array($response->status(), [422, 500]),
             "Expected 422 or 500 from a throwing generator, got {$response->status()}"
@@ -85,7 +84,6 @@ class BouquetFailureTest extends TestCase
                 'flowers' => ['red_rose'],
             ]);
 
-        // PRIMARY RED: route absent → 404 → assertTrue fails (404 not in [422, 500]).
         $this->assertTrue(
             in_array($response->status(), [422, 500]),
             "Expected 422 or 500 from empty-bytes generator, got {$response->status()}"

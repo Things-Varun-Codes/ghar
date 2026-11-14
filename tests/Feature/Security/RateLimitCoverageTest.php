@@ -19,6 +19,7 @@ class RateLimitCoverageTest extends TestCase
             ['DELETE', 'admin/invites/{invite}',        'admin-mutations'],
             ['PATCH',  'settings/profile',              'settings-profile'],
             ['PUT',    'settings/password',             'password-change'],
+            ['PATCH',  'apps/our-history/events/{event}', 'history-mutations'],
         ];
 
         $routes = Route::getRoutes();

@@ -38,6 +38,8 @@ class NonAdminCannotAccessAdminTest extends TestCase
         $this->actingAs($user)
             ->post(route('admin.invites.store'), ['email' => 'x@x.com', 'role' => 'user'])
             ->assertForbidden();
+
+        $this->assertDatabaseCount('invitations', 0);
     }
 
     public function test_regular_user_cannot_patch_user_role(): void

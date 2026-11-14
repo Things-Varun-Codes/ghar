@@ -84,74 +84,6 @@ class CornerMoviesTest extends TestCase
         $this->assertSame(0, Movie::count());
     }
 
-    public function test_done_toggle(): void
-    {
-        $adder = User::factory()->create();
-        $other = User::factory()->create();
-        $movie = Movie::factory()->create([
-            'added_by_user_id' => $adder->id,
-            'done_at' => null,
-            'done_by_user_id' => null,
-        ]);
-
-        // Toggle ON.
-        $this->actingAs($adder)
-            ->patch("/apps/our-corner/movies/{$movie->id}/toggle-done")
-            ->assertRedirect();
-
-        $movie->refresh();
-        $this->assertNotNull($movie->done_at);
-        $this->assertSame($adder->id, $movie->done_by_user_id);
-
-        // Toggle OFF (symmetric).
-        $this->actingAs($other)
-            ->patch("/apps/our-corner/movies/{$movie->id}/toggle-done")
-            ->assertRedirect();
-
-        $movie->refresh();
-        $this->assertNull($movie->done_at);
-        $this->assertNull($movie->done_by_user_id);
-    }
-
-    public function test_owner_only_can_delete(): void
-    {
-        $adder = User::factory()->create();
-        $other = User::factory()->create();
-        $movie = Movie::factory()->create(['added_by_user_id' => $adder->id]);
-
-        $this->actingAs($other)
-            ->delete("/apps/our-corner/movies/{$movie->id}")
-            ->assertForbidden();
-
-        $this->assertDatabaseHas('corner_movies', ['id' => $movie->id]);
-
-        // Owner succeeds.
-        $this->actingAs($adder)
-            ->delete("/apps/our-corner/movies/{$movie->id}")
-            ->assertRedirect();
-
-        $this->assertDatabaseMissing('corner_movies', ['id' => $movie->id]);
-    }
-
-    public function test_either_user_can_mark_watched_together(): void
-    {
-        $adder = User::factory()->create();
-        $other = User::factory()->create();
-        $movie = Movie::factory()->create([
-            'added_by_user_id' => $adder->id,
-            'done_at' => null,
-            'done_by_user_id' => null,
-        ]);
-
-        // Non-adder toggles "watched together" — symmetric.
-        $this->actingAs($other)
-            ->patch("/apps/our-corner/movies/{$movie->id}/toggle-done")
-            ->assertRedirect();
-
-        $movie->refresh();
-        $this->assertSame($other->id, $movie->done_by_user_id);
-    }
-
     public function test_movie_persists_plex_url(): void
     {
         Notification::fake();
@@ -225,17 +157,6 @@ class CornerMoviesTest extends TestCase
 
         // Edit is silent — no push on update.
         Notification::assertNothingSent();
-    }
-
-    public function test_non_owner_cannot_update_movie(): void
-    {
-        $adder = User::factory()->create();
-        $other = User::factory()->create();
-        $movie = Movie::factory()->create(['added_by_user_id' => $adder->id]);
-
-        $this->actingAs($other)
-            ->patch("/apps/our-corner/movies/{$movie->id}", ['title' => 'Hijacked'])
-            ->assertForbidden();
     }
 
     public function test_update_movie_rejects_non_plex_url(): void

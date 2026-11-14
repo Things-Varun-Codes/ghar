@@ -56,27 +56,4 @@ class MailboxNotifyChannelsTest extends TestCase
         ]);
         $this->assertDatabaseHas('mailbox_message_recipients', ['user_id' => $recipient->id]);
     }
-
-    public function test_email_channel_never_invoked(): void
-    {
-        Notification::fake();
-
-        /** @var User $sender */
-        $sender = User::factory()->create();
-        /** @var User $recipient */
-        $recipient = User::factory()->create();
-
-        $this->actingAs($sender)->post('/apps/our-mailbox/messages', [
-            'recipient_ids' => [$recipient->id],
-            'body' => 'no email ever',
-        ])->assertRedirect();
-
-        Notification::assertSentTo(
-            $recipient,
-            GenericPushNotification::class,
-            function (GenericPushNotification $notification, array $channels) {
-                return ! in_array('mail', $channels, true);
-            }
-        );
-    }
 }

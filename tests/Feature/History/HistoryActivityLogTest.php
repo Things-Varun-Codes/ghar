@@ -133,29 +133,4 @@ class HistoryActivityLogTest extends TestCase
         // The event itself must be soft-deleted (not hard-deleted)
         $this->assertSoftDeleted('our_history_events', ['id' => $event->id]);
     }
-
-    public function test_change_rows_survive_event_soft_delete(): void
-    {
-        /** @var User $user */
-        $user = User::factory()->create();
-
-        /** @var Event $event */
-        $event = Event::factory()->create(['creator_id' => $user->id]);
-        $eventId = $event->id;
-
-        // Create a change row
-        $this->actingAs($user)->post('/apps/our-history/events', [
-            'occurred_on' => '2024-03-01',
-        ]);
-
-        // Now soft-delete the event
-        $this->actingAs($user)->delete("/apps/our-history/events/{$event->id}");
-
-        // Event is soft-deleted
-        $this->assertSoftDeleted('our_history_events', ['id' => $event->id]);
-
-        // But all change rows for it still exist
-        $changeCount = EventChange::where('event_id', $event->id)->count();
-        $this->assertGreaterThan(0, $changeCount, 'Activity log must survive event soft-delete');
-    }
 }

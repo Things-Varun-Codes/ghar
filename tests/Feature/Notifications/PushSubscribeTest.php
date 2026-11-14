@@ -139,6 +139,7 @@ class PushSubscribeTest extends TestCase
         $response->assertInertia(fn ($page) => $page
             ->component('Shell/Pages/Settings/Notifications')
             ->has('subscriptions')
+            ->where('vapidPublicKey', config('webpush.vapid.public_key'))
         );
     }
 }

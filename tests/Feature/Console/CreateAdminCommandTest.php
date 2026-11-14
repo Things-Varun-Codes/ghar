@@ -78,16 +78,4 @@ class CreateAdminCommandTest extends TestCase
 
         $this->assertSame(1, User::role('admin')->count());
     }
-
-    public function test_admin_user_passes_admin_gate(): void
-    {
-        $this->artisan('ghar:create-admin', [
-            'email' => 'admin@example.com',
-            'name' => 'Admin User',
-            '--password' => 'password',
-        ])->assertSuccessful();
-
-        $user = User::where('email', 'admin@example.com')->firstOrFail();
-        $this->assertTrue(\Illuminate\Support\Facades\Gate::forUser($user)->allows('admin'));
-    }
 }

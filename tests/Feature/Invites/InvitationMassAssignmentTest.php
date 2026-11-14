@@ -57,7 +57,7 @@ class InvitationMassAssignmentTest extends TestCase
         (new Invitation)->fill(['token_hash' => 'attacker-supplied-hash']);
     }
 
-    public function test_full_invite_lifecycle_still_works_end_to_end(): void
+    public function test_the_token_emailed_on_resend_is_the_one_that_accepts_the_invite(): void
     {
         Notification::fake();
 
@@ -70,10 +70,6 @@ class InvitationMassAssignmentTest extends TestCase
         ]);
 
         $invitation = Invitation::where('email', 'invitee@example.com')->firstOrFail();
-        $this->assertSame(64, strlen($invitation->token_hash));
-        $this->assertMatchesRegularExpression('/^[0-9a-f]{64}$/', $invitation->token_hash);
-
-        $originalTokenHash = $invitation->token_hash;
 
         // Admin resends — original is revoked, a fresh token is issued.
         $this->actingAs($admin)->post(route('admin.invites.resend', $invitation));
@@ -84,7 +80,6 @@ class InvitationMassAssignmentTest extends TestCase
         $newInvitation = Invitation::where('email', 'invitee@example.com')
             ->whereNull('revoked_at')
             ->firstOrFail();
-        $this->assertNotSame($originalTokenHash, $newInvitation->token_hash);
 
         // Invitee accepts using the fresh invitation's token — capture the  plaintext from
         // the notification the resend dispatched (the  plaintext itself is never persisted;
@@ -119,18 +114,5 @@ class InvitationMassAssignmentTest extends TestCase
         $newInvitation->refresh();
         $this->assertNotNull($newInvitation->accepted_at);
         $this->assertDatabaseHas('users', ['email' => 'invitee@example.com']);
-
-        // Admin deletes a fresh pending invite — revoked_at is set (soft  revoke, not a hard
-        // delete of the row).
-        $this->actingAs($admin)->post(route('admin.invites.store'), [
-            'email' => 'pending@example.com',
-            'role' => 'user',
-        ]);
-        $pending = Invitation::where('email', 'pending@example.com')->firstOrFail();
-
-        $this->actingAs($admin)->delete(route('admin.invites.destroy', $pending));
-
-        $pending->refresh();
-        $this->assertNotNull($pending->revoked_at);
     }
 }

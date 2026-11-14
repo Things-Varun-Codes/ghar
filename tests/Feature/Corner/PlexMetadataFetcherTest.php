@@ -43,26 +43,6 @@ class PlexMetadataFetcherTest extends TestCase
         $this->assertNotSame('', $result['watch_url']);
     }
 
-    public function test_rejects_non_plex_host(): void
-    {
-        Http::fake();
-
-        $result = $this->fetcher->fetch('https://evil.example.com/x');
-
-        $this->assertNull($result);
-        Http::assertNothingSent();
-    }
-
-    public function test_rejects_ssrf_metadata_ip(): void
-    {
-        Http::fake();
-
-        $result = $this->fetcher->fetch('http://169.254.169.254/latest/meta-data');
-
-        $this->assertNull($result);
-        Http::assertNothingSent();
-    }
-
     public function test_follows_a_redirect_that_stays_on_plex(): void
     {
         Http::fake([
@@ -101,16 +81,6 @@ class PlexMetadataFetcherTest extends TestCase
             'another host over https' => ['https://internal.example/admin'],
             'plex over plain http' => ['http://watch.plex.tv/movie/x'],
         ];
-    }
-
-    public function test_rejects_subdomain_spoof_host(): void
-    {
-        Http::fake();
-
-        $result = $this->fetcher->fetch('https://plex.tv.evil.com/x');
-
-        $this->assertNull($result);
-        Http::assertNothingSent();
     }
 
     public function test_returns_null_on_timeout(): void
@@ -181,6 +151,26 @@ class PlexMetadataFetcherTest extends TestCase
             ->getJson('/api/corner/plex-preview?url='.urlencode('https://evil.com/x'))
             ->assertOk()
             ->assertJson(['ok' => false]);
+
+        Http::assertNothingSent();
+    }
+
+    /** @return array<string, array{string}> */
+    public static function hostsOffPlex(): array
+    {
+        return [
+            'another host' => ['https://evil.example.com/x'],
+            'cloud metadata address' => ['http://169.254.169.254/latest/meta-data'],
+            'plex spoofed as a subdomain' => ['https://plex.tv.evil.com/x'],
+        ];
+    }
+
+    #[DataProvider('hostsOffPlex')]
+    public function test_a_host_off_plex_is_rejected_before_any_request(string $url): void
+    {
+        Http::fake();
+
+        $this->assertNull($this->fetcher->fetch($url));
 
         Http::assertNothingSent();
     }

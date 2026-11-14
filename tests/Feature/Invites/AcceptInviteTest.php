@@ -65,19 +65,8 @@ class AcceptInviteTest extends TestCase
 
         $invitation->refresh();
         $this->assertNotNull($invitation->accepted_at);
-    }
 
-    public function test_accept_logs_user_in_after_registration(): void
-    {
-        ['plaintext' => $plaintext] = $this->makeInvitation();
-
-        $this->post(route('invitations.accept.store', ['token' => $plaintext]), [
-            'name' => 'New User',
-            'password' => 'Password123!',
-            'password_confirmation' => 'Password123!',
-        ]);
-
-        $this->assertAuthenticated();
+        $this->assertAuthenticatedAs($user);
     }
 
     public function test_invalid_token_redirects_to_login(): void
