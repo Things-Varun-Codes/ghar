@@ -1,6 +1,13 @@
 <?php
 
 return [
+    // Shown in the sidebar footer. Release images bake a VERSION file from the git tag; a source
+    // checkout shows its commit instead, and a build with neither shows nothing.
+    'version' => trim((string) @file_get_contents(base_path('VERSION'))) ?: (trim((string) exec('git rev-parse --short HEAD 2>/dev/null')) ?: null),
+
+    // Where the sidebar version links to: a release tag or a commit on this repository.
+    'repository_url' => 'https://github.com/Things-Varun-Codes/ghar',
+
     // `local` keeps photos on this server's disk; `s3` uses the bucket in config/filesystems.php.
     // `?:` rather than env()'s default, so an empty MEDIA_DISK= also means `local`.
     'media_disk' => (static function (string $disk): string {

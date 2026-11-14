@@ -323,7 +323,8 @@ Every key in `.env.example`; `scripts/check-env-deploy-sync.sh` checks them agai
 below. A self-host install only needs the few in `.env.selfhost.example`, because
 `docker-compose.selfhost.yml` fixes the database, session, cache, queue and log settings itself.
 
-- `APP_NAME`: the name shown everywhere, `Ghar` by default. Read at runtime.
+- `APP_NAME`: the name shown everywhere (sign-in page, sidebar, browser tab, installed app, mail),
+  `Ghar` by default. Read at runtime. An already-installed app keeps its old name until reinstalled.
 - `APP_ENV` / `APP_DEBUG`: `production` / `false` on a server.
 - `APP_KEY`: generated on first start when empty. `php artisan key:generate --show` makes one.
 - `APP_URL`: the address people open, with `https://` once it's behind TLS.

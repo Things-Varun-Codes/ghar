@@ -104,7 +104,8 @@ Fortify (login, remember-me, logout, password reset) + `spatie/laravel-permissio
 
 ## PWA
 
-- Manifest `public/manifest.webmanifest`; icons `public/icon-192.png`, `icon-512.png`,
+- Manifest `/manifest.webmanifest` comes from `ManifestController` (not a static file), so the
+  installed name follows `APP_NAME`; icons `public/icon-192.png`, `icon-512.png`,
   `icon-maskable-512.png`, `apple-touch-icon.png` (180×180).
 - `public/sw.js` handles the install/activate lifecycle, Web Push display and notification clicks,
   with no fetch listener. Registered from `resources/js/app.tsx` in production only.
