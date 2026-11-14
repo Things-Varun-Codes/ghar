@@ -1,0 +1,39 @@
+name: Feature request
+description: Something Ghar should do, or do differently.
+labels: [enhancement]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Have a look at [ROADMAP.md](https://github.com/Things-Varun-Codes/ghar/blob/main/ROADMAP.md) first: it lists what's planned and what was left out on purpose. If the idea is still loose, a thread in Discussions is a better place to shape it.
+  - type: textarea
+    id: problem
+    attributes:
+      label: What would you like to be able to do?
+      description: Describe the situation at home, not just the feature. "We keep losing track of whose turn it is to cook" says more than "add a rota".
+    validations:
+      required: true
+  - type: textarea
+    id: idea
+    attributes:
+      label: How you imagine it working
+  - type: dropdown
+    id: where
+    attributes:
+      label: Where it belongs
+      options:
+        - Our History
+        - Our Corner
+        - Our Mailbox
+        - The shell (login, settings, admin, notifications)
+        - Self-hosting and deployment
+        - A new mini app
+        - Not sure
+    validations:
+      required: true
+  - type: checkboxes
+    id: help
+    attributes:
+      label: Would you build it?
+      options:
+        - label: I'd like to open a pull request for this

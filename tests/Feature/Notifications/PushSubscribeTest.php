@@ -97,23 +97,27 @@ class PushSubscribeTest extends TestCase
         $response->assertSessionHasErrors(['endpoint', 'p256dh', 'auth']);
     }
 
-    public function test_subscribe_endpoint_max_500_chars(): void
+    public function test_subscribe_takes_an_endpoint_of_1024_chars_and_refuses_a_longer_one(): void
     {
         /** @var User $user */
         $user = User::factory()->create();
 
-        // Build a 501-char URL: 'https://fcm.googleapis.com/' is 27 chars, pad to 501 total
         $prefix = 'https://fcm.googleapis.com/';
-        $longEndpoint = $prefix.str_repeat('a', 501 - strlen($prefix));
-        $this->assertSame(501, strlen($longEndpoint));
+        $longest = $prefix.str_repeat('a', 1024 - strlen($prefix));
 
-        $response = $this->actingAs($user)->post(route('settings.notifications.subscribe'), [
-            'endpoint' => $longEndpoint,
+        $this->actingAs($user)->post(route('settings.notifications.subscribe'), [
+            'endpoint' => $longest,
             'p256dh' => $this->testP256dh,
             'auth' => $this->testAuth,
-        ]);
+        ])->assertSessionHasNoErrors();
 
-        $response->assertSessionHasErrors('endpoint');
+        $this->assertDatabaseHas('push_subscriptions', ['endpoint' => $longest]);
+
+        $this->actingAs($user)->post(route('settings.notifications.subscribe'), [
+            'endpoint' => $longest.'a',
+            'p256dh' => $this->testP256dh,
+            'auth' => $this->testAuth,
+        ])->assertSessionHasErrors('endpoint');
     }
 
     public function test_show_returns_user_subscriptions(): void

@@ -1,5 +1,10 @@
 # Ghar
 
+[![CI](https://github.com/Things-Varun-Codes/ghar/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/Things-Varun-Codes/ghar/actions/workflows/ci.yml)
+[![Latest release](https://img.shields.io/github/v/release/Things-Varun-Codes/ghar)](https://github.com/Things-Varun-Codes/ghar/releases)
+[![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/Things-Varun-Codes/ghar/badge)](https://scorecard.dev/viewer/?uri=github.com/Things-Varun-Codes/ghar)
+[![License: MIT](https://img.shields.io/github/license/Things-Varun-Codes/ghar)](./LICENSE)
+
 A private home on the web for your family. "Ghar" is the Hindi and Urdu word for home.
 
 <p>
@@ -96,7 +101,8 @@ each one is for.
 ## Contributing
 
 Bug reports and pull requests are welcome. See [`CONTRIBUTING.md`](./CONTRIBUTING.md), including how
-to add a mini app. [`CLAUDE.md`](./CLAUDE.md) has the architecture notes and conventions, written for
+to add a mini app, and the [code of conduct](./CODE_OF_CONDUCT.md). Questions go in
+[Discussions](https://github.com/Things-Varun-Codes/ghar/discussions). [`CLAUDE.md`](./CLAUDE.md) has the architecture notes and conventions, written for
 coding agents and just as useful to people.
 
 ## Roadmap
@@ -110,4 +116,5 @@ report one and what Ghar does and doesn't protect against.
 
 ## License
 
-[MIT](./LICENSE)
+[MIT](./LICENSE). The fonts Ghar serves keep their own licences, listed in
+[`THIRD_PARTY_NOTICES.md`](./THIRD_PARTY_NOTICES.md).

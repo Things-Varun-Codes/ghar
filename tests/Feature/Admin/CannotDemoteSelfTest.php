@@ -6,7 +6,7 @@ use App\Shell\Models\User;
 use Database\Seeders\RoleSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Event;
-use Spatie\Permission\Events\RoleDetached;
+use Spatie\Permission\Events\RoleDetachedEvent;
 use Tests\TestCase;
 
 class CannotDemoteSelfTest extends TestCase
@@ -44,14 +44,14 @@ class CannotDemoteSelfTest extends TestCase
         $admin1 = User::factory()->admin()->create();
         $admin2 = User::factory()->admin()->create();
 
-        Event::fake([RoleDetached::class]);
+        Event::fake([RoleDetachedEvent::class]);
 
         $this->actingAs($admin1)
             ->patch(route('admin.users.update', ['user' => $admin1->id]), [
                 'role' => 'user',
             ]);
 
-        Event::assertNotDispatched(RoleDetached::class);
+        Event::assertNotDispatched(RoleDetachedEvent::class);
     }
 
     public function test_admin_can_still_edit_other_admin_role_when_safe(): void

@@ -10,6 +10,8 @@ class PlexMetadataFetcher
 {
     private const TIMEOUT_SECONDS = 5;
 
+    private const ALLOWED_DOMAINS = ['plex.tv'];
+
     /** @return array{title: string, year: int|null, poster_url: string|null, watch_url: string}|null */
     public function fetch(string $url): ?array
     {
@@ -20,7 +22,7 @@ class PlexMetadataFetcher
 
         try {
             $response = Http::timeout(self::TIMEOUT_SECONDS)
-                ->withOptions(['allow_redirects' => true])
+                ->withOptions(['allow_redirects' => HostAllowlist::redirectOptions(self::ALLOWED_DOMAINS)])
                 ->get($url);
 
             if (! $response->successful()) {
@@ -72,7 +74,7 @@ class PlexMetadataFetcher
 
     public static function isAllowedHost(string $url): bool
     {
-        return HostAllowlist::matches($url, ['plex.tv']);
+        return HostAllowlist::matches($url, self::ALLOWED_DOMAINS);
     }
 
     /**

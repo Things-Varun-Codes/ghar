@@ -41,8 +41,7 @@ export function useThemeAttrs(): { 'data-theme': string; 'data-app'?: string } {
 
     try {
         const page = usePage() as
-            | { props?: { activeTheme?: string } }
-            | undefined;
+            { props?: { activeTheme?: string } } | undefined;
         activeThemeFromInertia = page?.props?.activeTheme;
         // eslint-disable-next-line local/no-silent-error -- usePage() throws outside a mounted Inertia page (tests); fall back to the default theme.
     } catch {

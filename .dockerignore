@@ -85,7 +85,8 @@
 # Local scratch / smoke artifacts (git-ignored, but exclude for local builds)
 /.playwright-mcp
 
-# Docs not needed at runtime
+# Docs not needed at runtime. LICENSE, THIRD_PARTY_NOTICES.md and LICENSES/ stay
+# off this list: the image redistributes the fonts and packages they cover.
 /CLAUDE.md
 /CONTRIBUTING.md
 /DEPLOY.md

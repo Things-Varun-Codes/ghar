@@ -11,6 +11,10 @@ return [
         'role' => Role::class,
 
         'user' => App\Shell\Models\User::class,
+
+        'team' => null,
+
+        'default_model' => null,
     ],
 
     'table_names' => [

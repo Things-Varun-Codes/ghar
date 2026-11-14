@@ -1,8 +1,9 @@
 # Self-hosting Ghar
 
-Ghar is one container (nginx, PHP-FPM, a queue worker and the scheduler) plus PostgreSQL 17. It
-runs on anything with Docker: a home server, a small VPS, an arm64 board such as a Raspberry Pi 4 or
-5, or a PaaS such as Coolify, Dokploy or CapRover. Images are published for amd64 and arm64.
+Ghar is one container (nginx, PHP-FPM, a queue worker and the scheduler) plus PostgreSQL 17 and, in
+the self-host stack, a small Valkey cache. It runs on anything with Docker: a home server, a small
+VPS, an arm64 board such as a Raspberry Pi 4 or 5, or a PaaS such as Coolify, Dokploy or CapRover.
+Images are published for amd64 and arm64.
 
 It uses about 200 MB of RAM when idle. Photos and videos stay on your own disk unless you point it
 at a bucket. Mail is the only outside service you need, and even that can wait until you invite

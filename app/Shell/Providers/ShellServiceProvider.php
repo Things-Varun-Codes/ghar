@@ -19,7 +19,7 @@ use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\ServiceProvider;
 use Laravel\Fortify\Contracts\LockoutResponse;
 use NotificationChannels\WebPush\Events\NotificationFailed;
-use Spatie\Permission\Events\RoleDetached;
+use Spatie\Permission\Events\RoleDetachedEvent;
 
 class ShellServiceProvider extends ServiceProvider
 {
@@ -46,7 +46,7 @@ class ShellServiceProvider extends ServiceProvider
 
         User::observe(UserObserver::class);
 
-        Event::listen(RoleDetached::class, BlockLastAdminDemotion::class);
+        Event::listen(RoleDetachedEvent::class, BlockLastAdminDemotion::class);
 
         Event::listen(Login::class, UpdateLastLoginAt::class);
 
