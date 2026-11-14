@@ -8,7 +8,7 @@
 # Pinned so a rebuild is reproducible. Keep both PHP stages on the same tag: the
 # runtime stage copies compiled extensions from the builder.
 FROM composer:2.11.2 AS composer
-FROM node:26.12.1-alpine3.24 AS node
+FROM node:26.13.0-alpine3.24 AS node
 
 # ─── Stage 1: builder ─────────────────────────────────────────────────
 FROM php:8.5.12-fpm-alpine3.24 AS builder
