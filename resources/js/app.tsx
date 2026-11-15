@@ -1,4 +1,4 @@
-import { createInertiaApp } from '@inertiajs/react';
+import { createInertiaApp, router } from '@inertiajs/react';
 import * as Sentry from '@sentry/react';
 import { createRoot } from 'react-dom/client';
 import { Toaster } from '@/components/ui/sonner';
@@ -97,6 +97,45 @@ createInertiaApp({
         color: '#3A2A1A',
     },
 });
+
+// Prefetched pages are kept for a few seconds. Anything that writes may have changed
+// what they show, so a write drops them all rather than risk a stale list.
+router.on('finish', (event) => {
+    if (event.detail.visit.method !== 'get') {
+        router.flushAll();
+    }
+});
+
+// A page's code is its own chunk, fetched only after the server has answered the
+// first visit to it. Fetching the everyday pages while the browser is idle takes that
+// second round trip out of every first navigation; hashed chunks then stay cached
+// until the next release. Admin and sign-in pages are rare enough to load on demand.
+function warmPageChunks(): void {
+    const connection = (
+        navigator as Navigator & { connection?: { saveData?: boolean } }
+    ).connection;
+
+    if (connection?.saveData) {
+        return;
+    }
+
+    for (const [path, importer] of Object.entries(pages)) {
+        if (!/\/Pages\/(Admin|Auth)\//.test(path)) {
+            // eslint-disable-next-line local/no-silent-error -- best effort: a chunk that fails to warm is fetched again, and reported, when the page is opened.
+            importer().catch(() => {});
+        }
+    }
+}
+
+if (import.meta.env.PROD) {
+    window.addEventListener('load', () => {
+        if ('requestIdleCallback' in window) {
+            window.requestIdleCallback(warmPageChunks, { timeout: 5000 });
+        } else {
+            setTimeout(warmPageChunks, 2000);
+        }
+    });
+}
 
 if ('serviceWorker' in navigator && import.meta.env.PROD) {
     window.addEventListener('load', () => {

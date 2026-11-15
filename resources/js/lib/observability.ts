@@ -78,29 +78,26 @@ export function sanitizePayload(
 }
 
 export function captureSilent(error: unknown, ctx: CaptureCtx): void {
-    const sentryAvailable =
-        typeof Sentry !== 'undefined' &&
-        typeof Sentry.captureException === 'function';
+    // Only ever touch named members of `Sentry`. Using the namespace as a value
+    // (`typeof Sentry`) makes the bundler keep the whole SDK, Replay and Feedback
+    // included, in the entry chunk.
+    try {
+        const sanitizedExtra = ctx.extra
+            ? { ...ctx.extra, payload: sanitizePayload(ctx.extra.payload) }
+            : undefined;
 
-    if (sentryAvailable) {
-        try {
-            const sanitizedExtra = ctx.extra
-                ? { ...ctx.extra, payload: sanitizePayload(ctx.extra.payload) }
-                : undefined;
-
-            Sentry.captureException(error, {
-                tags: {
-                    component: ctx.component,
-                    action: ctx.action,
-                    surface: ctx.surface,
-                    user_role: ctx.user_role ?? 'guest',
-                },
-                extra: sanitizedExtra,
-            });
-            // eslint-disable-next-line local/no-silent-error -- reporting a Sentry SDK throw through captureSilent would recurse forever.
-        } catch {
-            // Intentionally empty — see directive above.
-        }
+        Sentry.captureException(error, {
+            tags: {
+                component: ctx.component,
+                action: ctx.action,
+                surface: ctx.surface,
+                user_role: ctx.user_role ?? 'guest',
+            },
+            extra: sanitizedExtra,
+        });
+        // eslint-disable-next-line local/no-silent-error -- reporting a Sentry SDK throw through captureSilent would recurse forever.
+    } catch {
+        // Intentionally empty — see directive above.
     }
 
     toast.error(NEUTRAL_TOAST_MESSAGE);

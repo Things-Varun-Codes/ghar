@@ -40,6 +40,7 @@ export default function HistoryLayout({
             active={activeTab}
             ariaLabel="Our History views"
             hrefFor={historyViewHref}
+            prefetch
         />
     );
 
