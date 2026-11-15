@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\HealthzController;
+use App\Http\Controllers\ManifestController;
 use App\Http\Middleware\AddSecurityHeaders;
 use App\Http\Middleware\HandleAppearance;
 use App\Http\Middleware\HandleInertiaRequests;
@@ -24,21 +25,25 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 use Illuminate\View\Middleware\ShareErrorsFromSession;
 
-/**
- * Outside the auth and CSRF groups so external probes reach it.
- */
+// Public and stateless: no session row, cookie or Inertia work for anonymous fetches.
+$stateless = [
+    HandleAppearance::class,
+    HandleInertiaRequests::class,
+    AddLinkHeadersForPreloadedAssets::class,
+    StartSession::class,
+    ShareErrorsFromSession::class,
+    PreventRequestForgery::class,
+];
+
 Route::get('/healthz', HealthzController::class)
     ->middleware(ThrottleHealthProbe::using('healthz'))
-    ->withoutMiddleware([
-        HandleAppearance::class,
-        HandleInertiaRequests::class,
-        AddSecurityHeaders::class,
-        AddLinkHeadersForPreloadedAssets::class,
-        StartSession::class,
-        ShareErrorsFromSession::class,
-        PreventRequestForgery::class,
-    ])
+    ->withoutMiddleware([...$stateless, AddSecurityHeaders::class])
     ->name('healthz');
+
+Route::get('/manifest.webmanifest', ManifestController::class)
+    ->middleware('cache.headers:no_cache;must_revalidate;etag')
+    ->withoutMiddleware($stateless)
+    ->name('manifest');
 
 Route::get('/', function () {
     return redirect()->to(Auth::check() ? '/dashboard' : '/login');

@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Shell\Support\AppVersion;
 use App\Shell\Support\MiniAppRegistry;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
@@ -61,6 +62,8 @@ class HandleInertiaRequests extends Middleware
         return [
             ...parent::share($request),
             'name' => config('app.name'),
+            // Signed-in only: an unauthenticated page shouldn't say which release is running.
+            'version' => $user ? AppVersion::forPage() : null,
             'auth' => [
                 'user' => $user ? [
                     'id' => $user->id,

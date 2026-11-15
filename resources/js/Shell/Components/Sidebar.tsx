@@ -88,6 +88,25 @@ export default function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
                     />
                 )}
             </ul>
+
+            {props.version && (
+                <p className="shell-sidebar-version px-6 pt-4 pb-5">
+                    {props.name}{' '}
+                    {props.version.url ? (
+                        <a
+                            href={props.version.url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="shell-focus shell-sidebar-version-link"
+                            aria-label={`${props.version.label} on GitHub (opens in a new tab)`}
+                        >
+                            {props.version.label}
+                        </a>
+                    ) : (
+                        props.version.label
+                    )}
+                </p>
+            )}
         </nav>
     );
 }

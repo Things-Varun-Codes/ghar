@@ -98,7 +98,9 @@ ENV GHAR_VERSION=$GHAR_VERSION \
     SENTRY_PROJECT=$SENTRY_PROJECT
 
 # Before `npm run build`: the Wayfinder plugin needs a working autoloader.
-RUN composer dump-autoload --optimize --classmap-authoritative \
+# VERSION, not the GHAR_VERSION variable, is what the app reads at runtime (AppVersion::current).
+RUN printf "%s" "$GHAR_VERSION" > VERSION \
+    && composer dump-autoload --optimize --classmap-authoritative \
     && php artisan package:discover --ansi \
     && npm run build \
     && rm -rf node_modules /root/.npm /root/.composer /tmp/*
@@ -142,7 +144,6 @@ WORKDIR /var/www/html
 
 # Set by the release workflow from the git tag; empty for a source build.
 ARG GHAR_VERSION=
-ENV GHAR_VERSION=$GHAR_VERSION
 LABEL org.opencontainers.image.title="Ghar" \
       org.opencontainers.image.description="A private, self-hosted home on the web for a family" \
       org.opencontainers.image.licenses="MIT" \

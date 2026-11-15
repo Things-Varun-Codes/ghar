@@ -33,6 +33,7 @@ class GuestRoutesTest extends TestCase
             'GET healthz',
             'GET invitations/{token}',
             'GET login',
+            'GET manifest.webmanifest',
             'GET reset-password/{token}',
             // Laravel's routes for the local media disk. Both refuse a URL that isn't signed.
             'GET storage/{path}',

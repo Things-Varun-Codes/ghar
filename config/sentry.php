@@ -3,8 +3,7 @@
 return [
     'dsn' => env('SENTRY_LARAVEL_DSN', env('SENTRY_DSN')),
 
-    // GHAR_VERSION is baked into release images; a source checkout falls back to its commit.
-    'release' => env('SENTRY_RELEASE') ?: env('GHAR_VERSION') ?: trim(exec('git rev-parse --short HEAD 2>/dev/null') ?: 'dev'),
+    'release' => env('SENTRY_RELEASE') ?: App\Shell\Support\AppVersion::current() ?: 'dev',
 
     'environment' => env('SENTRY_ENVIRONMENT', env('APP_ENV')),
 

@@ -1,6 +1,12 @@
 <?php
 
 return [
+    // Shown in the sidebar footer; a build with no version shows nothing.
+    'version' => App\Shell\Support\AppVersion::current(),
+
+    // Where the sidebar version links to: a release tag or a commit on this repository.
+    'repository_url' => 'https://github.com/Things-Varun-Codes/ghar',
+
     // `local` keeps photos on this server's disk; `s3` uses the bucket in config/filesystems.php.
     // `?:` rather than env()'s default, so an empty MEDIA_DISK= also means `local`.
     'media_disk' => (static function (string $disk): string {

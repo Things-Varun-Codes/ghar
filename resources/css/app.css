@@ -1291,6 +1291,29 @@ button[type='submit'][data-slot='button'] {
     padding: 8px 12px 4px;
 }
 
+.shell-sidebar-version {
+    font-size: 12px;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: 0.01em;
+    color: var(--muted-foreground);
+}
+
+.shell-sidebar-version-link {
+    border-radius: 4px;
+    color: inherit;
+    text-decoration: underline;
+    text-decoration-color: transparent;
+    text-underline-offset: 3px;
+    transition:
+        color 150ms ease,
+        text-decoration-color 150ms ease;
+}
+
+.shell-sidebar-version-link:hover {
+    color: var(--foreground);
+    text-decoration-color: currentColor;
+}
+
 .shell-pull-spinner {
     border: 2px solid var(--shell-accent-text);
     border-top-color: transparent;
