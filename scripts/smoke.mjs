@@ -192,7 +192,10 @@ async function startServe() {
         ['artisan', 'serve', `--host=${SERVE_HOST}`, `--port=${SERVE_PORT}`],
         {
             env: smokeEnv,
-            stdio: ['ignore', 'pipe', 'pipe'],
+            // Not a pipe: nothing here reads the server's request log, and once an
+            // unread pipe fills, `artisan serve` blocks on its next log line and
+            // every later request times out.
+            stdio: 'ignore',
             detached: true,
         },
     );

@@ -16,6 +16,11 @@ type SegmentedTabsSharedProps<T extends string> = {
 type SegmentedTabsNavProps<T extends string> = SegmentedTabsSharedProps<T> & {
     mode: 'nav';
     hrefFor: (key: T) => string;
+    /**
+     * Fetch the other tabs as soon as this one is shown. Only for tabs whose GET
+     * changes nothing on the server.
+     */
+    prefetch?: boolean;
 };
 
 type SegmentedTabsTablistUrlProps<T extends string> =
@@ -72,7 +77,7 @@ export default function SegmentedTabs<T extends string>(
         .join(' ');
 
     if (props.mode === 'nav') {
-        const { hrefFor } = props;
+        const { hrefFor, prefetch = false } = props;
 
         return (
             <nav aria-label={ariaLabel} className={wrapperClassName}>
@@ -83,6 +88,7 @@ export default function SegmentedTabs<T extends string>(
                         <Link
                             key={item.key}
                             href={hrefFor(item.key)}
+                            prefetch={prefetch && !isActive ? 'mount' : false}
                             aria-current={isActive ? 'page' : undefined}
                             data-active={isActive ? '' : undefined}
                             style={itemStyle(isActive)}

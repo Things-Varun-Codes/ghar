@@ -123,6 +123,7 @@ export default function Landing({ cornerSummary }: Props) {
                                 <Link
                                     key={card.slug}
                                     href={card.href}
+                                    prefetch="mount"
                                     aria-label={`Open ${card.label}`}
                                     className="corner-card corner-landing-card"
                                 >

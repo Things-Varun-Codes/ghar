@@ -125,13 +125,14 @@ For real use, set `MAIL_FROM_ADDRESS` to an address your provider will send from
 because switching later means moving every file yourself.
 
 **`local` (default).** Files live in the `media` volume, mounted at
-`/var/www/html/storage/app/private`. Every view goes through a signed link that expires after an
-hour, so a copied link stops working. To keep the files in a folder of your choice, such as a NAS
+`/var/www/html/storage/app/private`. Every view goes through a signed link that expires within two
+hours, so a copied link stops working. To keep the files in a folder of your choice, such as a NAS
 mount, set `GHAR_MEDIA_PATH=/srv/ghar/media` and make it writable by uid 82
 (`chown -R 82:82 /srv/ghar/media`).
 
 **`s3`.** Any S3-compatible bucket. It stays private, and every view is a presigned link that
-expires after an hour.
+expires within two hours. The link for a file stays the same for an hour at a time, so browsers
+can cache what they have already loaded.
 
 | Provider      | `S3_ENDPOINT`                                   | `S3_REGION`         | `S3_USE_PATH_STYLE_ENDPOINT` |
 | ------------- | ----------------------------------------------- | ------------------- | ---------------------------- |

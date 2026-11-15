@@ -140,6 +140,12 @@ PHP/TS identifiers say `ShortLink`.
 - **Routing: Wayfinder only.** Import typed helpers from `resources/js/routes/**`
   (`import { route as adminRoute } from '@/routes/admin'`). Ziggy is gone; a bare `route()` global
   call is a hard error.
+- **Prefetch only side-effect-free pages.** `<Link prefetch="mount">` is on the Home doors, the
+  Corner landing cards and the History tabs; `app.tsx` drops the prefetch cache after any non-GET
+  visit. Never prefetch a page whose GET changes something: Mailbox Messages and Flowers mark
+  themselves read when fetched.
+- **Media URLs are stable for an hour.** `SignedUrls` signs from the top of a fixed window so the
+  browser can cache photos. Signing from `now()` gives every page view a new URL and a new download.
 - **Comments:** only what a reader can't get from the code: a real why, a non-obvious constraint,
   a gotcha. No narration, retold history or PHPDoc that repeats native types (keep generics PHPStan
   needs). Don't cite internal planning, ticket or audit IDs.

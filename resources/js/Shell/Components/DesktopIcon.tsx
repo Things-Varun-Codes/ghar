@@ -17,6 +17,10 @@ export default function DesktopIcon({
     return (
         <Link
             href={app.route}
+            // Safe only because a landing page changes nothing when fetched. A page whose
+            // GET has a side effect (Mailbox notes and flowers mark themselves read) must
+            // never be prefetched.
+            prefetch="mount"
             aria-label={`Open ${app.name}`}
             aria-describedby={summary ? liveId : undefined}
             className={`os-door os-door--${app.slug} shell-focus`}

@@ -52,7 +52,7 @@ what other people made.
 - **A misconfigured proxy.** `TRUSTED_PROXIES` decides whose forwarded headers are believed. Trust
   too much, or publish the app's port past your proxy, and client IPs can be spoofed, which weakens
   the login rate limit. See "Reverse proxy and client IPs" in [`DEPLOY.md`](./DEPLOY.md).
-- **A leaked media link.** Photo links are signed and expire after an hour; until then anyone holding
+- **A leaked media link.** Photo links are signed and expire within two hours; until then anyone holding
   one can open that file.
 - **The sample data.** `DevDataSeeder` has a published password. It refuses to run in production;
   don't change `APP_ENV` to get around that.

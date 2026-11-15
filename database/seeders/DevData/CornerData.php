@@ -95,7 +95,7 @@ final class CornerData
             'title' => $title,
             'author' => $author,
             'thumbnail_url' => $withThumbnail
-                ? '/storage/'.$h->storeImage("song-{$index}.jpg", PlaceholderImage::jpeg($title, $index, 320, 320))
+                ? PlaceholderImage::svgDataUri($title, $index, 320, 320)
                 : null,
             'added_by_user_id' => $adder->id,
             'added_at' => $h->daysAgo($addedDaysAgo),
@@ -124,7 +124,7 @@ final class CornerData
             $movie = Movie::factory()->create([
                 'title' => $title,
                 'poster_url' => $hasPoster
-                    ? '/storage/'.$h->storeImage("movie-{$i}.jpg", PlaceholderImage::jpeg($title, $i + 2, 400, 600))
+                    ? PlaceholderImage::svgDataUri($title, $i + 2, 400, 600)
                     : null,
                 'added_by_user_id' => $adder->id,
                 'added_at' => $h->daysAgo($added),
