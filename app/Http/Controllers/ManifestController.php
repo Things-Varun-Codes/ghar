@@ -35,7 +35,6 @@ class ManifestController extends Controller
                     $icon('/icon-maskable-512.png', '512x512', 'maskable'),
                 ],
             ], options: JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE)
-            ->header('Content-Type', 'application/manifest+json')
-            ->header('Cache-Control', 'no-cache, must-revalidate');
+            ->header('Content-Type', 'application/manifest+json');
     }
 }

@@ -16,6 +16,7 @@ declare module '@inertiajs/core' {
     export interface InertiaConfig {
         sharedPageProps: {
             name: string;
+            version: { label: string; url: string | null } | null;
             auth: Auth;
             miniApps: MiniApp[];
             [key: string]: unknown;

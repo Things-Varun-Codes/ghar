@@ -13,14 +13,12 @@ import * as profile from '@/routes/settings/profile';
 import HeartMark from '@/Shell/Components/HeartMark';
 
 type SharedProps = {
-    version: { label: string; url: string | null } | null;
     auth: { user: { name: string; email: string; roles: string[] } | null };
 };
 
 export default function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
     const { props, url } = usePage<SharedProps>();
     const user = props.auth.user;
-    const version = props.version;
     const isAdmin = user?.roles?.includes('admin') ?? false;
 
     const settingsItems: GroupItem[] = [
@@ -91,25 +89,23 @@ export default function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
                 )}
             </ul>
 
-            {version && (
-                <div className="px-6 pt-4 pb-5">
-                    <p className="shell-sidebar-version">
-                        {props.name}{' '}
-                        {version.url ? (
-                            <a
-                                href={version.url}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="shell-focus shell-sidebar-version-link"
-                                aria-label={`${version.label} on GitHub (opens in a new tab)`}
-                            >
-                                {version.label}
-                            </a>
-                        ) : (
-                            version.label
-                        )}
-                    </p>
-                </div>
+            {props.version && (
+                <p className="shell-sidebar-version px-6 pt-4 pb-5">
+                    {props.name}{' '}
+                    {props.version.url ? (
+                        <a
+                            href={props.version.url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="shell-focus shell-sidebar-version-link"
+                            aria-label={`${props.version.label} on GitHub (opens in a new tab)`}
+                        >
+                            {props.version.label}
+                        </a>
+                    ) : (
+                        props.version.label
+                    )}
+                </p>
             )}
         </nav>
     );

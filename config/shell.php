@@ -1,9 +1,8 @@
 <?php
 
 return [
-    // Shown in the sidebar footer. Release images bake a VERSION file from the git tag; a source
-    // checkout shows its commit instead, and a build with neither shows nothing.
-    'version' => trim((string) @file_get_contents(base_path('VERSION'))) ?: (trim((string) exec('git rev-parse --short HEAD 2>/dev/null')) ?: null),
+    // Shown in the sidebar footer; a build with no version shows nothing.
+    'version' => App\Shell\Support\AppVersion::current(),
 
     // Where the sidebar version links to: a release tag or a commit on this repository.
     'repository_url' => 'https://github.com/Things-Varun-Codes/ghar',

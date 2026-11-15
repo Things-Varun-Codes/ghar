@@ -34,7 +34,7 @@ what other people made.
 ### What it protects
 
 - **Strangers.** Everything except the login, password-reset, invite-acceptance and health pages
-  needs an account. There is no registration. Invite tokens are single-use, expire after 7 days and
+  and the app manifest (which carries only the app's name) needs an account. There is no registration. Invite tokens are single-use, expire after 7 days and
   are stored only as hashes. Login and invite acceptance are rate-limited, and reset emails are throttled per address.
 - **Members from each other.** Notes, flowers, coupons and challans are visible only to the sender
   and recipients; admins can't read them either. Editing or deleting a moment or list item takes its creator or
