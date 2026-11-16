@@ -1,4 +1,7 @@
-import { Head, usePage } from '@inertiajs/react';
+import { Head, Link, usePage } from '@inertiajs/react';
+
+import { Button } from '@/components/ui/button';
+import * as rooms from '@/routes/admin/rooms';
 import DesktopIcon from '@/Shell/Components/DesktopIcon';
 import EmptyState from '@/Shell/Components/EmptyState';
 import type { MiniApp, MiniAppPreview } from '@/types/miniapp';
@@ -20,7 +23,7 @@ function greetingFor(hour: number): string {
 }
 
 type SharedProps = {
-    auth: { user: { name: string } | null };
+    auth: { user: { name: string; roles?: string[] } | null };
     miniApps: MiniApp[];
     summaries?: Record<string, string>;
     previews?: Record<string, MiniAppPreview>;
@@ -30,6 +33,7 @@ export default function Dashboard() {
     const { props } = usePage<SharedProps>();
     const trimmedName = (props.auth.user?.name ?? '').trim();
     const miniApps = props.miniApps ?? [];
+    const isAdmin = props.auth.user?.roles?.includes('admin') ?? false;
 
     const now = new Date();
     const text = greetingFor(now.getHours());
@@ -42,7 +46,7 @@ export default function Dashboard() {
             <div className="os-home">
                 <header className="os-home-greeting">
                     <h1>{greeting}</h1>
-                    <p>Here's what's new at home.</p>
+                    {miniApps.length > 0 && <p>Here's what's new at home.</p>}
                 </header>
 
                 {miniApps.length > 0 ? (
@@ -56,10 +60,22 @@ export default function Dashboard() {
                             />
                         ))}
                     </div>
+                ) : isAdmin ? (
+                    <EmptyState
+                        title="This home has no rooms yet"
+                        body="Choose the ones you want. You can change them whenever you like."
+                        action={
+                            <Button asChild className="shell-press">
+                                <Link href={rooms.index.url()}>
+                                    Choose rooms
+                                </Link>
+                            </Button>
+                        }
+                    />
                 ) : (
                     <EmptyState
                         title="Nothing here yet"
-                        body="New rooms appear here as they're built."
+                        body="Rooms show up here once an admin turns them on."
                     />
                 )}
             </div>

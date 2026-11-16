@@ -5,6 +5,7 @@ namespace Database\Seeders;
 use App\Shell\Models\Invitation;
 use App\Shell\Models\ShortLink;
 use App\Shell\Models\User;
+use App\Shell\Services\Rooms;
 use Carbon\CarbonImmutable;
 use Database\Seeders\DevData\CornerData;
 use Database\Seeders\DevData\HistoryData;
@@ -76,20 +77,12 @@ class DevDataSeeder extends Seeder
         $this->seedShortLinks($household);
         $this->seedInvitation($household);
 
-        $links = $this->appEnabled('our-corner') ? (new CornerData)->seed($household) : [];
+        // A fresh install starts with no rooms; the seeded household has every one on.
+        app(Rooms::class)->turnOnAll();
 
-        if ($this->appEnabled('our-history')) {
-            (new HistoryData)->seed($household, $links);
-        }
-
-        if ($this->appEnabled('our-mailbox')) {
-            (new MailboxData)->seed($household);
-        }
-    }
-
-    private function appEnabled(string $slug): bool
-    {
-        return (bool) (collect(config('miniapps', []))->firstWhere('slug', $slug)['enabled'] ?? false);
+        $links = (new CornerData)->seed($household);
+        (new HistoryData)->seed($household, $links);
+        (new MailboxData)->seed($household);
     }
 
     /**

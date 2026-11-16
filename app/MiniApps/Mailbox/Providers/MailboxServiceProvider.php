@@ -14,8 +14,10 @@ use App\MiniApps\Mailbox\Services\CloudflareBouquetGenerator;
 use App\MiniApps\Mailbox\Services\FakeBouquetGenerator;
 use App\MiniApps\Mailbox\Support\DashboardLine;
 use App\MiniApps\Mailbox\Support\DashboardPreview;
+use App\MiniApps\Mailbox\Support\EntryTypes;
 use App\Shell\Models\User;
 use App\Shell\Services\DashboardSummaries;
+use App\Shell\Services\Rooms;
 use App\Shell\Services\UserOwnedContent;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\ServiceProvider;
@@ -66,8 +68,10 @@ class MailboxServiceProvider extends ServiceProvider
         );
     }
 
-    public function boot(DashboardSummaries $summaries, UserOwnedContent $ownedContent): void
+    public function boot(DashboardSummaries $summaries, UserOwnedContent $ownedContent, Rooms $rooms): void
     {
+        EntryTypes::register($rooms);
+
         $ownedContent->register('mailbox_messages', ['sender_id'], 'Mailbox messages');
         $ownedContent->register('mailbox_message_recipients', ['user_id'], 'Mailbox messages received');
         $ownedContent->register('mailbox_citations', ['issuer_id', 'recipient_id'], 'Mailbox citations');

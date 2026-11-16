@@ -14,7 +14,8 @@ use Throwable;
 /**
  * One object per door on the Mailbox landing. Notes and flowers come only from what the viewer
  * received; citations and coupons only from what they issued or received, preferring the one
- * waiting on them. Showing a note or bouquet here doesn't mark it read.
+ * waiting on them. Showing a note or bouquet here doesn't mark it read. An entry type that is off
+ * has no peek.
  */
 final class MailboxPeeks
 {
@@ -34,9 +35,9 @@ final class MailboxPeeks
     {
         return [
             'notes' => self::latestNote($user),
-            'flowers' => $this->bouquet($user),
-            'citations' => $this->citation($user),
-            'coupons' => $this->coupon($user),
+            'flowers' => EntryTypes::on(EntryTypes::FLOWERS) ? $this->bouquet($user) : null,
+            'citations' => EntryTypes::on(EntryTypes::CITATIONS) ? $this->citation($user) : null,
+            'coupons' => EntryTypes::on(EntryTypes::COUPONS) ? $this->coupon($user) : null,
         ];
     }
 
@@ -47,6 +48,10 @@ final class MailboxPeeks
      */
     public static function latestNote(User $user): ?array
     {
+        if (! EntryTypes::on(EntryTypes::MESSAGES)) {
+            return null;
+        }
+
         $note = MailboxMessage::query()
             ->receivedBy($user)
             ->with('sender')
