@@ -12,6 +12,9 @@ export default defineConfig({
     },
     test: {
         environment: 'jsdom',
+        // One jsdom per worker instead of one per test file; each file still gets
+        // its own module graph and globals.
+        pool: 'vmThreads',
         globals: false,
         // tools/eslint-rules/__tests__ runs through `npm run test:rules`.
         include: ['resources/js/**/*.test.ts', 'resources/js/**/*.test.tsx'],
