@@ -75,7 +75,8 @@ contributor wait for a maintainer to start them.
   It becomes the commit on `main`.
 - If someone using or running Ghar would notice the change, add a change file to `.changes/`. It
   becomes the changelog entry; [`.changes/README.md`](./.changes/README.md) has the format and the
-  wording. Don't edit `CHANGELOG.md`.
+  wording. Don't edit `CHANGELOG.md`. [`RELEASE.md`](./RELEASE.md) explains how the files become a
+  release.
 - Add a test that fails without your change.
 - Third-party GitHub Actions are pinned to a full commit SHA, with the version in a comment.
 - New environment variables go in `.env.example` and the env block in `DEPLOY.md`, and in

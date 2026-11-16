@@ -9,7 +9,7 @@ movies, activities, places) and **Our Mailbox** (messages, flowers, challans, co
 shell or other mini apps.
 
 What's shipped, what's next and what's still open: **`ROADMAP.md`**. Deploy and recovery:
-**`DEPLOY.md`**. Releases: **`CHANGELOG.md`**. For contributors: **`CONTRIBUTING.md`**. This file
+**`DEPLOY.md`**. Releases: **`CHANGELOG.md`**; how to cut one: **`RELEASE.md`**. For contributors: **`CONTRIBUTING.md`**. This file
 is the agent and architecture reference.
 
 ## How to test locally
@@ -77,8 +77,9 @@ Meera have synthetic push subscriptions that can't deliver; test real push by su
   pull request (format and wording: `.changes/README.md`); a `feat:` or `fix:` pull request fails
   the "Change file" check without one. Never edit `CHANGELOG.md` by hand. `npm run release` folds
   the files into a new section, picks the version from their types and opens the release pull
-  request; `npm run release:tag` tags the merged commit, which starts the workflow. Both are the
-  maintainer's to run. A change that needs action on upgrade sets `breaking: true`, which makes
+  request; `npm run release:tag` tags the merged commit, which starts the workflow. The steps are
+  in `RELEASE.md`; follow it when asked to release, and never run either command, merge the release
+  pull request or push a tag unasked. A change that needs action on upgrade sets `breaking: true`, which makes
   the release a major version and puts the entry under **Upgrading**.
 
 ## Technology stack
