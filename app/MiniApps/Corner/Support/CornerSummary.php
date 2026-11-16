@@ -7,6 +7,7 @@ use App\MiniApps\Corner\Models\Movie;
 use App\MiniApps\Corner\Models\Place;
 use App\MiniApps\Corner\Models\Song;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Model;
 
 /**
  * Everything on the Corner landing: a count, a done count and a peek per list. Corner items are
@@ -83,6 +84,12 @@ class CornerSummary
             ->all();
     }
 
+    /**
+     * @template TModel of Model
+     *
+     * @param  Builder<TModel>  $query
+     * @return Builder<TModel>
+     */
     private static function latest(Builder $query): Builder
     {
         return $query->orderByDesc('added_at')->orderByDesc('id');
