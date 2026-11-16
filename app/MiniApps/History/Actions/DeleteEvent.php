@@ -17,7 +17,7 @@ class DeleteEvent
         DB::transaction(function () use ($event, $actor): void {
             ($this->logEventChange)($event, 'delete', [
                 'user_id' => $actor->id,
-                'summary' => 'Event deleted',
+                'summary' => 'Moment deleted',
                 'changes' => null,
                 'created_at' => now(),
             ]);

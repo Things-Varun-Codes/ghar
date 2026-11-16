@@ -83,7 +83,7 @@ final class HistoryData
             'event_id' => $event->id,
             'user_id' => $creator->id,
             'action' => 'create',
-            'summary' => 'Event created',
+            'summary' => 'Moment created',
             'changes' => null,
             'created_at' => $when,
         ]);

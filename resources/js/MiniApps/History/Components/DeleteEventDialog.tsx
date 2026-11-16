@@ -49,7 +49,7 @@ export default function DeleteEventDialog({
                     },
                 });
                 onOpenChange(false);
-                toast.error("Couldn't delete that. Give it another go.");
+                toast.error("Couldn't delete this moment. Try again.");
             },
             onFinish: () => {
                 onDeleting?.(false);
@@ -72,7 +72,8 @@ export default function DeleteEventDialog({
                         Delete this moment?
                     </DialogPrimitive.Title>
                     <DialogPrimitive.Description className="history-delete-body">
-                        This removes the moment and its photos. There's no undo.
+                        This removes the moment and its photos and videos.
+                        There's no undo.
                     </DialogPrimitive.Description>
 
                     <div className="flex justify-end gap-3">

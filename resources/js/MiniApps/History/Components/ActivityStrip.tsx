@@ -93,7 +93,7 @@ export default function ActivityStrip({ changes }: ActivityStripProps) {
                                 <strong className="font-medium">
                                     {change.user_name}
                                 </strong>{' '}
-                                — {change.summary}
+                                · {change.summary}
                             </span>
                             <span className="ml-4 whitespace-nowrap">
                                 {relativeTime(change.created_at)}

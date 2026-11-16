@@ -262,7 +262,7 @@ export default function Calendar({
                     body={
                         hasAnyEvents
                             ? 'Use the year arrows to find a year with moments.'
-                            : 'Add moments from the Timeline and they’ll appear here on the calendar.'
+                            : 'Add a moment from the Timeline and it will show on its date here.'
                     }
                 />
             ) : isMobile ? (

@@ -193,7 +193,7 @@ export default function EventCard({ event, onRead }: EventCardProps) {
                                 variant="link"
                                 className="history-continue-link h-auto w-auto no-underline shadow-none hover:no-underline"
                                 onClick={() => onRead?.(event.id)}
-                                aria-label={`Continue reading “${event.title || event.date_label}”`}
+                                aria-label={`Continue reading "${event.title || event.date_label}"`}
                             >
                                 Continue reading
                                 <ArrowRight

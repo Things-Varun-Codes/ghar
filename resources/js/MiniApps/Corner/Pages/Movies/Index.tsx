@@ -55,7 +55,7 @@ export default function MoviesIndex({ movies, filter, sort, q }: Props) {
                 sort={sort}
                 sortItems={[
                     { key: 'recent', label: 'Recently added' },
-                    { key: 'title', label: 'Title A–Z' },
+                    { key: 'title', label: 'Title A to Z' },
                 ]}
                 renderItem={(movie) => (
                     <MovieTile
@@ -87,13 +87,13 @@ export default function MoviesIndex({ movies, filter, sort, q }: Props) {
                     active: (
                         <EmptyState
                             title="All watched."
-                            body="Nothing left on the watchlist."
+                            body="You've watched them all. What's next?"
                         />
                     ),
                     done: (
                         <EmptyState
                             title="Nothing watched yet."
-                            body="Mark a movie once you've seen it."
+                            body="Mark a movie as watched once you've seen it."
                         />
                     ),
                 }}

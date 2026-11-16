@@ -25,7 +25,7 @@ class UpdateActivityRequest extends FormRequest
     {
         return [
             'title.required' => 'Add a title for the activity.',
-            'title.max' => 'That title is too long.',
+            'title.max' => 'Titles are limited to 255 characters.',
             'notes.max' => 'Notes are limited to 2000 characters.',
         ];
     }

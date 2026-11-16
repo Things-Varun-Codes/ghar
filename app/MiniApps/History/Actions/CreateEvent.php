@@ -46,7 +46,7 @@ class CreateEvent
 
             ($this->logEventChange)($event, 'create', [
                 'user_id' => $actor->id,
-                'summary' => 'Event created',
+                'summary' => 'Moment created',
                 'changes' => null,
                 'created_at' => now(),
             ]);

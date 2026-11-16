@@ -1,5 +1,5 @@
 <x-mail.layouts.warm title="Reset your password">
-    <p style="margin:0 0 16px;">Someone (hopefully you) asked to reset your {{ config('app.name') }} password.</p>
+    <p style="margin:0 0 16px;">Someone asked to reset your {{ config('app.name') }} password.</p>
 
     <p style="margin:0 0 24px;">Tap the button below to pick a new one. The link works for the next hour.</p>
 

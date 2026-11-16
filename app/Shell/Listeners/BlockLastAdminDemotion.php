@@ -21,7 +21,7 @@ class BlockLastAdminDemotion
         }
 
         if (User::role('admin')->count() < 1) {
-            throw new AuthorizationException('Cannot demote the last admin.');
+            throw new AuthorizationException('This is the only admin. Make someone else an admin first.');
         }
     }
 

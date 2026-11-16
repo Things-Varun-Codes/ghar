@@ -56,7 +56,7 @@ class StoreBouquetRequest extends FormRequest
                 'max:'.(int) ceil(self::MAX_BYTES / 3) * 4,
                 function (string $attribute, mixed $value, Closure $fail): void {
                     if (! is_string($value) || self::decodeImage($value) === null) {
-                        $fail('The bouquet image could not be read.');
+                        $fail('The bouquet image could not be read. Arrange it again.');
                     }
                 },
             ],
@@ -73,7 +73,7 @@ class StoreBouquetRequest extends FormRequest
             'flowers.min' => 'Choose at least one flower.',
             'flowers.max' => 'You can choose up to 5 flowers.',
             'flowers.*.in' => 'One or more selected flowers are not in the catalog.',
-            'image.required' => 'No bouquet image was provided.',
+            'image.required' => 'Arrange the bouquet before you send it.',
             'image.max' => 'The bouquet image is too large (max 10 MB).',
             'mime.required' => 'Image type is required.',
             'mime.in' => 'Unsupported image type.',

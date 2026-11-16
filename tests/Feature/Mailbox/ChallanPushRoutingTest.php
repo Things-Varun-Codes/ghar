@@ -42,7 +42,7 @@ class ChallanPushRoutingTest extends TestCase
 
                 return $tag === 'our-mailbox:challans'
                     && str_contains($body, 'Alice')
-                    && str_contains($body, 'citation')
+                    && str_contains($body, 'challan')
                     // No offence / penalty / remarks leak.
                     && ! str_contains($body, 'blankets')
                     && ! str_contains($body, 'back rub')

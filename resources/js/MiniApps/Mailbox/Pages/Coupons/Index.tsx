@@ -37,7 +37,7 @@ export default function CouponsIndex({
               }
             : {
                   title: "You haven't sent any coupons yet.",
-                  body: 'Tap the button to write your first one.',
+                  body: 'Tap the plus button to write your first one.',
               };
 
     return (

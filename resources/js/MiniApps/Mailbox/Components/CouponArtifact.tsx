@@ -24,8 +24,8 @@ export default function CouponArtifact({ coupon }: { coupon: CouponPayload }) {
     });
 
     const awaitText = coupon.is_mine
-        ? `${coupon.recipient.name} is waiting on you to confirm.`
-        : `Awaiting ${coupon.issuer.name}'s confirmation…`;
+        ? `${coupon.recipient.name} asked for this. Fulfil it when it's done.`
+        : `Waiting for ${coupon.issuer.name} to fulfil it.`;
 
     return (
         <>
@@ -47,7 +47,7 @@ export default function CouponArtifact({ coupon }: { coupon: CouponPayload }) {
 
                 <div className="mailbox-coupon-body">
                     <div className="mailbox-coupon-punchlabel">
-                        Check off a square each time it's redeemed
+                        Each redemption checks off a square
                     </div>
                     <div className="mailbox-coupon-grid">
                         {boxes.map((kind, i) => (

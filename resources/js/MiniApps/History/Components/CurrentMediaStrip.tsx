@@ -50,7 +50,7 @@ export default function CurrentMediaStrip({
                 ...transportFailureOptions({
                     component: 'History/CurrentMediaStrip',
                     action: 'media.delete',
-                    message: "Couldn't remove that. Give it another go.",
+                    message: "Couldn't remove that file. Try again.",
                 }),
                 onSuccess: () => {
                     onDeleted(idToDelete);
@@ -66,7 +66,7 @@ export default function CurrentMediaStrip({
                             http_status: 422,
                         },
                     });
-                    toast.error("Couldn't remove that. Give it another go.");
+                    toast.error("Couldn't remove that file. Try again.");
                 },
                 onFinish: () => {
                     setDeletingId(null);

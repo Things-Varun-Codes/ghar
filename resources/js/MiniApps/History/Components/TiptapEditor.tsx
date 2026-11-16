@@ -34,8 +34,7 @@ type TiptapEditorProps = {
     htmlRef?: React.MutableRefObject<string>;
 };
 
-const DEFAULT_PLACEHOLDER =
-    'Write the story. Plain text is fine; bold, italics, headings, links, and lists are all you need.';
+const DEFAULT_PLACEHOLDER = 'Write the story. Plain text is fine.';
 
 // Allowed link protocols (mirrors SanitizeBodyHtml's URI.AllowedSchemes).
 // The server enforces; this client gate just gives instant feedback on Apply.

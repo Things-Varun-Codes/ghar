@@ -23,6 +23,7 @@ class VerifyChangedEmailNotification extends Notification
     public function toMail(mixed $notifiable): MailMessage
     {
         return (new MailMessage)
+            ->subject('Confirm your new email address')
             ->view('mail.verify-changed-email', [
                 'newEmail' => $this->newEmail,
                 'verifyUrl' => $this->verifyUrl,

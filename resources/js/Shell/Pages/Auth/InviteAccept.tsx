@@ -36,7 +36,7 @@ export default function InviteAccept({ email, token }: Props) {
                     </span>
                 </>
             }
-            tagline="Pick a name and a password and you're in."
+            tagline="Glad you're joining us. Choose a name and a password and you're in."
         >
             <Head title="Accept your invitation" />
 
@@ -90,7 +90,7 @@ export default function InviteAccept({ email, token }: Props) {
 
                 <SubmitButton
                     processing={processing}
-                    busyText="Accepting…"
+                    busyText="Creating account…"
                     className="shell-auth-submit shell-press w-full font-medium"
                 >
                     Create account

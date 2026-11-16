@@ -101,7 +101,7 @@ const SUB_LABELS = {
         tone: 'neutral',
     },
     'idle-on': {
-        text: 'On for this device.',
+        text: "On. You'll get a ping when someone adds a moment or writes to you.",
         tone: 'neutral',
     },
     'requesting-permission': {
@@ -121,11 +121,11 @@ const SUB_LABELS = {
         tone: 'danger',
     },
     error: {
-        text: "Something went wrong. Try again, or check this device's notification settings.",
+        text: "Couldn't change notifications on this device. Try again, or check the device's notification settings.",
         tone: 'danger',
     },
     'revoked-detected': {
-        text: "Notifications were turned off in this device's settings. Switch on to allow them again.",
+        text: "Notifications were turned off in this device's settings. Turn the switch on to allow them again.",
         tone: 'danger',
     },
 } satisfies Record<ToggleState, { text: string; tone: ToggleTone }>;

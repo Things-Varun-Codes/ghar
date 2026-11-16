@@ -131,8 +131,8 @@ export default function Login({ status }: { status?: string }) {
                             id="login-error"
                             className="text-[14px] font-medium text-(--destructive)"
                         >
-                            That email and password don&apos;t match. Have
-                            another go.
+                            That email and password don&apos;t match. Check them
+                            and try again.
                         </p>
                     )}
                 </div>

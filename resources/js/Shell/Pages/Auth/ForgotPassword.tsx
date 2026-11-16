@@ -22,7 +22,7 @@ export default function ForgotPassword({ status }: Props) {
 
     return (
         <AuthLayout
-            title="Locked out?"
+            title="Forgot your password?"
             subtitle="Enter your email and we'll send a reset link."
         >
             <Head title="Forgot password" />

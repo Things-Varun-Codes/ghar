@@ -88,7 +88,7 @@ function deriveUploadErrorMessage(xhr: XMLHttpRequest): string {
             return "You've been signed out. Refresh the page.";
         default:
             if (status >= 500 && status <= 599) {
-                return 'Server hiccup. Tap Retry.';
+                return 'Something went wrong on our end. Tap Retry.';
             }
 
             return `Upload failed (HTTP ${status}). Tap Retry.`;
@@ -449,7 +449,7 @@ export default function MediaUploader({ eventId, onStagedCountChange }: Props) {
     }, [stagedCount, onStagedCountChange]);
 
     const failedSegment = failedCount
-        ? `${failedCount} failed${lastFailedError ? ` — ${lastFailedError}` : ''}`
+        ? `${failedCount} failed${lastFailedError ? `: ${lastFailedError}` : ''}`
         : '';
 
     const hasActiveOrSettled =
@@ -504,8 +504,8 @@ export default function MediaUploader({ eventId, onStagedCountChange }: Props) {
             >
                 <p className="history-upload-prompt">
                     {isAwaitingEvent
-                        ? "Drag photos or videos here, or click to choose. They'll upload after you save."
-                        : 'Drag photos here or tap to choose.'}
+                        ? "Drag photos or videos here, or tap to choose. They'll upload after you save."
+                        : 'Drag photos or videos here, or tap to choose.'}
                 </p>
                 <p className="history-upload-hint">
                     JPEG, PNG, WebP, HEIC · MP4, MOV, WebM · max 100 MB per

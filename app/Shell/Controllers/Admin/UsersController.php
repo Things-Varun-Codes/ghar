@@ -95,7 +95,7 @@ class UsersController
         // be false by the time the observer runs.
         if ($user->hasRole('admin') && User::role('admin')->count() <= 1) {
             return redirect()->route('admin.users.index')
-                ->withErrors(['delete' => 'Cannot delete the last admin account.']);
+                ->withErrors(['delete' => "This is the only admin account, so it can't be deleted."]);
         }
 
         // Checks both sides of every relationship: someone who only ever received mail still
@@ -108,7 +108,7 @@ class UsersController
             }
 
             return redirect()->route('admin.users.index')
-                ->withErrors(['delete' => "Cannot delete {$user->name}: still linked to ".implode(', ', $parts).'.']);
+                ->withErrors(['delete' => "{$user->name} can't be deleted yet. They still have ".implode(', ', $parts).'.']);
         }
 
         try {
