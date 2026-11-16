@@ -58,7 +58,7 @@ export default function PlacesIndex({ places, filter, sort, q }: Props) {
                 sort={sort}
                 sortItems={[
                     { key: 'recent', label: 'Recently added' },
-                    { key: 'title', label: 'Title A–Z' },
+                    { key: 'title', label: 'Title A to Z' },
                 ]}
                 renderItem={(place) => (
                     <ListItemCard<PlaceItem>
@@ -128,13 +128,13 @@ export default function PlacesIndex({ places, filter, sort, q }: Props) {
                     active: (
                         <EmptyState
                             title="All visited."
-                            body="Nothing left on the wishlist."
+                            body="You've been to all of them. Where to next?"
                         />
                     ),
                     done: (
                         <EmptyState
                             title="Nothing visited yet."
-                            body="Mark a place once you've been."
+                            body="Mark a place as visited once you've been."
                         />
                     ),
                 }}

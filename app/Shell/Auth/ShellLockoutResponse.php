@@ -21,7 +21,7 @@ class ShellLockoutResponse implements LockoutResponseContract
         $seconds = $this->limiter->availableIn($request);
 
         throw ValidationException::withMessages([
-            'throttle' => ["Slow down a sec. Try again in {$seconds}s."],
+            'throttle' => ["Too many sign-in attempts. Try again in {$seconds}s."],
         ])->status(Response::HTTP_TOO_MANY_REQUESTS);
     }
 }

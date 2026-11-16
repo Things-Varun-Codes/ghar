@@ -149,7 +149,7 @@ export default function EntityLinkPickerDialog({
                 return;
             }
 
-            setError("Couldn't load that. Check your connection.");
+            setError("Couldn't search. Check your connection and try again.");
             setLoading(false);
         }
     }, []);
@@ -226,7 +226,7 @@ export default function EntityLinkPickerDialog({
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
                 onKeyDown={onKeyDown}
-                placeholder="Search songs, movies, places, activities…"
+                placeholder="Search Our Corner"
                 aria-label="Search Corner"
                 autoComplete="off"
                 className="shell-picker-input"
@@ -284,7 +284,7 @@ export default function EntityLinkPickerDialog({
                 {!error && results.length === 0 && !loading && (
                     <p className="shell-picker-note">
                         {query.trim().length < 2
-                            ? 'Search songs, movies, places, activities…'
+                            ? 'Type at least 2 characters to search.'
                             : 'No matches. Try a different search.'}
                     </p>
                 )}
@@ -373,7 +373,7 @@ export default function EntityLinkPickerDialog({
                     className="max-h-[85dvh] overflow-auto"
                 >
                     <SheetHeader>
-                        <SheetTitle>Link a Corner thing</SheetTitle>
+                        <SheetTitle>Link something from Our Corner</SheetTitle>
                         <SheetDescription>
                             Search songs, movies, places and activities.
                         </SheetDescription>
@@ -388,9 +388,9 @@ export default function EntityLinkPickerDialog({
         <Dialog open={open} onOpenChange={onOpenChange}>
             <DialogContent data-app="our-corner" className="max-w-xl">
                 <DialogHeader>
-                    <DialogTitle>Link a Corner thing</DialogTitle>
+                    <DialogTitle>Link something from Our Corner</DialogTitle>
                     <DialogDescription>
-                        Search songs, movies, places, activities…
+                        Search songs, movies, places and activities.
                     </DialogDescription>
                 </DialogHeader>
                 {pickerBody}

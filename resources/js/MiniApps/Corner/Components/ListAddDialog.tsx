@@ -65,7 +65,7 @@ export default function ListAddDialog({
             <DiscardDraftDialog
                 {...gate.prompt}
                 title="Discard your draft?"
-                description="Your draft will be lost. This can't be undone."
+                description="What you entered here won't be saved."
             />
         </>
     );

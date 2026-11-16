@@ -28,7 +28,7 @@ class StorePlaceRequest extends FormRequest
     {
         return [
             'title.required' => 'Give the place a name.',
-            'title.max' => 'That title is too long.',
+            'title.max' => 'Place names are limited to 255 characters.',
         ];
     }
 }

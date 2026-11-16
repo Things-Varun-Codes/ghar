@@ -29,6 +29,7 @@ class ResetPasswordNotification extends Notification
         ]);
 
         return (new MailMessage)
+            ->subject('Reset your '.config('app.name').' password')
             ->view('mail.password-reset', [
                 'resetUrl' => $resetUrl,
             ]);

@@ -11,7 +11,7 @@ class PlexUrl implements ValidationRule
     public function validate(string $attribute, mixed $value, Closure $fail): void
     {
         if (! PlexMetadataFetcher::isAllowedHost((string) $value)) {
-            $fail('That must be a Plex link (plex.tv).');
+            $fail("That link isn't from Plex. Paste one from plex.tv.");
         }
     }
 }

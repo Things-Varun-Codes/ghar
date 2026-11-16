@@ -53,7 +53,7 @@ if (import.meta.env.PROD && sentryDsn) {
 installOverlayHistory();
 
 createInertiaApp({
-    title: (title) => (title ? `${title} — ${appName}` : appName),
+    title: (title) => (title ? `${title} · ${appName}` : appName),
 
     resolve: async (name) => {
         const key = `./${name}.tsx`;
@@ -85,9 +85,7 @@ createInertiaApp({
                 fallback={({ resetError }) => (
                     <div className="shell-crash-card">
                         <h2 className="mt-0">Something broke.</h2>
-                        <p>
-                            Sorry about that. You can try refreshing the page.
-                        </p>
+                        <p>Sorry about that. Try again, or refresh the page.</p>
                         <button onClick={resetError} className="mt-[1rem]">
                             Try again
                         </button>

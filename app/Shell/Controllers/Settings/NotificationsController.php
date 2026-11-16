@@ -33,7 +33,7 @@ class NotificationsController
             $validated['content_encoding'] ?? 'aesgcm',
         );
 
-        FlashToast::success('This device is now subscribed.');
+        FlashToast::success('Notifications are on for this device.');
 
         return redirect()->route('settings.notifications.show');
     }
@@ -46,7 +46,7 @@ class NotificationsController
 
         $request->user()->deletePushSubscription($validated['endpoint']);
 
-        FlashToast::success('This device is unsubscribed.');
+        FlashToast::success('Notifications are off for this device.');
 
         return redirect()->route('settings.notifications.show');
     }

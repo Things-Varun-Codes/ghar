@@ -26,9 +26,9 @@ class StoreMovieRequest extends FormRequest
     {
         return [
             'title.required' => 'Add a title for the movie.',
-            'title.max' => 'That title is too long.',
-            'plex_url.url' => "That doesn't look like a valid Plex link.",
-            'plex_url.max' => 'That Plex link is too long.',
+            'title.max' => 'Titles are limited to 255 characters.',
+            'plex_url.url' => "That doesn't look like a Plex link.",
+            'plex_url.max' => 'Plex links are limited to 2048 characters.',
         ];
     }
 }

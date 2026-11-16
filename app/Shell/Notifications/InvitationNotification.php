@@ -26,6 +26,7 @@ class InvitationNotification extends Notification
         $acceptUrl = route('invitations.accept.show', ['token' => $this->plaintext]);
 
         return (new MailMessage)
+            ->subject("You're invited to ".config('app.name'))
             ->view('mail.invitation', [
                 'invitation' => $this->invitation,
                 'acceptUrl' => $acceptUrl,

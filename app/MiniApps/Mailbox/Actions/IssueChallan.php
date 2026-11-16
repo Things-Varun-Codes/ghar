@@ -33,7 +33,7 @@ class IssueChallan
                 [$challan->loadMissing('recipient')->recipient],
                 'our-mailbox',
                 'our-mailbox:challans',
-                "{$firstName} issued you a citation",
+                "{$firstName} issued you a challan",
                 "/apps/our-mailbox/challans/{$challan->id}",
             );
         }

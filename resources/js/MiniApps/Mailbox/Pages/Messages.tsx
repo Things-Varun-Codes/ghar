@@ -56,7 +56,7 @@ export default function Messages({ messages, tab, sort, q, members }: Props) {
                 countNoun={{ one: 'note', other: 'notes' }}
                 propName="messages"
                 tab={tab}
-                tabsAriaLabel="Message tabs"
+                tabsAriaLabel="Notes tabs"
                 tabItems={[
                     { key: 'received', label: 'Received' },
                     { key: 'sent', label: 'Sent' },

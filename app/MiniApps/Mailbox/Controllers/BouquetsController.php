@@ -92,11 +92,11 @@ class BouquetsController
             // A safe content-policy string; the API key is never in this path.
             return response()->json(['message' => $e->getMessage()], 422);
         } catch (\Throwable) {
-            return response()->json(['message' => 'Bouquet generation failed. Please try again.'], 500);
+            return response()->json(['message' => 'Could not arrange your bouquet. Please try again.'], 500);
         }
 
         if ($generated->bytes === '') {
-            return response()->json(['message' => 'No image was returned. Please try different flowers.'], 422);
+            return response()->json(['message' => 'The bouquet came out blank. Please try different flowers.'], 422);
         }
 
         return response()->json([

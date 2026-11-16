@@ -19,7 +19,7 @@ class FulfillCoupon
         $coupon = DB::transaction(function () use ($coupon): Coupon {
             $locked = Coupon::query()->whereKey($coupon->id)->lockForUpdate()->firstOrFail();
 
-            abort_unless($locked->status === Coupon::STATUS_REQUESTED, 422, 'This coupon has no pending request to fulfill.');
+            abort_unless($locked->status === Coupon::STATUS_REQUESTED, 422, 'This coupon has no pending request to fulfil.');
 
             $locked->redeemed_count += 1;
             $locked->last_fulfilled_at = now();

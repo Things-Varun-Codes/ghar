@@ -30,7 +30,7 @@ class HistoryActivityLogTest extends TestCase
             'event_id' => $event->id,
             'user_id' => $user->id,
             'action' => 'create',
-            'summary' => 'Event created',
+            'summary' => 'Moment created',
         ]);
     }
 
@@ -127,7 +127,7 @@ class HistoryActivityLogTest extends TestCase
             'event_id' => $event->id,
             'user_id' => $user->id,
             'action' => 'delete',
-            'summary' => 'Event deleted',
+            'summary' => 'Moment deleted',
         ]);
 
         // The event itself must be soft-deleted (not hard-deleted)

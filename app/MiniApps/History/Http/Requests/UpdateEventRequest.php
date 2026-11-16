@@ -23,8 +23,8 @@ class UpdateEventRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'occurred_on.required' => 'Date is required.',
-            'occurred_on.date' => 'Date must be a valid date.',
+            'occurred_on.required' => 'Pick a date.',
+            'occurred_on.date' => "That date doesn't look valid.",
         ];
     }
 }

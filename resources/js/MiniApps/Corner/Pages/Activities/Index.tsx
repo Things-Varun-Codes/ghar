@@ -63,7 +63,7 @@ export default function ActivitiesIndex({
                 propName="activities"
                 counts={activities.counts}
                 filter={filter}
-                activeLabel="Todo"
+                activeLabel="To do"
                 doneLabel="Done"
                 addCtaLabel="Add an activity"
                 onOpenAddDialog={() => setAddOpen(true)}
@@ -72,7 +72,7 @@ export default function ActivitiesIndex({
                 sort={sort}
                 sortItems={[
                     { key: 'recent', label: 'Recently added' },
-                    { key: 'title', label: 'Title A–Z' },
+                    { key: 'title', label: 'Title A to Z' },
                 ]}
                 renderItem={(activity) => {
                     const preview = notesPreview(activity.notes);
@@ -137,13 +137,13 @@ export default function ActivitiesIndex({
                     active: (
                         <EmptyState
                             title="All done."
-                            body="Nothing left to do. Suspicious."
+                            body="That's everything done. What's next?"
                         />
                     ),
                     done: (
                         <EmptyState
                             title="Nothing done yet."
-                            body="Check an activity off when you've done it."
+                            body="Activities you mark as done show up here."
                         />
                     ),
                 }}

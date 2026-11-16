@@ -32,12 +32,12 @@ export default function ChallansIndex({
     const emptyCopy =
         tab === 'received'
             ? {
-                  title: 'No citations against you. Yet.',
+                  title: 'No challans against you yet.',
                   body: 'When someone files one, it shows up here.',
               }
             : {
-                  title: "You haven't issued any citations yet.",
-                  body: 'Tap the button to file your first one.',
+                  title: "You haven't issued any challans yet.",
+                  body: 'Tap the plus button to issue your first one.',
               };
 
     return (

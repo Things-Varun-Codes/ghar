@@ -232,7 +232,7 @@ function AutocompleteInput({ onSelect }: AutocompleteInputProps) {
                             setOpen(true);
                         }
                     }}
-                    placeholder="Search a place"
+                    placeholder="Search for a place"
                     autoComplete="off"
                     className="shell-places-input"
                 />

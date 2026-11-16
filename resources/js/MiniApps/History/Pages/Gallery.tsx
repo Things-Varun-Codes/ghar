@@ -207,7 +207,7 @@ export default function Gallery({
                 {accumulatedMedia.length === 0 && !hasFilters && (
                     <EmptyState
                         icon={Images}
-                        title="Nothing here yet."
+                        title="No photos or videos yet."
                         body="Add photos or videos to a moment and they'll show up here."
                     />
                 )}
@@ -215,8 +215,7 @@ export default function Gallery({
                 {accumulatedMedia.length === 0 && hasFilters && (
                     <EmptyState
                         icon={Images}
-                        title={`No ${filters.type !== 'all' ? filters.type : 'media'}${filters.year ? ` in ${filters.year}` : ''}.`}
-                        body="Clear the filter to see everything."
+                        title={`No ${filters.type !== 'all' ? filters.type : 'photos or videos'}${filters.year ? ` in ${filters.year}` : ''}.`}
                         action={
                             <button
                                 type="button"

@@ -319,8 +319,8 @@ export default function Timeline({
 
             {isEmpty && (
                 <EmptyState
-                    title="The family album is empty."
-                    body="Add your first moment. Any date will do, and you can always go back further."
+                    title="Nothing on the timeline yet."
+                    body="Add your first moment. It can be from any date, even years back."
                     action={
                         <button
                             type="button"

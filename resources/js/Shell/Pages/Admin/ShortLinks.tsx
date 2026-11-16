@@ -74,9 +74,7 @@ function EditShortLinkForm({
     return (
         <form onSubmit={submit} className="flex flex-col gap-4">
             <div>
-                <p className="os-admin-meta">
-                    Short URL (never changes, even after repointing):
-                </p>
+                <p className="os-admin-meta">Short URL:</p>
                 <p className="os-admin-strong break-all">{shortlink.url}</p>
             </div>
             <FormField
@@ -209,7 +207,9 @@ export default function ShortLinks({ shortlinks }: Props) {
 
     const copyUrl = async (url: string) => {
         if (!navigator.clipboard) {
-            toast.error('Copy is unavailable in this context.');
+            toast.error(
+                "This browser can't copy from here. Copy the link by hand.",
+            );
 
             return;
         }
@@ -219,7 +219,7 @@ export default function ShortLinks({ shortlinks }: Props) {
             toast.success('Copied.');
             // eslint-disable-next-line local/no-silent-error -- clipboard write failure surfaces via the toast below; not actionable in the error tracker
         } catch {
-            toast.error('Could not copy the shortlink.');
+            toast.error("Couldn't copy the shortlink. Try again.");
         }
     };
 
@@ -457,8 +457,8 @@ export default function ShortLinks({ shortlinks }: Props) {
                         <DialogHeader>
                             <DialogTitle>Edit shortlink</DialogTitle>
                             <DialogDescription>
-                                Repoint where this tag sends people. The short
-                                URL below never changes.
+                                Change where this tag sends people. The short
+                                URL below stays the same.
                             </DialogDescription>
                         </DialogHeader>
                         {editing && (

@@ -55,8 +55,8 @@ export default function SongsIndex({ songs, filter, sort, q }: Props) {
                 sort={sort}
                 sortItems={[
                     { key: 'recent', label: 'Recently added' },
-                    { key: 'title', label: 'Title A–Z' },
-                    { key: 'artist', label: 'Artist A–Z' },
+                    { key: 'title', label: 'Title A to Z' },
+                    { key: 'artist', label: 'Artist A to Z' },
                 ]}
                 renderItem={(song) => (
                     <SongTile
@@ -88,7 +88,7 @@ export default function SongsIndex({ songs, filter, sort, q }: Props) {
                     active: (
                         <EmptyState
                             title="All loved."
-                            body="Nothing left in the active playlist."
+                            body="You love every song here. Add another?"
                         />
                     ),
                     done: (

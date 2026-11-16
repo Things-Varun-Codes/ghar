@@ -165,8 +165,8 @@
             <div class="card">
                 <h1>You're offline</h1>
                 <p>
-                    This page needs the internet. Everything is still here; it
-                    will open once you're connected again.
+                    This page needs an internet connection. Everything is still
+                    here, and it will reload on its own when you're back online.
                 </p>
                 <!-- A plain link back to this same address, so it works without the script. -->
                 <a class="retry" href="" id="retry">Try again</a>
@@ -185,7 +185,7 @@
 
                 if (name) {
                     document.getElementById('app-name').textContent = name;
-                    document.title = 'Offline — ' + name;
+                    document.title = 'Offline · ' + name;
                 }
 
                 document

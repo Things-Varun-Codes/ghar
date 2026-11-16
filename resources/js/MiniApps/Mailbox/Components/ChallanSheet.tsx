@@ -113,9 +113,9 @@ export default function ChallanSheet({ open, onOpenChange, members }: Props) {
             open={open}
             onOpenChange={onOpenChange}
             title="Issue a challan"
-            description="Fill in the citation and choose who it is issued to."
+            description="Fill in the challan and choose who it is issued to."
             isDirty={isDirty}
-            discardTitle="Discard this citation?"
+            discardTitle="Discard this challan?"
             discardBody="The details you entered will be lost."
             onDiscard={handleReset}
             onSubmit={handleSubmit}

@@ -105,7 +105,7 @@ class ResendInviteRotatesTokenTest extends TestCase
             $this->actingAs($admin)
                 ->post(route('admin.invites.resend', ['invite' => $invite->id]))
                 ->assertRedirect(route('admin.invites.index'))
-                ->assertInertiaFlash('toast', ['type' => 'error', 'message' => 'This invitation is no longer pending.']);
+                ->assertInertiaFlash('toast', ['type' => 'error', 'message' => 'This invitation has expired, been accepted or been revoked. Send a new one.']);
         }
 
         $this->assertSame(0, Invitation::pending()->count());

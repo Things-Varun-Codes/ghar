@@ -97,7 +97,7 @@ export default function NotificationsSend() {
                 title="Send notification"
                 room="Admin"
                 backChevron
-                subtitle="Send one person a ping. Save it for things worth interrupting them for."
+                subtitle="Sends one person a push notification, an email, or both."
             >
                 {(flash?.success || flash?.error) && (
                     <div
@@ -122,7 +122,7 @@ export default function NotificationsSend() {
                             error={errors.user_id}
                             helper={
                                 isOnlyUser
-                                    ? "You're the only user. Invite someone from /admin/invites first."
+                                    ? "You're the only person here. Invite someone from the Invites page first."
                                     : undefined
                             }
                         >
@@ -201,7 +201,7 @@ export default function NotificationsSend() {
                             label="Link"
                             name="url"
                             error={errors.url}
-                            helper="Where tapping the notification lands. Defaults to /dashboard."
+                            helper="The page that opens when they tap the notification. Leave it empty for Home."
                         >
                             <Input
                                 id="url"

@@ -10,7 +10,7 @@ interface Props {
     children: ReactNode;
 }
 
-const DEFAULT_TAGLINE = 'Shoes off, come on in.';
+const DEFAULT_TAGLINE = "Come on in, it's just us here.";
 
 export default function AuthLayout({
     title,

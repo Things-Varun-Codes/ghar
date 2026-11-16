@@ -19,14 +19,6 @@ function greetingFor(hour: number): string {
     return 'Still up';
 }
 
-const HOME_LINES = [
-    "You're home.",
-    'Have you eaten?',
-    'Mind the shoes in the hallway.',
-    'Nothing here is trying to sell you anything.',
-    'Somebody should really water the plants.',
-];
-
 type SharedProps = {
     auth: { user: { name: string } | null };
     miniApps: MiniApp[];
@@ -42,10 +34,6 @@ export default function Dashboard() {
     const now = new Date();
     const text = greetingFor(now.getHours());
     const greeting = `${text}${trimmedName ? ', ' + trimmedName : ''}`;
-    const dayIndex = Math.floor(
-        (now.getTime() - now.getTimezoneOffset() * 60_000) / 86_400_000,
-    );
-    const homeLine = HOME_LINES[dayIndex % HOME_LINES.length];
 
     return (
         <>
@@ -54,7 +42,7 @@ export default function Dashboard() {
             <div className="os-home">
                 <header className="os-home-greeting">
                     <h1>{greeting}</h1>
-                    <p>{homeLine}</p>
+                    <p>Here's what's new at home.</p>
                 </header>
 
                 {miniApps.length > 0 ? (

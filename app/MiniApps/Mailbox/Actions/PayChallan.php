@@ -19,7 +19,7 @@ class PayChallan
         $challan = DB::transaction(function () use ($challan): Challan {
             $locked = Challan::query()->whereKey($challan->id)->lockForUpdate()->firstOrFail();
 
-            abort_unless($locked->status === Challan::STATUS_ISSUED, 422, 'This citation can no longer be paid.');
+            abort_unless($locked->status === Challan::STATUS_ISSUED, 422, 'This challan has already been paid.');
 
             $locked->status = Challan::STATUS_PAID;
             $locked->settled_at = now();
@@ -34,7 +34,7 @@ class PayChallan
             [$challan->loadMissing('issuer')->issuer],
             'our-mailbox',
             'our-mailbox:challans',
-            "{$firstName} paid your citation",
+            "{$firstName} paid your challan",
             "/apps/our-mailbox/challans/{$challan->id}",
         );
 

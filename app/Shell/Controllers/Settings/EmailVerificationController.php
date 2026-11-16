@@ -13,7 +13,7 @@ class EmailVerificationController
     {
         if (! $request->hasValidSignature()) {
             return redirect()->route('settings.profile.show')
-                ->withErrors(['email' => 'The email verification link is invalid or has expired.']);
+                ->withErrors(['email' => 'This link is invalid or has expired. Change your email again to get a new one.']);
         }
 
         $userId = (int) $request->query('user');
@@ -21,7 +21,7 @@ class EmailVerificationController
 
         if ($request->user()?->id !== $userId) {
             return redirect()->route('settings.profile.show')
-                ->withErrors(['email' => 'This verification link does not belong to your account.']);
+                ->withErrors(['email' => 'This link was made for a different account. Sign in to that account and open it again.']);
         }
 
         $user = User::findOrFail($userId);
@@ -29,7 +29,7 @@ class EmailVerificationController
         // Someone else may have claimed the address during the link's one-hour window.
         if (User::where('email', $newEmail)->where('id', '!=', $userId)->exists()) {
             return redirect()->route('settings.profile.show')
-                ->withErrors(['email' => 'This email address is already registered to another account.']);
+                ->withErrors(['email' => 'Another account already uses this email address. Choose a different one.']);
         }
 
         $user->forceFill(['email' => $newEmail])->save();

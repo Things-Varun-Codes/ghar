@@ -38,7 +38,7 @@ export default function Profile({ user }: Props) {
             <Page tier="prose" title="Profile" room="Settings" backChevron>
                 {flash?.status === EMAIL_PENDING_STATUS && (
                     <p className="os-settings-notice mb-6" role="status">
-                        Saved. Check the new email for a verification link.
+                        Saved. We sent a verification link to your new address.
                     </p>
                 )}
 
@@ -67,7 +67,7 @@ export default function Profile({ user }: Props) {
                             label="Email"
                             name="email"
                             error={errors.email}
-                            helper="We'll send a link to the new address. Your email changes once you click it."
+                            helper="If you change it, we'll send a link to the new address. Your email changes once you click it."
                             required
                         >
                             <input

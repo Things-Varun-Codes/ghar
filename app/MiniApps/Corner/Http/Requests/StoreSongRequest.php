@@ -25,7 +25,7 @@ class StoreSongRequest extends FormRequest
         return [
             'url.required' => 'Paste a link to add a song.',
             'url.url' => "That doesn't look like a YouTube or Spotify link.",
-            'url.max' => 'That link is too long.',
+            'url.max' => 'Links are limited to 2048 characters.',
         ];
     }
 }

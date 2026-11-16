@@ -13,7 +13,7 @@ export default function BouquetDialog({ open, onOpenChange, imageUrl }: Props) {
                 <DialogTitle className="sr-only">Bouquet image</DialogTitle>
                 <img
                     src={imageUrl}
-                    alt="Your flower bouquet"
+                    alt="Flower bouquet"
                     className="mailbox-lightbox-image"
                 />
             </DialogContent>

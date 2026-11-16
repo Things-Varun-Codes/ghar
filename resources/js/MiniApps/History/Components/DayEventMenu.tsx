@@ -76,7 +76,7 @@ export default function DayEventMenu({
                         ? event.location_name
                         : event.media.length > 0
                           ? `${event.media.length} ${event.media.length === 1 ? 'photo' : 'photos'}`
-                          : 'no media';
+                          : 'no photos or videos';
 
                     return (
                         <DropdownMenuItem

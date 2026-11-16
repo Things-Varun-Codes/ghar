@@ -11,8 +11,8 @@ type Props = {
 
 const COPY: Record<number, { title: string; body: string }> = {
     403: {
-        title: 'Not yours to open',
-        body: 'This page belongs to someone else.',
+        title: "This one isn't yours to open",
+        body: "It was sent to someone else, or it's for admins only.",
     },
     404: {
         title: 'Nothing here',

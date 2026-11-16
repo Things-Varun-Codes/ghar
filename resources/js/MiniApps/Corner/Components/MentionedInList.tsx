@@ -104,9 +104,9 @@ export default function MentionedInList({ mentionedIn }: Props) {
                             />
                             {missing.length}{' '}
                             {missing.length === 1
-                                ? 'reference points'
-                                : 'references point'}{' '}
-                            to an event that's been removed.{' '}
+                                ? 'moment that mentioned this has'
+                                : 'moments that mentioned this have'}{' '}
+                            been removed.{' '}
                             <span className="underline">Show anyway</span>
                         </button>
                     ) : (

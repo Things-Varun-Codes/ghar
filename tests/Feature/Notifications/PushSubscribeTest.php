@@ -40,7 +40,7 @@ class PushSubscribeTest extends TestCase
         $response->assertSessionHas(SessionKey::FLASH_DATA, function ($flash) {
             return isset($flash['toast'])
                 && $flash['toast']['type'] === 'success'
-                && str_contains($flash['toast']['message'], 'now subscribed');
+                && str_contains($flash['toast']['message'], 'Notifications are on');
         });
         $response->assertSessionMissing('success');
     }
@@ -71,7 +71,7 @@ class PushSubscribeTest extends TestCase
         $response->assertSessionHas(SessionKey::FLASH_DATA, function ($flash) {
             return isset($flash['toast'])
                 && $flash['toast']['type'] === 'success'
-                && str_contains($flash['toast']['message'], 'unsubscribed');
+                && str_contains($flash['toast']['message'], 'Notifications are off');
         });
         $response->assertSessionMissing('success');
     }

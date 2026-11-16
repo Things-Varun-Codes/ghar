@@ -161,7 +161,7 @@ export default function EventSheet({
                             <SheetTitle className="sr-only">
                                 {editingEvent?.title ||
                                     editingEvent?.date_label ||
-                                    'Event'}
+                                    'Moment'}
                             </SheetTitle>
                             <SheetDescription className="sr-only">
                                 Read the whole moment.
@@ -176,8 +176,8 @@ export default function EventSheet({
                             </SheetTitle>
                             <SheetDescription className="sr-only">
                                 {displayMode === 'add'
-                                    ? 'Fill in the details for a new event and save it to the timeline.'
-                                    : 'Update the details for this event.'}
+                                    ? 'Fill in the details for a new moment and save it to the timeline.'
+                                    : 'Update the details for this moment.'}
                             </SheetDescription>
                         </div>
                     )}
@@ -324,7 +324,7 @@ export default function EventSheet({
             <DiscardDraftDialog
                 {...gate.prompt}
                 title="Discard unsaved changes?"
-                description="Your edits will be lost."
+                description="What you changed here won't be saved."
                 classNames={{
                     content: 'history-alert-dialog history-discard-dialog',
                     header: 'gap-0 text-left',

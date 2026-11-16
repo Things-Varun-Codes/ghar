@@ -73,7 +73,7 @@ class InvitesController
             $locked = Invitation::query()->pending()->whereKey($invite->id)->lockForUpdate()->first();
 
             if ($locked === null) {
-                return 'This invitation is no longer pending.';
+                return 'This invitation has expired, been accepted or been revoked. Send a new one.';
             }
 
             if (User::query()->where('email', $locked->email)->exists()) {

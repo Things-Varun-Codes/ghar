@@ -30,8 +30,8 @@ export default function EntityNotFound({ kind }: Props) {
                             This {label} isn't here anymore.
                         </h1>
                         <p className="corner-not-found-body">
-                            Someone may have removed it. The link still has the
-                            title, but the item itself is gone.
+                            Someone may have removed it. An old link or
+                            notification can still show its title.
                         </p>
                         <Link
                             href={landing.url()}

@@ -1,7 +1,7 @@
 <x-mail.layouts.warm :title="'You\'re invited to '.config('app.name')">
-    <p style="margin:0 0 16px;">You've been invited to {{ config('app.name') }} as a <strong>{{ $invitation->role_name }}</strong>.</p>
+    <p style="margin:0 0 16px;">You've been invited to join {{ config('app.name') }}. Your role will be <strong>{{ $invitation->role_name }}</strong>.</p>
 
-    <p style="margin:0 0 24px;">Tap below to accept and set yourself up. The link works for the next 7 days.</p>
+    <p style="margin:0 0 24px;">Tap below to accept, then choose your name and password. The link works for the next 7 days.</p>
 
     <a href="{{ $acceptUrl }}"
        style="display:inline-block;padding:12px 24px;background:#B45827;color:#FFFEFB;text-decoration:none;border-radius:8px;font-weight:600;">

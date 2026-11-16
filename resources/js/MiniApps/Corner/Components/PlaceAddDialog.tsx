@@ -143,8 +143,8 @@ export default function PlaceAddDialog({ open, onOpenChange, item }: Props) {
                         </FormField>
                         {!hasPick && (
                             <p className="corner-form-hint">
-                                Search and pick a place to enable the
-                                {isEdit ? ' Save changes' : ' Add'} button.
+                                Pick a place from the search results to
+                                {isEdit ? ' save your changes' : ' add it'}.
                             </p>
                         )}
                     </div>

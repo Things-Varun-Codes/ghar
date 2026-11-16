@@ -151,7 +151,7 @@ export default function ChallanActions({
                 <AlertDialogContent>
                     <AlertDialogHeader>
                         <AlertDialogTitle>
-                            Withdraw this citation?
+                            Withdraw this challan?
                         </AlertDialogTitle>
                         <AlertDialogDescription>
                             This removes it for them too. There's no undo.

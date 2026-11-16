@@ -134,7 +134,7 @@ function NoteScrap({ note }: { note: NotePeek | null }) {
                     <p className="mailbox-door-note-from">From {note.from}</p>
                 </>
             ) : (
-                <p className="mailbox-door-note-from">A clean sheet</p>
+                <p className="mailbox-door-note-from">Nothing to read yet</p>
             )}
         </div>
     );
@@ -280,7 +280,7 @@ export default function Landing({ mailboxSummary, mailboxPeeks }: Props) {
                                 counts.messages,
                                 'note',
                                 'notes',
-                                'Nothing yet. Write one?',
+                                'None yet. Write one?',
                             )
                         }
                         peek={<NoteScrap note={mailboxPeeks?.notes ?? null} />}
@@ -318,9 +318,9 @@ export default function Landing({ mailboxSummary, mailboxPeeks }: Props) {
                             ) ??
                             tally(
                                 counts.challans,
-                                'collected',
-                                'collected',
-                                'A clean record',
+                                'challan received',
+                                'challans received',
+                                'No challans yet',
                             )
                         }
                         peek={
@@ -340,9 +340,9 @@ export default function Landing({ mailboxSummary, mailboxPeeks }: Props) {
                             ) ??
                             tally(
                                 counts.coupons,
-                                'collected',
-                                'collected',
-                                'None yet',
+                                'coupon received',
+                                'coupons received',
+                                'No coupons yet',
                             )
                         }
                         peek={
