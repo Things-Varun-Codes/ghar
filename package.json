@@ -23,7 +23,8 @@
         "test": "vitest run",
         "test:rules": "node --test tools/eslint-rules/__tests__/*.test.js",
         "test:watch": "vitest",
-        "types:check": "tsc --noEmit"
+        "types:check": "tsc --noEmit",
+        "verify": "bash scripts/verify.sh"
     },
     "devDependencies": {
         "@babel/core": "^7.29.13",

@@ -53,12 +53,14 @@ multi-step form. Add every new page to `scripts/smoke.mjs`; a check fails if a r
 ## The hooks and CI
 
 `npm run dev-setup` installs [lefthook](https://lefthook.dev). `pre-commit` lints the staged files;
-`pre-push` runs the full set in order and stops at the first failure: clean working tree, env docs,
-dependency audits, types, lint, formatting, static analysis, every test tier above. Don't skip it
-with `--no-verify`.
+`pre-push` is a quick gate, usually well under a minute: a clean working tree, then in parallel the
+repository checks in `scripts/`, formatting of the files being pushed, and lint and types across the
+repo. Don't skip it with `--no-verify`. To run everything CI runs before you open a pull request,
+use `npm run verify` (several minutes; it stops at the first failure).
 
-GitHub Actions runs types, lint, formatting, static analysis, the tests and the headless smoke on
-every pull request. It also builds the production image and starts it with
+GitHub Actions runs the full set on every pull request: the repository checks, dependency audits,
+formatting, types, lint, static analysis, every automated test tier above and both headless smoke
+runs. It also builds the production image and starts it with
 `docker-compose.selfhost.yml`, so a change to the Dockerfile or the entrypoint is tested before a
 release. A pull request that adds a dependency with a known vulnerability, or under a GPL or AGPL
 licence, fails the dependency review.
