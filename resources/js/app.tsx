@@ -18,7 +18,9 @@ const sentryDsn = meta('sentry-dsn');
 
 // offline.html is static and can't ask the server for the install's name.
 try {
-    localStorage.setItem('ghar.appName', appName);
+    if (localStorage.getItem('ghar.appName') !== appName) {
+        localStorage.setItem('ghar.appName', appName);
+    }
     // eslint-disable-next-line local/no-silent-error -- storage blocked (private mode): the offline page shows its default name.
 } catch {
     // Nothing to do.
@@ -89,14 +91,7 @@ createInertiaApp({
                 )}
             >
                 <App {...props} />
-                <Toaster
-                    offset={{ bottom: 'var(--shell-toast-bottom)' }}
-                    mobileOffset={{
-                        bottom: 'var(--shell-toast-bottom)',
-                        left: 'max(16px, env(safe-area-inset-left))',
-                        right: 'max(16px, env(safe-area-inset-right))',
-                    }}
-                />
+                <Toaster />
             </Sentry.ErrorBoundary>,
         );
 
@@ -132,7 +127,7 @@ router.on('success', (event) => {
 
 installRouteFocus(router);
 
-watchConnection();
+watchConnection(appName);
 
 // Prefetched pages are kept for a few seconds. Anything that writes may have changed
 // what they show, so a write drops them all rather than risk a stale list.

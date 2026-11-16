@@ -7,7 +7,6 @@ import type { ItemPermissions } from '@/MiniApps/Corner/Hooks/useItemActions';
 import CornerLayout from '@/MiniApps/Corner/Layouts/CornerLayout';
 import { show } from '@/routes/apps/our-corner/activities';
 import EmptyState from '@/Shell/Components/EmptyState';
-import AppLayout from '@/Shell/Layouts/AppLayout';
 import type { Paginated } from '@/types/paginated';
 
 type ActivityItem = {
@@ -57,119 +56,117 @@ export default function ActivitiesIndex({
     const [editActivity, setEditActivity] = useState<ActivityItem | null>(null);
 
     return (
-        <AppLayout>
-            <CornerLayout>
-                <ListPage<ActivityItem>
-                    title="Activities"
-                    paginator={activities}
-                    propName="activities"
-                    counts={activities.counts}
-                    filter={filter}
-                    activeLabel="Todo"
-                    doneLabel="Done"
-                    addCtaLabel="Add an activity"
-                    onOpenAddDialog={() => setAddOpen(true)}
-                    query={q ?? ''}
-                    searchPlaceholder="Search activities"
-                    sort={sort}
-                    sortItems={[
-                        { key: 'recent', label: 'Recently added' },
-                        { key: 'title', label: 'Title A–Z' },
-                    ]}
-                    renderItem={(activity) => {
-                        const preview = notesPreview(activity.notes);
+        <CornerLayout>
+            <ListPage<ActivityItem>
+                title="Activities"
+                paginator={activities}
+                propName="activities"
+                counts={activities.counts}
+                filter={filter}
+                activeLabel="Todo"
+                doneLabel="Done"
+                addCtaLabel="Add an activity"
+                onOpenAddDialog={() => setAddOpen(true)}
+                query={q ?? ''}
+                searchPlaceholder="Search activities"
+                sort={sort}
+                sortItems={[
+                    { key: 'recent', label: 'Recently added' },
+                    { key: 'title', label: 'Title A–Z' },
+                ]}
+                renderItem={(activity) => {
+                    const preview = notesPreview(activity.notes);
 
-                        return (
-                            <ListItemCard<ActivityItem>
-                                listType="activities"
-                                item={activity}
-                                can={activity.can}
-                                onEdit={
-                                    activity.can.update
-                                        ? () => setEditActivity(activity)
-                                        : undefined
-                                }
-                                renderMain={() => {
-                                    const isDone = activity.done_at !== null;
-                                    const detailHref = show.url(activity.id);
+                    return (
+                        <ListItemCard<ActivityItem>
+                            listType="activities"
+                            item={activity}
+                            can={activity.can}
+                            onEdit={
+                                activity.can.update
+                                    ? () => setEditActivity(activity)
+                                    : undefined
+                            }
+                            renderMain={() => {
+                                const isDone = activity.done_at !== null;
+                                const detailHref = show.url(activity.id);
 
-                                    return (
-                                        <a
-                                            href={detailHref}
-                                            className="shell-card-link block min-w-0 flex-1 text-inherit no-underline"
-                                        >
-                                            <span className="corner-row-title">
-                                                {activity.title}
-                                                {isDone && (
-                                                    <span className="corner-sticker corner-sticker--inline">
-                                                        Did it
-                                                    </span>
-                                                )}
-                                            </span>
-                                            {preview && (
-                                                <p className="corner-activity-preview">
-                                                    {preview}
-                                                </p>
-                                            )}
-                                            <p className="corner-row-meta">
-                                                Added by {activity.addedBy.name}
-                                            </p>
-                                        </a>
-                                    );
-                                }}
-                            />
-                        );
-                    }}
-                    emptyState={{
-                        all: (
-                            <EmptyState
-                                title="No activities yet."
-                                body="Add something to do."
-                                action={
-                                    <Button
-                                        type="button"
-                                        className="shell-press"
-                                        onClick={() => setAddOpen(true)}
+                                return (
+                                    <a
+                                        href={detailHref}
+                                        className="shell-card-link block min-w-0 flex-1 text-inherit no-underline"
                                     >
-                                        Add an activity
-                                    </Button>
-                                }
-                            />
-                        ),
-                        active: (
-                            <EmptyState
-                                title="All done."
-                                body="Nothing left to do. Suspicious."
-                            />
-                        ),
-                        done: (
-                            <EmptyState
-                                title="Nothing done yet."
-                                body="Check an activity off when you've done it."
-                            />
-                        ),
+                                        <span className="corner-row-title">
+                                            {activity.title}
+                                            {isDone && (
+                                                <span className="corner-sticker corner-sticker--inline">
+                                                    Did it
+                                                </span>
+                                            )}
+                                        </span>
+                                        {preview && (
+                                            <p className="corner-activity-preview">
+                                                {preview}
+                                            </p>
+                                        )}
+                                        <p className="corner-row-meta">
+                                            Added by {activity.addedBy.name}
+                                        </p>
+                                    </a>
+                                );
+                            }}
+                        />
+                    );
+                }}
+                emptyState={{
+                    all: (
+                        <EmptyState
+                            title="No activities yet."
+                            body="Add something to do."
+                            action={
+                                <Button
+                                    type="button"
+                                    className="shell-press"
+                                    onClick={() => setAddOpen(true)}
+                                >
+                                    Add an activity
+                                </Button>
+                            }
+                        />
+                    ),
+                    active: (
+                        <EmptyState
+                            title="All done."
+                            body="Nothing left to do. Suspicious."
+                        />
+                    ),
+                    done: (
+                        <EmptyState
+                            title="Nothing done yet."
+                            body="Check an activity off when you've done it."
+                        />
+                    ),
+                }}
+            />
+
+            <ActivityAddDialog open={addOpen} onOpenChange={setAddOpen} />
+
+            {editActivity && (
+                <ActivityAddDialog
+                    key={editActivity.id}
+                    item={{
+                        id: editActivity.id,
+                        title: editActivity.title,
+                        notes: editActivity.notes,
+                    }}
+                    open
+                    onOpenChange={(next) => {
+                        if (!next) {
+                            setEditActivity(null);
+                        }
                     }}
                 />
-
-                <ActivityAddDialog open={addOpen} onOpenChange={setAddOpen} />
-
-                {editActivity && (
-                    <ActivityAddDialog
-                        key={editActivity.id}
-                        item={{
-                            id: editActivity.id,
-                            title: editActivity.title,
-                            notes: editActivity.notes,
-                        }}
-                        open
-                        onOpenChange={(next) => {
-                            if (!next) {
-                                setEditActivity(null);
-                            }
-                        }}
-                    />
-                )}
-            </CornerLayout>
-        </AppLayout>
+            )}
+        </CornerLayout>
     );
 }

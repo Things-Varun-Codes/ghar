@@ -1,26 +1,17 @@
 import { Head, usePage } from '@inertiajs/react';
 import type { ReactNode } from 'react';
+import { pathOf } from '@/lib/url';
 import AccountMenu from '@/Shell/Components/AccountMenu';
 import BottomBar from '@/Shell/Components/BottomBar';
 import MobileTopBar from '@/Shell/Components/MobileTopBar';
 import PullToRefresh from '@/Shell/Components/PullToRefresh';
 import Sidebar from '@/Shell/Components/Sidebar';
-import {
-    ShellChromeProvider,
-    useInShellChrome,
-} from '@/Shell/Layouts/shell-chrome';
+import { ShellChromeProvider } from '@/Shell/Layouts/shell-chrome';
+import { activeMiniApp, miniAppForComponent } from '@/Shell/lib/active-room';
 import type { MiniApp } from '@/types/miniapp';
 
-/*
- * The signed-in shell. app.tsx sets it as the default Inertia layout, so it stays mounted from
- * one visit to the next. A page that still wraps itself in <AppLayout> gets its children back
- * unchanged, so the chrome is never rendered twice.
- */
+// The signed-in shell: app.tsx's default layout, so it stays mounted from one visit to the next.
 export default function AppLayout({ children }: { children: ReactNode }) {
-    if (useInShellChrome()) {
-        return <>{children}</>;
-    }
-
     return (
         <ShellChromeProvider>
             <Shell>{children}</Shell>
@@ -29,12 +20,10 @@ export default function AppLayout({ children }: { children: ReactNode }) {
 }
 
 function Shell({ children }: { children: ReactNode }) {
-    const { props, component } = usePage<{ miniApps?: MiniApp[] }>();
-
-    const activeApp = (props.miniApps ?? []).find(
-        (app) =>
-            app.component_prefix && component?.startsWith(app.component_prefix),
-    )?.slug;
+    const { props, component, url } = usePage<{ miniApps?: MiniApp[] }>();
+    const miniApps = props.miniApps ?? [];
+    const path = pathOf(url);
+    const activeRoom = activeMiniApp(miniApps, component, path);
 
     return (
         <>
@@ -44,7 +33,7 @@ function Shell({ children }: { children: ReactNode }) {
 
             <div
                 id="shell-chrome"
-                data-active-app={activeApp}
+                data-active-app={miniAppForComponent(miniApps, component)?.slug}
                 className="shell-frame min-h-screen"
             >
                 <a
@@ -63,7 +52,7 @@ function Shell({ children }: { children: ReactNode }) {
                 </div>
 
                 <div className="lg:hidden">
-                    <MobileTopBar />
+                    <MobileTopBar activeRoom={activeRoom} />
                 </div>
 
                 {/* .shell-main's bottom padding clears the Fab and the bottom bar; .history-bleed cancels it. */}
@@ -75,7 +64,7 @@ function Shell({ children }: { children: ReactNode }) {
                     <PullToRefresh>{children}</PullToRefresh>
                 </main>
 
-                <BottomBar />
+                <BottomBar path={path} activeRoom={activeRoom} />
             </div>
         </>
     );

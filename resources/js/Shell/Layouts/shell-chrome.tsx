@@ -54,11 +54,6 @@ export function ShellChromeProvider({ children }: { children: ReactNode }) {
     );
 }
 
-/** True inside AppLayout: the phone top bar is there to carry the title and back. */
-export function useInShellChrome(): boolean {
-    return useContext(ShellChromeContext) !== null;
-}
-
 export function useShellPageInfo(): ShellPageInfo | null {
     return useContext(ShellPageInfoContext);
 }

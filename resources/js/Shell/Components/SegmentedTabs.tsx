@@ -10,17 +10,14 @@ type SegmentedTabsSharedProps<T extends string> = {
     items: Array<SegmentedTabItem<T>>;
     active: T;
     ariaLabel: string;
-    className?: string;
 };
 
 type SegmentedTabsNavProps<T extends string> = SegmentedTabsSharedProps<T> & {
-    /**
-     * Each tab is a page visit, so it is a link with aria-current, not a role=tab.
-     * 'tablist-url' is the old name for the same thing; it keeps the scroll position and
-     * drops page state, as the list pages that used it expect.
-     */
-    mode: 'nav' | 'tablist-url';
+    /** Each tab is a page visit, so it is a link with aria-current, not a role=tab. */
+    mode: 'nav';
     hrefFor: (key: T) => string;
+    /** Keep the scroll position and drop page state on a tab change, for a filtered list. */
+    keepScroll?: boolean;
     /**
      * Fetch the other tabs as soon as this one is shown. Only for tabs whose GET
      * changes nothing on the server.
@@ -47,10 +44,7 @@ function renderLabel(item: SegmentedTabItem<string>): string {
 export default function SegmentedTabs<T extends string>(
     props: SegmentedTabsProps<T>,
 ) {
-    const { items, active, ariaLabel, className } = props;
-    const wrapperClassName = ['segmented-tabs', 'shell-segmented', className]
-        .filter(Boolean)
-        .join(' ');
+    const { items, active, ariaLabel } = props;
 
     if (props.mode === 'tablist-client') {
         const { onChange, panelId } = props;
@@ -59,7 +53,7 @@ export default function SegmentedTabs<T extends string>(
             <div
                 role="tablist"
                 aria-label={ariaLabel}
-                className={wrapperClassName}
+                className="shell-segmented"
             >
                 {items.map((item) => {
                     const isActive = item.key === active;
@@ -83,11 +77,10 @@ export default function SegmentedTabs<T extends string>(
         );
     }
 
-    const { hrefFor, prefetch = false } = props;
-    const keepScroll = props.mode === 'tablist-url';
+    const { hrefFor, prefetch = false, keepScroll = false } = props;
 
     return (
-        <nav aria-label={ariaLabel} className={wrapperClassName}>
+        <nav aria-label={ariaLabel} className="shell-segmented">
             {items.map((item) => {
                 const isActive = item.key === active;
 

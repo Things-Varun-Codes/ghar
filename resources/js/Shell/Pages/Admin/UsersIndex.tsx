@@ -116,7 +116,6 @@ export default function UsersIndex({ users }: Props) {
     return (
         <>
             <Page
-                tier="index"
                 title="Users"
                 room="Admin"
                 backChevron

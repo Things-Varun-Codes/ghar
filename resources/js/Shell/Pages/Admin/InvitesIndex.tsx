@@ -146,7 +146,6 @@ export default function InvitesIndex({ invites }: Props) {
     return (
         <>
             <Page
-                tier="index"
                 title="Invites"
                 room="Admin"
                 backChevron

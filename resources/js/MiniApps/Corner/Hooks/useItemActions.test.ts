@@ -2,11 +2,8 @@ import { act, renderHook } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { Mock } from 'vitest';
 
-import {
-    DELETE_GRACE_PERIOD_MS,
-    TOGGLE_FAILED_MESSAGE,
-    useItemActions,
-} from './useItemActions';
+import { MUTATION_FAILED_MESSAGE } from '@/lib/mutation';
+import { DELETE_GRACE_PERIOD_MS, useItemActions } from './useItemActions';
 import type { CornerItemType } from './useItemActions';
 
 const { routerPatch, routerDelete } = vi.hoisted(() => ({
@@ -263,7 +260,7 @@ describe('useItemActions', () => {
         });
 
         expect(returned!).toBe(false);
-        expect(toastError).toHaveBeenCalledWith(TOGGLE_FAILED_MESSAGE);
+        expect(toastError).toHaveBeenCalledWith(MUTATION_FAILED_MESSAGE);
         expect(captureException).toHaveBeenCalledTimes(1);
     });
 

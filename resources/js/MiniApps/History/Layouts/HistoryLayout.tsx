@@ -1,8 +1,6 @@
-import { Head } from '@inertiajs/react';
 import type { ReactNode } from 'react';
 
 import { AppAttrsProvider } from '@/hooks/use-app-attrs';
-import { pageTitle } from '@/lib/title';
 import { calendar, gallery, timeline } from '@/routes/apps/our-history';
 import Page from '@/Shell/Components/Page';
 import SegmentedTabs from '@/Shell/Components/SegmentedTabs';
@@ -51,14 +49,14 @@ export default function HistoryLayout({
 
     return (
         <AppAttrsProvider app="our-history">
-            <Head title={pageTitle(tabLabel, 'Our History')} />
             <div
                 data-app="our-history"
                 className="history-bleed bg-(--history-bg) text-(--history-ink)"
             >
                 <Page
-                    tier="index"
                     title="Our History"
+                    room="Our History"
+                    documentTitle={tabLabel}
                     backChevron
                     tabs={tabs}
                     pb="pb-0"

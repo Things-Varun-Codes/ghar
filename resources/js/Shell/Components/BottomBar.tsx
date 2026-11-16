@@ -2,7 +2,7 @@ import { Link, usePage } from '@inertiajs/react';
 import type { LucideIcon } from 'lucide-react';
 import { BookHeart, House, LayoutGrid, Mailbox, Sofa } from 'lucide-react';
 import { dashboard } from '@/routes';
-import { activeMiniApp, roomsForBar } from '@/Shell/Components/bottom-bar';
+import { roomsForBar } from '@/Shell/Components/bottom-bar';
 import type { MiniApp } from '@/types/miniapp';
 
 /*
@@ -18,11 +18,15 @@ const ROOM_ICONS: Record<string, LucideIcon> = {
 type SharedProps = { miniApps?: MiniApp[] };
 
 /** The phone and tablet room switcher: Home first, then each enabled room from the registry. */
-export default function BottomBar() {
-    const { props, component, url } = usePage<SharedProps>();
+export default function BottomBar({
+    path,
+    activeRoom,
+}: {
+    path: string;
+    activeRoom: MiniApp | undefined;
+}) {
+    const { props, component } = usePage<SharedProps>();
     const rooms = roomsForBar(props.miniApps ?? []);
-    const path = url.split('?')[0].replace(/\/$/, '') || '/';
-    const active = activeMiniApp(rooms, component, path);
     const onHome = component === 'Shell/Pages/Dashboard';
 
     return (
@@ -41,7 +45,7 @@ export default function BottomBar() {
                         label={app.nav_label ?? app.name.replace(/^Our\s+/, '')}
                         Icon={(app.icon && ROOM_ICONS[app.icon]) || LayoutGrid}
                         current={
-                            active?.slug === app.slug
+                            activeRoom?.slug === app.slug
                                 ? path === app.route
                                     ? 'page'
                                     : 'true'

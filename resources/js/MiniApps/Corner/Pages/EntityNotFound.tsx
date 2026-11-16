@@ -5,7 +5,6 @@ import CornerLayout, {
     CORNER_ROOM,
 } from '@/MiniApps/Corner/Layouts/CornerLayout';
 import { landing } from '@/routes/apps/our-corner';
-import AppLayout from '@/Shell/Layouts/AppLayout';
 
 interface Props {
     kind: 'song' | 'movie' | 'activity' | 'place';
@@ -22,7 +21,7 @@ export default function EntityNotFound({ kind }: Props) {
     const label = KIND_LABEL[kind] ?? 'thing';
 
     return (
-        <AppLayout>
+        <>
             <Head title={pageTitle('No longer here', CORNER_ROOM)} />
             <CornerLayout>
                 <div className="corner-not-found">
@@ -48,6 +47,6 @@ export default function EntityNotFound({ kind }: Props) {
                     </article>
                 </div>
             </CornerLayout>
-        </AppLayout>
+        </>
     );
 }

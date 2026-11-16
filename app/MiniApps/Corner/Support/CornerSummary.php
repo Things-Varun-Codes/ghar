@@ -6,7 +6,6 @@ use App\MiniApps\Corner\Models\Activity;
 use App\MiniApps\Corner\Models\Movie;
 use App\MiniApps\Corner\Models\Place;
 use App\MiniApps\Corner\Models\Song;
-use App\Shell\Models\User;
 use Illuminate\Database\Eloquent\Builder;
 
 /**
@@ -32,7 +31,7 @@ class CornerSummary
      *     },
      * }
      */
-    public static function forUser(User $user): array
+    public static function build(): array
     {
         $tallies = [
             'songs' => self::tally(Song::query()),

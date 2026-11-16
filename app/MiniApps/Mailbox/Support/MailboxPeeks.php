@@ -33,15 +33,19 @@ final class MailboxPeeks
     public function forUser(User $user): array
     {
         return [
-            'notes' => $this->note($user),
+            'notes' => self::latestNote($user),
             'flowers' => $this->bouquet($user),
             'challans' => $this->challan($user),
             'coupons' => $this->coupon($user),
         ];
     }
 
-    /** @return array{body: string, from: string}|null */
-    private function note(User $user): ?array
+    /**
+     * The newest note the viewer received, trimmed for a glimpse. Also Home's Mailbox door.
+     *
+     * @return array{body: string, from: string}|null
+     */
+    public static function latestNote(User $user): ?array
     {
         $note = MailboxMessage::query()
             ->receivedBy($user)
@@ -50,12 +54,12 @@ final class MailboxPeeks
             ->orderByDesc('id')
             ->first();
 
-        if ($note === null || trim($note->body) === '') {
+        if ($note === null || trim((string) $note->body) === '') {
             return null;
         }
 
         return [
-            'body' => Str::limit(trim($note->body), self::NOTE_LIMIT),
+            'body' => Str::limit(trim((string) $note->body), self::NOTE_LIMIT),
             'from' => $note->sender->name,
         ];
     }

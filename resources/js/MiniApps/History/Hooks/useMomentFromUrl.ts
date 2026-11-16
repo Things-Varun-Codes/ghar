@@ -1,6 +1,6 @@
 import { router } from '@inertiajs/react';
 import { useEffect, useRef } from 'react';
-import { withoutParam } from '@/hooks/use-overlay-history';
+import { withoutParam } from '@/lib/url';
 import {
     hasMomentParam,
     momentIdFromUrl,

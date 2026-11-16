@@ -2,7 +2,6 @@ import { Link, usePage } from '@inertiajs/react';
 import { dashboard } from '@/routes';
 import AccountMenu from '@/Shell/Components/AccountMenu';
 import BackChevron from '@/Shell/Components/BackChevron';
-import { activeMiniApp } from '@/Shell/Components/bottom-bar';
 import HeartMark from '@/Shell/Components/HeartMark';
 import { useShellPageInfo } from '@/Shell/Layouts/shell-chrome';
 import type { MiniApp } from '@/types/miniapp';
@@ -11,17 +10,17 @@ import type { MiniApp } from '@/types/miniapp';
  * Below `lg`: the wordmark on Home; elsewhere back on the left and the page's title, so where
  * you are and the way back stay on screen while the page scrolls.
  */
-export default function MobileTopBar() {
-    const { props, component, url } = usePage<{ miniApps?: MiniApp[] }>();
+export default function MobileTopBar({
+    activeRoom,
+}: {
+    activeRoom: MiniApp | undefined;
+}) {
+    const { props, component } = usePage();
     const info = useShellPageInfo();
     const appName = props.name;
     const onHome = component === 'Shell/Pages/Dashboard';
 
-    const path = url.split('?')[0].replace(/\/$/, '') || '/';
-    const title =
-        info?.title ??
-        activeMiniApp(props.miniApps ?? [], component, path)?.name ??
-        appName;
+    const title = info?.title ?? activeRoom?.name ?? appName;
 
     return (
         <header className="shell-topbar fixed top-0 right-0 left-0 z-50 grid grid-cols-[44px_minmax(0,1fr)_44px] items-center gap-2 bg-(--sidebar)">

@@ -7,7 +7,6 @@
     --mailbox-border: var(--shell-border);
     --mailbox-border-input: var(--shell-border-input);
     --mailbox-accent: var(--shell-accent);
-    --mailbox-accent-fg: var(--shell-accent-fg);
     --mailbox-accent-text: var(--shell-accent-text);
     --mailbox-action: var(--shell-action);
     --mailbox-action-fg: var(--shell-action-fg);
@@ -22,7 +21,6 @@
     --mailbox-coupon-font-mono: var(--font-sans);
 
     --mailbox-type-scale-eyebrow: var(--text-eyebrow);
-    --mailbox-type-scale-body: var(--text-body);
     /* Patrick Hand has a small x-height: 22px reads like 16px sans and sits on the 32px rules. */
     --mailbox-hand-size: 22px;
     --mailbox-hand-size-small: 20px;
@@ -64,24 +62,14 @@
         0 12px 24px -16px
             color-mix(in oklab, var(--shell-text) 10%, transparent);
 
-    --mailbox-hover-border: color-mix(
-        in oklab,
-        var(--shell-text) 20%,
-        transparent
-    );
-    --mailbox-hover-wash: color-mix(
-        in oklab,
-        var(--shell-text) 5%,
-        var(--shell-surface)
-    );
+    --mailbox-hover-border: var(--shell-lift-border);
+    --mailbox-hover-wash: var(--shell-hover-wash);
     --mailbox-selected-wash: color-mix(
         in oklab,
         var(--shell-accent) 35%,
         var(--shell-surface)
     );
-    --mailbox-field-focus:
-        0 0 0 1px var(--shell-action),
-        0 0 0 4px color-mix(in oklab, var(--shell-action) 20%, transparent);
+    --mailbox-field-focus: var(--shell-field-focus);
 
     /* Between muted and destructive, about 5:1 on paper. */
     --mailbox-amber-warn: color-mix(
@@ -491,7 +479,7 @@
     margin-top: 16px;
     display: flex;
     flex-direction: column;
-    gap: var(--mailbox-feed-gap, 16px);
+    gap: 16px;
 }
 
 [data-app='our-mailbox'] .mailbox-feed:has(> .mailbox-note),

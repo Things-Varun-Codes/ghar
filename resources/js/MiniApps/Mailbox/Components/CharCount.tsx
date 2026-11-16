@@ -1,17 +1,12 @@
 type Props = {
     length: number;
     max: number;
-    /* Stays out of the way until the writer is near the limit. */
-    showFrom?: number;
 };
 
 /* A field's maxLength stops typing at the limit; this says so before it happens. */
-export default function CharCount({
-    length,
-    max,
-    showFrom = Math.floor(max * 0.8),
-}: Props) {
-    if (length < showFrom) {
+export default function CharCount({ length, max }: Props) {
+    // Stays out of the way until the writer is near the limit.
+    if (length < Math.floor(max * 0.8)) {
         return null;
     }
 

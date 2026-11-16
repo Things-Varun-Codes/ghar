@@ -65,7 +65,7 @@ export default function MovieAddDialog({ open, onOpenChange, item }: Props) {
             poster_url: json.poster_url ?? null,
             watch_url: json.watch_url ?? url,
         }),
-        // The title is typed first now, so Plex only fills it when it's still empty.
+        // Plex fills the title only when it's still empty: what was typed wins.
         onResult: (json) => {
             if (data.title.trim() === '') {
                 setData('title', json.title ?? '');

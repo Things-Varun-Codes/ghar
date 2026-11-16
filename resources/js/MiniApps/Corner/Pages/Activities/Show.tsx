@@ -7,7 +7,6 @@ import type { ItemPermissions } from '@/MiniApps/Corner/Hooks/useItemActions';
 import { useItemActions } from '@/MiniApps/Corner/Hooks/useItemActions';
 import CornerLayout from '@/MiniApps/Corner/Layouts/CornerLayout';
 import { index as activitiesIndex } from '@/routes/apps/our-corner/activities';
-import AppLayout from '@/Shell/Layouts/AppLayout';
 
 type ActivityDetail = {
     id: number;
@@ -37,41 +36,37 @@ export default function ActivitiesShow({ activity, mentioned_in }: Props) {
     });
 
     return (
-        <AppLayout>
-            <CornerLayout>
-                <DetailPage
-                    title={activity.title}
-                    can={activity.can}
-                    addedByName={activity.addedBy.name}
-                    mentionedIn={mentioned_in}
-                    isDone={activity.is_done}
-                    doneLabel={{ active: 'Mark as done', done: 'Done' }}
-                    itemActions={itemActions}
-                    body={() =>
-                        activity.notes && (
-                            <p className="corner-detail-notes">
-                                {activity.notes}
-                            </p>
-                        )
-                    }
-                />
+        <CornerLayout>
+            <DetailPage
+                title={activity.title}
+                can={activity.can}
+                addedByName={activity.addedBy.name}
+                mentionedIn={mentioned_in}
+                isDone={activity.is_done}
+                doneLabel={{ active: 'Mark as done', done: 'Done' }}
+                itemActions={itemActions}
+                body={() =>
+                    activity.notes && (
+                        <p className="corner-detail-notes">{activity.notes}</p>
+                    )
+                }
+            />
 
-                {activity.can.update && editOpen && (
-                    <ActivityAddDialog
-                        item={{
-                            id: activity.id,
-                            title: activity.title,
-                            notes: activity.notes,
-                        }}
-                        open
-                        onOpenChange={(next) => {
-                            if (!next) {
-                                setEditOpen(false);
-                            }
-                        }}
-                    />
-                )}
-            </CornerLayout>
-        </AppLayout>
+            {activity.can.update && editOpen && (
+                <ActivityAddDialog
+                    item={{
+                        id: activity.id,
+                        title: activity.title,
+                        notes: activity.notes,
+                    }}
+                    open
+                    onOpenChange={(next) => {
+                        if (!next) {
+                            setEditOpen(false);
+                        }
+                    }}
+                />
+            )}
+        </CornerLayout>
     );
 }

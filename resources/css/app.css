@@ -105,6 +105,27 @@
     --shell-destructive: oklch(0.5 0.13 22);
     --shell-destructive-fg: oklch(0.985 0.005 80);
 
+    /* Derived recipes, mixed once here; a room token aliases one instead of rebuilding it. */
+    --shell-hover-wash: color-mix(
+        in oklab,
+        var(--shell-text) 5%,
+        var(--shell-surface)
+    );
+    --shell-lift-border: color-mix(
+        in oklab,
+        var(--shell-text) 20%,
+        transparent
+    );
+    --shell-action-hover: color-mix(
+        in oklab,
+        var(--shell-action) 86%,
+        var(--shell-text)
+    );
+    --shell-field-focus:
+        0 0 0 1px var(--shell-action),
+        0 0 0 4px color-mix(in oklab, var(--shell-action) 20%, transparent);
+    --shell-scrim: color-mix(in oklab, var(--shell-text) 55%, transparent);
+
     --background: var(--shell-bg);
     --foreground: var(--shell-text);
     --card: var(--shell-surface);
@@ -442,7 +463,7 @@
 }
 
 .shell-scrim {
-    background-color: color-mix(in oklab, var(--shell-text) 55%, transparent);
+    background-color: var(--shell-scrim);
 }
 
 .shell-frame {
@@ -510,11 +531,7 @@
 }
 
 .shell-btn-primary:hover {
-    background-color: color-mix(
-        in oklab,
-        var(--shell-action) 86%,
-        var(--shell-text)
-    );
+    background-color: var(--shell-action-hover);
 }
 
 .shell-btn-destructive:hover {
@@ -526,11 +543,7 @@
 }
 
 .shell-btn-outline:hover {
-    background-color: color-mix(
-        in oklab,
-        var(--shell-text) 5%,
-        var(--shell-surface)
-    );
+    background-color: var(--shell-hover-wash);
     border-color: color-mix(in oklab, var(--shell-text) 32%, transparent);
 }
 
@@ -582,9 +595,7 @@ button[type='submit'][data-slot='button'] {
 
 .shell-field:focus-visible {
     border-color: var(--shell-action);
-    box-shadow:
-        0 0 0 1px var(--shell-action),
-        0 0 0 4px color-mix(in oklab, var(--shell-action) 20%, transparent);
+    box-shadow: var(--shell-field-focus);
 }
 
 .shell-field[aria-invalid='true'] {
@@ -735,7 +746,7 @@ button[type='submit'][data-slot='button'] {
 @media (hover: hover) and (pointer: fine) {
     .os-door:hover {
         transform: translateY(-2px);
-        border-color: color-mix(in oklab, var(--shell-text) 20%, transparent);
+        border-color: var(--shell-lift-border);
         transition-duration: var(--dur-card);
     }
 
@@ -1496,11 +1507,7 @@ button[type='submit'][data-slot='button'] {
 
 .shell-auth-submit:hover,
 .shell-error-action:hover {
-    background-color: color-mix(
-        in oklab,
-        var(--shell-action) 86%,
-        var(--shell-text)
-    );
+    background-color: var(--shell-action-hover);
 }
 
 .shell-auth-field,

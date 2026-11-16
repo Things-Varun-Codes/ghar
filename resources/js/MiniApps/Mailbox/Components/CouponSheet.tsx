@@ -3,6 +3,7 @@ import { Minus, Plus } from 'lucide-react';
 import type { FormEvent } from 'react';
 import { useId } from 'react';
 import { useDirtyFormGate } from '@/hooks/use-dirty-form-gate';
+import { transportFailureOptions } from '@/lib/mutation';
 import CharCount from '@/MiniApps/Mailbox/Components/CharCount';
 import ComposeSheet from '@/MiniApps/Mailbox/Components/ComposeSheet';
 import type { HouseholdMember } from '@/MiniApps/Mailbox/Components/RecipientPicker';
@@ -13,7 +14,6 @@ import {
     reportRejected,
     SEND_FAILED_MESSAGE,
     toastUnshownErrors,
-    transportFailure,
 } from '@/MiniApps/Mailbox/lib/visitFailure';
 import { store } from '@/routes/apps/our-mailbox/coupons';
 import FormField from '@/Shell/Components/FormField';
@@ -94,7 +94,7 @@ export default function CouponSheet({ open, onOpenChange, members }: Props) {
                 toastUnshownErrors(errs, isShownField, SEND_FAILED_MESSAGE);
                 reportRejected('Mailbox/CouponSheet', 'coupon.create', errs);
             },
-            ...transportFailure({
+            ...transportFailureOptions({
                 component: 'Mailbox/CouponSheet',
                 action: 'coupon.create',
                 message: SEND_FAILED_MESSAGE,

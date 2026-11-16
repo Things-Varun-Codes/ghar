@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { activeMiniApp, roomsForBar } from '@/Shell/Components/bottom-bar';
+import { roomsForBar } from '@/Shell/Components/bottom-bar';
 import type { MiniApp } from '@/types/miniapp';
 
 function app(slug: string, prefix?: string): MiniApp {
@@ -12,9 +12,6 @@ function app(slug: string, prefix?: string): MiniApp {
     };
 }
 
-const history = app('our-history', 'MiniApps/History/');
-const corner = app('our-corner', 'MiniApps/Corner/');
-
 describe('roomsForBar', () => {
     it('keeps Home plus four rooms at most', () => {
         const apps = ['a', 'b', 'c', 'd', 'e', 'f'].map((s) => app(s));
@@ -25,47 +22,5 @@ describe('roomsForBar', () => {
             'c',
             'd',
         ]);
-    });
-});
-
-describe('activeMiniApp', () => {
-    it('finds the room by the page component', () => {
-        expect(
-            activeMiniApp(
-                [history, corner],
-                'MiniApps/Corner/Pages/Songs/Show',
-                '/apps/our-corner/songs/4',
-            )?.slug,
-        ).toBe('our-corner');
-    });
-
-    it('falls back to the URL for a shell page inside a room', () => {
-        expect(
-            activeMiniApp(
-                [history, corner],
-                'Shell/Pages/Error',
-                '/apps/our-corner/songs/999',
-            )?.slug,
-        ).toBe('our-corner');
-    });
-
-    it('does not match a room whose route is only a prefix of the path', () => {
-        expect(
-            activeMiniApp(
-                [app('our-corner')],
-                'Shell/Pages/Error',
-                '/apps/our-corner-two',
-            ),
-        ).toBeUndefined();
-    });
-
-    it('is empty outside every room', () => {
-        expect(
-            activeMiniApp(
-                [history, corner],
-                'Shell/Pages/Settings/Profile',
-                '/settings/profile',
-            ),
-        ).toBeUndefined();
     });
 });

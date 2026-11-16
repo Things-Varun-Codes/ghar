@@ -13,7 +13,7 @@ type StartedVisit = {
  * Tells people when a page can't be reached. Only whole-page GET visits get the toast: a
  * load-more has its own inline retry and a write reports its own failure.
  */
-export function watchConnection(): void {
+export function watchConnection(appName: string): void {
     let lastVisit: StartedVisit | null = null;
 
     router.on('start', (event) => {
@@ -29,7 +29,7 @@ export function watchConnection(): void {
         }
 
         toast.error(
-            navigator.onLine ? "Couldn't reach Ghar." : "You're offline.",
+            navigator.onLine ? `Couldn't reach ${appName}.` : "You're offline.",
             {
                 id: TOAST_ID,
                 description: 'Check your connection and try again.',

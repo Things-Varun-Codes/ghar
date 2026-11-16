@@ -39,7 +39,9 @@ class CacheSignedMedia
 
         $lastModified = $disk->lastModified($path);
         $response->setLastModified((new \DateTimeImmutable)->setTimestamp($lastModified));
-        $response->setEtag(sha1($path.'|'.$lastModified.'|'.$disk->size($path)));
+        // The disk's response already carries the size; stat again only if it doesn't.
+        $size = $response->headers->get('Content-Length') ?? $disk->size($path);
+        $response->setEtag(sha1($path.'|'.$lastModified.'|'.$size));
 
         $response->isNotModified($request);
 

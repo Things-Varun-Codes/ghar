@@ -28,11 +28,7 @@
     ); /* Fields and outlined buttons */
     --history-action: var(--shell-action); /* The one filled button */
     --history-action-fg: var(--shell-action-fg);
-    --history-action-hover: color-mix(
-        in oklab,
-        var(--shell-action) 86%,
-        var(--shell-text)
-    );
+    --history-action-hover: var(--shell-action-hover);
 
     --history-destructive: var(--shell-destructive);
     --history-destructive-fg: var(--shell-destructive-fg);
@@ -47,15 +43,11 @@
         var(--shell-surface)
     );
 
-    --history-hover: color-mix(
-        in oklab,
-        var(--shell-text) 5%,
-        var(--shell-surface)
+    --history-hover: var(
+        --shell-hover-wash
     ); /* Outlined button and menu row hover */
-    --history-lift-border: color-mix(
-        in oklab,
-        var(--shell-text) 20%,
-        transparent
+    --history-lift-border: var(
+        --shell-lift-border
     ); /* A card's border while it is lifted */
 
     /* Over a photo: paper-white type on an ink scrim. */
@@ -66,15 +58,13 @@
         var(--shell-text) 45%,
         transparent
     );
-    --history-overlay: color-mix(in oklab, var(--shell-text) 55%, transparent);
+    --history-overlay: var(--shell-scrim);
     --history-float-shadow: 0 12px 32px
         color-mix(in oklab, var(--shell-text) 10%, transparent);
 
     --history-focus-ring:
         0 0 0 2px var(--shell-bg), 0 0 0 4px var(--shell-action);
-    --history-field-focus:
-        0 0 0 1px var(--shell-action),
-        0 0 0 4px color-mix(in oklab, var(--shell-action) 20%, transparent);
+    --history-field-focus: var(--shell-field-focus);
 
     --history-font-sans: var(--font-sans);
     --history-font-display: var(--font-display);

@@ -8,6 +8,7 @@ import {
     UserRound,
     Users,
 } from 'lucide-react';
+import { pathOf } from '@/lib/url';
 import * as invites from '@/routes/admin/invites';
 import * as adminNotifications from '@/routes/admin/notifications';
 import * as shortlinks from '@/routes/admin/shortlinks';
@@ -38,12 +39,8 @@ export const ADMIN_ITEMS: ShellNavItem[] = [
 
 /** `url` is Inertia's page url (path plus query). */
 export function isRouteActive(url: string, route: string): boolean {
-    const u = url.split('?')[0].replace(/\/$/, '');
-    const r = route.replace(/\/$/, '');
+    const u = pathOf(url);
+    const r = pathOf(route);
 
-    if (r === '') {
-        return u === '';
-    }
-
-    return u === r || u.startsWith(r + '/');
+    return u === r || (r !== '/' && u.startsWith(r + '/'));
 }

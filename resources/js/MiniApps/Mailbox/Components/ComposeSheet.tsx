@@ -1,7 +1,7 @@
 import * as SheetPrimitive from '@radix-ui/react-dialog';
 import { X } from 'lucide-react';
 import type { FormEvent, ReactNode } from 'react';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import {
     AlertDialog,
     AlertDialogAction,
@@ -15,6 +15,7 @@ import {
 import { buttonVariants } from '@/components/ui/button';
 import { useAllowTouchSelection } from '@/hooks/use-allow-touch-selection';
 import { useBodyScrollLock } from '@/hooks/use-body-scroll-lock';
+import { useKeyboardViewport } from '@/hooks/use-keyboard-viewport';
 import { useMediaQuery } from '@/hooks/use-media-query';
 import { useOverlayHistory } from '@/hooks/use-overlay-history';
 import { useSwipeDismiss } from '@/hooks/use-swipe-dismiss';
@@ -37,8 +38,6 @@ type Props = {
     hintId: string;
     children: ReactNode;
 };
-
-type ViewportMetrics = { height: number; offsetTop: number } | null;
 
 /*
  * The frame every Mailbox compose sheet shares: a title bar with a 44px close, a scrolling
@@ -190,45 +189,4 @@ export default function ComposeSheet({
             </AlertDialog>
         </>
     );
-}
-
-/*
- * iOS dvh does not shrink for the keyboard, so a bottom sheet would keep its footer under it.
- * visualViewport is the only signal for the covered area. Portrait only: a collapsing URL bar
- * in landscape reads like a keyboard.
- */
-function useKeyboardViewport(active: boolean): ViewportMetrics {
-    const [metrics, setMetrics] = useState<ViewportMetrics>(null);
-
-    useEffect(() => {
-        const vv = window.visualViewport;
-
-        if (!active || !vv) {
-            return;
-        }
-
-        const sync = () => {
-            const keyboardUp =
-                window.matchMedia('(orientation: portrait)').matches &&
-                window.innerHeight - vv.height - vv.offsetTop > 100;
-
-            setMetrics(
-                keyboardUp
-                    ? { height: vv.height, offsetTop: vv.offsetTop }
-                    : null,
-            );
-        };
-
-        sync();
-        vv.addEventListener('resize', sync);
-        vv.addEventListener('scroll', sync);
-
-        return () => {
-            vv.removeEventListener('resize', sync);
-            vv.removeEventListener('scroll', sync);
-            setMetrics(null);
-        };
-    }, [active]);
-
-    return metrics;
 }

@@ -3,6 +3,7 @@ import type { FormEvent } from 'react';
 import { useEffect, useId, useState } from 'react';
 import { useDirtyFormGate } from '@/hooks/use-dirty-form-gate';
 import { readXsrfToken } from '@/lib/csrf';
+import { transportFailureOptions } from '@/lib/mutation';
 import { captureSilent } from '@/lib/observability';
 import CharCount from '@/MiniApps/Mailbox/Components/CharCount';
 import ComposeSheet from '@/MiniApps/Mailbox/Components/ComposeSheet';
@@ -15,7 +16,6 @@ import {
     reportRejected,
     SEND_FAILED_MESSAGE,
     toastUnshownErrors,
-    transportFailure,
 } from '@/MiniApps/Mailbox/lib/visitFailure';
 import { generate, store } from '@/routes/apps/our-mailbox/bouquets';
 import FormField from '@/Shell/Components/FormField';
@@ -212,7 +212,7 @@ export default function BouquetSheet({
                 toastUnshownErrors(errs, isShownField, SEND_FAILED_MESSAGE);
                 reportRejected('Mailbox/BouquetSheet', 'bouquet.create', errs);
             },
-            ...transportFailure({
+            ...transportFailureOptions({
                 component: 'Mailbox/BouquetSheet',
                 action: 'bouquet.create',
                 message: SEND_FAILED_MESSAGE,

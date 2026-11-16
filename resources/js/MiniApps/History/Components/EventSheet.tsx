@@ -7,9 +7,11 @@ import { Button } from '@/components/ui/button';
 import { useAllowTouchSelection } from '@/hooks/use-allow-touch-selection';
 import { useAppAttrs } from '@/hooks/use-app-attrs';
 import { useBodyScrollLock } from '@/hooks/use-body-scroll-lock';
+import { useKeyboardViewport } from '@/hooks/use-keyboard-viewport';
 import { useMediaQuery } from '@/hooks/use-media-query';
 import { useOverlayHistory } from '@/hooks/use-overlay-history';
 import { cn } from '@/lib/utils';
+import { MOMENT_PARAM } from '@/MiniApps/History/lib/momentUrl';
 import type { EventPermissions } from './CalendarMonth';
 import DeleteEventDialog from './DeleteEventDialog';
 import EventForm from './EventForm';
@@ -93,64 +95,7 @@ export default function EventSheet({
     const isDesktop = useMediaQuery('(min-width: 1024px)');
     const side = isDesktop ? 'right' : 'bottom';
 
-    const prefersReducedMotion = useMediaQuery(
-        '(prefers-reduced-motion: reduce)',
-    );
-
-    // iOS dvh does not shrink for the keyboard; visualViewport is the only signal for the covered
-    // area.
-    const [vvMetrics, setVvMetrics] = useState<{
-        height: number;
-        offsetTop: number;
-        keyboardUp: boolean;
-    } | null>(null);
-    useEffect(() => {
-        if (!open || side !== 'bottom') {
-            return;
-        }
-
-        const vv = window.visualViewport;
-
-        if (!vv) {
-            return;
-        }
-
-        const sync = () => {
-            // Orientation guard — iOS landscape has a wider but
-            // shorter viewport; the soft-keyboard-height heuristic (~100px gap)
-            // fires false positives in landscape when the URL bar collapses
-            // because the gap between innerHeight and vv.height can exceed 100px
-            // at wide-short aspect ratios. Skip repositioning in landscape;
-            // the Sheet already fits within the visible area there.
-            if (!window.matchMedia('(orientation: portrait)').matches) {
-                setVvMetrics(null);
-
-                return;
-            }
-
-            // Threshold: anything more than 100px of viewport "missing"
-            // means a keyboard or other on-screen overlay is up. iOS Safari
-            // URL bar collapse only shrinks the layout viewport by ~50px,
-            // so 100px discriminates keyboard-up from URL-bar-show without
-            // false positives in portrait.
-            const keyboardUp =
-                window.innerHeight - vv.height - vv.offsetTop > 100;
-            setVvMetrics({
-                height: vv.height,
-                offsetTop: vv.offsetTop,
-                keyboardUp,
-            });
-        };
-        sync();
-        vv.addEventListener('resize', sync);
-        vv.addEventListener('scroll', sync);
-
-        return () => {
-            vv.removeEventListener('resize', sync);
-            vv.removeEventListener('scroll', sync);
-            setVvMetrics(null);
-        };
-    }, [open, side]);
+    const keyboard = useKeyboardViewport(open && side === 'bottom');
 
     useBodyScrollLock(open);
 
@@ -206,19 +151,17 @@ export default function EventSheet({
         {
             param:
                 editingEvent && mode !== 'add'
-                    ? ['moment', String(editingEvent.id)]
+                    ? [MOMENT_PARAM, String(editingEvent.id)]
                     : null,
         },
     );
 
     const contentClassName = cn(
         'fixed z-50 flex flex-col shadow-lg ease-(--ease-ui) data-[state=closed]:duration-(--dur-out) data-[state=open]:duration-(--dur-card)',
-        !prefersReducedMotion && [
-            side === 'right' &&
-                'data-[state=closed]:animate-out data-[state=closed]:slide-out-to-right data-[state=open]:animate-in data-[state=open]:slide-in-from-right',
-            side === 'bottom' &&
-                'data-[state=closed]:animate-out data-[state=closed]:slide-out-to-bottom data-[state=open]:animate-in data-[state=open]:slide-in-from-bottom',
-        ],
+        side === 'right' &&
+            'motion-safe:data-[state=closed]:animate-out motion-safe:data-[state=closed]:slide-out-to-right motion-safe:data-[state=open]:animate-in motion-safe:data-[state=open]:slide-in-from-right',
+        side === 'bottom' &&
+            'motion-safe:data-[state=closed]:animate-out motion-safe:data-[state=closed]:slide-out-to-bottom motion-safe:data-[state=open]:animate-in motion-safe:data-[state=open]:slide-in-from-bottom',
         side === 'right' &&
             'inset-y-0 right-0 h-full w-full max-w-[min(960px,80vw)] border-l',
         side === 'bottom' && 'inset-x-0 bottom-0 h-[100dvh] border-t',
@@ -237,15 +180,15 @@ export default function EventSheet({
                             contentClassName,
                             'history-sheet-content',
                         )}
-                        style={{
-                            ...(side === 'bottom' && vvMetrics?.keyboardUp
+                        style={
+                            keyboard
                                 ? {
-                                      top: `${vvMetrics.offsetTop}px`,
+                                      top: `${keyboard.offsetTop}px`,
                                       bottom: 'auto',
-                                      height: `${vvMetrics.height}px`,
+                                      height: `${keyboard.height}px`,
                                   }
-                                : {}),
-                        }}
+                                : undefined
+                        }
                         onEscapeKeyDown={(e) => {
                             if (isDirty) {
                                 e.preventDefault();

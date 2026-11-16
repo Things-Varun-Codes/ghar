@@ -1,15 +1,10 @@
 import { router } from '@inertiajs/react';
+import { pathOf } from '@/lib/url';
 
 // The page before the current one, by path. Same-path visits (a search, a filter, a
 // load-more) update the current URL in place so the previous page survives them.
 let current: string | null = null;
 let previous: string | null = null;
-
-function pathOf(url: string): string {
-    return (
-        new URL(url, 'http://ghar.invalid').pathname.replace(/\/$/, '') || '/'
-    );
-}
 
 export function recordNavigation(url: string): void {
     if (current !== null && pathOf(url) === pathOf(current)) {

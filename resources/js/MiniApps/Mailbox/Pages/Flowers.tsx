@@ -11,7 +11,6 @@ import type { FlowerEntry } from '@/MiniApps/Mailbox/Components/NoteCard';
 import type { HouseholdMember } from '@/MiniApps/Mailbox/Components/RecipientPicker';
 import MailboxLayout from '@/MiniApps/Mailbox/Layouts/MailboxLayout';
 import { destroy, index } from '@/routes/apps/our-mailbox/flowers';
-import AppLayout from '@/Shell/Layouts/AppLayout';
 import type { Paginated } from '@/types/paginated';
 
 type Tab = 'received' | 'sent';
@@ -58,49 +57,46 @@ export default function Flowers({
               };
 
     return (
-        <AppLayout>
-            <MailboxLayout>
-                <MailboxListPage
-                    pageTitle="Flowers"
-                    paginator={bouquets}
-                    countAll={bouquets.counts?.all ?? bouquets.data.length}
-                    countNoun={{ one: 'flower', other: 'flowers' }}
-                    propName="bouquets"
-                    tab={tab}
-                    tabsAriaLabel="Flowers tabs"
-                    tabItems={[
-                        { key: 'received', label: 'Received' },
-                        { key: 'sent', label: 'Sent' },
-                    ]}
-                    tabHrefFor={(k) => index.url({ query: { tab: k } })}
-                    sort={sort}
-                    query={q}
-                    searchPlaceholder="Search flowers"
-                    fabAriaLabel="Send flowers"
-                    onFabClick={() => setBouquetOpen(true)}
-                    emptyIcon={Heart}
-                    emptyTitle={emptyCopy.title}
-                    emptyBody={emptyCopy.body}
-                    itemGap={16}
-                    renderItem={(m, focusedId) => (
-                        <BouquetCard
-                            key={m.id}
-                            message={m}
-                            onDelete={
-                                m.is_mine ? () => handleDelete(m.id) : undefined
-                            }
-                            isFocused={focusedId === m.id}
-                        />
-                    )}
-                >
-                    <BouquetSheet
-                        open={bouquetOpen}
-                        onOpenChange={setBouquetOpen}
-                        flowers={catalog}
-                        members={members}
+        <MailboxLayout>
+            <MailboxListPage
+                pageTitle="Flowers"
+                paginator={bouquets}
+                countAll={bouquets.counts?.all ?? bouquets.data.length}
+                countNoun={{ one: 'flower', other: 'flowers' }}
+                propName="bouquets"
+                tab={tab}
+                tabsAriaLabel="Flowers tabs"
+                tabItems={[
+                    { key: 'received', label: 'Received' },
+                    { key: 'sent', label: 'Sent' },
+                ]}
+                tabHrefFor={(k) => index.url({ query: { tab: k } })}
+                sort={sort}
+                query={q}
+                searchPlaceholder="Search flowers"
+                fabAriaLabel="Send flowers"
+                onFabClick={() => setBouquetOpen(true)}
+                emptyIcon={Heart}
+                emptyTitle={emptyCopy.title}
+                emptyBody={emptyCopy.body}
+                renderItem={(m, focusedId) => (
+                    <BouquetCard
+                        key={m.id}
+                        message={m}
+                        onDelete={
+                            m.is_mine ? () => handleDelete(m.id) : undefined
+                        }
+                        isFocused={focusedId === m.id}
                     />
-                </MailboxListPage>
-            </MailboxLayout>
-        </AppLayout>
+                )}
+            >
+                <BouquetSheet
+                    open={bouquetOpen}
+                    onOpenChange={setBouquetOpen}
+                    flowers={catalog}
+                    members={members}
+                />
+            </MailboxListPage>
+        </MailboxLayout>
     );
 }

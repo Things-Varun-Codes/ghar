@@ -9,7 +9,6 @@ import { usePublishShellPage } from '@/Shell/Layouts/shell-chrome';
 type PageProps = {
     tier?: 'prose' | 'index' | 'app';
     title: string;
-    eyebrow?: string;
     subtitle?: string;
     backChevron?: boolean;
     /** An explicit back target; implies a back control. */
@@ -21,7 +20,6 @@ type PageProps = {
     room?: string;
     documentTitle?: string;
     actions?: ReactNode;
-    belowHeader?: ReactNode;
     tabs?: ReactNode;
     children: ReactNode;
     /**
@@ -42,14 +40,12 @@ const TIER_MAX_WIDTH: Record<NonNullable<PageProps['tier']>, string> = {
 export default function Page({
     tier = 'index',
     title,
-    eyebrow,
     subtitle,
     backChevron,
     back,
     room,
     documentTitle,
     actions,
-    belowHeader,
     tabs,
     children,
     fab,
@@ -76,17 +72,13 @@ export default function Page({
             )}
             <PageHeader
                 title={title}
-                eyebrow={eyebrow}
                 subtitle={subtitle}
                 backChevron={backChevron}
                 back={back}
                 actions={actions}
             />
-            {belowHeader && <div className="mb-6">{belowHeader}</div>}
-            {/* tabs renders as a sibling of children inside the tall content
-             * div — containing-block safe for any sticky descendant
-             * Do NOT wrap in a marginBottom-only
-             * box here. */}
+            {/* One tall box for tabs and children, so a sticky element in either sticks for the
+             * whole page. Wrapping the tabs in their own box would cut that short. */}
             <div>
                 {tabs}
                 {children}

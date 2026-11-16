@@ -8,7 +8,6 @@ import type { ItemPermissions } from '@/MiniApps/Corner/Hooks/useItemActions';
 import { useItemActions } from '@/MiniApps/Corner/Hooks/useItemActions';
 import CornerLayout from '@/MiniApps/Corner/Layouts/CornerLayout';
 import { index as moviesIndex } from '@/routes/apps/our-corner/movies';
-import AppLayout from '@/Shell/Layouts/AppLayout';
 import { entityIcon } from '@/Shell/linkables/entityIcon';
 
 const MovieIcon = entityIcon('corner.movie');
@@ -43,62 +42,60 @@ export default function MoviesShow({ movie, mentioned_in }: Props) {
     });
 
     return (
-        <AppLayout>
-            <CornerLayout>
-                <DetailPage
-                    title={movie.title}
-                    can={movie.can}
-                    addedByName={movie.addedBy.name}
-                    mentionedIn={mentioned_in}
-                    isDone={movie.is_watched}
-                    doneLabel={{
-                        active: 'Mark as watched',
-                        done: 'Watched',
-                    }}
-                    itemActions={itemActions}
-                    hero={() =>
-                        movie.poster_url && !posterBroken ? (
-                            <img
-                                src={movie.poster_url}
-                                alt=""
-                                onError={() => setPosterBroken(true)}
-                                className="corner-detail-poster corner-detail-hero-media"
-                            />
-                        ) : movie.poster_url && posterBroken ? (
-                            <div
+        <CornerLayout>
+            <DetailPage
+                title={movie.title}
+                can={movie.can}
+                addedByName={movie.addedBy.name}
+                mentionedIn={mentioned_in}
+                isDone={movie.is_watched}
+                doneLabel={{
+                    active: 'Mark as watched',
+                    done: 'Watched',
+                }}
+                itemActions={itemActions}
+                hero={() =>
+                    movie.poster_url && !posterBroken ? (
+                        <img
+                            src={movie.poster_url}
+                            alt=""
+                            onError={() => setPosterBroken(true)}
+                            className="corner-detail-poster corner-detail-hero-media"
+                        />
+                    ) : movie.poster_url && posterBroken ? (
+                        <div
+                            aria-hidden="true"
+                            className="corner-detail-poster-fallback corner-detail-hero-media"
+                        >
+                            <MovieIcon
+                                size={48}
+                                strokeWidth={1.5}
                                 aria-hidden="true"
-                                className="corner-detail-poster-fallback corner-detail-hero-media"
-                            >
-                                <MovieIcon
-                                    size={48}
-                                    strokeWidth={1.5}
-                                    aria-hidden="true"
-                                    className="corner-detail-fallback-icon"
-                                />
-                            </div>
-                        ) : null
-                    }
-                    externalCta={() =>
-                        movie.plex_url && <PlexLink href={movie.plex_url} />
-                    }
-                />
+                                className="corner-detail-fallback-icon"
+                            />
+                        </div>
+                    ) : null
+                }
+                externalCta={() =>
+                    movie.plex_url && <PlexLink href={movie.plex_url} />
+                }
+            />
 
-                {movie.can.update && editOpen && (
-                    <MovieAddDialog
-                        item={{
-                            id: movie.id,
-                            title: movie.title,
-                            plex_url: movie.plex_url,
-                        }}
-                        open
-                        onOpenChange={(next) => {
-                            if (!next) {
-                                setEditOpen(false);
-                            }
-                        }}
-                    />
-                )}
-            </CornerLayout>
-        </AppLayout>
+            {movie.can.update && editOpen && (
+                <MovieAddDialog
+                    item={{
+                        id: movie.id,
+                        title: movie.title,
+                        plex_url: movie.plex_url,
+                    }}
+                    open
+                    onOpenChange={(next) => {
+                        if (!next) {
+                            setEditOpen(false);
+                        }
+                    }}
+                />
+            )}
+        </CornerLayout>
     );
 }

@@ -4,6 +4,11 @@ import { useRef, useState } from 'react';
 import { toast } from 'sonner';
 
 import {
+    MUTATION_FAILED_MESSAGE,
+    transportFailureOptions,
+} from '@/lib/mutation';
+
+import {
     destroy as activitiesDestroy,
     toggleDone as activitiesToggleDone,
 } from '@/routes/apps/our-corner/activities';
@@ -74,41 +79,7 @@ const ROUTE_HELPERS: Record<
     },
 };
 
-export const TOGGLE_FAILED_MESSAGE = "Couldn't update that. Try again.";
-
-/*
- * Transport and HTTP failures never reach a validation onError, so all three are handled.
- * Returning false keeps Inertia's error modal and unhandled rejection away: the toast is the
- * surface.
- */
-function failureHandlers(action: string, onFailed: () => void) {
-    const tags = { component: 'Corner/useItemActions', action };
-
-    return {
-        onError: (errors: Record<string, string>) => {
-            Sentry.captureException(new Error(`${action} rejected`), {
-                tags,
-                extra: { errors },
-            });
-            onFailed();
-        },
-        onNetworkError: (error: Error) => {
-            Sentry.captureException(error, { tags });
-            onFailed();
-
-            return false;
-        },
-        onHttpException: (response: { status: number }) => {
-            Sentry.captureException(
-                new Error(`${action} failed with HTTP ${response.status}`),
-                { tags },
-            );
-            onFailed();
-
-            return false;
-        },
-    };
-}
+const COMPONENT = 'Corner/useItemActions';
 
 type PendingDelete = {
     timerId: ReturnType<typeof setTimeout>;
@@ -146,8 +117,17 @@ export function useItemActions({
             {},
             {
                 preserveScroll: true,
-                ...failureHandlers('toggle-done', () => {
-                    toast.error(TOGGLE_FAILED_MESSAGE);
+                // Nothing to fill in, so a rejection is unexpected: reported, like the delete's.
+                onError: (errors) => {
+                    Sentry.captureException(new Error('toggle-done rejected'), {
+                        tags: { component: COMPONENT, action: 'toggle-done' },
+                        extra: { errors },
+                    });
+                    toast.error(MUTATION_FAILED_MESSAGE);
+                },
+                ...transportFailureOptions({
+                    component: COMPONENT,
+                    action: 'toggle-done',
                 }),
                 onFinish: () => {
                     toggleInFlightRef.current = false;
@@ -175,14 +155,25 @@ export function useItemActions({
 
         const timerId = setTimeout(() => {
             pendingRef.current = null;
+            const message = `Couldn't remove ${title ?? 'that'}. Try again.`;
+            // Still on the list, the row comes back; a detail page has already left.
+            const restore = () => setIsPendingDelete(false);
+
             router.delete(ROUTE_HELPERS[type].destroyUrl(id), {
                 preserveScroll: true,
-                // Still on the list, the row comes back; a detail page has already left.
-                ...failureHandlers('delete', () => {
-                    setIsPendingDelete(false);
-                    toast.error(
-                        `Couldn't remove ${title ?? 'that'}. Try again.`,
-                    );
+                onError: (errors) => {
+                    Sentry.captureException(new Error('delete rejected'), {
+                        tags: { component: COMPONENT, action: 'delete' },
+                        extra: { errors },
+                    });
+                    restore();
+                    toast.error(message);
+                },
+                ...transportFailureOptions({
+                    component: COMPONENT,
+                    action: 'delete',
+                    message,
+                    onFailed: restore,
                 }),
             });
         }, DELETE_GRACE_PERIOD_MS);
@@ -197,8 +188,7 @@ export function useItemActions({
 
         pendingRef.current = { timerId, toastId };
 
-        // 4. LAST — after the toast exists. On a detail page this navigates
-        // away; the toast must already be raised so it survives.
+        // After the toast exists: on a detail page this navigates away, and the toast must survive it.
         onDeleted?.();
     };
 

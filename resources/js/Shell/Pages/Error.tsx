@@ -1,5 +1,6 @@
 import { Link, usePage } from '@inertiajs/react';
 
+import { pathOf } from '@/lib/url';
 import { dashboard } from '@/routes';
 import Page from '@/Shell/Components/Page';
 import type { MiniApp } from '@/types/miniapp';
@@ -22,7 +23,7 @@ const COPY: Record<number, { title: string; body: string }> = {
 export default function ErrorPage({ status }: Props) {
     const copy = COPY[status] ?? COPY[404];
     const { url, props } = usePage<{ miniApps?: MiniApp[] }>();
-    const path = url.split('?')[0];
+    const path = pathOf(url);
 
     // Inside a room, its landing page is the nearer way back.
     const room = (props.miniApps ?? []).find(

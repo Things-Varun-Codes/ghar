@@ -1,4 +1,5 @@
 import type { router as inertiaRouter } from '@inertiajs/react';
+import { pathOf } from '@/lib/url';
 
 /*
  * After a client-side visit the browser keeps focus on whatever was clicked (or drops it to
@@ -43,12 +44,6 @@ export function routeFocusAction(change: RouteChange): FocusAction {
     }
 
     return change.sameHeading ? 'current-tab' : 'heading';
-}
-
-export function pathOf(url: string): string {
-    return (
-        new URL(url, 'http://ghar.invalid').pathname.replace(/\/$/, '') || '/'
-    );
 }
 
 const MAIN = '#main-content';

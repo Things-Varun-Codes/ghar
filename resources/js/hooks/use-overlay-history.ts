@@ -1,6 +1,7 @@
 import { router } from '@inertiajs/react';
 import { useLayoutEffect, useRef } from 'react';
 import { flushSync } from 'react-dom';
+import { hasParam, withParam, withoutParam } from '@/lib/url';
 
 /*
  * An open sheet or dialog owns one history entry, so the browser or OS back gesture closes it
@@ -54,27 +55,6 @@ type Entry = {
     url: string;
     paramName: string | null;
 };
-
-export function withParam(url: string, name: string, value: string): string {
-    const u = new URL(url, 'http://ghar.invalid');
-    u.searchParams.set(name, value);
-
-    return u.pathname + u.search + u.hash;
-}
-
-export function withoutParam(url: string, name: string | null): string {
-    const u = new URL(url, 'http://ghar.invalid');
-
-    if (name !== null) {
-        u.searchParams.delete(name);
-    }
-
-    return u.pathname + u.search + u.hash;
-}
-
-function hasParam(url: string, name: string): boolean {
-    return new URL(url, 'http://ghar.invalid').searchParams.has(name);
-}
 
 export function createOverlayHistory(env: OverlayHistoryEnv) {
     let nextId = 1;

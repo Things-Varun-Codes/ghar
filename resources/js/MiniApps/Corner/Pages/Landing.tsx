@@ -1,4 +1,4 @@
-import { Head, Link } from '@inertiajs/react';
+import { Link } from '@inertiajs/react';
 import type { LucideIcon } from 'lucide-react';
 import { useId } from 'react';
 
@@ -8,7 +8,6 @@ import { index as movies } from '@/routes/apps/our-corner/movies';
 import { index as places } from '@/routes/apps/our-corner/places';
 import { index as songs } from '@/routes/apps/our-corner/songs';
 import Page from '@/Shell/Components/Page';
-import AppLayout from '@/Shell/Layouts/AppLayout';
 import { entityIcon } from '@/Shell/linkables/entityIcon';
 
 type Slug = 'songs' | 'movies' | 'activities' | 'places';
@@ -247,23 +246,20 @@ function CornerDoor({
 
 export default function Landing({ cornerSummary }: Props) {
     return (
-        <AppLayout>
-            <Head title="Our Corner" />
-            <CornerLayout>
-                <Page tier="index" title="Our Corner" backChevron>
-                    <div className="corner-doors">
-                        {DOORS.map((door) => (
-                            <CornerDoor
-                                key={door.slug}
-                                door={door}
-                                count={cornerSummary?.counts[door.slug] ?? 0}
-                                done={cornerSummary?.done?.[door.slug] ?? 0}
-                                peeks={cornerSummary?.peeks}
-                            />
-                        ))}
-                    </div>
-                </Page>
-            </CornerLayout>
-        </AppLayout>
+        <CornerLayout>
+            <Page title="Our Corner" documentTitle="Our Corner" backChevron>
+                <div className="corner-doors">
+                    {DOORS.map((door) => (
+                        <CornerDoor
+                            key={door.slug}
+                            door={door}
+                            count={cornerSummary?.counts[door.slug] ?? 0}
+                            done={cornerSummary?.done?.[door.slug] ?? 0}
+                            peeks={cornerSummary?.peeks}
+                        />
+                    ))}
+                </div>
+            </Page>
+        </CornerLayout>
     );
 }

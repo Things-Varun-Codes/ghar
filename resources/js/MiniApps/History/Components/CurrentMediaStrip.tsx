@@ -4,7 +4,7 @@ import { Play, X } from 'lucide-react';
 import { useState } from 'react';
 import { toast } from 'sonner';
 import { useAppAttrs } from '@/hooks/use-app-attrs';
-import { mutationOptions } from '@/lib/mutation';
+import { transportFailureOptions } from '@/lib/mutation';
 import { captureSilent } from '@/lib/observability';
 import media from '@/routes/apps/our-history/media';
 import type { Auth } from '@/types/auth';
@@ -47,8 +47,7 @@ export default function CurrentMediaStrip({
             media.destroy({ event: eventId, media: idToDelete }).url,
             {
                 preserveScroll: true,
-                // Transport and 5xx failures; the validation case is handled below.
-                ...mutationOptions({
+                ...transportFailureOptions({
                     component: 'History/CurrentMediaStrip',
                     action: 'media.delete',
                     message: "Couldn't remove that. Give it another go.",

@@ -12,17 +12,11 @@
     --corner-action: var(--shell-action);
     --corner-action-fg: var(--shell-action-fg);
     --corner-destructive: var(--shell-destructive);
-    --corner-focus-ring:
-        0 0 0 2px var(--shell-bg), 0 0 0 4px var(--shell-action);
 
     --corner-font: var(--font-sans);
     --corner-font-display: var(--font-display);
 
-    --corner-type-scale-eyebrow: var(--text-eyebrow);
-    --corner-type-scale-body: var(--text-body);
-
     /* Kept as names the room already uses; they are the house radii. */
-    --corner-radius-toy: var(--radius-card);
     --corner-radius-card: var(--radius-card);
     --corner-radius-pill: var(--radius-pill);
     --corner-radius-corner: var(--radius-field);
@@ -41,19 +35,8 @@
         var(--shell-surface)
     );
     --corner-hairline: color-mix(in oklab, var(--shell-text) 8%, transparent);
-    --corner-border-hover: color-mix(
-        in oklab,
-        var(--shell-text) 20%,
-        transparent
-    );
-    --corner-hover-fill: color-mix(
-        in oklab,
-        var(--shell-text) 5%,
-        var(--shell-surface)
-    );
-
-    --list-nav-font: var(--corner-font);
-    --list-nav-radius: var(--corner-radius-pill);
+    --corner-border-hover: var(--shell-lift-border);
+    --corner-hover-fill: var(--shell-hover-wash);
 }
 
 [data-app='our-corner'] .corner-page {

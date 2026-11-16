@@ -3,6 +3,7 @@ import type { FormEvent } from 'react';
 import { useEffect, useId, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { useDirtyFormGate } from '@/hooks/use-dirty-form-gate';
+import { transportFailureOptions } from '@/lib/mutation';
 import CharCount from '@/MiniApps/Mailbox/Components/CharCount';
 import ComposeSheet from '@/MiniApps/Mailbox/Components/ComposeSheet';
 import type { HouseholdMember } from '@/MiniApps/Mailbox/Components/RecipientPicker';
@@ -13,7 +14,6 @@ import {
     reportRejected,
     SEND_FAILED_MESSAGE,
     toastUnshownErrors,
-    transportFailure,
 } from '@/MiniApps/Mailbox/lib/visitFailure';
 import { store } from '@/routes/apps/our-mailbox/messages';
 import FormField from '@/Shell/Components/FormField';
@@ -104,7 +104,7 @@ export default function ComposerSheet({ open, onOpenChange, members }: Props) {
                 onOpenChange(false);
             },
             onError: (errs) => onRejected(errs, 'message.create'),
-            ...transportFailure({
+            ...transportFailureOptions({
                 component: 'Mailbox/ComposerSheet',
                 action: 'message.create',
                 message: SEND_FAILED_MESSAGE,
@@ -126,7 +126,7 @@ export default function ComposerSheet({ open, onOpenChange, members }: Props) {
                 textareaRef.current?.focus();
             },
             onError: (errs) => onRejected(errs, 'message.create-another'),
-            ...transportFailure({
+            ...transportFailureOptions({
                 component: 'Mailbox/ComposerSheet',
                 action: 'message.create',
                 message: SEND_FAILED_MESSAGE,

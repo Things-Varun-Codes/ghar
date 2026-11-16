@@ -1,7 +1,11 @@
 import * as Sentry from '@sentry/react';
 import { toast } from 'sonner';
 import { describe, expect, it, vi } from 'vitest';
-import { MUTATION_FAILED_MESSAGE, mutationOptions } from '@/lib/mutation';
+import {
+    MUTATION_FAILED_MESSAGE,
+    mutationOptions,
+    transportFailureOptions,
+} from '@/lib/mutation';
 
 vi.mock('sonner', () => ({ toast: { error: vi.fn() } }));
 vi.mock('@sentry/react', () => ({ captureException: vi.fn() }));
@@ -53,5 +57,22 @@ describe('mutationOptions', () => {
 
         expect(toast.error).toHaveBeenCalledWith('Already paid.');
         expect(Sentry.captureException).not.toHaveBeenCalled();
+    });
+});
+
+describe('transportFailureOptions', () => {
+    it('undoes, toasts its message and reports on a failure', () => {
+        const onFailed = vi.fn();
+        const options = transportFailureOptions({
+            component: 'Test',
+            action: 'delete',
+            message: "Couldn't remove that.",
+            onFailed,
+        });
+
+        expect(options.onHttpException?.({ status: 503 } as never)).toBe(false);
+        expect(onFailed).toHaveBeenCalledTimes(1);
+        expect(toast.error).toHaveBeenCalledWith("Couldn't remove that.");
+        expect(Sentry.captureException).toHaveBeenCalledTimes(1);
     });
 });

@@ -1,10 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 
-import {
-    createOverlayHistory,
-    withParam,
-    withoutParam,
-} from './use-overlay-history';
+import { createOverlayHistory } from './use-overlay-history';
 import type { OverlayHistoryEnv } from './use-overlay-history';
 
 type Handlers = Parameters<OverlayHistoryEnv['listen']>[0];
@@ -255,22 +251,5 @@ describe('useOverlayHistory state machine', () => {
 
         expect(browser.deliver()).toEqual([true]);
         expect(browser.index).toBe(1);
-    });
-});
-
-describe('overlay URL helpers', () => {
-    it('sets and removes one query param, keeping the rest', () => {
-        expect(
-            withParam('/apps/our-history?order=oldest-first', 'moment', '4'),
-        ).toBe('/apps/our-history?order=oldest-first&moment=4');
-        expect(
-            withoutParam(
-                '/apps/our-history?moment=4&order=oldest-first',
-                'moment',
-            ),
-        ).toBe('/apps/our-history?order=oldest-first');
-        expect(withoutParam('/apps/our-corner/songs', null)).toBe(
-            '/apps/our-corner/songs',
-        );
     });
 });

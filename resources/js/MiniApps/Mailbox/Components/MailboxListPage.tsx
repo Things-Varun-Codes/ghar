@@ -1,10 +1,9 @@
-import { Head, usePage } from '@inertiajs/react';
+import { usePage } from '@inertiajs/react';
 import { Plus } from 'lucide-react';
 import type { ComponentProps, ReactNode } from 'react';
 import { useEffect, useMemo } from 'react';
 
 import { scrollBehavior } from '@/lib/motion';
-import { pageTitle as headTitleFor } from '@/lib/title';
 import EmptyState, { noMatchesTitle } from '@/Shell/Components/EmptyState';
 import Fab from '@/Shell/Components/Fab';
 import ListLoadMoreState from '@/Shell/Components/ListLoadMoreState';
@@ -21,8 +20,6 @@ const DEFAULT_SORT_ITEMS: SortItem[] = [
     { key: 'recent', label: 'Newest first' },
     { key: 'oldest', label: 'Oldest first' },
 ];
-
-const ROOM = 'Our Mailbox';
 
 type MailboxListPageProps<TItem extends ItemConstraint, TTab extends string> = {
     pageTitle: string;
@@ -43,7 +40,6 @@ type MailboxListPageProps<TItem extends ItemConstraint, TTab extends string> = {
     emptyIcon: ComponentProps<typeof EmptyState>['icon'];
     emptyTitle: string;
     emptyBody: string;
-    itemGap?: number;
     /* The returned element must carry key={item.id}. */
     renderItem: (item: TItem, focusedId: number | null) => ReactNode;
     children?: ReactNode;
@@ -71,7 +67,6 @@ export default function MailboxListPage<
     emptyIcon,
     emptyTitle,
     emptyBody,
-    itemGap = 16,
     renderItem,
     children,
 }: MailboxListPageProps<TItem, TTab>) {
@@ -93,8 +88,9 @@ export default function MailboxListPage<
     });
 
     const focusedId = useMemo(() => {
-        const qs = url.includes('?') ? url.split('?')[1] : '';
-        const raw = new URLSearchParams(qs).get('focus');
+        const raw = new URL(url, 'http://ghar.invalid').searchParams.get(
+            'focus',
+        );
 
         if (!raw) {
             return null;
@@ -131,11 +127,9 @@ export default function MailboxListPage<
 
     return (
         <>
-            <Head title={headTitleFor(pageTitle, ROOM)} />
-
             <Page
-                tier="index"
                 title={pageTitle}
+                room="Our Mailbox"
                 backChevron
                 fab={
                     <Fab
@@ -168,7 +162,8 @@ export default function MailboxListPage<
                     onSearch={(v) => navigate({ q: v })}
                     tabs={
                         <SegmentedTabs
-                            mode="tablist-url"
+                            mode="nav"
+                            keepScroll
                             ariaLabel={tabsAriaLabel}
                             active={tab}
                             items={tabItems}
@@ -195,14 +190,7 @@ export default function MailboxListPage<
                             body={emptyBody}
                         />
                     ) : (
-                        <div
-                            className="mailbox-feed"
-                            style={
-                                {
-                                    '--mailbox-feed-gap': `${itemGap}px`,
-                                } as React.CSSProperties
-                            }
-                        >
+                        <div className="mailbox-feed">
                             {items.map((item) => renderItem(item, focusedId))}
                             <ListLoadMoreState
                                 loadingMore={loadingMore}

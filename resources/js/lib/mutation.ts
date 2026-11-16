@@ -4,8 +4,54 @@ import { toast } from 'sonner';
 
 export const MUTATION_FAILED_MESSAGE = "Couldn't update that. Try again.";
 
+type TransportFailureContext = {
+    /** Where the visit lives, for the error report: 'Admin/ShortLinks'. */
+    component: string;
+    action: string;
+    message?: string;
+    /** Runs before the toast: undo an optimistic change. */
+    onFailed?: () => void;
+};
+
+type TransportFailureCallbacks = Pick<
+    VisitOptions,
+    'onNetworkError' | 'onHttpException'
+>;
+
+/**
+ * Transport failures and error statuses never reach a validation `onError`. Each toasts and
+ * is reported; returning false keeps Inertia's error modal and the unhandled rejection away.
+ */
+export function transportFailureOptions({
+    component,
+    action,
+    message = MUTATION_FAILED_MESSAGE,
+    onFailed,
+}: TransportFailureContext): TransportFailureCallbacks {
+    const fail = (kind: string, detail: unknown) => {
+        onFailed?.();
+        toast.error(message);
+        Sentry.captureException(new Error(`${component} ${action}: ${kind}`), {
+            tags: { component, action, surface: 'frontend' },
+            extra: { detail },
+        });
+    };
+
+    return {
+        onNetworkError: (error) => {
+            fail('network-error', error.message);
+
+            return false;
+        },
+        onHttpException: (response) => {
+            fail('http-exception', response.status);
+
+            return false;
+        },
+    };
+}
+
 type MutationContext = {
-    /** Where the mutation lives, for the error report: 'Admin/ShortLinks'. */
     component: string;
     action: string;
     /** Called with true when the request starts and false when it settles, however it ends. */
@@ -15,8 +61,9 @@ type MutationContext = {
 
 type MutationCallbacks = Pick<
     VisitOptions,
-    'onStart' | 'onFinish' | 'onError' | 'onNetworkError' | 'onHttpException'
->;
+    'onStart' | 'onFinish' | 'onError'
+> &
+    TransportFailureCallbacks;
 
 /**
  * The pending flag and failure handling every one-tap mutation needs (a toggle, a pay, a
@@ -33,14 +80,6 @@ export function mutationOptions({
     onPendingChange,
     message = MUTATION_FAILED_MESSAGE,
 }: MutationContext): MutationCallbacks {
-    const fail = (kind: string, detail: unknown) => {
-        toast.error(message);
-        Sentry.captureException(new Error(`${component} ${action}: ${kind}`), {
-            tags: { component, action, surface: 'frontend' },
-            extra: { detail },
-        });
-    };
-
     return {
         onStart: () => onPendingChange?.(true),
         onFinish: () => onPendingChange?.(false),
@@ -49,15 +88,6 @@ export function mutationOptions({
             const first = Object.values(errors)[0];
             toast.error(typeof first === 'string' ? first : message);
         },
-        onNetworkError: (error) => {
-            fail('network-error', error.message);
-
-            return false;
-        },
-        onHttpException: (response) => {
-            fail('http-exception', response.status);
-
-            return false;
-        },
+        ...transportFailureOptions({ component, action, message }),
     };
 }

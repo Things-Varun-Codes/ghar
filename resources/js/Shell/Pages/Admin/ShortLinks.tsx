@@ -264,7 +264,7 @@ export default function ShortLinks({ shortlinks }: Props) {
 
     return (
         <>
-            <Page tier="index" title="Shortlinks" room="Admin" backChevron>
+            <Page title="Shortlinks" room="Admin" backChevron>
                 <div className="os-admin-surface mb-6 border p-6">
                     <h2 className="os-admin-section-title mb-4">
                         Create shortlink

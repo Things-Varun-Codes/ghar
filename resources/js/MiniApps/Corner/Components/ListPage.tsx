@@ -112,7 +112,6 @@ export default function ListPage<TItem extends ItemConstraint>({
 
     return (
         <Page
-            tier="index"
             title={title}
             room={CORNER_ROOM}
             backChevron
