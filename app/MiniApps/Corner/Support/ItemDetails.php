@@ -95,14 +95,13 @@ class ItemDetails
         }
 
         $read = MapLink::read($input, $this->fetcher);
-        $sentPoint = isset($data['lat'], $data['lng']);
 
         return [
             'location_label' => $read['label'],
             'location_url' => $read['url'],
             'place_id' => null,
-            'lat' => $read['lat'] ?? ($sentPoint ? (float) $data['lat'] : null),
-            'lng' => $read['lng'] ?? ($sentPoint ? (float) $data['lng'] : null),
+            'lat' => $read['lat'],
+            'lng' => $read['lng'],
             'address' => $address,
         ];
     }

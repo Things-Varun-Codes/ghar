@@ -16,8 +16,6 @@ final class ItemRules
             // The picture was taken away on purpose, so a link's own isn't put back.
             'no_picture' => ['nullable', 'boolean'],
             'location' => ['nullable', 'string', 'max:2048'],
-            'lat' => ['nullable', 'required_with:lng', 'numeric', 'between:-90,90'],
-            'lng' => ['nullable', 'required_with:lat', 'numeric', 'between:-180,180'],
             'address' => ['nullable', 'string', 'max:1024'],
         ];
     }

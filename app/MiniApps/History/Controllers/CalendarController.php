@@ -38,7 +38,6 @@ class CalendarController
             ->orderBy('occurred_on')
             ->orderBy('created_at')
             ->get();
-        $events = self::present($events, $user);
 
         $today = now();
         $onThisDay = Event::query()
@@ -47,7 +46,11 @@ class CalendarController
             ->whereDay('occurred_on', $today->day)
             ->orderByDesc('occurred_on')
             ->get();
-        $onThisDay = self::present($onThisDay, $user);
+
+        // One lookup for both: a moment on this day is often also in this year.
+        $links = LinkedThings::forEvents($events->concat($onThisDay));
+        $events = self::present($events, $user, $links);
+        $onThisDay = self::present($onThisDay, $user, $links);
 
         return Inertia::render('MiniApps/History/Pages/Calendar', [
             'events' => $events,
@@ -61,12 +64,11 @@ class CalendarController
 
     /**
      * @param  Collection<int, Event>  $events
+     * @param  array<int, array<string, array<string, mixed>>>  $links
      * @return list<array<string, mixed>>
      */
-    private static function present(Collection $events, ?User $viewer): array
+    private static function present(Collection $events, ?User $viewer, array $links): array
     {
-        $links = LinkedThings::forEvents($events);
-
         return $events
             ->map(fn (Event $event) => app(EventResource::class)($event, $viewer, $links[$event->id] ?? []))
             ->values()

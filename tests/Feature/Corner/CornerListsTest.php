@@ -64,7 +64,7 @@ class CornerListsTest extends TestCase
         $this->movies();
 
         $this->actingAs($this->member)
-            ->post('/apps/our-corner/lists', $this->payload(['name' => '  Board   games ', 'icon' => 'dice', 'notify_on_add' => false, 'done_icon' => 'heart']))
+            ->post('/apps/our-corner/lists', $this->payload(['name' => '  Board   games ', 'icon' => 'dices', 'notify_on_add' => false, 'done_icon' => 'heart']))
             ->assertRedirect('/apps/our-corner/board-games')
             ->assertSessionHas(SessionKey::FLASH_DATA, ['toast' => ['type' => 'success', 'message' => 'Made Board games.']]);
 
@@ -240,14 +240,12 @@ class CornerListsTest extends TestCase
         return [
             'a lucide name' => ['sailboat', 'sailboat'],
             'another' => ['rocket', 'rocket'],
-            'case and spaces' => ['  Book-Open ', 'book-open'],
-            'the old dice' => ['dice', 'dices'],
-            'the old paw' => ['paw', 'paw-print'],
+            'an older lucide spelling' => ['music', 'music'],
         ];
     }
 
     #[DataProvider('icons')]
-    public function test_any_lucide_icon_may_be_chosen_and_old_names_are_spelled_as_lucide_does(string $sent, string $stored): void
+    public function test_any_lucide_icon_may_be_chosen(string $sent, string $stored): void
     {
         $list = $this->listBy($this->creator);
 

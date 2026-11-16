@@ -5,8 +5,7 @@ namespace App\MiniApps\Corner\Controllers;
 use App\MiniApps\Corner\Actions\AddItem;
 use App\MiniApps\Corner\Actions\ToggleListItemDone;
 use App\MiniApps\Corner\Actions\UpdateItem;
-use App\MiniApps\Corner\Http\Requests\StoreItemRequest;
-use App\MiniApps\Corner\Http\Requests\UpdateItemRequest;
+use App\MiniApps\Corner\Http\Requests\SaveItemRequest;
 use App\MiniApps\Corner\Http\Resources\ItemResource;
 use App\MiniApps\Corner\Http\Resources\ListResource;
 use App\MiniApps\Corner\Models\CornerList;
@@ -15,6 +14,7 @@ use App\MiniApps\Corner\Support\CornerLinks;
 use App\Shell\Services\LinkableEntities;
 use App\Shell\Support\CursorList;
 use App\Shell\Support\FlashToast;
+use App\Shell\Support\ResolvesListSort;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
@@ -23,18 +23,20 @@ use Inertia\Response;
 
 class ItemsController
 {
+    use ResolvesListSort;
+
     private const PER_PAGE = 50;
 
-    /**
-     * Sort slug => ordered [column, direction] pairs, each ending in an id tiebreaker so the
-     * keyset cursor is stable.
-     */
-    private const SORTS = [
-        'recent' => [['added_at', 'desc'], ['id', 'desc']],
-        'title' => [['title', 'asc'], ['id', 'asc']],
-    ];
-
     private const SEARCH_COLUMNS = ['title', 'notes', 'author', 'site_name', 'location_label', 'address'];
+
+    /** @return array<string, array<int, array{0: string, 1: 'asc'|'desc'}>> */
+    protected function sortOptions(): array
+    {
+        return [
+            'recent' => [['added_at', 'desc'], ['id', 'desc']],
+            'title' => [['title', 'asc'], ['id', 'asc']],
+        ];
+    }
 
     public function index(Request $request, string $list): Response
     {
@@ -44,19 +46,14 @@ class ItemsController
             return Inertia::render('MiniApps/Corner/Pages/EntityNotFound', ['kind' => 'list']);
         }
 
-        $options = self::SORTS;
-        $sort = is_string($request->query('sort')) && array_key_exists($request->query('sort'), $options)
-            ? $request->query('sort')
-            : 'recent';
+        $sort = $this->resolveSort($request);
         $filter = in_array($request->query('filter'), ['active', 'done'], true)
             ? $request->query('filter')
             : 'all';
         $q = trim((string) $request->query('q')) ?: null;
 
         $base = $model->items()->getQuery()->with('addedBy');
-        foreach ($options[$sort] as [$column, $direction]) {
-            $base->orderBy($column, $direction);
-        }
+        $this->applyListOrder($base, $sort);
 
         return Inertia::render('MiniApps/Corner/Pages/List', [
             'list' => $this->listPayload($request, $model),
@@ -66,7 +63,7 @@ class ItemsController
                 ->paginate($filter, self::PER_PAGE, fn (Item $i) => app(ItemResource::class)($i)),
             'filter' => $filter,
             'sort' => $sort,
-            'sorts' => array_keys($options),
+            'sorts' => array_keys($this->sortOptions()),
             'q' => $q,
         ]);
     }
@@ -100,7 +97,7 @@ class ItemsController
         ]);
     }
 
-    public function store(StoreItemRequest $request, CornerList $list, AddItem $action): RedirectResponse
+    public function store(SaveItemRequest $request, CornerList $list, AddItem $action): RedirectResponse
     {
         $action($list, $request->validated(), $request->user());
 
@@ -110,7 +107,7 @@ class ItemsController
         return redirect()->route('apps.our-corner.lists.show', $list->slug);
     }
 
-    public function update(UpdateItemRequest $request, Item $item, UpdateItem $action): RedirectResponse
+    public function update(SaveItemRequest $request, Item $item, UpdateItem $action): RedirectResponse
     {
         $action($item, $request->validated());
 
@@ -139,7 +136,7 @@ class ItemsController
     private function listPayload(Request $request, CornerList $list): array
     {
         $viewer = $request->user();
-        $itemsByOthers = $list->items()->where('added_by_user_id', '!=', $viewer->id)->count();
+        $itemsByOthers = $list->itemsAddedByOthersThan($viewer);
 
         return app(ListResource::class)($list, $viewer, $itemsByOthers);
     }

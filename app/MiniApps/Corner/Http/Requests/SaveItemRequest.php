@@ -2,14 +2,18 @@
 
 namespace App\MiniApps\Corner\Http\Requests;
 
+use App\MiniApps\Corner\Models\Item;
 use App\MiniApps\Corner\Support\ItemRules;
 use Illuminate\Foundation\Http\FormRequest;
 
-class StoreItemRequest extends FormRequest
+/** Adding to a list (anyone) and changing an item (its adder or an admin). */
+class SaveItemRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return true;
+        $item = $this->route('item');
+
+        return ! $item instanceof Item || $this->user()->can('update', $item);
     }
 
     /** @return array<string, array<int, string>> */

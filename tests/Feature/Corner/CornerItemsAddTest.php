@@ -455,37 +455,31 @@ class CornerItemsAddTest extends TestCase
         Http::assertNothingSent();
     }
 
-    public function test_coordinates_come_in_pairs(): void
+    public function test_coordinates_out_of_range_are_not_a_point(): void
     {
+        Notification::fake();
         $this->places();
 
         $this->actingAs(User::factory()->create())
-            ->from('/apps/our-corner/places')
-            ->post('/apps/our-corner/places', ['title' => 'Half', 'location' => 'Somewhere', 'lat' => 12.34])
-            ->assertSessionHasErrors(['lng']);
+            ->post('/apps/our-corner/places', ['title' => 'Off the map', 'location' => '91, 0'])
+            ->assertSessionHasNoErrors();
 
-        $this->actingAs(User::factory()->create())
-            ->from('/apps/our-corner/places')
-            ->post('/apps/our-corner/places', ['title' => 'Off the map', 'location' => 'Somewhere', 'lat' => 91, 'lng' => 0])
-            ->assertSessionHasErrors(['lat']);
-
-        $this->assertSame(0, Item::count());
+        $place = Item::query()->sole();
+        $this->assertNull($place->lat);
+        $this->assertNull($place->lng);
     }
 
-    public function test_coordinates_sent_with_a_named_place_are_kept_to_seven_decimal_places(): void
+    public function test_coordinates_are_kept_to_seven_decimal_places(): void
     {
         Notification::fake();
         $this->places();
 
         $this->actingAs(User::factory()->create())->post('/apps/our-corner/places', [
             'title' => 'Precision Probe',
-            'location' => 'Precision Probe HQ',
-            'lat' => 12.3456789,
-            'lng' => -98.7654321,
+            'location' => '12.3456789, -98.7654321',
         ])->assertRedirect();
 
         $place = Item::query()->sole();
-        $this->assertSame('Precision Probe HQ', $place->location_label);
         $this->assertSame('12.3456789', $place->lat);
         $this->assertSame('-98.7654321', $place->lng);
     }

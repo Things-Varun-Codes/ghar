@@ -28,7 +28,7 @@ class CornerListPolicy
 
     public function delete(User $user, CornerList $list): bool
     {
-        return self::mayDelete($user, $list, $this->itemsByOthers($user, $list));
+        return self::mayDelete($user, $list, $list->itemsAddedByOthersThan($user));
     }
 
     /**
@@ -42,11 +42,6 @@ class CornerListPolicy
         }
 
         return $list->created_by_user_id === $user->id && $itemsByOthers === 0;
-    }
-
-    private function itemsByOthers(User $user, CornerList $list): int
-    {
-        return $list->items()->where('added_by_user_id', '!=', $user->id)->count();
     }
 
     private function manages(User $user, CornerList $list): bool

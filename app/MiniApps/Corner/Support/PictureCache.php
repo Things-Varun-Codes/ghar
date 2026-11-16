@@ -3,6 +3,7 @@
 namespace App\MiniApps\Corner\Support;
 
 use App\MiniApps\Corner\Services\SafeFetcher;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\File;
 
 /**
@@ -24,20 +25,53 @@ class PictureCache
     /** A picture that couldn't be fetched isn't tried again for this long. */
     private const MISS_SECONDS = 600;
 
+    /** Measuring the whole cache is a directory scan, so it happens at most this often. */
+    private const PRUNE_EVERY_SECONDS = 60;
+
+    /** A hit marks a picture as recently used, but rewrites that mark at most this often. */
+    private const TOUCH_EVERY_SECONDS = 86400;
+
     public function __construct(private readonly SafeFetcher $fetcher) {}
 
     /** @return array{path: string, type: string}|null */
     public function get(string $url): ?array
     {
-        $base = $this->directory().'/'.hash('sha256', $url);
+        $hash = hash('sha256', $url);
 
-        if (is_file("{$base}.bin") && is_file("{$base}.type")) {
-            @touch("{$base}.bin");
-
-            return ['path' => "{$base}.bin", 'type' => (string) file_get_contents("{$base}.type")];
+        $stored = $this->stored($hash);
+        if ($stored !== null) {
+            return $stored;
         }
 
-        if (is_file("{$base}.miss") && filemtime("{$base}.miss") > time() - self::MISS_SECONDS) {
+        // One fetch per picture: a page full of the same cold picture waits for the first, then
+        // finds what it stored.
+        return Cache::lock("corner-picture:{$hash}", 20)->block(15, function () use ($url, $hash): ?array {
+            $storedMeanwhile = $this->stored($hash);
+
+            return $storedMeanwhile !== null ? $storedMeanwhile : $this->fetch($url, $hash);
+        });
+    }
+
+    /** @return array{path: string, type: string}|null */
+    private function stored(string $hash): ?array
+    {
+        $base = $this->directory().'/'.$hash;
+
+        if (! is_file("{$base}.bin") || ! is_file("{$base}.type")) {
+            return null;
+        }
+
+        if ((int) @filemtime("{$base}.bin") < time() - self::TOUCH_EVERY_SECONDS) {
+            @touch("{$base}.bin");
+        }
+
+        return ['path' => "{$base}.bin", 'type' => (string) file_get_contents("{$base}.type")];
+    }
+
+    /** @return array{path: string, type: string}|null */
+    private function fetch(string $url, string $hash): ?array
+    {
+        if (Cache::has("corner-picture-miss:{$hash}")) {
             return null;
         }
 
@@ -46,7 +80,7 @@ class PictureCache
         $type = $fetched === null ? null : (new \finfo(FILEINFO_MIME_TYPE))->buffer($fetched->body);
 
         if ($fetched === null || ! in_array($type, self::TYPES, true)) {
-            @file_put_contents("{$base}.miss", '');
+            Cache::put("corner-picture-miss:{$hash}", true, self::MISS_SECONDS);
 
             return null;
         }
@@ -68,9 +102,11 @@ class PictureCache
         file_put_contents($temp, $bytes);
         rename($temp, "{$base}.bin");
         file_put_contents("{$base}.type", $type);
-        @unlink("{$base}.miss");
+        Cache::forget('corner-picture-miss:'.hash('sha256', $url));
 
-        $this->prune();
+        if (Cache::add('corner-pictures:pruned', true, self::PRUNE_EVERY_SECONDS)) {
+            $this->prune();
+        }
 
         return ['path' => "{$base}.bin", 'type' => $type];
     }

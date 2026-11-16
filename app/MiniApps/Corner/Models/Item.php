@@ -89,9 +89,8 @@ class Item extends Model
     }
 
     /**
-     * The address a page draws the picture from. Pictures that live on the web go through the
-     * picture route, whose address changes when the picture does so browsers can keep it; a
-     * data: picture (only the sample data has those) is drawn as it is.
+     * The address a page draws the picture from: the picture route, whose address changes when
+     * the picture does, so browsers can keep it.
      */
     public function pictureUrl(): ?string
     {
@@ -102,10 +101,6 @@ class Item extends Model
     {
         if ($source === null || $source === '') {
             return null;
-        }
-
-        if (str_starts_with($source, 'data:image/')) {
-            return $source;
         }
 
         return route('apps.our-corner.items.picture', [

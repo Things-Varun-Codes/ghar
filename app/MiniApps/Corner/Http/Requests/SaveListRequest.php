@@ -6,6 +6,7 @@ use App\MiniApps\Corner\Models\CornerList;
 use App\MiniApps\Corner\Support\ListIcon;
 use Closure;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 
 /** Creating and editing a list. */
@@ -24,12 +25,8 @@ class SaveListRequest extends FormRequest
     {
         foreach (['name', 'done_label', 'todo_label'] as $field) {
             if (is_string($this->input($field))) {
-                $this->merge([$field => trim(preg_replace('/\s+/u', ' ', $this->input($field)))]);
+                $this->merge([$field => Str::squish($this->input($field))]);
             }
-        }
-
-        if (is_string($this->input('icon'))) {
-            $this->merge(['icon' => ListIcon::normalise($this->input('icon'))]);
         }
     }
 

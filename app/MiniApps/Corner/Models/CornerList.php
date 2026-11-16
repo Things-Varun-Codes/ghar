@@ -62,6 +62,12 @@ class CornerList extends Model
         return $this->hasMany(Item::class, 'list_id');
     }
 
+    /** How many things in the list someone else added: its maker may delete it only at 0. */
+    public function itemsAddedByOthersThan(User $user): int
+    {
+        return $this->items()->where('added_by_user_id', '!=', $user->id)->count();
+    }
+
     /** @return array<string, string> */
     protected function casts(): array
     {

@@ -93,22 +93,14 @@ class PictureRouteTest extends TestCase
         Http::assertSentCount(1);
     }
 
-    public function test_no_picture_or_a_data_picture_is_a_404(): void
+    public function test_no_picture_is_a_404(): void
     {
         Http::fake();
         $none = $this->itemWithPicture(null);
-        $data = Item::factory()->create([
-            'list_id' => $none->list_id,
-            'added_by_user_id' => $this->user->id,
-            'image_url' => 'data:image/png;base64,AAAA',
-        ]);
 
         $this->assertNull($none->pictureUrl());
-        // Drawn as it is; the route doesn't serve it.
-        $this->assertSame('data:image/png;base64,AAAA', $data->pictureUrl());
 
         $this->actingAs($this->user)->get("/apps/our-corner/items/{$none->id}/picture?v=x")->assertNotFound();
-        $this->actingAs($this->user)->get("/apps/our-corner/items/{$data->id}/picture?v=x")->assertNotFound();
         $this->actingAs($this->user)->get('/apps/our-corner/items/999999999/picture?v=x')->assertNotFound();
         Http::assertNothingSent();
     }
@@ -123,9 +115,7 @@ class PictureRouteTest extends TestCase
         Http::assertSentCount(1);
 
         // Ten minutes on, it is tried again.
-        $miss = app(PictureCache::class)->directory().'/'.hash('sha256', self::SOURCE).'.miss';
-        $this->assertFileExists($miss);
-        touch($miss, time() - 601);
+        $this->travel(601)->seconds();
 
         $this->actingAs($this->user)->get((string) $item->pictureUrl())->assertNotFound();
         Http::assertSentCount(2);

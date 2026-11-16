@@ -192,6 +192,39 @@ class LinkableEntities
         return $snapshots;
     }
 
+    /**
+     * What each of many things links to, as it is now: from id => "type:id" => snapshot. One
+     * query for the references and one per linked type, however many things there are.
+     *
+     * @param  list<int>  $fromIds
+     * @return array<int, array<string, array<string, mixed>>>
+     */
+    public function snapshotsFrom(string $fromType, array $fromIds): array
+    {
+        if ($fromIds === []) {
+            return [];
+        }
+
+        $refs = DB::table('entity_references')
+            ->where('from_type', $fromType)
+            ->whereIn('from_id', $fromIds)
+            ->get(['from_id', 'to_type', 'to_id']);
+
+        $snapshots = $this->snapshotsFor(
+            $refs->map(fn (object $ref): array => [(string) $ref->to_type, (int) $ref->to_id]),
+        );
+
+        $byFrom = [];
+        foreach ($refs as $ref) {
+            $key = "{$ref->to_type}:{$ref->to_id}";
+            if (isset($snapshots[$key])) {
+                $byFrom[(int) $ref->from_id][$key] = $snapshots[$key];
+            }
+        }
+
+        return $byFrom;
+    }
+
     /** @return list<string> */
     public function registeredTypes(): array
     {

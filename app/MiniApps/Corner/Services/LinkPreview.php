@@ -3,12 +3,14 @@
 namespace App\MiniApps\Corner\Services;
 
 use App\MiniApps\Corner\Support\LinkKey;
+use App\MiniApps\Corner\Support\PictureCache;
 use DOMDocument;
 use DOMElement;
 use DOMXPath;
 use GuzzleHttp\Psr7\Uri;
 use GuzzleHttp\Psr7\UriResolver;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Str;
 use Throwable;
 
 /**
@@ -29,8 +31,6 @@ class LinkPreview
     private const MISSED_SECONDS = 600;
 
     private const PAGE_TYPES = ['text/html', 'application/xhtml+xml'];
-
-    private const IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/avif'];
 
     public function __construct(private readonly SafeFetcher $fetcher) {}
 
@@ -60,13 +60,13 @@ class LinkPreview
     {
         $empty = ['title' => null, 'image_url' => null, 'author' => null, 'site_name' => LinkKey::siteOf($url)];
 
-        $page = $this->fetcher->get($url, [...self::PAGE_TYPES, ...self::IMAGE_TYPES], self::PAGE_BYTES, truncate: true);
+        $page = $this->fetcher->get($url, [...self::PAGE_TYPES, ...PictureCache::TYPES], self::PAGE_BYTES, truncate: true);
         if ($page === null) {
             return $empty;
         }
 
         // A link straight to a picture is its own picture.
-        if (in_array($page->contentType, self::IMAGE_TYPES, true)) {
+        if (in_array($page->contentType, PictureCache::TYPES, true)) {
             return ['image_url' => $page->url] + $empty;
         }
 
@@ -202,7 +202,7 @@ class LinkPreview
             return null;
         }
 
-        $text = trim(preg_replace('/\s+/u', ' ', html_entity_decode($text, ENT_QUOTES | ENT_HTML5)) ?? '');
+        $text = Str::squish(html_entity_decode($text, ENT_QUOTES | ENT_HTML5));
 
         return $text === '' ? null : mb_substr($text, 0, $max);
     }
