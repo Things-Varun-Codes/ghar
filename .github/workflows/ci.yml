@@ -59,6 +59,11 @@ jobs:
       - run: ./scripts/check-boundaries.sh
       - run: ./scripts/check-bare-catch.sh
       - run: ./scripts/check-env-deploy-sync.sh
+      # Known advisories in the locked dependencies, runtime only for npm. A new
+      # advisory fails every pull request until the dependency is updated.
+      - run: composer audit --locked --no-interaction --abandoned=ignore
+      - run: npm audit --audit-level=high --omit=dev
+      - run: npm run format:check
       - run: npm run types:check
       - run: npm run lint:check
       - run: npm test
@@ -108,6 +113,8 @@ jobs:
       - run: npx playwright install --with-deps chromium || npx playwright install chromium
       - run: node scripts/check-smoke-routes.mjs
       - run: npm run smoke
+      # Fault injection on the load-more request; reuses the bundle smoke just built.
+      - run: node scripts/loadmore-smoke.mjs
 
   # Builds the production image and starts it the way a self-hoster would, so a
   # broken Dockerfile or entrypoint fails here and not on a release tag.
