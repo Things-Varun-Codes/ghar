@@ -863,36 +863,6 @@
     color: var(--corner-destructive);
 }
 
-[data-app='our-corner'] .corner-icon-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, 44px);
-    gap: 6px;
-}
-
-[data-app='our-corner'] .corner-icon-option {
-    width: 44px;
-    height: 44px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border: 1px solid transparent;
-    border-radius: var(--radius-inner);
-    background: transparent;
-    color: var(--corner-ink-soft);
-    cursor: pointer;
-}
-
-[data-app='our-corner'] .corner-icon-option:hover {
-    background: var(--corner-hover-fill);
-    color: var(--corner-ink);
-}
-
-[data-app='our-corner'] .corner-icon-option[aria-checked='true'] {
-    border-color: var(--corner-accent-text);
-    background: var(--corner-tile-wash-strong);
-    color: var(--corner-accent-text);
-}
-
 [data-app='our-corner'] .corner-chip-row {
     display: flex;
     flex-wrap: wrap;
@@ -1134,14 +1104,100 @@
 
 /* ── The icon picker ─────────────────────────────────────────────────────── */
 
-[data-app='our-corner'] .corner-icon-picker {
+[data-app='our-corner'] .corner-icon-field {
     display: flex;
     flex-direction: column;
-    gap: 14px;
+    align-items: flex-start;
+}
+
+[data-app='our-corner'] .corner-icon-trigger {
+    display: inline-flex;
+    align-items: center;
+    gap: 12px;
+    min-height: 52px;
+    padding: 4px 14px 4px 4px;
+    border: 1px solid var(--corner-border-input);
+    border-radius: var(--radius-field);
+    background: var(--corner-paper);
+    color: var(--corner-ink);
+    font-family: var(--corner-font);
+    font-size: var(--text-body);
+    cursor: pointer;
+}
+
+[data-app='our-corner'] .corner-icon-trigger:hover {
+    background: var(--corner-hover-fill);
+}
+
+[data-app='our-corner'] .corner-icon-trigger[aria-expanded='true'] {
+    border-color: var(--corner-accent-text);
+}
+
+[data-app='our-corner'] .corner-icon-trigger-mark {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    border-radius: var(--radius-inner);
+    background: color-mix(
+        in oklab,
+        var(--shell-accent) 18%,
+        var(--shell-surface)
+    );
+    color: var(--corner-accent-text);
+}
+
+[data-app='our-corner'] .corner-icon-trigger-action {
+    display: inline-flex;
+    align-items: center;
+    gap: 2px;
+    margin-left: 8px;
+    font-size: var(--text-small);
+    font-weight: 500;
+    color: var(--corner-accent-text);
+}
+
+[data-app='our-corner'].corner-icon-popover {
+    background: var(--corner-paper);
+    color: var(--corner-ink);
+    border: 1px solid var(--corner-border);
+    border-radius: var(--radius-pop);
+    overflow: hidden;
+}
+
+[data-app='our-corner'].corner-icon-sheet {
+    display: flex;
+    flex-direction: column;
+    background: var(--corner-paper);
+    color: var(--corner-ink);
+}
+
+[data-app='our-corner'] .corner-icon-sheet-title {
+    padding: 18px 64px 4px 16px;
+    font-family: var(--corner-font-display);
+    font-size: var(--text-title);
+    font-weight: 400;
+}
+
+[data-app='our-corner'] .corner-icon-panel {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    height: 440px;
+    padding: 12px;
+}
+
+[data-app='our-corner'] .corner-icon-panel--roomy {
+    flex: 1;
+    min-height: 0;
+    height: auto;
+    padding: 8px 16px max(12px, env(safe-area-inset-bottom));
 }
 
 [data-app='our-corner'] .corner-icon-search {
     position: relative;
+    flex: none;
 }
 
 [data-app='our-corner'] .corner-icon-search > svg {
@@ -1157,17 +1213,111 @@
     padding-left: 38px;
 }
 
-[data-app='our-corner'] .corner-icon-group {
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
+[data-app='our-corner'] .corner-icon-jump {
+    flex: none;
 }
 
-[data-app='our-corner'] .corner-icon-group-label {
-    margin: 0;
+[data-app='our-corner'] .corner-icon-jump-select {
+    width: 100%;
+    min-height: 40px;
+    padding: 0 12px;
+    border: 1px solid var(--corner-border-input);
+    border-radius: var(--radius-field);
+    background: var(--corner-paper);
+    color: var(--corner-ink);
+    font-family: var(--corner-font);
+    font-size: var(--text-small);
+}
+
+/* One scrolling grid; only the rows near the visible band exist. */
+[data-app='our-corner'] .corner-icon-scroll {
+    position: relative;
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+}
+
+[data-app='our-corner'] .corner-icon-canvas {
+    position: relative;
+}
+
+[data-app='our-corner'] .corner-icon-heading,
+[data-app='our-corner'] .corner-icon-sticky {
+    display: flex;
+    align-items: center;
+    height: 32px;
+    padding: 0 4px;
     font-size: var(--text-meta);
     font-weight: 500;
     color: var(--corner-ink-soft);
+    background: var(--corner-paper);
+}
+
+[data-app='our-corner'] .corner-icon-heading {
+    position: absolute;
+    left: 0;
+    right: 0;
+}
+
+/* The heading of the category being scrolled through stays at the top. */
+[data-app='our-corner'] .corner-icon-sticky {
+    position: sticky;
+    top: 0;
+    z-index: 1;
+    margin-bottom: -32px;
+}
+
+[data-app='our-corner'] .corner-icon-row {
+    position: absolute;
+    left: 0;
+    right: 0;
+    display: flex;
+    gap: 4px;
+}
+
+[data-app='our-corner'] .corner-icon-option {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex: none;
+    border: 1px solid transparent;
+    border-radius: var(--radius-inner);
+    color: var(--corner-ink-soft);
+    cursor: pointer;
+}
+
+[data-app='our-corner'] .corner-icon-option[data-active] {
+    background: var(--corner-hover-fill);
+    color: var(--corner-ink);
+    outline: 2px solid var(--corner-action);
+    outline-offset: -2px;
+}
+
+[data-app='our-corner'] .corner-icon-option[aria-selected='true'] {
+    border-color: var(--corner-accent-text);
+    background: var(--corner-tile-wash-strong);
+    color: var(--corner-accent-text);
+}
+
+[data-app='our-corner'] .corner-icon-footer {
+    flex: none;
+    margin: 0;
+    padding-top: 6px;
+    border-top: 1px solid var(--corner-border);
+    font-size: var(--text-small);
+    font-weight: 500;
+    color: var(--corner-ink-soft);
+}
+
+[data-app='our-corner'] .corner-icon-empty,
+[data-app='our-corner'] .corner-icon-state {
+    padding: 24px 8px;
+    text-align: center;
+}
+
+[data-app='our-corner'] .corner-icon-empty p {
+    margin: 0 0 4px;
 }
 
 /* ── "This isn't here anymore" ───────────────────────────────────────────── */

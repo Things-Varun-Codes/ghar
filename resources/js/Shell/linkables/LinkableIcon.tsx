@@ -1,72 +1,58 @@
-import { Bookmark } from 'lucide-react';
-import type { LucideIcon, LucideProps } from 'lucide-react';
-import { createElement, useEffect, useState } from 'react';
+import * as Sentry from '@sentry/react';
+import { Icon } from 'lucide-react';
+import type { LucideProps } from 'lucide-react';
+import { useEffect, useState } from 'react';
 
-/*
- * A lucide icon by name, loaded the first time it is needed: a household can pick any of
- * lucide's icons for a list, and bundling them all would weigh every page down. The name map
- * is its own chunk too. Until an icon arrives a box of its size holds its place.
- */
+import type { IconPaths } from '@/Shell/linkables/lucide';
+import {
+    iconNode,
+    iconPathsIfLoaded,
+    loadIconPaths,
+} from '@/Shell/linkables/lucide';
 
-type IconModule = { default: LucideIcon };
-type IconImports = Record<string, () => Promise<IconModule>>;
-
-const loaded = new Map<string, LucideIcon>();
-let imports: Promise<IconImports> | null = null;
-
-function iconImports(): Promise<IconImports> {
-    imports ??= import('lucide-react/dynamicIconImports').then(
-        (module) => module.default as unknown as IconImports,
-    );
-
-    return imports;
-}
-
-export function loadIcon(name: string): Promise<LucideIcon> {
-    const ready = loaded.get(name);
-
-    if (ready) {
-        return Promise.resolve(ready);
-    }
-
-    return iconImports()
-        .then((all) => (all[name] ? all[name]() : null))
-        .then((module) => {
-            const icon = module?.default ?? Bookmark;
-            loaded.set(name, icon);
-
-            return icon;
-        })
-        .catch(() => Bookmark);
-}
+const FALLBACK = 'bookmark';
 
 type Props = Omit<LucideProps, 'ref'> & { name: string | null | undefined };
 
+/*
+ * A lucide icon by name. The drawings arrive as one chunk the first time any icon is needed;
+ * until then a box of the icon's size holds its place, so nothing moves when it draws.
+ */
 export default function LinkableIcon({ name, size = 24, ...props }: Props) {
-    const key = name || 'bookmark';
-    const [icon, setIcon] = useState<{ key: string; Icon: LucideIcon } | null>(
-        () => {
-            const ready = loaded.get(key);
-
-            return ready ? { key, Icon: ready } : null;
-        },
-    );
+    const [data, setData] = useState<IconPaths | null>(iconPathsIfLoaded);
 
     useEffect(() => {
+        if (data !== null) {
+            return;
+        }
+
         let live = true;
 
-        loadIcon(key).then((Icon) => {
-            if (live) {
-                setIcon({ key, Icon });
-            }
-        });
+        loadIconPaths()
+            .then((loaded) => {
+                if (live) {
+                    setData(loaded);
+                }
+            })
+            // The reserved box stays empty; the next icon on the page tries the chunk again.
+            .catch((error: unknown) => {
+                Sentry.captureException(error, {
+                    tags: {
+                        component: 'Shell/LinkableIcon',
+                        action: 'load-icons',
+                    },
+                });
+            });
 
         return () => {
             live = false;
         };
-    }, [key]);
+    }, [data]);
 
-    if (icon === null || icon.key !== key) {
+    const node =
+        data && (iconNode(data, name || FALLBACK) ?? iconNode(data, FALLBACK));
+
+    if (!node) {
         return (
             <span
                 aria-hidden="true"
@@ -75,5 +61,5 @@ export default function LinkableIcon({ name, size = 24, ...props }: Props) {
         );
     }
 
-    return createElement(icon.Icon, { 'aria-hidden': true, size, ...props });
+    return <Icon iconNode={node} aria-hidden size={size} {...props} />;
 }
