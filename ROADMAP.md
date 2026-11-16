@@ -10,8 +10,9 @@ when work lands, delete lines when they stop being true.
   Sentry-compatible error reporting.
 - **Our History** — timeline, gallery (PhotoSwipe), calendar view, TipTap editor with Corner
   cross-link pills, media on local disk or any S3 bucket, typed or Google Places locations.
-- **Our Corner** — lists the household makes itself (name, icon, done word, one of four kinds:
-  link, poster, place, plain), detail pages, deferred-delete Undo, metadata lookup.
+- **Our Corner** — lists the household makes itself (name, any lucide icon, done word), items
+  with a name, notes, link, picture and place, generic link previews behind fetch guards, a picture
+  proxy, Open in Maps, deferred-delete Undo.
 - **Our Mailbox** — messages, AI bouquets (Cloudflare Workers AI), citations, coupons.
 - **Rooms the admin chooses** — Admin → Rooms turns History, Corner and Mailbox on or off at runtime
   (data kept), and Mailbox's four entry types individually. A fresh install starts with none on; an

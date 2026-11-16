@@ -45,17 +45,18 @@ class DashboardPreviewsTest extends TestCase
         $songs = CornerList::factory()->songs()->create();
         $movies = CornerList::factory()->movies()->create();
         $plain = CornerList::factory()->create();
-        Item::factory()->create(['list_id' => $songs->id, 'added_by_user_id' => $this->me->id, 'image_url' => '/old.jpg', 'added_at' => now()->subDays(3)]);
-        Item::factory()->create(['list_id' => $movies->id, 'added_by_user_id' => $this->partner->id, 'image_url' => '/new.jpg', 'added_at' => now()->subDay()]);
+        $old = Item::factory()->create(['list_id' => $songs->id, 'added_by_user_id' => $this->me->id, 'image_url' => 'https://images.example.com/old.jpg', 'added_at' => now()->subDays(3)]);
+        $new = Item::factory()->create(['list_id' => $movies->id, 'added_by_user_id' => $this->partner->id, 'image_url' => 'https://images.example.com/new.jpg', 'added_at' => now()->subDay()]);
         Item::factory()->create(['list_id' => $movies->id, 'added_by_user_id' => $this->me->id, 'image_url' => null, 'added_at' => now()]);
         // The same cover twice shows once.
-        Item::factory()->create(['list_id' => $songs->id, 'added_by_user_id' => $this->me->id, 'image_url' => '/new.jpg', 'added_at' => now()->subDays(2)]);
+        Item::factory()->create(['list_id' => $songs->id, 'added_by_user_id' => $this->me->id, 'image_url' => 'https://images.example.com/new.jpg', 'added_at' => now()->subDays(2)]);
         Item::factory()->create(['list_id' => $plain->id, 'added_by_user_id' => $this->me->id, 'added_at' => now()]);
 
         $this->actingAs($this->me)
             ->get('/dashboard')
             ->assertInertia(fn (AssertableInertia $page) => $page
-                ->where('previews.our-corner.images', ['/new.jpg', '/old.jpg'])
+                // Drawn through this app's picture route, never from the other site.
+                ->where('previews.our-corner.images', [$new->pictureUrl(), $old->pictureUrl()])
             );
     }
 

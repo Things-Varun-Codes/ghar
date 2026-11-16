@@ -4,11 +4,11 @@ namespace App\MiniApps\Corner\Http\Requests;
 
 use App\MiniApps\Corner\Models\CornerList;
 use App\MiniApps\Corner\Support\ListIcon;
-use App\MiniApps\Corner\Support\ListKind;
+use Closure;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
-/** Creating and editing a list. The kind is only read when creating. */
+/** Creating and editing a list. */
 class SaveListRequest extends FormRequest
 {
     public function authorize(): bool
@@ -27,17 +27,22 @@ class SaveListRequest extends FormRequest
                 $this->merge([$field => trim(preg_replace('/\s+/u', ' ', $this->input($field)))]);
             }
         }
+
+        if (is_string($this->input('icon'))) {
+            $this->merge(['icon' => ListIcon::normalise($this->input('icon'))]);
+        }
     }
 
     /** @return array<string, array<int, mixed>> */
     public function rules(): array
     {
-        $creating = ! $this->route('list') instanceof CornerList;
-
         return [
             'name' => ['required', 'string', 'max:60'],
-            'kind' => $creating ? ['required', Rule::enum(ListKind::class)] : ['prohibited'],
-            'icon' => ['required', 'string', Rule::in(ListIcon::KEYS)],
+            'icon' => ['required', 'string', 'max:64', function (string $attribute, mixed $value, Closure $fail): void {
+                if (! is_string($value) || ! ListIcon::isValid($value)) {
+                    $fail('Choose one of the icons.');
+                }
+            }],
             'done_label' => ['required', 'string', 'max:24'],
             'todo_label' => ['required', 'string', 'max:24'],
             'done_icon' => ['required', Rule::in(['check', 'heart'])],
@@ -51,8 +56,6 @@ class SaveListRequest extends FormRequest
         return [
             'name.required' => 'Give the list a name.',
             'name.max' => 'List names are limited to 60 characters.',
-            'kind.required' => 'Choose what goes in the list.',
-            'kind.prohibited' => "What goes in a list can't be changed once it exists.",
             'done_label.required' => 'Say what a finished one is called.',
             'done_label.max' => 'Keep it to 24 characters.',
             'todo_label.required' => "Say what the ones you haven't got to are called.",

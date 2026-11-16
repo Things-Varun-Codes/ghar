@@ -4,12 +4,12 @@ namespace Database\Factories;
 
 use App\MiniApps\Corner\Models\CornerList;
 use App\MiniApps\Corner\Models\Item;
+use App\MiniApps\Corner\Support\LinkKey;
 use App\Shell\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
- * A plain item by default. The link, poster and place states fill the columns those kinds
- * use; pair them with a list of the same kind.
+ * A name and nothing else, unless one of the states adds a link, a picture or a place.
  *
  * @extends Factory<Item>
  */
@@ -30,33 +30,31 @@ class ItemFactory extends Factory
         ];
     }
 
-    public function link(): static
+    public function link(?string $url = null): static
     {
-        return $this->state(function () {
-            $providerId = fake()->regexify('[A-Za-z0-9_-]{11}');
+        return $this->state(function () use ($url) {
+            $url ??= 'https://example.com/'.fake()->unique()->slug(3);
 
             return [
-                'provider' => 'youtube',
-                'provider_id' => $providerId,
-                'url' => "https://www.youtube.com/watch?v={$providerId}",
+                'url' => $url,
+                'url_key' => LinkKey::for($url),
+                'site_name' => LinkKey::siteOf($url),
                 'author' => fake()->name(),
-                'image_url' => "https://i.ytimg.com/vi/{$providerId}/hqdefault.jpg",
             ];
         });
     }
 
-    public function poster(): static
+    public function picture(?string $url = null): static
     {
         return $this->state(fn () => [
-            'image_url' => 'https://image.tmdb.org/t/p/w500/'.fake()->bothify('????????').'.jpg',
+            'image_url' => $url ?? 'https://images.example.com/'.fake()->unique()->bothify('????????').'.jpg',
         ]);
     }
 
     public function place(): static
     {
         return $this->state(fn () => [
-            'title' => fake()->company(),
-            'place_id' => 'ChIJ'.fake()->bothify('????##########'),
+            'location_label' => fake()->company(),
             'lat' => fake()->latitude(),
             'lng' => fake()->longitude(),
             'address' => fake()->address(),

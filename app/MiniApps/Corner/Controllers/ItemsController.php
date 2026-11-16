@@ -12,7 +12,6 @@ use App\MiniApps\Corner\Http\Resources\ListResource;
 use App\MiniApps\Corner\Models\CornerList;
 use App\MiniApps\Corner\Models\Item;
 use App\MiniApps\Corner\Support\CornerLinks;
-use App\MiniApps\Corner\Support\ListKind;
 use App\Shell\Services\LinkableEntities;
 use App\Shell\Support\CursorList;
 use App\Shell\Support\FlashToast;
@@ -29,22 +28,13 @@ class ItemsController
     /**
      * Sort slug => ordered [column, direction] pairs, each ending in an id tiebreaker so the
      * keyset cursor is stable.
-     *
-     * @return array<string, list<array{0: string, 1: 'asc'|'desc'}>>
      */
-    private static function sortOptions(ListKind $kind): array
-    {
-        $options = [
-            'recent' => [['added_at', 'desc'], ['id', 'desc']],
-            'title' => [['title', 'asc'], ['id', 'asc']],
-        ];
+    private const SORTS = [
+        'recent' => [['added_at', 'desc'], ['id', 'desc']],
+        'title' => [['title', 'asc'], ['id', 'asc']],
+    ];
 
-        if ($kind === ListKind::Link) {
-            $options['artist'] = [['author', 'asc'], ['id', 'asc']];
-        }
-
-        return $options;
-    }
+    private const SEARCH_COLUMNS = ['title', 'notes', 'author', 'site_name', 'location_label', 'address'];
 
     public function index(Request $request, string $list): Response
     {
@@ -54,7 +44,7 @@ class ItemsController
             return Inertia::render('MiniApps/Corner/Pages/EntityNotFound', ['kind' => 'list']);
         }
 
-        $options = self::sortOptions($model->kind);
+        $options = self::SORTS;
         $sort = is_string($request->query('sort')) && array_key_exists($request->query('sort'), $options)
             ? $request->query('sort')
             : 'recent';
@@ -72,7 +62,7 @@ class ItemsController
             'list' => $this->listPayload($request, $model),
             'items' => CursorList::make($base)
                 ->status('done_at')
-                ->searchable($model->kind->searchColumns(), $q)
+                ->searchable(self::SEARCH_COLUMNS, $q)
                 ->paginate($filter, self::PER_PAGE, fn (Item $i) => app(ItemResource::class)($i)),
             'filter' => $filter,
             'sort' => $sort,

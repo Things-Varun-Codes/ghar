@@ -4,7 +4,6 @@ namespace Tests\Feature\Corner;
 
 use App\MiniApps\Corner\Models\CornerList;
 use App\MiniApps\Corner\Models\Item;
-use App\MiniApps\Corner\Support\ListKind;
 use App\Shell\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Carbon;
@@ -26,21 +25,21 @@ class CornerListPageTest extends TestCase
         $this->user = User::factory()->create();
     }
 
-    /** @return array<string, array{0: ListKind}> */
-    public static function kinds(): array
+    /** @return array<string, array{0: string}> */
+    public static function lists(): array
     {
         return [
-            'link' => [ListKind::Link],
-            'poster' => [ListKind::Poster],
-            'plain' => [ListKind::Plain],
-            'place' => [ListKind::Place],
+            'songs' => ['songs'],
+            'movies' => ['movies'],
+            'activities' => ['activities'],
+            'places' => ['places'],
         ];
     }
 
-    #[DataProvider('kinds')]
-    public function test_every_kind_renders_one_list_page_with_its_settings_and_items(ListKind $kind): void
+    #[DataProvider('lists')]
+    public function test_every_list_renders_one_list_page_with_its_settings_and_items(string $slug): void
     {
-        $list = $this->listOfKind($kind);
+        $list = $this->listCalled($slug);
         $item = $this->itemIn($list, $this->user, ['notes' => 'A note']);
         // Another list's items never leak in.
         $this->itemIn(CornerList::factory()->create(), $this->user);
@@ -53,7 +52,7 @@ class CornerListPageTest extends TestCase
                 ->where('list.id', $list->id)
                 ->where('list.slug', $list->slug)
                 ->where('list.name', $list->name)
-                ->where('list.kind', $kind->value)
+                ->missing('list.kind')
                 ->where('list.done_label', $list->done_label)
                 ->where('list.todo_label', $list->todo_label)
                 ->where('list.done_icon', $list->done_icon)
@@ -70,12 +69,19 @@ class CornerListPageTest extends TestCase
                 ->where('q', null));
     }
 
-    public function test_the_item_payload_carries_every_field_of_its_kind(): void
+    public function test_the_item_payload_carries_every_part_an_item_can_have(): void
     {
         $songs = $this->songs();
-        $song = $this->itemIn($songs, $this->user, ['author' => 'Queen']);
+        $song = $this->itemIn($songs, $this->user, ['author' => 'Queen', 'notes' => 'Loud']);
         $places = $this->places();
-        $place = $this->itemIn($places, $this->user, ['lat' => 12.3456789, 'lng' => -98.7654321, 'address' => '1 High St']);
+        $place = $this->itemIn($places, $this->user, [
+            'location_label' => 'The bakery',
+            'location_url' => 'https://maps.example.com/?q=12.3456789,-98.7654321',
+            'place_id' => 'ChIJbakery',
+            'lat' => 12.3456789,
+            'lng' => -98.7654321,
+            'address' => '1 High St',
+        ]);
         $doneBy = User::factory()->create();
         $place->markDone($doneBy);
 
@@ -85,27 +91,41 @@ class CornerListPageTest extends TestCase
                 ->component('MiniApps/Corner/Pages/Item')
                 ->where('list.slug', 'songs')
                 ->where('item.id', $song->id)
+                ->where('item.title', $song->title)
+                ->where('item.notes', 'Loud')
                 ->where('item.url', $song->url)
-                ->where('item.image_url', $song->image_url)
+                ->where('item.site_name', $song->site_name)
                 ->where('item.author', 'Queen')
-                ->where('item.provider', 'youtube')
-                ->where('item.lat', null));
+                ->where('item.image_url', $song->image_url)
+                ->where('item.picture_url', $song->pictureUrl())
+                ->where('item.location_label', null)
+                ->where('item.lat', null)
+                ->where('item.is_done', false)
+                ->where('item.added_by_user_id', $this->user->id)
+                ->where('item.addedBy', ['id' => $this->user->id, 'name' => $this->user->name])
+                ->missing('item.provider')
+                ->missing('item.provider_id')
+                ->missing('item.url_key'));
 
         $this->actingAs($this->user)
             ->get("/apps/our-corner/places/{$place->id}")
             ->assertInertia(fn (AssertableInertia $page) => $page
+                ->where('item.location_label', 'The bakery')
+                ->where('item.location_url', 'https://maps.example.com/?q=12.3456789,-98.7654321')
+                ->where('item.place_id', 'ChIJbakery')
                 ->where('item.lat', 12.3456789)
                 ->where('item.lng', -98.7654321)
                 ->where('item.address', '1 High St')
                 ->where('item.is_done', true)
                 ->where('item.done_at', fn ($at) => is_string($at))
-                ->where('item.url', null));
+                ->where('item.url', null)
+                ->where('item.picture_url', null));
     }
 
-    #[DataProvider('kinds')]
-    public function test_filters_scope_rows_and_counts_stay_whole(ListKind $kind): void
+    #[DataProvider('lists')]
+    public function test_filters_scope_rows_and_counts_stay_whole(string $slug): void
     {
-        $list = $this->listOfKind($kind);
+        $list = $this->listCalled($slug);
         $active = $this->itemIn($list, $this->user);
         $done = $this->itemIn($list, $this->user, ['done_at' => now(), 'done_by_user_id' => $this->user->id]);
 
@@ -189,7 +209,7 @@ class CornerListPageTest extends TestCase
                 ->where('items.data.2.id', $ids[0]));
     }
 
-    public function test_search_narrows_rows_and_counts_and_matches_the_author_of_a_link(): void
+    public function test_search_narrows_rows_and_counts_and_matches_the_author_and_site(): void
     {
         $list = $this->songs();
         $match = $this->itemIn($list, $this->user, ['title' => 'Bohemian Rhapsody', 'author' => 'Queen']);
@@ -210,13 +230,17 @@ class CornerListPageTest extends TestCase
                 ->has('items.data', 1)
                 ->where('items.data.0.id', $byAuthor->id));
 
+        $this->actingAs($this->user)
+            ->get('/apps/our-corner/songs?q='.urlencode((string) $match->site_name))
+            ->assertInertia(fn (AssertableInertia $page) => $page->where('items.data', fn ($rows) => collect($rows)->pluck('id')->contains($match->id)));
+
         // Blank and whitespace-only searches are no search.
         $this->actingAs($this->user)
             ->get('/apps/our-corner/songs?q=%20%20')
             ->assertInertia(fn (AssertableInertia $page) => $page->where('q', null)->has('items.data', 3));
     }
 
-    public function test_search_reads_the_notes_and_a_place_address(): void
+    public function test_search_reads_the_notes_and_a_places_name_and_address(): void
     {
         $activities = $this->activities();
         $noted = $this->itemIn($activities, $this->user, ['title' => 'Hike', 'notes' => 'Bring sunscreen']);
@@ -233,6 +257,11 @@ class CornerListPageTest extends TestCase
         $this->actingAs($this->user)
             ->get('/apps/our-corner/places?q=mysuru')
             ->assertInertia(fn (AssertableInertia $page) => $page->has('items.data', 1)->where('items.data.0.id', $bakery->id));
+
+        $this->itemIn($places, $this->user, ['title' => 'Dosa', 'location_label' => 'Vidyarthi Bhavan', 'address' => null]);
+        $this->actingAs($this->user)
+            ->get('/apps/our-corner/places?q=vidyarthi')
+            ->assertInertia(fn (AssertableInertia $page) => $page->has('items.data', 1)->where('items.data.0.title', 'Dosa'));
     }
 
     public function test_search_treats_wildcards_as_text(): void
@@ -246,51 +275,26 @@ class CornerListPageTest extends TestCase
             ->assertInertia(fn (AssertableInertia $page) => $page->has('items.data', 1)->where('items.data.0.title', '100% fun'));
     }
 
-    public function test_sorts_by_title_and_a_link_list_also_by_artist(): void
+    #[DataProvider('lists')]
+    public function test_every_list_sorts_by_newest_or_by_name_and_nothing_else(string $slug): void
     {
-        $list = $this->songs();
-        $this->itemIn($list, $this->user, ['title' => 'Zebra Song', 'author' => 'Alpha Artist']);
-        $this->itemIn($list, $this->user, ['title' => 'Alpha Song', 'author' => 'Zeta Artist']);
+        $list = $this->listCalled($slug);
+        $this->itemIn($list, $this->user, ['title' => 'Zebra', 'author' => 'Alpha Artist', 'added_at' => now()]);
+        $this->itemIn($list, $this->user, ['title' => 'Alpha', 'author' => 'Zeta Artist', 'added_at' => now()->subDay()]);
 
         $this->actingAs($this->user)
-            ->get('/apps/our-corner/songs')
-            ->assertInertia(fn (AssertableInertia $page) => $page->where('sorts', ['recent', 'title', 'artist']));
-
-        $this->actingAs($this->user)
-            ->get('/apps/our-corner/songs?sort=title')
+            ->get("/apps/our-corner/{$list->slug}?sort=title")
             ->assertInertia(fn (AssertableInertia $page) => $page
+                ->where('sorts', ['recent', 'title'])
                 ->where('sort', 'title')
-                ->where('items.data.0.title', 'Alpha Song')
-                ->where('items.data.1.title', 'Zebra Song'));
-
-        $this->actingAs($this->user)
-            ->get('/apps/our-corner/songs?sort=artist')
-            ->assertInertia(fn (AssertableInertia $page) => $page
-                ->where('sort', 'artist')
-                ->where('items.data.0.author', 'Alpha Artist')
-                ->where('items.data.1.author', 'Zeta Artist'));
-    }
-
-    /** @return array<string, array{0: ListKind}> */
-    public static function kindsWithoutArtists(): array
-    {
-        return [
-            'poster' => [ListKind::Poster],
-            'plain' => [ListKind::Plain],
-            'place' => [ListKind::Place],
-        ];
-    }
-
-    #[DataProvider('kindsWithoutArtists')]
-    public function test_only_a_link_list_sorts_by_artist(ListKind $kind): void
-    {
-        $list = $this->listOfKind($kind);
+                ->where('items.data.0.title', 'Alpha')
+                ->where('items.data.1.title', 'Zebra'));
 
         $this->actingAs($this->user)
             ->get("/apps/our-corner/{$list->slug}?sort=artist")
             ->assertInertia(fn (AssertableInertia $page) => $page
                 ->where('sort', 'recent')
-                ->where('sorts', ['recent', 'title']));
+                ->where('items.data.0.title', 'Zebra'));
     }
 
     public function test_no_sort_or_a_garbage_sort_is_newest_first(): void

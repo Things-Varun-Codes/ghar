@@ -39,8 +39,11 @@ than one Timeline and Gallery page), Corner items done and not done by different
 (past the 50-row page), Corner lists as an upgraded install has them (Songs, Movies, Places and
 Activities: no maker, old ids in `legacy_id`, so `/apps/our-corner/songs/1` and the old-style pills
 on "Diwali on the terrace" resolve) plus Ravi's Books (only his items: he may delete it), Meera's
-long-named restaurants list (Kabir added to it: she may edit it, only an admin may delete it) and
-Kabir's empty Board games with notifications off, single and multi-recipient notes and flowers read and unread, coupons
+long-named restaurants list (Kabir added to it: she may edit it, only an admin may delete it),
+Kabir's empty Board games with notifications off, and Meera's Weekend ideas (an icon from the full
+set). Between them the items cover a name alone, notes, links with and without pictures, a pasted
+picture, coordinates only, a map link only, a typed place, and link, picture and place together;
+pictures are https addresses primed into the picture cache, single and multi-recipient notes and flowers read and unread, coupons
 issued/requested/part-fulfilled/depleted/expired, citations issued/paid, short links `pantry23`,
 `garage23` and the disabled `bench789`, and a pending invite at
 `/invitations/dev-invite-token-for-local-testing-only`. Row ids are stable after a reset. Ravi and
@@ -326,11 +329,12 @@ the code:
 - **PhotoSwipe inside the EventSheet:** the Sheet's `onPointerDownOutside` / `onInteractOutside`
   must `preventDefault()` when `e.target.closest('.pswp')` (`EventSheet.tsx`), or the next-arrow
   click and mobile swipes close the Sheet.
-- **Our Corner** — a shelf of loved things. Its character is in its objects, not its type or
-  motion: `.corner-sticker` done flags (a fixed tilt, never animated), the CD frame, the poster, the
-  pin, and accent washes via `color-mix(in oklab, var(--shell-accent) N%, var(--shell-surface))` —
-  never hex. Identity changes
-  are CSS-only in `corner.css` over the shared components; don't fork Corner-specific React.
+- **Our Corner** — a shelf of loved things, one look for every list. Its character is in its
+  objects, not its type or motion: `.corner-sticker` done flags (a fixed tilt, never animated), each
+  item's picture in a rounded thumb (`ItemThumb`), and where there is no picture the list's own icon
+  on an accent wash via `color-mix(in oklab, var(--shell-accent) N%, var(--shell-surface))` — never
+  hex. Identity changes are CSS-only in `corner.css` over the shared components; don't fork
+  Corner-specific React.
 - **Our Mailbox** owns paper: ruled sheets with a red margin, the citation as an official form, the
   coupon as a voucher. A note's body and a coupon's title are in Patrick Hand; what was filled in on
   a form (names, offence, penalty, remarks) is Newsreader italic; the printed parts are the sans at
@@ -445,19 +449,34 @@ Our Corner keeps the household's shared lists.
 Slug `our-corner`; `App\MiniApps\Corner\`; `resources/js/MiniApps/Corner/`. The household makes
 its own lists; nothing about Songs or Movies is hard-coded any more.
 
-- **Two tables.** `corner_lists` (name, `slug`, `kind`, `icon`, `done_label`, `todo_label`,
-  `done_icon` heart|check, `notify_on_add`, `position`, nullable `created_by_user_id`) and
-  `corner_items` (every kind in one table; columns a kind doesn't use stay null). Uniqueness of a
-  link is per list: `(list_id, provider, provider_id)`.
-- **Four kinds, fixed at creation** (`ListKind`): `link` (CD frame, YouTube/Spotify oEmbed; any
-  other site is kept with provider `unknown`), `poster` (an optional Plex link gives the poster),
-  `place` (pin, address, coordinates), `plain`. Every kind has optional `notes`. There are no
-  per-list custom fields, on purpose: a form builder would multiply validation, search and UI for
-  little household value.
+- **Two tables.** `corner_lists` (name, `slug`, `icon`, `done_label`, `todo_label`, `done_icon`
+  heart|check, `notify_on_add`, `position`, nullable `created_by_user_id`) and `corner_items`. A
+  list has no kind: every item has the same optional parts (`title`, `notes`, `url` with
+  `site_name`/`author`, `image_url` (the picture's source), and a place: `location_label`,
+  `location_url`, `lat`/`lng`, `address`). The same link twice in one list is refused through
+  `url_key` (`LinkKey`, the normalised link hashed), unique per list.
+- **No site is known by name.** `LinkPreview` reads a pasted page for its oEmbed (discovered from the
+  page's own `<link>`), then Open Graph, Twitter card, `<title>` and its largest icon. Don't add a
+  provider-specific fetcher, endpoint, allowlist, CSP host or label. The one place that knows URL
+  shapes is map links: `MapLink` (server) and `lib/maps.ts` ("Open in Maps": the saved link, else
+  the platform's maps address), each a small table.
+- **Every outbound fetch goes through `SafeFetcher`**: http/https only, never the app or a private,
+  loopback, link-local, CGNAT, reserved or metadata address (IPv4-in-IPv6 included), pinned to the
+  checked address, redirects re-checked (at most 3), short timeouts, byte caps. A refused or failed
+  fetch returns null and the item is saved with what was typed; it is never an error to the person.
+- **Pictures are served by Corner**, never loaded from their source by the browser, so CSP
+  `img-src` stays `'self' data: blob:` (plus the media bucket and maps origins when set). Pages draw
+  `picture_url` (`/apps/our-corner/items/{id}/picture?v=…`, private and immutable for a week); the
+  add sheet previews through `/api/corner/picture-preview`. `PictureCache` keeps the bytes under
+  `storage/framework/cache/data/corner-pictures`, at most 64 MB and safe to delete. The seed
+  primes it, so the dev database shows pictures offline.
+- **Icons** are any lucide name, validated against `Support/icon-names.json` (written by
+  `scripts/corner-icon-names.mjs`; a unit test fails when it drifts from lucide-react) and drawn by
+  the shell's `LinkableIcon`, which loads each icon on demand. History pills carry the list's icon
+  in `data-corner-icon`.
 - **The slug never changes** after creation: notifications, History pills and NFC short links
   point at it. `lists` and `items` are reserved (`CreateList::RESERVED_SLUGS`) because the
-  mutation routes use them at the same depth. Icons are keys from `ListIcon::KEYS`, drawn by
-  `lib/list-icons.ts`; keep the two in step.
+  mutation routes use them at the same depth.
 - **Routes.** `/apps/our-corner/{slug}` is a list and `/apps/our-corner/{slug}/{id}` an item, both
   looked up by hand so a missing one renders `EntityNotFound`. Mutations live at `lists/{id}`
   and `items/{id}`; `POST /apps/our-corner/{slug}` adds to a list.
@@ -484,16 +503,15 @@ its own lists; nothing about Songs or Movies is hard-coded any more.
 
 ## Our Corner item-actions contract
 
-Applies to every list, whatever its kind.
+Applies to every list.
 
 - **`useItemActions`** (`resources/js/MiniApps/Corner/Hooks/useItemActions.ts`) is the sole source
   of Edit, Delete and Toggle-done. Don't hand-roll an Inertia mutation or a confirm dialog.
 - Call it **exactly once per rendered item, inside the card/tile** — never in an index page or the
   list primitive's render callback. Hoisting it hides every row on a single delete, silently.
 - **`DetailPage`** owns the frame (two-column grid, back-reference sidebar, meta, actions, done
-  control) and takes render-props chosen by the list's kind in `Pages/Item.tsx`: `link` a CD frame,
-  `poster` a poster, `place` a pin with address/coordinates, `plain` none. One list page
-  (`Pages/List.tsx`) renders `ItemTile` for link/poster and `ItemRow` for place/plain.
+  control); `Pages/Item.tsx` fills it the same way for every item. `Pages/List.tsx` renders one
+  `ItemCard` per item. Adding and editing happen in `ItemSheet` (a sheet: up to seven fields).
 - **Delete is deferred, not soft:** the row hides, an Undo toast cancels, the real request fires
   after `DELETE_GRACE_PERIOD_MS` (5000 ms). Hard delete — no `deleted_at`, no restore route (see
   ROADMAP.md for the planned soft-delete work).

@@ -34,6 +34,9 @@ class CornerRoomOffTest extends TestCase
         $this->actingAs($user)->get('/apps/our-corner')->assertNotFound();
         $this->get("/apps/our-corner/songs/{$item->id}")->assertNotFound();
         $this->get('/api/linkable/search?q=rain')->assertNotFound();
+        $this->get('/api/corner/link-preview?url='.urlencode('https://example.com/a'))->assertNotFound();
+        $this->get('/api/corner/picture-preview?url='.urlencode('https://example.com/a.jpg'))->assertNotFound();
+        $this->get("/apps/our-corner/items/{$item->id}/picture?v=1")->assertNotFound();
 
         $this->get('/dashboard')->assertOk()->assertInertia(fn ($page) => $page
             ->where('miniApps', fn ($apps) => collect($apps)->pluck('slug')->doesntContain('our-corner'))

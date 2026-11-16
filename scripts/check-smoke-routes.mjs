@@ -14,10 +14,12 @@ const SMOKE_FILE = path.join(REPO_ROOT, 'scripts', 'smoke.mjs');
 const PLACEHOLDER = ':param';
 
 const SKIP = {
-    'api/corner/oembed-preview':
+    'api/corner/link-preview':
         'JSON endpoint, no rendered page — smoke asserts a visible h1/h2, which does not apply.',
-    'api/corner/plex-preview':
-        'JSON endpoint, no rendered page — smoke asserts a visible h1/h2, which does not apply.',
+    'api/corner/picture-preview':
+        'Returns an image fetched from the pasted address, not a page — no h1/h2 to assert, and smoke must not reach the network.',
+    'apps/our-corner/items/{item}/picture':
+        "Returns an item's picture (an image, not a page) — no h1/h2 to assert, and a miss would fetch from the network.",
     'api/linkable/search':
         'JSON endpoint, no rendered page — smoke asserts a visible h1/h2, which does not apply.',
     'user/confirmed-password-status':

@@ -5,26 +5,25 @@ import { useId, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { mutationOptions } from '@/lib/mutation';
 import { DoneSticker } from '@/MiniApps/Corner/Components/DoneMark';
+import ItemThumb from '@/MiniApps/Corner/Components/ItemThumb';
 import ListMenu from '@/MiniApps/Corner/Components/ListMenu';
 import ListSettingsSheet from '@/MiniApps/Corner/Components/ListSettingsSheet';
 import CornerLayout from '@/MiniApps/Corner/Layouts/CornerLayout';
 import { ListIcon } from '@/MiniApps/Corner/lib/list-icons';
 import type { ListSettings } from '@/MiniApps/Corner/lib/presets';
-import { KINDS, SUGGESTED_LISTS } from '@/MiniApps/Corner/lib/presets';
+import { SUGGESTED_LISTS } from '@/MiniApps/Corner/lib/presets';
 import type { CornerListInfo } from '@/MiniApps/Corner/lib/types';
 import { show } from '@/routes/apps/our-corner/lists';
 import { store } from '@/routes/apps/our-corner/lists';
 import Page from '@/Shell/Components/Page';
 
-type Peek =
-    | { images: string[] }
-    | { items: { title: string; done: boolean }[] }
-    | { place: { title: string; address: string | null } | null };
+type PeekItem = { title: string; done: boolean; picture_url: string | null };
 
 type Door = CornerListInfo & {
     count: number;
     done: number;
-    peek: Peek;
+    /* The newest few, newest first. */
+    peek: PeekItem[];
 };
 
 type Props = {
@@ -32,8 +31,7 @@ type Props = {
     can: { create: boolean };
 };
 
-/** Empty frames on the shelf: an empty list still reads as a place for things. */
-const EMPTY_FRAMES = 3;
+const TITLES = 3;
 
 function liveLine(door: Door): string {
     if (door.count === 0) {
@@ -47,108 +45,54 @@ function liveLine(door: Door): string {
         : total;
 }
 
-function Shelf({
-    images,
-    frame,
-    icon,
-}: {
-    images: string[];
-    frame: 'cd' | 'poster';
-    icon: string;
-}) {
-    const frameClass = frame === 'cd' ? 'corner-cd' : 'corner-poster';
-
-    return (
-        <span className="corner-door-shelf">
-            {images.length > 0
-                ? images.map((src, i) => (
-                      <span key={`${i}-${src}`} className={frameClass}>
-                          <img
-                              src={src}
-                              alt=""
-                              loading="lazy"
-                              decoding="async"
-                              className={`${frameClass}-cover`}
-                          />
-                      </span>
-                  ))
-                : Array.from({ length: EMPTY_FRAMES }, (_, i) => (
-                      <span
-                          key={i}
-                          className={`${frameClass} corner-door-frame--empty`}
-                      >
-                          <span className={`${frameClass}-fallback`}>
-                              <ListIcon
-                                  name={icon}
-                                  size={22}
-                                  strokeWidth={1.5}
-                              />
-                          </span>
-                      </span>
-                  ))}
-        </span>
-    );
-}
-
+/*
+ * A glimpse of the list: its pictures on a shelf when the newest things have any (a thing
+ * without one shows the list's icon in its place), its newest names otherwise, and the icon
+ * alone while the list is empty.
+ */
 function DoorPeek({ door }: { door: Door }) {
     const { peek } = door;
 
-    if ('images' in peek) {
+    if (peek.length === 0) {
         return (
-            <Shelf
-                images={peek.images}
-                frame={door.kind === 'link' ? 'cd' : 'poster'}
-                icon={door.icon}
-            />
-        );
-    }
-
-    if ('items' in peek) {
-        return peek.items.length > 0 ? (
-            <ul className="corner-door-scrap">
-                {peek.items.map((item, i) => (
-                    <li key={`${i}-${item.title}`}>
-                        <span className="corner-door-scrap-title">
-                            {item.title}
-                        </span>
-                        {item.done && (
-                            <DoneSticker
-                                icon={door.done_icon}
-                                label={door.done_label}
-                                inline
-                            />
-                        )}
-                    </li>
-                ))}
-            </ul>
-        ) : (
             <span className="corner-door-empty">
                 <ListIcon name={door.icon} size={28} strokeWidth={1.5} />
             </span>
         );
     }
 
+    if (peek.some((item) => item.picture_url !== null)) {
+        return (
+            <span className="corner-door-shelf">
+                {peek.map((item, i) => (
+                    <ItemThumb
+                        key={`${i}-${item.title}`}
+                        pictureUrl={item.picture_url}
+                        icon={door.icon}
+                        className="corner-door-cover"
+                    />
+                ))}
+            </span>
+        );
+    }
+
     return (
-        <span className="corner-door-pin">
-            <ListIcon
-                name={door.icon}
-                size={28}
-                strokeWidth={1.5}
-                className="corner-door-pin-icon"
-            />
-            {peek.place && (
-                <span className="corner-door-pin-text">
-                    <span className="corner-door-pin-title">
-                        {peek.place.title}
+        <ul className="corner-door-scrap">
+            {peek.slice(0, TITLES).map((item, i) => (
+                <li key={`${i}-${item.title}`}>
+                    <span className="corner-door-scrap-title">
+                        {item.title}
                     </span>
-                    {peek.place.address && (
-                        <span className="corner-door-pin-address">
-                            {peek.place.address}
-                        </span>
+                    {item.done && (
+                        <DoneSticker
+                            icon={door.done_icon}
+                            label={door.done_label}
+                            inline
+                        />
                     )}
-                </span>
-            )}
-        </span>
+                </li>
+            ))}
+        </ul>
     );
 }
 
@@ -234,8 +178,6 @@ function Suggestions({ onCustom }: { onCustom: () => void }) {
             </p>
             <ul className="corner-suggestion-grid">
                 {SUGGESTED_LISTS.map((preset) => {
-                    const kind = KINDS.find((k) => k.kind === preset.kind);
-
                     return (
                         <li key={preset.name}>
                             <button
@@ -255,7 +197,8 @@ function Suggestions({ onCustom }: { onCustom: () => void }) {
                                     {preset.name}
                                 </span>
                                 <span className="corner-suggestion-kind">
-                                    {kind?.short}
+                                    {preset.done_label} or{' '}
+                                    {preset.todo_label.toLowerCase()}
                                 </span>
                             </button>
                         </li>

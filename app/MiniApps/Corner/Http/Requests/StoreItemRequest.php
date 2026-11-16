@@ -2,7 +2,6 @@
 
 namespace App\MiniApps\Corner\Http\Requests;
 
-use App\MiniApps\Corner\Models\CornerList;
 use App\MiniApps\Corner\Support\ItemRules;
 use Illuminate\Foundation\Http\FormRequest;
 
@@ -13,21 +12,15 @@ class StoreItemRequest extends FormRequest
         return true;
     }
 
-    /** @return array<string, array<int, string|object>> */
+    /** @return array<string, array<int, string>> */
     public function rules(): array
     {
-        return ItemRules::for($this->list()->kind);
+        return ItemRules::all();
     }
 
     /** @return array<string, string> */
     public function messages(): array
     {
-        return ItemRules::messages($this->list()->kind);
-    }
-
-    private function list(): CornerList
-    {
-        /** @var CornerList */
-        return $this->route('list');
+        return ItemRules::messages();
     }
 }

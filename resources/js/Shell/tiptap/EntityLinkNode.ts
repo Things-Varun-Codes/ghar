@@ -51,6 +51,13 @@ export const EntityLinkNode = Node.create({
                     (el as HTMLElement).getAttribute('data-corner-href') ||
                     null,
             },
+            // A lucide icon name: the mark of the list the thing is in.
+            icon: {
+                default: null,
+                parseHTML: (el) =>
+                    (el as HTMLElement).getAttribute('data-corner-icon') ||
+                    null,
+            },
         };
     },
 
@@ -67,6 +74,9 @@ export const EntityLinkNode = Node.create({
                 'data-corner-title': node.attrs.title ?? '',
                 'data-corner-thumbnail': node.attrs.thumbnailUrl ?? '',
                 'data-corner-href': node.attrs.deepLinkUrl ?? '',
+                ...(node.attrs.icon
+                    ? { 'data-corner-icon': node.attrs.icon }
+                    : {}),
                 class: 'tt-pill',
                 contenteditable: 'false',
             }),

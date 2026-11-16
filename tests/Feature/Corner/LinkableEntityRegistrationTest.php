@@ -82,7 +82,10 @@ class LinkableEntityRegistrationTest extends TestCase
 
         $this->assertSame('corner.item', $results[$song->id]['type']);
         $this->assertSame('Songs', $results[$song->id]['group']);
-        $this->assertSame($song->image_url, $results[$song->id]['thumbnail_url']);
+        $this->assertSame($song->pictureUrl(), $results[$song->id]['thumbnail_url']);
+        $this->assertSame('music', $results[$song->id]['icon']);
+        $this->assertNull($results[$book->id]['thumbnail_url']);
+        $this->assertSame('bookmark', $results[$book->id]['icon']);
         $this->assertSame(route('apps.our-corner.items.show', ['songs', $song->id]), $results[$song->id]['deep_link_url']);
         $this->assertSame('Books we love', $results[$book->id]['group']);
         $this->assertSame(url("/apps/our-corner/books/{$book->id}"), $results[$book->id]['deep_link_url']);
@@ -118,7 +121,8 @@ class LinkableEntityRegistrationTest extends TestCase
 
         $this->assertSame([
             'title' => $song->title,
-            'thumbnail_url' => $song->image_url,
+            'thumbnail_url' => $song->pictureUrl(),
+            'icon' => 'music',
             'deep_link_url' => url("/apps/our-corner/songs/{$song->id}"),
         ], $snapshot);
     }

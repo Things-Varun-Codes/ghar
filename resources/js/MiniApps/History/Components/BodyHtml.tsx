@@ -1,8 +1,9 @@
-import React from 'react';
+import React, { useState } from 'react';
 
 import { useRoomOn } from '@/hooks/use-room-on';
 import { internalHref, thumbnailSrc } from '@/MiniApps/History/lib/pillUrls';
 import { entityIcon } from '@/Shell/linkables/entityIcon';
+import LinkableIcon from '@/Shell/linkables/LinkableIcon';
 
 type BodyHtmlProps = {
     html: string | null;
@@ -33,20 +34,26 @@ function CornerLinkRead({
     title,
     thumbnail,
     href,
+    icon,
 }: {
     type: string | null;
     title: string;
     thumbnail: string;
     href: string;
+    icon: string | null;
 }) {
     const label = title || 'Corner link';
     const cornerOn = useRoomOn('our-corner');
     const safeHref = cornerOn ? internalHref(href) : null;
-    const safeThumbnail = thumbnailSrc(thumbnail);
-    const iconEl = React.createElement(entityIcon(type), {
-        size: 14,
-        'aria-hidden': true,
-    });
+    const [thumbnailBroken, setThumbnailBroken] = useState(false);
+    // Corner's pictures are served by Corner, so they go with it when the room is off.
+    const safeThumbnail =
+        cornerOn && !thumbnailBroken ? thumbnailSrc(thumbnail) : null;
+    const iconEl = icon ? (
+        <LinkableIcon name={icon} size={14} />
+    ) : (
+        React.createElement(entityIcon(type), { size: 14, 'aria-hidden': true })
+    );
 
     const inner = (
         <>
@@ -58,6 +65,7 @@ function CornerLinkRead({
                     src={safeThumbnail}
                     alt=""
                     className="history-body-pill-thumb"
+                    onError={() => setThumbnailBroken(true)}
                 />
             ) : null}
             {label}
@@ -103,6 +111,7 @@ function renderNode(
                 title={el.getAttribute('data-corner-title') ?? ''}
                 thumbnail={el.getAttribute('data-corner-thumbnail') ?? ''}
                 href={el.getAttribute('data-corner-href') ?? ''}
+                icon={el.getAttribute('data-corner-icon')}
             />
         );
     }

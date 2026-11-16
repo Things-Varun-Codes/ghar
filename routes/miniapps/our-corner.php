@@ -3,9 +3,9 @@
 use App\MiniApps\Corner\Controllers\CornerController;
 use App\MiniApps\Corner\Controllers\ItemsController;
 use App\MiniApps\Corner\Controllers\LinkablePickerController;
+use App\MiniApps\Corner\Controllers\LinkPreviewController;
 use App\MiniApps\Corner\Controllers\ListsController;
-use App\MiniApps\Corner\Controllers\OembedPreviewController;
-use App\MiniApps\Corner\Controllers\PlexPreviewController;
+use App\MiniApps\Corner\Controllers\PictureController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -29,6 +29,8 @@ Route::prefix('apps/our-corner')->name('apps.our-corner.')->group(function () {
         Route::post('/{list:slug}', [ItemsController::class, 'store'])->name('items.store');
     });
 
+    Route::get('/items/{item}/picture', [PictureController::class, 'show'])->name('items.picture');
+
     // Looked up by hand rather than bound, so a missing list or item renders a page saying
     // so instead of a bare 404.
     Route::get('/{list}', [ItemsController::class, 'index'])->name('lists.show');
@@ -36,12 +38,12 @@ Route::prefix('apps/our-corner')->name('apps.our-corner.')->group(function () {
 });
 
 Route::middleware('throttle:corner-mutations')
-    ->get('/api/corner/oembed-preview', [OembedPreviewController::class, 'preview'])
-    ->name('apps.our-corner.oembed.preview');
+    ->get('/api/corner/link-preview', [LinkPreviewController::class, 'preview'])
+    ->name('apps.our-corner.link.preview');
 
 Route::middleware('throttle:corner-mutations')
-    ->get('/api/corner/plex-preview', [PlexPreviewController::class, 'preview'])
-    ->name('apps.our-corner.plex.preview');
+    ->get('/api/corner/picture-preview', [PictureController::class, 'preview'])
+    ->name('apps.our-corner.picture.preview');
 
 /**
  * Outside the apps.our-corner prefix: this is a cross-app surface, since events live in Our

@@ -25,7 +25,7 @@ class ListsController
 
     public function update(SaveListRequest $request, CornerList $list): RedirectResponse
     {
-        $list->update($request->safe()->except('kind'));
+        $list->update($request->validated());
 
         FlashToast::success('Saved.');
 

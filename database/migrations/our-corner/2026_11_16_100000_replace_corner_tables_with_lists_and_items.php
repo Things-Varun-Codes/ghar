@@ -1,5 +1,6 @@
 <?php
 
+use App\MiniApps\Corner\Support\LinkKey;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\DB;
@@ -7,8 +8,9 @@ use Illuminate\Support\Facades\Schema;
 
 /**
  * Songs, movies, activities and places become four rows in corner_lists, and their items move
- * into corner_items. Postgres runs the whole migration in one transaction, so a failed count
- * check below rolls everything back and leaves the old tables as they were.
+ * into corner_items, where every item has the same optional parts: a link, a picture, notes and
+ * a location. Postgres runs the whole migration in one transaction, so a failed count check below
+ * rolls everything back and leaves the old tables as they were.
  *
  * History's stored links still say "corner.song 5" and /apps/our-corner/songs/5. Each moved
  * item keeps that old pair in legacy_type / legacy_id, and new ids start above every old id,
@@ -24,18 +26,15 @@ return new class extends Migration
     private const LEGACY = [
         'corner_songs' => [
             'list' => [
-                'name' => 'Songs', 'slug' => 'songs', 'kind' => 'link', 'icon' => 'music',
+                'name' => 'Songs', 'slug' => 'songs', 'icon' => 'music',
                 'done_label' => 'Loved', 'todo_label' => 'Playlist', 'done_icon' => 'heart',
             ],
             'legacy_type' => 'corner.song',
-            'columns' => [
-                'title' => 'title', 'url' => 'url', 'image_url' => 'thumbnail_url',
-                'author' => 'author', 'provider' => 'provider', 'provider_id' => 'provider_id',
-            ],
+            'columns' => ['title' => 'title', 'url' => 'url', 'image_url' => 'thumbnail_url', 'author' => 'author'],
         ],
         'corner_movies' => [
             'list' => [
-                'name' => 'Movies', 'slug' => 'movies', 'kind' => 'poster', 'icon' => 'film',
+                'name' => 'Movies', 'slug' => 'movies', 'icon' => 'film',
                 'done_label' => 'Watched', 'todo_label' => 'To watch', 'done_icon' => 'check',
             ],
             'legacy_type' => 'corner.movie',
@@ -43,7 +42,7 @@ return new class extends Migration
         ],
         'corner_activities' => [
             'list' => [
-                'name' => 'Activities', 'slug' => 'activities', 'kind' => 'plain', 'icon' => 'compass',
+                'name' => 'Activities', 'slug' => 'activities', 'icon' => 'compass',
                 'done_label' => 'Done', 'todo_label' => 'To do', 'done_icon' => 'check',
             ],
             'legacy_type' => 'corner.activity',
@@ -51,13 +50,14 @@ return new class extends Migration
         ],
         'corner_places' => [
             'list' => [
-                'name' => 'Places', 'slug' => 'places', 'kind' => 'place', 'icon' => 'map-pin',
+                'name' => 'Places', 'slug' => 'places', 'icon' => 'map-pin',
                 'done_label' => 'Visited', 'todo_label' => 'Wishlist', 'done_icon' => 'check',
             ],
             'legacy_type' => 'corner.place',
+            // A place's name is both the item's name and its location's label.
             'columns' => [
-                'title' => 'title', 'place_id' => 'place_id', 'lat' => 'lat', 'lng' => 'lng',
-                'address' => 'address',
+                'title' => 'title', 'location_label' => 'title', 'place_id' => 'place_id',
+                'lat' => 'lat', 'lng' => 'lng', 'address' => 'address',
             ],
         ],
     ];
@@ -73,8 +73,7 @@ return new class extends Migration
             $table->string('name', 60);
             // Fixed when the list is made: links, notifications and NFC tags point at it.
             $table->string('slug', 80)->unique();
-            $table->string('kind', 16);
-            $table->string('icon', 32);
+            $table->string('icon', 64);
             $table->string('done_label', 24);
             $table->string('todo_label', 24);
             $table->string('done_icon', 8)->default('check');
@@ -97,13 +96,16 @@ return new class extends Migration
             $table->foreignId('done_by_user_id')->nullable()->constrained('users')->nullOnDelete();
             $table->string('title');
             $table->text('notes')->nullable();
-            // The link itself for a link list, the Plex link for a poster list.
             $table->string('url', 2048)->nullable();
+            // The normalised link, hashed: the same page twice in one list is refused.
+            $table->string('url_key', 64)->nullable();
+            // Where the picture comes from. Pages show it through the picture route, never directly.
             $table->string('image_url', 2048)->nullable();
             $table->string('author')->nullable();
-            $table->string('provider', 16)->nullable();
-            $table->string('provider_id', 64)->nullable();
-            // Set when the place was picked from Google's search; typed-in places have none.
+            $table->string('site_name', 120)->nullable();
+            $table->string('location_label')->nullable();
+            $table->string('location_url', 2048)->nullable();
+            // Set when the place was picked from a place search; typed places have none.
             $table->string('place_id')->nullable();
             $table->decimal('lat', 10, 7)->nullable();
             $table->decimal('lng', 10, 7)->nullable();
@@ -114,7 +116,7 @@ return new class extends Migration
 
             $table->index(['list_id', 'added_at']);
             $table->index(['list_id', 'done_at']);
-            $table->unique(['list_id', 'provider', 'provider_id'], 'unq_corner_items_provider');
+            $table->unique(['list_id', 'url_key'], 'unq_corner_items_link');
             $table->unique(['legacy_type', 'legacy_id'], 'unq_corner_items_legacy');
         });
 
@@ -168,8 +170,37 @@ return new class extends Migration
                 [$listId, $spec['legacy_type']],
             );
 
+            $this->fillLinkKeys($listId);
             $this->assertMoved($table, $listId);
         }
+    }
+
+    /**
+     * The link's key and the site it is on are worked out in PHP, the same way a new item's
+     * are. Two old rows with the same link (two movies sharing one share link) keep the link;
+     * only the first carries the key.
+     */
+    private function fillLinkKeys(int $listId): void
+    {
+        $seen = [];
+
+        DB::table('corner_items')
+            ->where('list_id', $listId)
+            ->whereNotNull('url')
+            ->orderBy('id')
+            ->get(['id', 'url'])
+            ->each(function (object $row) use (&$seen): void {
+                $key = LinkKey::for((string) $row->url);
+                $unique = $key !== null && ! isset($seen[$key]);
+                if ($unique) {
+                    $seen[$key] = true;
+                }
+
+                DB::table('corner_items')->where('id', $row->id)->update([
+                    'url_key' => $unique ? $key : null,
+                    'site_name' => LinkKey::siteOf((string) $row->url),
+                ]);
+            });
     }
 
     private function assertMoved(string $table, int $listId): void
@@ -193,7 +224,8 @@ return new class extends Migration
 
     /**
      * Puts the four original lists back into their own tables. Lists a household made itself
-     * have nowhere to go and are dropped with corner_lists.
+     * have nowhere to go and are dropped with corner_lists. A song needs a provider and an id
+     * to be unique on; those come back as "link" and the item's link key.
      */
     public function down(): void
     {
@@ -202,21 +234,30 @@ return new class extends Migration
         foreach (self::LEGACY as $table => $spec) {
             $listId = DB::table('corner_lists')
                 ->where('slug', $spec['list']['slug'])
-                ->where('kind', $spec['list']['kind'])
+                ->whereNull('created_by_user_id')
                 ->value('id');
 
             if ($listId === null) {
                 continue;
             }
 
-            $target = implode(', ', [...array_values($spec['columns']), ...self::SHARED_COLUMNS]);
-            $source = implode(', ', [...array_keys($spec['columns']), ...self::SHARED_COLUMNS]);
+            $columns = $spec['columns'];
+            unset($columns['location_label']);
+
+            $target = implode(', ', [...array_values($columns), ...self::SHARED_COLUMNS]);
+            $source = implode(', ', [...array_keys($columns), ...self::SHARED_COLUMNS]);
+
+            if ($table === 'corner_songs') {
+                $target .= ', provider, provider_id';
+                $source .= ", 'link', left(coalesce(url_key, md5(coalesce(url, '') || id::text)), 64)";
+            }
 
             // Old ids are all below the new ones, so reusing both can't collide.
             DB::statement(
                 "insert into {$table} (id, {$target})
-                 select coalesce(legacy_id, id), {$source} from corner_items where list_id = ? order by id",
-                [$listId],
+                 select coalesce(legacy_id, id), {$source} from corner_items
+                 where list_id = ? and (? = false or url is not null) order by id",
+                [$listId, $table === 'corner_songs'],
             );
 
             DB::statement(

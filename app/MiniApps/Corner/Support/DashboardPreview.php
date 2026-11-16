@@ -12,15 +12,17 @@ final class DashboardPreview
     /** @return array{images: list<string>}|null */
     public static function forUser(User $user): ?array
     {
-        // Only link and poster lists store artwork, so any image is a cover.
         $images = Item::query()
             ->whereNotNull('image_url')
             ->orderByDesc('added_at')
             ->orderByDesc('id')
             ->limit(self::COVERS * 2)
-            ->pluck('image_url')
-            ->unique()
+            ->get(['id', 'image_url'])
+            // One picture shown once, however many items share it.
+            ->unique('image_url')
             ->take(self::COVERS)
+            ->map(fn (Item $item): ?string => $item->pictureUrl())
+            ->filter()
             ->values()
             ->all();
 

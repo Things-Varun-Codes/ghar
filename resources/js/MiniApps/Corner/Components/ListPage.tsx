@@ -42,7 +42,6 @@ type ListPageProps<TItem extends ItemConstraint> = {
         active?: ReactNode;
         done?: ReactNode;
     };
-    layout?: 'rows' | 'tiles';
     query?: string;
     searchPlaceholder?: string;
     sort?: string;
@@ -63,7 +62,6 @@ export default function ListPage<TItem extends ItemConstraint>({
     onOpenAddDialog,
     renderItem,
     emptyState,
-    layout = 'rows',
     query,
     searchPlaceholder,
     sort,
@@ -165,18 +163,9 @@ export default function ListPage<TItem extends ItemConstraint>({
                 role="tabpanel"
                 className={cn(
                     navigating && 'shell-list-pending',
-                    layout === 'tiles' && 'corner-tile-grid',
-                    'grid [align-items:start] gap-4',
+                    'corner-item-grid grid [align-items:start] gap-4',
                 )}
                 aria-busy={navigating}
-                style={{
-                    ...(layout === 'tiles'
-                        ? {}
-                        : {
-                              gridTemplateColumns:
-                                  'repeat(auto-fill, minmax(min(360px, 100%), 1fr))',
-                          }),
-                }}
             >
                 {items.length === 0 ? (
                     <div className="[grid-column:1_/_-1]">

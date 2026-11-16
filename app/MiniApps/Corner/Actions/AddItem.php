@@ -18,11 +18,11 @@ class AddItem
         private readonly PushDispatcher $dispatcher,
     ) {}
 
-    /** @param  array<string, mixed>  $data validated against the list's kind */
+    /** @param  array<string, mixed>  $data validated by ItemRules */
     public function __invoke(CornerList $list, array $data, User $adder): Item
     {
         // Looked up before the transaction: it can be a slow network call.
-        $attributes = $this->details->for($list->kind, $data);
+        $attributes = $this->details->for($data);
 
         try {
             return DB::transaction(function () use ($list, $attributes, $adder): Item {

@@ -18,6 +18,7 @@ import {
 } from '@/components/ui/sheet';
 import { useMediaQuery } from '@/hooks/use-media-query';
 import { entityIcon } from '@/Shell/linkables/entityIcon';
+import LinkableIcon from '@/Shell/linkables/LinkableIcon';
 
 // A literal on purpose: Corner owns this route, and the shell must build with Corner disabled.
 const LINKABLE_SEARCH_URL = '/api/linkable/search';
@@ -29,6 +30,7 @@ export type PickedEntity = {
     title: string;
     thumbnailUrl: string | null;
     deepLinkUrl: string | null;
+    icon: string | null;
 };
 
 type ApiResultRow = {
@@ -39,6 +41,8 @@ type ApiResultRow = {
     deep_link_url?: string | null;
     /* The list it is in, named by the household. */
     group?: string | null;
+    /* A lucide icon name, drawn when there is no picture. */
+    icon?: string | null;
 };
 
 type Props = {
@@ -172,6 +176,7 @@ export default function EntityLinkPickerDialog({
             title: row.title,
             thumbnailUrl: row.thumbnail_url ?? null,
             deepLinkUrl: row.deep_link_url ?? null,
+            icon: row.icon ?? null,
         });
         onOpenChange(false);
     };
@@ -263,6 +268,10 @@ export default function EntityLinkPickerDialog({
                                     <img
                                         src={row.thumbnail_url}
                                         alt=""
+                                        onError={(e) => {
+                                            e.currentTarget.style.display =
+                                                'none';
+                                        }}
                                         className="shell-picker-thumb"
                                     />
                                 ) : (
@@ -270,12 +279,19 @@ export default function EntityLinkPickerDialog({
                                         aria-hidden="true"
                                         className="shell-picker-icon"
                                     >
-                                        {React.createElement(
-                                            entityIcon(row.type),
-                                            {
-                                                size: 18,
-                                                'aria-hidden': true,
-                                            },
+                                        {row.icon ? (
+                                            <LinkableIcon
+                                                name={row.icon}
+                                                size={18}
+                                            />
+                                        ) : (
+                                            React.createElement(
+                                                entityIcon(row.type),
+                                                {
+                                                    size: 18,
+                                                    'aria-hidden': true,
+                                                },
+                                            )
                                         )}
                                     </span>
                                 )}
@@ -288,12 +304,19 @@ export default function EntityLinkPickerDialog({
                                             aria-hidden="true"
                                             className="mr-[3px] inline-flex align-middle"
                                         >
-                                            {React.createElement(
-                                                entityIcon(row.type),
-                                                {
-                                                    size: 13,
-                                                    'aria-hidden': true,
-                                                },
+                                            {row.icon ? (
+                                                <LinkableIcon
+                                                    name={row.icon}
+                                                    size={13}
+                                                />
+                                            ) : (
+                                                React.createElement(
+                                                    entityIcon(row.type),
+                                                    {
+                                                        size: 13,
+                                                        'aria-hidden': true,
+                                                    },
+                                                )
                                             )}
                                         </span>
                                         {row.group ??

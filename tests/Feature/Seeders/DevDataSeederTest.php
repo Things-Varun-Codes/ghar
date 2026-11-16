@@ -3,7 +3,10 @@
 namespace Tests\Feature\Seeders;
 
 use App\MiniApps\Corner\Models\CornerList;
+use App\MiniApps\Corner\Models\Item;
 use App\MiniApps\Corner\Policies\CornerListPolicy;
+use App\MiniApps\Corner\Support\ListIcon;
+use App\MiniApps\Corner\Support\PictureCache;
 use App\MiniApps\History\Models\Event;
 use App\MiniApps\Mailbox\Models\Bouquet;
 use App\MiniApps\Mailbox\Models\Citation;
@@ -18,7 +21,9 @@ use Database\Seeders\DevDataSeeder;
 use Database\Seeders\RoleSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Storage;
 use RuntimeException;
 use Spatie\MediaLibrary\MediaCollections\Models\Media;
@@ -28,13 +33,27 @@ class DevDataSeederTest extends TestCase
 {
     use RefreshDatabase;
 
+    private string $storage;
+
     protected function setUp(): void
     {
         parent::setUp();
 
+        // The seeder primes Corner's picture cache under storage/; keep it out of the real one.
+        $this->storage = sys_get_temp_dir().'/ghar-seed-test-'.bin2hex(random_bytes(4));
+        File::ensureDirectoryExists($this->storage);
+        $this->app->useStoragePath($this->storage);
+
         config(['shell.media_disk' => 'local', 'services.bouquet.disk' => 'local', 'media-library.disk_name' => 'local']);
         Storage::fake('local');
         (new RoleSeeder)->run();
+    }
+
+    protected function tearDown(): void
+    {
+        File::deleteDirectory($this->storage);
+
+        parent::tearDown();
     }
 
     private function user(string $email): User
@@ -94,13 +113,37 @@ class DevDataSeederTest extends TestCase
         $books = CornerList::query()->where('slug', 'books')->firstOrFail();
         $this->assertSame($ravi->id, $books->created_by_user_id);
         $this->assertTrue((new CornerListPolicy)->delete($ravi, $books));
-        $shared = CornerList::query()->where('created_by_user_id', $meera->id)->firstOrFail();
+        $shared = CornerList::query()->where('slug', 'restaurants-we-keep-meaning-to-try-on-a-slow-sunday')->firstOrFail();
+        $this->assertSame($meera->id, $shared->created_by_user_id);
         $this->assertGreaterThan(40, mb_strlen($shared->name));
         $this->assertFalse((new CornerListPolicy)->delete($meera, $shared));
         $this->assertTrue((new CornerListPolicy)->update($meera, $shared));
         $quiet = CornerList::query()->where('created_by_user_id', $kabir->id)->firstOrFail();
         $this->assertFalse($quiet->notify_on_add);
         $this->assertSame(0, $quiet->items()->count());
+
+        // Every icon is one the page can draw, and the ids the docs name stay put.
+        foreach (CornerList::all() as $list) {
+            $this->assertTrue(ListIcon::isValid($list->icon), "{$list->slug} icon {$list->icon}");
+        }
+        $this->assertSame(range(100, 161), $songs->items()->orderBy('id')->pluck('id')->all());
+        $this->assertSame([185, 186], $shared->items()->orderBy('id')->pluck('id')->all());
+        $weekend = CornerList::query()->where('slug', 'weekend-ideas')->firstOrFail();
+        $this->assertSame('sailboat', $weekend->icon);
+        $this->assertSame($meera->id, $weekend->created_by_user_id);
+        $this->assertSame(range(187, 191), $weekend->items()->orderBy('id')->pluck('id')->all());
+
+        // Every web picture is already in the cache: pages show them without the network.
+        Http::fake();
+        $pictures = Item::query()->where('image_url', 'like', 'http%')->pluck('image_url')->unique();
+        $this->assertNotEmpty($pictures);
+        foreach ($pictures as $picture) {
+            $this->assertNotNull(app(PictureCache::class)->get($picture), "{$picture} is not primed");
+        }
+        Http::assertNothingSent();
+
+        // Every link carries the key a new one would, so pasting it again is a duplicate.
+        $this->assertSame(0, Item::query()->whereNotNull('url')->whereNull('url_key')->count());
 
         // Every Corner link a moment holds, old-style or new, resolves.
         $linkable = app(LinkableEntities::class);

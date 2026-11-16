@@ -4,6 +4,7 @@ namespace Tests\Feature\Corner;
 
 use App\MiniApps\Corner\Models\CornerList;
 use App\MiniApps\Corner\Models\Item;
+use App\MiniApps\Corner\Support\LinkKey;
 use App\Shell\Models\User;
 use App\Shell\Services\LinkableEntities;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -104,7 +105,6 @@ class CornerListsMigrationTest extends TestCase
     private const COLUMNS = [
         'corner_songs' => [
             'title' => 'title', 'url' => 'url', 'thumbnail_url' => 'image_url', 'author' => 'author',
-            'provider' => 'provider', 'provider_id' => 'provider_id',
         ],
         'corner_movies' => ['title' => 'title', 'plex_url' => 'url', 'poster_url' => 'image_url'],
         'corner_activities' => ['title' => 'title', 'notes' => 'notes'],
@@ -150,18 +150,18 @@ class CornerListsMigrationTest extends TestCase
         $lists = DB::table('corner_lists')->orderBy('position')->get();
         $this->assertSame(
             [
-                ['songs', 'Songs', 'link', 'Loved', 'heart', 0],
-                ['movies', 'Movies', 'poster', 'Watched', 'check', 1],
-                ['activities', 'Activities', 'plain', 'Done', 'check', 2],
-                ['places', 'Places', 'place', 'Visited', 'check', 3],
+                ['songs', 'Songs', 'music', 'Loved', 'heart', 0],
+                ['movies', 'Movies', 'film', 'Watched', 'check', 1],
+                ['activities', 'Activities', 'compass', 'Done', 'check', 2],
+                ['places', 'Places', 'map-pin', 'Visited', 'check', 3],
             ],
-            $lists->map(fn ($l) => [$l->slug, $l->name, $l->kind, $l->done_label, $l->done_icon, (int) $l->position])->all(),
+            $lists->map(fn ($l) => [$l->slug, $l->name, $l->icon, $l->done_label, $l->done_icon, (int) $l->position])->all(),
         );
         foreach ($lists as $list) {
             $this->assertNull($list->created_by_user_id);
             $this->assertTrue((bool) $list->notify_on_add);
             $this->assertNotSame('', $list->todo_label);
-            $this->assertNotSame('', $list->icon);
+            $this->assertFalse(property_exists($list, 'kind'));
         }
         $listIds = $lists->pluck('id', 'slug');
 
@@ -187,10 +187,25 @@ class CornerListsMigrationTest extends TestCase
                     $this->assertSame($old[$column], $new[$column], "{$table} {$old['id']} {$column}");
                 }
 
-                // What this kind doesn't use stays empty.
+                // A link gets its key and site the way a new one would.
+                $filled = [];
+                if ($new['url'] !== null) {
+                    $this->assertSame(LinkKey::for($new['url']), $new['url_key'], "{$table} {$old['id']} url_key");
+                    $this->assertSame(LinkKey::siteOf($new['url']), $new['site_name'], "{$table} {$old['id']} site_name");
+                    $filled = ['url_key', 'site_name'];
+                }
+
+                // A place's name is also its location's label.
+                if ($table === 'corner_places') {
+                    $this->assertSame($old['title'], $new['location_label']);
+                    $filled[] = 'location_label';
+                }
+
+                // What the old table didn't have stays empty.
                 $unused = array_diff(
-                    ['notes', 'url', 'image_url', 'author', 'provider', 'provider_id', 'place_id', 'lat', 'lng', 'address'],
+                    ['notes', 'url', 'url_key', 'image_url', 'author', 'site_name', 'location_label', 'location_url', 'place_id', 'lat', 'lng', 'address'],
                     self::COLUMNS[$table],
+                    $filled,
                 );
                 foreach ($unused as $column) {
                     $this->assertNull($new[$column], "{$table} {$old['id']} {$column} should be null");
@@ -290,11 +305,19 @@ class CornerListsMigrationTest extends TestCase
 
         $after = $this->dumpOldTables();
         $addedRow = array_pop($after['corner_songs']);
+
+        // There are no provider columns any more: a song comes back as a "link" keyed by its
+        // link key. Everything else is as it was.
+        foreach ($before['corner_songs'] as $i => $song) {
+            $before['corner_songs'][$i]['provider'] = 'link';
+            $before['corner_songs'][$i]['provider_id'] = LinkKey::for($song['url']);
+        }
         $this->assertSame($before, $after);
 
         $this->assertSame($added->id, $addedRow['id']);
         $this->assertSame($added->url, $addedRow['url']);
-        $this->assertSame($added->provider_id, $addedRow['provider_id']);
+        $this->assertSame('link', $addedRow['provider']);
+        $this->assertSame($added->url_key, $addedRow['provider_id']);
 
         // The old tables keep counting from where the rows left off.
         $next = DB::table('corner_activities')->insertGetId([
@@ -302,6 +325,37 @@ class CornerListsMigrationTest extends TestCase
             'created_at' => now(), 'updated_at' => now(),
         ]);
         $this->assertGreaterThan(6, $next);
+    }
+
+    public function test_the_same_link_twice_in_an_old_table_keeps_both_rows_and_only_the_first_gets_the_key(): void
+    {
+        $rows = $this->oldRows();
+        $share = 'https://watch.example.com/movie/shared';
+        $rows['corner_movies'][0]['plex_url'] = $share;
+        $rows['corner_movies'][1]['plex_url'] = $share;
+        // Different provider ids, but the same page once tracking is dropped.
+        $rows['corner_songs'][1]['url'] = 'https://www.youtube.com/watch?v=dQw4w9WgXcQ&utm_source=share';
+        foreach ($rows as $table => $tableRows) {
+            DB::table($table)->insert($tableRows);
+        }
+
+        $this->migrate('up');
+
+        foreach (['corner.movie' => [1, 20], 'corner.song' => [3, 7]] as $type => [$first, $second]) {
+            $a = Item::query()->where('legacy_type', $type)->where('legacy_id', $first)->sole();
+            $b = Item::query()->where('legacy_type', $type)->where('legacy_id', $second)->sole();
+
+            $this->assertNotNull($a->url_key, "{$type} {$first}");
+            $this->assertSame(LinkKey::for((string) $b->url), $a->url_key);
+            $this->assertNull($b->url_key, "{$type} {$second}");
+            $this->assertNotNull($b->url);
+            $this->assertNotNull($b->site_name);
+        }
+
+        // And it still rolls back: the keyless song gets a stand-in id.
+        $this->migrate('down');
+        $this->assertSame(3, DB::table('corner_songs')->count());
+        $this->assertSame(2, DB::table('corner_movies')->where('plex_url', $share)->count());
     }
 
     public function test_up_then_down_then_up_again_is_stable(): void

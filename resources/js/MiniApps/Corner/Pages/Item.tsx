@@ -1,14 +1,18 @@
 import { router } from '@inertiajs/react';
-import { ArrowUpRight } from 'lucide-react';
-import { useState } from 'react';
+import { ArrowUpRight, MapPin } from 'lucide-react';
+import { useMemo, useState } from 'react';
 import DetailPage from '@/MiniApps/Corner/Components/DetailPage';
-import ItemDialog from '@/MiniApps/Corner/Components/ItemDialog';
+import ItemSheet from '@/MiniApps/Corner/Components/ItemSheet';
+import ItemThumb from '@/MiniApps/Corner/Components/ItemThumb';
 import type { MentionedInRef } from '@/MiniApps/Corner/Components/MentionedInList';
-import PlexLink from '@/MiniApps/Corner/Components/PlexLink';
-import { providerName } from '@/MiniApps/Corner/Components/ProviderLink';
 import { useItemActions } from '@/MiniApps/Corner/Hooks/useItemActions';
 import CornerLayout from '@/MiniApps/Corner/Layouts/CornerLayout';
-import { ListIcon } from '@/MiniApps/Corner/lib/list-icons';
+import {
+    hasPlace,
+    mapsHref,
+    placeLabel,
+    platformOf,
+} from '@/MiniApps/Corner/lib/maps';
 import type { CornerItem, CornerListInfo } from '@/MiniApps/Corner/lib/types';
 import { show as showList } from '@/routes/apps/our-corner/lists';
 
@@ -18,23 +22,21 @@ type Props = {
     mentioned_in: MentionedInRef[];
 };
 
-// A plain search link needs no API key; a picked place also pins the exact listing.
-function googleMapsUrl(item: CornerItem): string {
-    const params = new URLSearchParams({
-        api: '1',
-        query: [item.title, item.address].filter(Boolean).join(', '),
-        ...(item.place_id ? { query_place_id: item.place_id } : {}),
-    });
-
-    return `https://www.google.com/maps/search/?${params.toString()}`;
-}
-
-function ExternalCta({ href, label }: { href: string; label: string }) {
+function ExternalCta({
+    href,
+    label,
+    newTab = true,
+}: {
+    href: string;
+    label: string;
+    newTab?: boolean;
+}) {
     return (
         <a
             href={href}
-            target="_blank"
-            rel="noopener noreferrer"
+            {...(newTab
+                ? { target: '_blank', rel: 'noopener noreferrer' }
+                : {})}
             className="corner-detail-cta shell-press"
         >
             {label}
@@ -44,10 +46,12 @@ function ExternalCta({ href, label }: { href: string; label: string }) {
 }
 
 export default function Item({ list, item, mentioned_in }: Props) {
-    const [imageBroken, setImageBroken] = useState(false);
     const [editOpen, setEditOpen] = useState(false);
     const listUrl = showList.url(list.slug);
-    const provider = providerName(item.provider);
+    const maps = useMemo(
+        () => mapsHref(item, platformOf(navigator.userAgent)),
+        [item],
+    );
 
     const itemActions = useItemActions({
         id: item.id,
@@ -56,108 +60,9 @@ export default function Item({ list, item, mentioned_in }: Props) {
         onDeleted: () => router.visit(listUrl),
     });
 
-    const hero = () => {
-        switch (list.kind) {
-            case 'link':
-                return (
-                    <div className="corner-cd corner-cd--lg corner-detail-hero-media">
-                        {item.image_url && !imageBroken ? (
-                            <img
-                                src={item.image_url}
-                                alt=""
-                                className="corner-cd-cover"
-                                onError={() => setImageBroken(true)}
-                            />
-                        ) : (
-                            <div
-                                className="corner-cd-fallback"
-                                aria-hidden="true"
-                            >
-                                <ListIcon
-                                    name={list.icon}
-                                    size={48}
-                                    strokeWidth={1.5}
-                                    className="corner-detail-fallback-icon"
-                                />
-                            </div>
-                        )}
-                    </div>
-                );
-            case 'poster':
-                return item.image_url && !imageBroken ? (
-                    <img
-                        src={item.image_url}
-                        alt=""
-                        onError={() => setImageBroken(true)}
-                        className="corner-detail-poster corner-detail-hero-media"
-                    />
-                ) : (
-                    <div
-                        aria-hidden="true"
-                        className="corner-detail-poster-fallback corner-detail-hero-media"
-                    >
-                        <ListIcon
-                            name={list.icon}
-                            size={48}
-                            strokeWidth={1.5}
-                            className="corner-detail-fallback-icon"
-                        />
-                    </div>
-                );
-            case 'place':
-                return (
-                    <div className="corner-detail-place">
-                        <ListIcon
-                            name={list.icon}
-                            aria-hidden="true"
-                            size={28}
-                            strokeWidth={1.5}
-                            className="corner-detail-place-icon"
-                        />
-                        <div>
-                            {item.address && (
-                                <p className="corner-detail-lede">
-                                    {item.address}
-                                </p>
-                            )}
-                            {item.lat !== null && item.lng !== null && (
-                                <p className="corner-detail-coords">
-                                    {item.lat.toFixed(5)}, {item.lng.toFixed(5)}
-                                </p>
-                            )}
-                        </div>
-                    </div>
-                );
-            case 'plain':
-                return null;
-        }
-    };
-
-    const externalCta = () => {
-        if (list.kind === 'place') {
-            return (
-                <ExternalCta
-                    href={googleMapsUrl(item)}
-                    label="Open in Google Maps"
-                />
-            );
-        }
-
-        if (!item.url) {
-            return null;
-        }
-
-        if (list.kind === 'poster') {
-            return <PlexLink href={item.url} />;
-        }
-
-        return (
-            <ExternalCta
-                href={item.url}
-                label={provider ? `Open in ${provider}` : 'Open link'}
-            />
-        );
-    };
+    const byline = [item.author, item.site_name]
+        .filter((part, i, all) => part && all.indexOf(part) === i)
+        .join(' · ');
 
     return (
         <CornerLayout>
@@ -166,28 +71,76 @@ export default function Item({ list, item, mentioned_in }: Props) {
                 back={{ href: listUrl, label: list.name }}
                 can={item.can}
                 addedByName={item.addedBy.name}
-                metaSuffix={provider ?? undefined}
                 mentionedIn={mentioned_in}
                 isDone={item.is_done}
                 doneIcon={list.done_icon}
                 doneLabel={list.done_label}
                 itemActions={itemActions}
-                hero={hero}
+                hero={() => (
+                    <ItemThumb
+                        pictureUrl={item.picture_url}
+                        icon={list.icon}
+                        size="lg"
+                        className="corner-detail-hero-media"
+                    />
+                )}
                 body={() => (
                     <>
-                        {list.kind === 'link' && item.author && (
-                            <p className="corner-detail-lede">{item.author}</p>
+                        {byline && (
+                            <p className="corner-detail-lede">{byline}</p>
                         )}
                         {item.notes && (
                             <p className="corner-detail-notes">{item.notes}</p>
                         )}
+                        {hasPlace(item) && (
+                            <div className="corner-detail-place">
+                                <MapPin
+                                    aria-hidden="true"
+                                    size={22}
+                                    strokeWidth={1.5}
+                                    className="corner-detail-place-icon"
+                                />
+                                <div>
+                                    <p className="corner-detail-lede">
+                                        {placeLabel(item)}
+                                    </p>
+                                    {item.address &&
+                                        item.address !== placeLabel(item) && (
+                                            <p className="corner-detail-coords">
+                                                {item.address}
+                                            </p>
+                                        )}
+                                </div>
+                            </div>
+                        )}
                     </>
                 )}
-                externalCta={externalCta}
+                externalCta={() => (
+                    <>
+                        {item.url && (
+                            <ExternalCta
+                                href={item.url}
+                                label={
+                                    item.site_name
+                                        ? `Open on ${item.site_name}`
+                                        : 'Open the link'
+                                }
+                            />
+                        )}
+                        {maps && (
+                            // A geo: address hands over to the phone's maps app, not a tab.
+                            <ExternalCta
+                                href={maps}
+                                label="Open in Maps"
+                                newTab={!maps.startsWith('geo:')}
+                            />
+                        )}
+                    </>
+                )}
             />
 
             {item.can.update && editOpen && (
-                <ItemDialog
+                <ItemSheet
                     list={list}
                     item={item}
                     open

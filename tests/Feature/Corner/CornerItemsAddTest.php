@@ -5,8 +5,9 @@ namespace Tests\Feature\Corner;
 use App\MiniApps\Corner\Actions\AddItem;
 use App\MiniApps\Corner\Models\CornerList;
 use App\MiniApps\Corner\Models\Item;
+use App\MiniApps\Corner\Services\SafeFetcher;
 use App\MiniApps\Corner\Support\ItemDetails;
-use App\MiniApps\Corner\Support\ListKind;
+use App\MiniApps\Corner\Support\LinkKey;
 use App\Shell\Models\User;
 use App\Shell\Notifications\GenericPushNotification;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -25,48 +26,53 @@ class CornerItemsAddTest extends TestCase
     use MakesCornerLists;
     use RefreshDatabase;
 
-    private const YOUTUBE = 'https://www.youtube.com/watch?v=dQw4w9WgXcQ';
+    private const SONG = 'https://music.example.com/watch?v=abc123';
 
-    private function fakeYouTube(): void
+    protected function setUp(): void
+    {
+        parent::setUp();
+        $this->publicDns();
+    }
+
+    private function fakeSongPage(): void
     {
         Http::fake([
-            'youtube.com/oembed*' => Http::response([
-                'title' => 'Test Track',
-                'author_name' => 'Test Artist',
-                'thumbnail_url' => 'https://i.ytimg.com/vi/dQw4w9WgXcQ/hqdefault.jpg',
-            ], 200),
+            'music.example.com/*' => Http::response(
+                '<html><head><title>Ignored title</title>'
+                .'<meta property="og:title" content="Test Track">'
+                .'<meta property="og:image" content="/covers/abc.jpg">'
+                .'<meta property="og:site_name" content="Example Music">'
+                .'<meta name="author" content="Test Artist">'
+                .'</head><body></body></html>',
+                200,
+                ['Content-Type' => 'text/html; charset=utf-8'],
+            ),
         ]);
     }
 
     /**
-     * @return array<string, array{0: ListKind, 1: array<string, mixed>, 2: string}>
+     * @return array<string, array{0: string, 1: array<string, mixed>, 2: string}>
      */
-    public static function kinds(): array
+    public static function shapes(): array
     {
         return [
-            'link' => [ListKind::Link, ['url' => self::YOUTUBE], 'Test Track'],
-            'poster' => [ListKind::Poster, ['title' => 'Inception'], 'Inception'],
-            'plain' => [ListKind::Plain, ['title' => 'Beach trip'], 'Beach trip'],
-            'place' => [ListKind::Place, [
-                'title' => 'Sydney Opera House',
-                'place_id' => 'ChIJ3S-JXmauEmsRUcIaWtf4MzE',
-                'lat' => -33.8568,
-                'lng' => 151.2153,
-                'address' => 'Bennelong Point, Sydney NSW 2000',
-            ], 'Sydney Opera House'],
+            'a link' => ['songs', ['url' => self::SONG], 'Test Track'],
+            'a name' => ['movies', ['title' => 'Inception'], 'Inception'],
+            'a name and notes' => ['activities', ['title' => 'Beach trip', 'notes' => 'Bring towels'], 'Beach trip'],
+            'a place' => ['places', ['title' => 'Sydney Opera House', 'location' => '-33.8568, 151.2153'], 'Sydney Opera House'],
         ];
     }
 
     /** @param  array<string, mixed>  $payload */
-    #[DataProvider('kinds')]
-    public function test_adding_an_item_toasts_redirects_to_the_bare_list_and_pushes_the_household(ListKind $kind, array $payload, string $title): void
+    #[DataProvider('shapes')]
+    public function test_adding_an_item_toasts_redirects_to_the_bare_list_and_pushes_the_household(string $slug, array $payload, string $title): void
     {
         Notification::fake();
-        $this->fakeYouTube();
+        $this->fakeSongPage();
 
         $adder = User::factory()->create(['name' => 'Alice Smith']);
         $recipient = User::factory()->create(['name' => 'Bob Jones']);
-        $list = $this->listOfKind($kind);
+        $list = $this->listCalled($slug);
 
         $this->actingAs($adder)
             ->from("/apps/our-corner/{$list->slug}?q=zzz&filter=done")
@@ -179,143 +185,179 @@ class CornerItemsAddTest extends TestCase
         $this->assertSame(0, Item::count());
     }
 
-    /** @return array<string, array{0: ListKind}> */
-    public static function titledKinds(): array
+    public function test_a_name_is_required_unless_there_is_a_link_to_take_one_from(): void
     {
-        return [
-            'poster' => [ListKind::Poster],
-            'plain' => [ListKind::Plain],
-            'place' => [ListKind::Place],
-        ];
+        Notification::fake();
+        Http::fake(['*' => Http::response('', 500)]);
+        $list = $this->activities();
+        $user = User::factory()->create();
+
+        $this->actingAs($user)
+            ->from("/apps/our-corner/{$list->slug}")
+            ->post("/apps/our-corner/{$list->slug}", ['title' => '  '])
+            ->assertSessionHasErrors(['title' => 'Give it a name, or paste a link to take one from.']);
+        $this->assertSame(0, Item::count());
+
+        $this->actingAs($user)
+            ->post("/apps/our-corner/{$list->slug}", ['url' => 'https://example.com/a-recipe'])
+            ->assertSessionHasNoErrors();
+        $this->assertSame(1, Item::count());
     }
 
-    #[DataProvider('titledKinds')]
-    public function test_a_title_is_required_for_every_kind_but_links(ListKind $kind): void
+    public function test_only_web_addresses_are_links(): void
     {
-        $list = $this->listOfKind($kind);
+        Http::fake();
+        $list = $this->songs();
+        $user = User::factory()->create();
 
-        $this->actingAs(User::factory()->create())
-            ->from("/apps/our-corner/{$list->slug}")
-            ->post("/apps/our-corner/{$list->slug}", [])
-            ->assertSessionHasErrors(['title']);
+        foreach (['not-a-url', 'javascript:alert(1)', 'ftp://example.com/song.mp3'] as $bad) {
+            $this->actingAs($user)
+                ->from('/apps/our-corner/songs')
+                ->post('/apps/our-corner/songs', ['title' => 'X', 'url' => $bad])
+                ->assertSessionHasErrors(['url' => "That doesn't look like a web address."]);
+        }
 
-        $this->assertSame(0, Item::count());
+        $this->actingAs($user)
+            ->from('/apps/our-corner/songs')
+            ->post('/apps/our-corner/songs', ['title' => 'X', 'image_url' => 'data:image/png;base64,AAAA'])
+            ->assertSessionHasErrors(['image_url' => "That doesn't look like the address of a picture."]);
+
+        $this->assertSame(0, $list->items()->count());
+        Http::assertNothingSent();
     }
 
     // Links
 
-    public function test_a_youtube_link_is_looked_up(): void
+    public function test_a_link_fills_the_name_picture_author_and_site_from_its_page(): void
     {
         Notification::fake();
-        $this->fakeYouTube();
+        $this->fakeSongPage();
         $adder = User::factory()->create();
         $list = $this->songs();
 
-        $this->actingAs($adder)->post('/apps/our-corner/songs', ['url' => self::YOUTUBE])->assertRedirect('/apps/our-corner/songs');
+        $this->actingAs($adder)->post('/apps/our-corner/songs', ['url' => self::SONG])->assertRedirect('/apps/our-corner/songs');
 
         $this->assertDatabaseHas('corner_items', [
             'list_id' => $list->id,
-            'url' => self::YOUTUBE,
-            'provider' => 'youtube',
-            'provider_id' => 'dQw4w9WgXcQ',
+            'url' => self::SONG,
+            'url_key' => LinkKey::for(self::SONG),
             'title' => 'Test Track',
             'author' => 'Test Artist',
-            'image_url' => 'https://i.ytimg.com/vi/dQw4w9WgXcQ/hqdefault.jpg',
+            'site_name' => 'Example Music',
+            'image_url' => 'https://music.example.com/covers/abc.jpg',
             'added_by_user_id' => $adder->id,
         ]);
     }
 
-    public function test_a_spotify_link_is_looked_up_without_an_author(): void
+    public function test_a_typed_name_and_a_pasted_picture_win_over_the_page(): void
     {
         Notification::fake();
-        Http::fake([
-            'open.spotify.com/oembed*' => Http::response([
-                'title' => 'Spotify Track - song by Spotify Artist',
-                'thumbnail_url' => 'https://i.scdn.co/image/abc',
-            ], 200),
-        ]);
+        $this->fakeSongPage();
         $this->songs();
 
         $this->actingAs(User::factory()->create())
-            ->post('/apps/our-corner/songs', ['url' => 'https://open.spotify.com/track/3z8h0TU7ReDPLIbEnYhWZb'])
-            ->assertRedirect('/apps/our-corner/songs');
+            ->post('/apps/our-corner/songs', [
+                'url' => self::SONG,
+                'title' => 'Our song',
+                'image_url' => 'https://photos.example.org/us.jpg',
+            ])
+            ->assertSessionHasNoErrors();
 
         $this->assertDatabaseHas('corner_items', [
-            'provider' => 'spotify',
-            'provider_id' => '3z8h0TU7ReDPLIbEnYhWZb',
-            'author' => null,
-            'image_url' => 'https://i.scdn.co/image/abc',
+            'title' => 'Our song',
+            'author' => 'Test Artist',
+            'image_url' => 'https://photos.example.org/us.jpg',
         ]);
-
-        Http::assertSent(fn ($req) => str_starts_with($req->url(), 'https://open.spotify.com/oembed?'));
     }
 
-    public function test_a_typed_title_wins_over_the_looked_up_one(): void
+    public function test_no_picture_keeps_the_pages_picture_off(): void
     {
         Notification::fake();
-        $this->fakeYouTube();
+        $this->fakeSongPage();
         $this->songs();
 
         $this->actingAs(User::factory()->create())
-            ->post('/apps/our-corner/songs', ['url' => self::YOUTUBE, 'title' => 'Our song'])
-            ->assertRedirect();
+            ->post('/apps/our-corner/songs', ['url' => self::SONG, 'no_picture' => true])
+            ->assertSessionHasNoErrors();
 
-        $this->assertDatabaseHas('corner_items', ['title' => 'Our song', 'author' => 'Test Artist', 'provider_id' => 'dQw4w9WgXcQ']);
+        $item = Item::query()->sole();
+        $this->assertSame('Test Track', $item->title);
+        $this->assertNull($item->image_url);
+        $this->assertNull($item->pictureUrl());
     }
 
-    public function test_a_link_whose_lookup_times_out_is_kept_as_itself(): void
+    public function test_a_link_straight_to_a_picture_is_its_own_picture(): void
+    {
+        Notification::fake();
+        Http::fake(['photos.example.org/*' => Http::response('bytes', 200, ['Content-Type' => 'image/jpeg'])]);
+        $this->activities();
+
+        $this->actingAs(User::factory()->create())
+            ->post('/apps/our-corner/activities', ['url' => 'https://photos.example.org/kite.jpg', 'title' => 'Kite day'])
+            ->assertSessionHasNoErrors();
+
+        $this->assertDatabaseHas('corner_items', [
+            'title' => 'Kite day',
+            'image_url' => 'https://photos.example.org/kite.jpg',
+            'site_name' => 'photos.example.org',
+        ]);
+    }
+
+    public function test_a_link_whose_page_times_out_is_kept_as_itself(): void
     {
         Notification::fake();
         Http::fake(fn () => throw new ConnectionException('Timeout'));
         $adder = User::factory()->create();
         $this->songs();
 
-        $url = 'https://www.youtube.com/watch?v=timeoutVid1';
+        $url = 'https://www.example.com/watch?v=timeoutVid1';
 
         $this->actingAs($adder)->post('/apps/our-corner/songs', ['url' => $url])->assertRedirect('/apps/our-corner/songs');
 
         $this->assertDatabaseHas('corner_items', [
             'title' => $url,
             'url' => $url,
-            'provider' => 'unknown',
-            'provider_id' => hash('xxh64', $url),
+            'url_key' => LinkKey::for($url),
+            'site_name' => 'example.com',
+            'author' => null,
             'image_url' => null,
             'added_by_user_id' => $adder->id,
         ]);
     }
 
-    public function test_a_link_from_any_other_site_is_kept_without_a_lookup(): void
+    public function test_a_link_to_a_private_address_is_kept_without_fetching_it(): void
     {
         Notification::fake();
         Http::fake();
+        $this->app->instance(SafeFetcher::class, new SafeFetcher(fn (): array => ['10.0.0.5']));
         $this->songs();
 
-        $url = 'https://example.com/a-recipe';
+        $url = 'https://intranet.example.com/admin';
 
         $this->actingAs(User::factory()->create())
             ->post('/apps/our-corner/songs', ['url' => $url])
-            ->assertRedirect('/apps/our-corner/songs');
+            ->assertSessionHasNoErrors();
 
-        $this->assertDatabaseHas('corner_items', ['title' => $url, 'provider' => 'unknown', 'provider_id' => hash('xxh64', $url)]);
+        $this->assertDatabaseHas('corner_items', ['title' => $url, 'site_name' => 'intranet.example.com', 'image_url' => null]);
         Http::assertNothingSent();
     }
 
     public function test_the_same_link_twice_in_one_list_is_a_field_error_and_no_second_push(): void
     {
         Notification::fake();
-        $this->fakeYouTube();
+        $this->fakeSongPage();
         $adder = User::factory()->create();
         User::factory()->create();
         $list = $this->songs();
 
-        $this->actingAs($adder)->post('/apps/our-corner/songs', ['url' => self::YOUTUBE]);
+        $this->actingAs($adder)->post('/apps/our-corner/songs', ['url' => self::SONG]);
         $this->assertSame(1, $list->items()->count());
         Notification::assertSentTimes(GenericPushNotification::class, 1);
 
-        // youtu.be is the same video, so the same provider id.
+        // Written differently, but the same page.
         $this->actingAs($adder)
             ->from('/apps/our-corner/songs')
-            ->post('/apps/our-corner/songs', ['url' => 'https://youtu.be/dQw4w9WgXcQ'])
+            ->post('/apps/our-corner/songs', ['url' => 'HTTPS://Music.Example.com:443/watch/?utm_source=chat&v=abc123#t=30'])
             ->assertRedirect('/apps/our-corner/songs')
             ->assertSessionHasErrors(['url' => ItemDetails::DUPLICATE_LINK]);
 
@@ -326,185 +368,124 @@ class CornerItemsAddTest extends TestCase
     public function test_the_same_link_may_be_in_two_different_lists(): void
     {
         Notification::fake();
-        $this->fakeYouTube();
+        $this->fakeSongPage();
         $adder = User::factory()->create();
         $this->songs();
-        $other = CornerList::factory()->kind(ListKind::Link)->create();
+        $other = CornerList::factory()->create();
 
-        $this->actingAs($adder)->post('/apps/our-corner/songs', ['url' => self::YOUTUBE])->assertSessionHasNoErrors();
-        $this->actingAs($adder)->post("/apps/our-corner/{$other->slug}", ['url' => self::YOUTUBE])->assertSessionHasNoErrors();
+        $this->actingAs($adder)->post('/apps/our-corner/songs', ['url' => self::SONG])->assertSessionHasNoErrors();
+        $this->actingAs($adder)->post("/apps/our-corner/{$other->slug}", ['url' => self::SONG])->assertSessionHasNoErrors();
 
-        $this->assertSame(2, Item::where('provider_id', 'dQw4w9WgXcQ')->count());
+        $this->assertSame(2, Item::where('url_key', LinkKey::for(self::SONG))->count());
     }
 
-    public function test_a_link_list_needs_a_link(): void
-    {
-        $this->songs();
-        $user = User::factory()->create();
-
-        $this->actingAs($user)
-            ->from('/apps/our-corner/songs')
-            ->post('/apps/our-corner/songs', ['url' => 'not-a-url'])
-            ->assertSessionHasErrors(['url' => "That doesn't look like a link."]);
-
-        $this->actingAs($user)
-            ->from('/apps/our-corner/songs')
-            ->post('/apps/our-corner/songs', ['title' => 'Only a title'])
-            ->assertSessionHasErrors(['url' => 'Paste a link to add it.']);
-
-        $this->assertSame(0, Item::count());
-    }
-
-    public function test_fields_from_another_kind_are_ignored(): void
+    public function test_fields_nobody_may_set_are_ignored(): void
     {
         Notification::fake();
         $list = $this->activities();
 
         $this->actingAs(User::factory()->create())->post("/apps/our-corner/{$list->slug}", [
             'title' => 'Picnic',
-            'url' => 'https://example.com',
-            'image_url' => 'https://example.com/x.jpg',
-            'lat' => 1,
-            'lng' => 2,
+            'url_key' => 'forged',
+            'site_name' => 'Forged',
+            'author' => 'Forged',
+            'place_id' => 'forged',
             'legacy_type' => 'corner.song',
             'legacy_id' => 5,
             'list_id' => 999,
             'added_by_user_id' => 999,
+            'done_at' => now()->toIso8601String(),
         ])->assertRedirect();
 
         $item = Item::query()->sole();
         $this->assertSame($list->id, $item->list_id);
-        $this->assertNull($item->url);
-        $this->assertNull($item->image_url);
-        $this->assertNull($item->lat);
+        $this->assertNull($item->url_key);
+        $this->assertNull($item->site_name);
+        $this->assertNull($item->author);
+        $this->assertNull($item->place_id);
         $this->assertNull($item->legacy_type);
         $this->assertNull($item->legacy_id);
-    }
-
-    // Posters
-
-    public function test_a_client_sent_poster_is_ignored_and_no_plex_link_means_no_lookup(): void
-    {
-        Notification::fake();
-        Http::fake();
-        $this->movies();
-
-        $this->actingAs(User::factory()->create())
-            ->post('/apps/our-corner/movies', ['title' => 'Interstellar', 'image_url' => 'https://example.com/poster.jpg'])
-            ->assertRedirect('/apps/our-corner/movies');
-
-        $this->assertDatabaseHas('corner_items', ['title' => 'Interstellar', 'image_url' => null, 'url' => null]);
-        Http::assertNothingSent();
-    }
-
-    public function test_a_plex_link_is_kept_and_its_poster_looked_up_on_the_server(): void
-    {
-        Notification::fake();
-        Http::fake([
-            'watch.plex.tv/*' => Http::response(
-                '<html><head>'
-                .'<meta property="og:title" content="The Man from Earth">'
-                .'<meta property="og:image" content="https://images.plex.tv/photo?url=server-derived">'
-                .'</head></html>',
-                200,
-            ),
-        ]);
-        $this->movies();
-
-        $this->actingAs(User::factory()->create())
-            ->post('/apps/our-corner/movies', [
-                'title' => 'The Man from Earth',
-                'image_url' => 'https://images.plex.tv/photo?url=client-sent',
-                'url' => 'https://watch.plex.tv/movie/x',
-            ])
-            ->assertRedirect('/apps/our-corner/movies');
-
-        $this->assertDatabaseHas('corner_items', [
-            'title' => 'The Man from Earth',
-            'url' => 'https://watch.plex.tv/movie/x',
-            'image_url' => 'https://images.plex.tv/photo?url=server-derived',
-        ]);
-    }
-
-    public function test_a_poster_list_only_takes_plex_links(): void
-    {
-        Http::fake();
-        $this->movies();
-
-        $this->actingAs(User::factory()->create())
-            ->from('/apps/our-corner/movies')
-            ->post('/apps/our-corner/movies', ['title' => 'X', 'url' => 'https://evil.com/x'])
-            ->assertSessionHasErrors(['url']);
-
-        $this->assertSame(0, Item::count());
-        Http::assertNothingSent();
+        $this->assertNull($item->done_at);
     }
 
     // Places
 
-    public function test_a_place_keeps_its_google_details(): void
+    public function test_a_location_from_a_map_link_stores_its_label_link_and_coordinates(): void
     {
         Notification::fake();
-        $adder = User::factory()->create();
+        Http::fake();
         $this->places();
+        $map = 'https://maps.example.com/maps/place/Sydney+Opera+House/@-33.8567844,151.2152967,17z';
 
-        $this->actingAs($adder)->post('/apps/our-corner/places', [
-            'title' => 'Sydney Opera House',
-            'place_id' => 'ChIJ3S-JXmauEmsRUcIaWtf4MzE',
-            'lat' => -33.8568,
-            'lng' => 151.2153,
+        $this->actingAs(User::factory()->create())->post('/apps/our-corner/places', [
+            'title' => 'The Opera House',
+            'location' => $map,
             'address' => 'Bennelong Point, Sydney NSW 2000',
         ])->assertRedirect('/apps/our-corner/places');
 
         $this->assertDatabaseHas('corner_items', [
-            'title' => 'Sydney Opera House',
-            'place_id' => 'ChIJ3S-JXmauEmsRUcIaWtf4MzE',
+            'title' => 'The Opera House',
+            'location_label' => 'Sydney Opera House',
+            'location_url' => $map,
+            'lat' => '-33.8567844',
+            'lng' => '151.2152967',
             'address' => 'Bennelong Point, Sydney NSW 2000',
-            'added_by_user_id' => $adder->id,
         ]);
+        // The coordinates were in the link: nothing had to be followed.
+        Http::assertNothingSent();
     }
 
-    public function test_a_place_can_be_typed_in_without_google(): void
+    public function test_a_typed_place_stores_only_its_name(): void
     {
         Notification::fake();
-        $adder = User::factory()->create();
+        Http::fake();
         $this->places();
 
-        $this->actingAs($adder)
-            ->post('/apps/our-corner/places', ['title' => 'The bakery on 4th Cross', 'place_id' => '', 'address' => ''])
+        $this->actingAs(User::factory()->create())
+            ->post('/apps/our-corner/places', ['title' => 'Bakery', 'location' => 'The bakery on 4th Cross', 'address' => ''])
             ->assertRedirect('/apps/our-corner/places');
 
         $place = Item::query()->sole();
+        $this->assertSame('The bakery on 4th Cross', $place->location_label);
+        $this->assertNull($place->location_url);
         $this->assertNull($place->place_id);
         $this->assertNull($place->lat);
         $this->assertNull($place->lng);
         $this->assertNull($place->address);
+        Http::assertNothingSent();
     }
 
-    public function test_a_place_needs_a_name_and_both_coordinates_or_none(): void
+    public function test_coordinates_come_in_pairs(): void
     {
         $this->places();
 
         $this->actingAs(User::factory()->create())
             ->from('/apps/our-corner/places')
-            ->post('/apps/our-corner/places', ['title' => '', 'lat' => 12.34])
-            ->assertSessionHasErrors(['title' => 'Give the place a name.', 'lng']);
+            ->post('/apps/our-corner/places', ['title' => 'Half', 'location' => 'Somewhere', 'lat' => 12.34])
+            ->assertSessionHasErrors(['lng']);
+
+        $this->actingAs(User::factory()->create())
+            ->from('/apps/our-corner/places')
+            ->post('/apps/our-corner/places', ['title' => 'Off the map', 'location' => 'Somewhere', 'lat' => 91, 'lng' => 0])
+            ->assertSessionHasErrors(['lat']);
 
         $this->assertSame(0, Item::count());
     }
 
-    public function test_coordinates_keep_seven_decimal_places(): void
+    public function test_coordinates_sent_with_a_named_place_are_kept_to_seven_decimal_places(): void
     {
         Notification::fake();
         $this->places();
 
         $this->actingAs(User::factory()->create())->post('/apps/our-corner/places', [
             'title' => 'Precision Probe',
+            'location' => 'Precision Probe HQ',
             'lat' => 12.3456789,
             'lng' => -98.7654321,
         ])->assertRedirect();
 
         $place = Item::query()->sole();
+        $this->assertSame('Precision Probe HQ', $place->location_label);
         $this->assertSame('12.3456789', $place->lat);
         $this->assertSame('-98.7654321', $place->lng);
     }

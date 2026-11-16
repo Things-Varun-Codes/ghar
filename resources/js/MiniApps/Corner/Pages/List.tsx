@@ -1,16 +1,11 @@
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import ItemDialog from '@/MiniApps/Corner/Components/ItemDialog';
-import ItemRow from '@/MiniApps/Corner/Components/ItemRow';
-import ItemTile from '@/MiniApps/Corner/Components/ItemTile';
+import ItemCard from '@/MiniApps/Corner/Components/ItemCard';
+import ItemSheet from '@/MiniApps/Corner/Components/ItemSheet';
 import ListMenu from '@/MiniApps/Corner/Components/ListMenu';
 import ListPage from '@/MiniApps/Corner/Components/ListPage';
 import CornerLayout from '@/MiniApps/Corner/Layouts/CornerLayout';
-import type {
-    CornerItem,
-    CornerListInfo,
-    ListKind,
-} from '@/MiniApps/Corner/lib/types';
+import type { CornerItem, CornerListInfo } from '@/MiniApps/Corner/lib/types';
 import EmptyState from '@/Shell/Components/EmptyState';
 import type { SortItem } from '@/Shell/Components/ListSortControl';
 import type { Paginated } from '@/types/paginated';
@@ -29,20 +24,11 @@ type Props = {
 const SORT_LABELS: Record<string, string> = {
     recent: 'Recently added',
     title: 'A to Z',
-    artist: 'Artist A to Z',
-};
-
-const FIRST_HINT: Record<ListKind, string> = {
-    link: 'Paste a link to add the first. YouTube and Spotify bring their artwork.',
-    poster: 'Add the first title. A Plex link brings its poster.',
-    place: "Add somewhere you'd like to go.",
-    plain: 'Add the first one.',
 };
 
 export default function List({ list, items, filter, sort, sorts, q }: Props) {
     const [addOpen, setAddOpen] = useState(false);
     const [editing, setEditing] = useState<CornerItem | null>(null);
-    const tiles = list.kind === 'link' || list.kind === 'poster';
     const addLabel = `Add to ${list.name}`;
 
     const sortItems: SortItem[] = sorts.map((key) => ({
@@ -64,7 +50,6 @@ export default function List({ list, items, filter, sort, sorts, q }: Props) {
                 doneLabel={list.done_label}
                 addCtaLabel={addLabel}
                 onOpenAddDialog={() => setAddOpen(true)}
-                layout={tiles ? 'tiles' : 'rows'}
                 query={q ?? ''}
                 searchPlaceholder={
                     list.name.length <= 20
@@ -79,17 +64,13 @@ export default function List({ list, items, filter, sort, sorts, q }: Props) {
                         ? () => setEditing(item)
                         : undefined;
 
-                    return tiles ? (
-                        <ItemTile list={list} item={item} onEdit={onEdit} />
-                    ) : (
-                        <ItemRow list={list} item={item} onEdit={onEdit} />
-                    );
+                    return <ItemCard list={list} item={item} onEdit={onEdit} />;
                 }}
                 emptyState={{
                     all: (
                         <EmptyState
                             title={`Nothing in ${list.name} yet.`}
-                            body={FIRST_HINT[list.kind]}
+                            body="Add the first one: a name is enough, and a pasted link brings its own."
                             action={
                                 <Button
                                     type="button"
@@ -116,10 +97,20 @@ export default function List({ list, items, filter, sort, sorts, q }: Props) {
                 }}
             />
 
-            <ItemDialog list={list} open={addOpen} onOpenChange={setAddOpen} />
+            {addOpen && (
+                <ItemSheet
+                    list={list}
+                    open
+                    onOpenChange={(next) => {
+                        if (!next) {
+                            setAddOpen(false);
+                        }
+                    }}
+                />
+            )}
 
             {editing && (
-                <ItemDialog
+                <ItemSheet
                     key={editing.id}
                     list={list}
                     item={editing}

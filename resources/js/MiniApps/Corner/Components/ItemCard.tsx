@@ -1,5 +1,5 @@
 import { Link } from '@inertiajs/react';
-import { MoreHorizontal } from 'lucide-react';
+import { ExternalLink, MapPin, MoreHorizontal } from 'lucide-react';
 
 import {
     DropdownMenu,
@@ -10,8 +10,9 @@ import {
 import { Toggle } from '@/components/ui/toggle';
 import { useMenuAction } from '@/hooks/use-menu-action';
 import { DoneGlyph, DoneSticker } from '@/MiniApps/Corner/Components/DoneMark';
+import ItemThumb from '@/MiniApps/Corner/Components/ItemThumb';
 import { useItemActions } from '@/MiniApps/Corner/Hooks/useItemActions';
-import { ListIcon } from '@/MiniApps/Corner/lib/list-icons';
+import { hasPlace, placeLabel } from '@/MiniApps/Corner/lib/maps';
 import type { CornerItem, CornerListInfo } from '@/MiniApps/Corner/lib/types';
 import { show } from '@/routes/apps/our-corner/items';
 import AppCard from '@/Shell/Components/AppCard';
@@ -29,11 +30,11 @@ function firstLine(notes: string | null): string | null {
         return null;
     }
 
-    return line.length > 80 ? `${line.slice(0, 80).trim()}…` : line;
+    return line.length > 90 ? `${line.slice(0, 90).trim()}…` : line;
 }
 
-/* A row for the two kinds without artwork: plain, and a place with its pin. */
-export default function ItemRow({ list, item, onEdit }: Props) {
+/* The one card every item gets, whatever it holds. */
+export default function ItemCard({ list, item, onEdit }: Props) {
     const menu = useMenuAction();
     const {
         isPendingDelete,
@@ -52,56 +53,53 @@ export default function ItemRow({ list, item, onEdit }: Props) {
     }
 
     const isDone = item.done_at !== null;
-    const isPlace = list.kind === 'place';
+    const byline = [item.author, item.site_name]
+        .filter((part, i, all) => part && all.indexOf(part) === i)
+        .join(' · ');
     const preview = firstLine(item.notes);
 
     return (
         <AppCard
             variant="list"
             data-app="our-corner"
-            className="shell-card-stretch shell-lift"
+            className="corner-item shell-card-stretch shell-lift"
         >
             <div className="corner-item-row">
+                <ItemThumb pictureUrl={item.picture_url} icon={list.icon} />
+
                 <div className="corner-item-main">
                     <Link
                         href={show.url([list.slug, item.id])}
-                        className="shell-card-link flex min-w-0 flex-1 items-start gap-3 text-inherit no-underline"
+                        className="shell-card-link corner-item-link"
                     >
-                        {isPlace && (
-                            <ListIcon
-                                name={list.icon}
-                                aria-hidden="true"
-                                size={18}
-                                strokeWidth={1.5}
-                                className="corner-row-pin mt-1 shrink-0"
-                            />
-                        )}
-                        <span className="min-w-0 flex-1">
-                            <span className="corner-row-title">
-                                {item.title}
-                                {isDone && (
-                                    <DoneSticker
-                                        icon={list.done_icon}
-                                        label={list.done_label}
-                                        inline
-                                    />
-                                )}
-                            </span>
-                            {isPlace && item.address && (
-                                <span className="corner-place-address">
-                                    {item.address}
-                                </span>
-                            )}
-                            {preview && (
-                                <span className="corner-activity-preview">
-                                    {preview}
-                                </span>
-                            )}
-                            <span className="corner-row-meta">
-                                Added by {item.addedBy.name}
-                            </span>
-                        </span>
+                        <span className="corner-row-title">{item.title}</span>
                     </Link>
+                    {isDone && (
+                        <DoneSticker
+                            icon={list.done_icon}
+                            label={list.done_label}
+                            inline
+                        />
+                    )}
+                    {byline && (
+                        <span className="corner-item-byline">{byline}</span>
+                    )}
+                    {preview && (
+                        <span className="corner-item-notes">{preview}</span>
+                    )}
+                    {hasPlace(item) && (
+                        <span className="corner-item-place">
+                            <MapPin
+                                aria-hidden="true"
+                                size={14}
+                                strokeWidth={1.5}
+                            />
+                            {placeLabel(item)}
+                        </span>
+                    )}
+                    <span className="corner-row-meta">
+                        Added by {item.addedBy.name}
+                    </span>
                 </div>
 
                 <div className="corner-item-actions">
@@ -115,6 +113,23 @@ export default function ItemRow({ list, item, onEdit }: Props) {
                     >
                         <DoneGlyph icon={list.done_icon} done={isDone} />
                     </Toggle>
+
+                    {item.url && (
+                        <a
+                            href={item.url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            aria-label={`Open the link for ${item.title}`}
+                            title="Open the link"
+                            className="corner-icon-btn shell-press"
+                        >
+                            <ExternalLink
+                                aria-hidden="true"
+                                size={18}
+                                strokeWidth={1.5}
+                            />
+                        </a>
+                    )}
 
                     {(item.can.update || item.can.delete) && (
                         <DropdownMenu>

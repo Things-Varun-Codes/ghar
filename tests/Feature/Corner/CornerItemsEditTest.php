@@ -4,6 +4,7 @@ namespace Tests\Feature\Corner;
 
 use App\MiniApps\Corner\Models\Item;
 use App\MiniApps\Corner\Support\ItemDetails;
+use App\MiniApps\Corner\Support\LinkKey;
 use App\Shell\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Http;
@@ -16,53 +17,55 @@ class CornerItemsEditTest extends TestCase
     use MakesCornerLists;
     use RefreshDatabase;
 
-    private const YOUTUBE = 'https://www.youtube.com/watch?v=dQw4w9WgXcQ';
-
     private User $adder;
 
     protected function setUp(): void
     {
         parent::setUp();
         Notification::fake();
+        $this->publicDns();
 
         $this->adder = User::factory()->create();
         User::factory()->create();
     }
 
-    private function fakeYouTube(): void
+    private const SONG = 'https://music.example.com/watch?v=new';
+
+    private function fakeSongPage(): void
     {
         Http::fake([
-            'youtube.com/oembed*' => Http::response([
-                'title' => 'Test Track',
-                'author_name' => 'Test Artist',
-                'thumbnail_url' => 'https://i.ytimg.com/vi/dQw4w9WgXcQ/hqdefault.jpg',
-            ], 200),
+            'music.example.com/*' => Http::response(
+                '<html><head><meta property="og:title" content="Test Track">'
+                .'<meta property="og:image" content="https://music.example.com/new.jpg">'
+                .'<meta name="author" content="Test Artist"></head></html>',
+                200,
+                ['Content-Type' => 'text/html'],
+            ),
         ]);
     }
 
     public function test_a_new_link_is_looked_up_again_and_the_edit_is_silent(): void
     {
-        $this->fakeYouTube();
+        $this->fakeSongPage();
         $song = $this->itemIn($this->songs(), $this->adder, [
-            'provider_id' => 'oldVideoId1',
-            'url' => 'https://www.youtube.com/watch?v=oldVideoId1',
+            'url' => 'https://music.example.com/watch?v=old',
             'title' => 'Old Title',
             'author' => 'Old Artist',
         ]);
 
         $this->actingAs($this->adder)
             ->from("/apps/our-corner/songs/{$song->id}")
-            ->patch("/apps/our-corner/items/{$song->id}", ['url' => self::YOUTUBE])
+            ->patch("/apps/our-corner/items/{$song->id}", ['url' => self::SONG])
             ->assertRedirect("/apps/our-corner/songs/{$song->id}");
 
         $this->assertDatabaseHas('corner_items', [
             'id' => $song->id,
-            'provider' => 'youtube',
-            'provider_id' => 'dQw4w9WgXcQ',
+            'url' => self::SONG,
+            'url_key' => LinkKey::for(self::SONG),
             'title' => 'Test Track',
             'author' => 'Test Artist',
-            'image_url' => 'https://i.ytimg.com/vi/dQw4w9WgXcQ/hqdefault.jpg',
-            'url' => self::YOUTUBE,
+            'site_name' => 'music.example.com',
+            'image_url' => 'https://music.example.com/new.jpg',
         ]);
 
         Notification::assertNothingSent();
@@ -73,99 +76,72 @@ class CornerItemsEditTest extends TestCase
         Http::fake();
         $song = $this->itemIn($this->songs(), $this->adder, ['title' => 'Old Title', 'author' => 'Old Artist']);
         $image = $song->image_url;
+        $site = $song->site_name;
 
         $this->actingAs($this->adder)
-            ->patch("/apps/our-corner/items/{$song->id}", ['url' => $song->url, 'title' => 'Renamed', 'notes' => 'Our wedding song'])
+            ->patch("/apps/our-corner/items/{$song->id}", ['url' => $song->url, 'title' => 'Renamed', 'notes' => 'Our wedding song', 'image_url' => $image])
             ->assertSessionHasNoErrors();
 
         $song->refresh();
         $this->assertSame('Renamed', $song->title);
         $this->assertSame('Our wedding song', $song->notes);
         $this->assertSame('Old Artist', $song->author);
+        $this->assertSame($site, $song->site_name);
         $this->assertSame($image, $song->image_url);
         Http::assertNothingSent();
 
-        // A blank title on the same link keeps the title it had.
+        // A blank title on the same link keeps the title it had, and the picture it had.
         $this->actingAs($this->adder)
             ->patch("/apps/our-corner/items/{$song->id}", ['url' => $song->url, 'title' => ''])
             ->assertSessionHasNoErrors();
 
         $this->assertSame('Renamed', $song->fresh()->title);
+        $this->assertSame($image, $song->fresh()->image_url);
+
+        // Taking the picture away on purpose sticks.
+        $this->actingAs($this->adder)
+            ->patch("/apps/our-corner/items/{$song->id}", ['url' => $song->url, 'title' => 'Renamed', 'no_picture' => true])
+            ->assertSessionHasNoErrors();
+
+        $this->assertNull($song->fresh()->image_url);
+        Http::assertNothingSent();
     }
 
-    public function test_a_link_edit_needs_a_link(): void
+    public function test_taking_the_link_away_needs_a_name_and_clears_what_the_link_gave(): void
     {
         $song = $this->itemIn($this->songs(), $this->adder);
 
         $this->actingAs($this->adder)
             ->from('/apps/our-corner/songs')
-            ->patch("/apps/our-corner/items/{$song->id}", ['url' => ''])
-            ->assertSessionHasErrors(['url']);
+            ->patch("/apps/our-corner/items/{$song->id}", ['url' => '', 'title' => ''])
+            ->assertSessionHasErrors(['title']);
+
+        $this->actingAs($this->adder)
+            ->patch("/apps/our-corner/items/{$song->id}", ['url' => '', 'title' => 'Just a name'])
+            ->assertSessionHasNoErrors();
+
+        $this->assertDatabaseHas('corner_items', [
+            'id' => $song->id, 'title' => 'Just a name', 'url' => null, 'url_key' => null,
+            'author' => null, 'site_name' => null, 'image_url' => null,
+        ]);
     }
 
     public function test_moving_a_link_onto_one_already_in_the_list_is_a_field_error_and_changes_nothing(): void
     {
-        $this->fakeYouTube();
+        $this->fakeSongPage();
         $list = $this->songs();
-        $this->itemIn($list, $this->adder, ['provider' => 'youtube', 'provider_id' => 'dQw4w9WgXcQ', 'url' => self::YOUTUBE]);
-        $b = $this->itemIn($list, $this->adder, [
-            'provider' => 'youtube',
-            'provider_id' => 'bbbbbbbbbbb',
-            'url' => 'https://www.youtube.com/watch?v=bbbbbbbbbbb',
-            'title' => 'B',
-        ]);
+        $this->itemIn($list, $this->adder, ['url' => self::SONG, 'url_key' => LinkKey::for(self::SONG)]);
+        $b = $this->itemIn($list, $this->adder, ['title' => 'B']);
+        $bUrl = $b->url;
 
         $this->actingAs($this->adder)
             ->from('/apps/our-corner/songs')
-            ->patch("/apps/our-corner/items/{$b->id}", ['url' => self::YOUTUBE])
+            ->patch("/apps/our-corner/items/{$b->id}", ['url' => self::SONG.'&utm_source=x'])
             ->assertSessionHasErrors(['url' => ItemDetails::DUPLICATE_LINK]);
 
         $b->refresh();
-        $this->assertSame('bbbbbbbbbbb', $b->provider_id);
+        $this->assertSame($bUrl, $b->url);
         $this->assertSame('B', $b->title);
-    }
-
-    public function test_a_poster_edit_looks_the_new_plex_link_up(): void
-    {
-        Http::fake([
-            'watch.plex.tv/*' => Http::response(
-                '<html><head>'
-                .'<meta property="og:title" content="Edited Movie">'
-                .'<meta property="og:image" content="https://images.plex.tv/photo?url=edited">'
-                .'</head></html>',
-                200,
-            ),
-        ]);
-        $movie = $this->itemIn($this->movies(), $this->adder, ['title' => 'Old Title', 'url' => null, 'image_url' => null]);
-
-        $this->actingAs($this->adder)
-            ->patch("/apps/our-corner/items/{$movie->id}", ['title' => 'New Title', 'url' => 'https://watch.plex.tv/movie/y'])
-            ->assertRedirect();
-
-        $this->assertDatabaseHas('corner_items', [
-            'id' => $movie->id,
-            'title' => 'New Title',
-            'url' => 'https://watch.plex.tv/movie/y',
-            'image_url' => 'https://images.plex.tv/photo?url=edited',
-        ]);
-        Notification::assertNothingSent();
-
-        // Taking the link away takes the poster with it.
-        $this->actingAs($this->adder)
-            ->patch("/apps/our-corner/items/{$movie->id}", ['title' => 'New Title', 'url' => ''])
-            ->assertSessionHasNoErrors();
-
-        $this->assertDatabaseHas('corner_items', ['id' => $movie->id, 'url' => null, 'image_url' => null]);
-    }
-
-    public function test_a_poster_edit_rejects_a_link_that_is_not_plex(): void
-    {
-        $movie = $this->itemIn($this->movies(), $this->adder);
-
-        $this->actingAs($this->adder)
-            ->from('/apps/our-corner/movies')
-            ->patch("/apps/our-corner/items/{$movie->id}", ['title' => 'X', 'url' => 'https://evil.com/x'])
-            ->assertSessionHasErrors(['url']);
     }
 
     public function test_a_plain_item_edit_changes_title_and_notes(): void
@@ -187,14 +163,13 @@ class CornerItemsEditTest extends TestCase
 
     public function test_a_place_edit_replaces_its_details(): void
     {
+        Http::fake();
         $place = $this->itemIn($this->places(), $this->adder, ['title' => 'Old Cafe']);
 
         $this->actingAs($this->adder)
             ->patch("/apps/our-corner/items/{$place->id}", [
                 'title' => 'New Cafe',
-                'place_id' => 'ChIJnewplaceid',
-                'lat' => 40.7484,
-                'lng' => -73.9857,
+                'location' => 'geo:40.7484,-73.9857?q=Empire+State+Building',
                 'address' => '20 W 34th St, New York, NY 10001',
             ])
             ->assertRedirect();
@@ -202,12 +177,53 @@ class CornerItemsEditTest extends TestCase
         $this->assertDatabaseHas('corner_items', [
             'id' => $place->id,
             'title' => 'New Cafe',
-            'place_id' => 'ChIJnewplaceid',
+            'location_label' => 'Empire State Building',
+            'location_url' => 'geo:40.7484,-73.9857?q=Empire+State+Building',
             'lat' => '40.7484000',
             'lng' => '-73.9857000',
             'address' => '20 W 34th St, New York, NY 10001',
         ]);
         Notification::assertNothingSent();
+
+        // Clearing the place clears its coordinates.
+        $this->actingAs($this->adder)
+            ->patch("/apps/our-corner/items/{$place->id}", ['title' => 'New Cafe', 'location' => ''])
+            ->assertSessionHasNoErrors();
+
+        $this->assertDatabaseHas('corner_items', ['id' => $place->id, 'location_label' => null, 'lat' => null, 'lng' => null]);
+    }
+
+    public function test_an_upgraded_place_without_a_link_keeps_its_coordinates_when_edited(): void
+    {
+        Http::fake();
+        // What the upgrade made of an old place: a name, a place id and coordinates, no map link.
+        $place = Item::factory()->create([
+            'list_id' => $this->places()->id,
+            'added_by_user_id' => $this->adder->id,
+            'title' => 'Lalbagh',
+            'location_label' => 'Lalbagh',
+            'place_id' => 'ChIJlalbagh',
+            'lat' => 12.9507,
+            'lng' => 77.5848,
+            'legacy_type' => 'corner.place',
+            'legacy_id' => 3,
+        ]);
+
+        $this->actingAs($this->adder)
+            ->patch("/apps/our-corner/items/{$place->id}", ['title' => 'Lalbagh gardens', 'location' => 'Lalbagh', 'notes' => 'Go early'])
+            ->assertSessionHasNoErrors();
+
+        $this->assertDatabaseHas('corner_items', [
+            'id' => $place->id,
+            'title' => 'Lalbagh gardens',
+            'location_label' => 'Lalbagh',
+            'location_url' => null,
+            'place_id' => 'ChIJlalbagh',
+            'lat' => '12.9507000',
+            'lng' => '77.5848000',
+            'notes' => 'Go early',
+        ]);
+        Http::assertNothingSent();
     }
 
     public function test_an_edit_never_moves_an_item_to_another_list_or_rewrites_who_added_it(): void

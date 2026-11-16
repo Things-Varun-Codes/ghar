@@ -4,15 +4,21 @@ namespace Database\Seeders\DevData;
 
 use App\MiniApps\Corner\Models\CornerList;
 use App\MiniApps\Corner\Models\Item;
-use App\MiniApps\Corner\Support\ListKind;
+use App\MiniApps\Corner\Support\LinkKey;
+use App\MiniApps\Corner\Support\PictureCache;
 use App\Shell\Models\User;
 use Illuminate\Support\Facades\DB;
 
 /**
  * Corner lists. Songs, Movies, Places and Activities look the way the upgrade leaves an
- * install that had them: no creator, and every item remembers its old type and id, so
- * History's old-style links are exercised. Three more lists were made by people in the
- * household, to cover who may change and delete a list.
+ * install that had them: no maker, and every item remembers its old type and id, so History's
+ * old-style links are exercised. Four more lists were made by people in the household, to
+ * cover who may change and delete a list, icons from the full set, both done marks, a long
+ * name, an empty list and one that sends no notifications. Between them the items cover every
+ * part an item can have, alone and together.
+ *
+ * Pictures are web addresses, as they are in a real household. Their bytes are put straight
+ * into the picture cache, so pages show them without reaching the network.
  */
 final class CornerData
 {
@@ -23,6 +29,8 @@ final class CornerData
 
     /** @var array<string, int> next old id per old type */
     private array $legacyIds = [];
+
+    private int $pictureSeed = 0;
 
     /**
      * @return array<string, array{id: int, title: string, type: string, slug: string}> what moments can link to
@@ -39,10 +47,13 @@ final class CornerData
             ...$this->books($h),
             ...$this->restaurants($h),
             ...$this->boardGames($h),
+            ...$this->weekendIdeas($h),
         ];
     }
 
     /**
+     * Links with pictures and who made them, and a long tail without, past the 50-row page.
+     *
      * @return array<string, array{id: int, title: string, type: string, slug: string}>
      */
     private function songs(Household $h): array
@@ -63,7 +74,7 @@ final class CornerData
 
         $links = [];
         foreach ($named as $i => [$title, $author, $adder, $added, $lovedBy, $lovedAgo]) {
-            $song = $this->song($h, $list, $i, $title, $author, $adder, $added, $lovedBy, $lovedAgo, withThumbnail: true);
+            $song = $this->song($h, $list, $i, $title, $author, $adder, $added, $lovedBy, $lovedAgo, withPicture: true);
             $links[$i === 0 ? 'song' : "song-{$i}"] = $this->legacyLink($song, 'songs');
         }
 
@@ -82,7 +93,7 @@ final class CornerData
                 50 + $i * 3,
                 $lovedBy,
                 $lovedBy ? 45 + $i * 3 : null,
-                withThumbnail: false,
+                withPicture: false,
             );
         }
 
@@ -99,23 +110,19 @@ final class CornerData
         int $addedDaysAgo,
         ?User $lovedBy,
         ?int $lovedDaysAgo,
-        bool $withThumbnail,
+        bool $withPicture,
     ): Item {
-        $spotify = $index % 3 === 2;
-        $providerId = substr(hash('sha256', "dev-song-{$index}"), 0, $spotify ? 22 : 11);
+        $streaming = $index % 3 === 2;
+        $id = substr(hash('sha256', "dev-song-{$index}"), 0, $streaming ? 22 : 11);
+        $url = $streaming ? "https://open.spotify.com/track/{$id}" : "https://www.youtube.com/watch?v={$id}";
+        $picture = $streaming ? "https://i.scdn.co/image/{$id}" : "https://i.ytimg.com/vi/{$id}/hqdefault.jpg";
 
         return Item::factory()->create([
             'list_id' => $list->id,
-            'provider' => $spotify ? 'spotify' : 'youtube',
-            'provider_id' => $providerId,
-            'url' => $spotify
-                ? "https://open.spotify.com/track/{$providerId}"
-                : "https://www.youtube.com/watch?v={$providerId}",
             'title' => $title,
             'author' => $author,
-            'image_url' => $withThumbnail
-                ? PlaceholderImage::svgDataUri($title, $index, 320, 320)
-                : null,
+            ...$this->linkTo($url),
+            'image_url' => $withPicture ? $this->picture($picture, $title, 320, 320) : null,
             'added_by_user_id' => $adder->id,
             'added_at' => $h->daysAgo($addedDaysAgo),
             ...$this->legacy('corner.song'),
@@ -124,6 +131,8 @@ final class CornerData
     }
 
     /**
+     * Pictures without links (what the old poster lists held), some missing.
+     *
      * @return array<string, array{id: int, title: string, type: string, slug: string}>
      */
     private function movies(Household $h): array
@@ -148,7 +157,7 @@ final class CornerData
                 'list_id' => $list->id,
                 'title' => $title,
                 'image_url' => $hasPoster
-                    ? PlaceholderImage::svgDataUri($title, $i + 2, 400, 600)
+                    ? $this->picture('https://images.example.com/posters/'.str($title)->slug().'.jpg', $title, 400, 600)
                     : null,
                 'added_by_user_id' => $adder->id,
                 'added_at' => $h->daysAgo($added),
@@ -163,6 +172,8 @@ final class CornerData
     }
 
     /**
+     * Places with coordinates and an address but no map link, as the upgrade leaves them.
+     *
      * @return array<string, array{id: int, title: string, type: string, slug: string}>
      */
     private function places(Household $h): array
@@ -184,6 +195,7 @@ final class CornerData
             $place = Item::factory()->create([
                 'list_id' => $list->id,
                 'title' => $title,
+                'location_label' => $title,
                 'place_id' => 'dev-place-'.$i,
                 'lat' => $lat,
                 'lng' => $lng,
@@ -201,6 +213,8 @@ final class CornerData
     }
 
     /**
+     * Names only, some with notes.
+     *
      * @return array<string, array{id: int, title: string, type: string, slug: string}>
      */
     private function activities(Household $h): array
@@ -236,14 +250,14 @@ final class CornerData
     }
 
     /**
-     * Ravi's list, and only Ravi has added to it, so he may delete it.
+     * Ravi's list, and only Ravi has added to it, so he may delete it. Marked with a heart.
      *
      * @return array<string, array{id: int, title: string, type: string, slug: string}>
      */
     private function books(Household $h): array
     {
         $list = CornerList::factory()->create([
-            'name' => 'Books', 'slug' => 'books', 'kind' => ListKind::Plain, 'icon' => 'book',
+            'name' => 'Books', 'slug' => 'books', 'icon' => 'book-open',
             'done_label' => 'Read', 'todo_label' => 'To read', 'done_icon' => 'heart',
             'position' => 4, 'created_by_user_id' => $h->ravi->id, 'created_at' => $h->daysAgo(16),
         ]);
@@ -274,44 +288,44 @@ final class CornerData
 
     /**
      * Meera's list with a long name. Kabir has added to it, so Meera may change it but it
-     * takes an admin to delete it.
+     * takes an admin to delete it. One place has coordinates, the other was only typed.
      *
      * @return array<string, array{id: int, title: string, type: string, slug: string}>
      */
     private function restaurants(Household $h): array
     {
-        $name = 'Restaurants we keep meaning to try on a slow Sunday';
         $list = CornerList::factory()->create([
-            'name' => $name, 'slug' => 'restaurants-we-keep-meaning-to-try-on-a-slow-sunday',
-            'kind' => ListKind::Place, 'icon' => 'utensils',
-            'done_label' => 'Eaten at', 'todo_label' => 'To try', 'done_icon' => 'check',
+            'name' => 'Restaurants we keep meaning to try on a slow Sunday',
+            'slug' => 'restaurants-we-keep-meaning-to-try-on-a-slow-sunday',
+            'icon' => 'utensils', 'done_label' => 'Eaten at', 'todo_label' => 'To try', 'done_icon' => 'check',
             'position' => 5, 'created_by_user_id' => $h->meera->id, 'created_at' => $h->daysAgo(10),
         ]);
 
-        // [title, address, lat, lng, adder, days ago added, eaten by, eaten days ago]
-        $places = [
-            ['Malabar Kitchen', '3 Church Street, Bengaluru', 12.9752, 77.6050, $h->meera, 9, $h->kabir, 2],
-            ['The Dosa Window', '88 MG Road, Bengaluru', 12.9756, 77.6066, $h->kabir, 8, null, null],
+        $malabar = Item::factory()->create([
+            'list_id' => $list->id,
+            'title' => 'Malabar Kitchen',
+            'notes' => 'Ask for the fish curry.',
+            'location_label' => 'Malabar Kitchen',
+            'lat' => 12.9752,
+            'lng' => 77.6050,
+            'address' => '3 Church Street, Bengaluru',
+            'added_by_user_id' => $h->meera->id,
+            'added_at' => $h->daysAgo(9),
+            ...$this->done($h, $h->kabir, 2),
+        ]);
+
+        $dosa = Item::factory()->create([
+            'list_id' => $list->id,
+            'title' => 'The Dosa Window',
+            'location_label' => 'The Dosa Window, MG Road',
+            'added_by_user_id' => $h->kabir->id,
+            'added_at' => $h->daysAgo(8),
+        ]);
+
+        return [
+            'restaurant' => $this->link($malabar, $list->slug),
+            'restaurant-1' => $this->link($dosa, $list->slug),
         ];
-
-        $links = [];
-        foreach ($places as $i => [$title, $address, $lat, $lng, $adder, $added, $by, $ago]) {
-            $place = Item::factory()->create([
-                'list_id' => $list->id,
-                'title' => $title,
-                'notes' => $i === 0 ? 'Ask for the fish curry.' : null,
-                'lat' => $lat,
-                'lng' => $lng,
-                'address' => $address,
-                'added_by_user_id' => $adder->id,
-                'added_at' => $h->daysAgo($added),
-                ...$this->done($h, $by, $ago),
-            ]);
-
-            $links[$i === 0 ? 'restaurant' : "restaurant-{$i}"] = $this->link($place, $list->slug);
-        }
-
-        return $links;
     }
 
     /**
@@ -322,13 +336,98 @@ final class CornerData
     private function boardGames(Household $h): array
     {
         CornerList::factory()->create([
-            'name' => 'Board games', 'slug' => 'board-games', 'kind' => ListKind::Plain, 'icon' => 'dice',
+            'name' => 'Board games', 'slug' => 'board-games', 'icon' => 'dices',
             'done_label' => 'Played', 'todo_label' => 'To play', 'done_icon' => 'check',
             'notify_on_add' => false,
             'position' => 6, 'created_by_user_id' => $h->kabir->id, 'created_at' => $h->daysAgo(1),
         ]);
 
         return [];
+    }
+
+    /**
+     * Meera's list of everything else an item can be: an ordinary site's link with the picture
+     * its page offers, a link with no picture, a picture pasted on its own, a map link nobody
+     * could read coordinates from, and one item with a link, a picture and a place together.
+     * Its icon comes from the full set, not the first two dozen.
+     *
+     * @return array<string, array{id: int, title: string, type: string, slug: string}>
+     */
+    private function weekendIdeas(Household $h): array
+    {
+        $list = CornerList::factory()->create([
+            'name' => 'Weekend ideas', 'slug' => 'weekend-ideas', 'icon' => 'sailboat',
+            'done_label' => 'Tried', 'todo_label' => 'Some day', 'done_icon' => 'heart',
+            'position' => 7, 'created_by_user_id' => $h->meera->id, 'created_at' => $h->daysAgo(6),
+        ]);
+
+        $items = [
+            'idea' => [
+                'title' => 'Stargazing on a clear night',
+                ...$this->linkTo('https://www.timeanddate.com/astronomy/night/'),
+                'site_name' => 'timeanddate.com',
+                'image_url' => $this->picture('https://c.tadst.com/gfx/og/astronomy-night.jpg', 'Night sky', 600, 400),
+                'added_by_user_id' => $h->admin->id,
+                'added_at' => $h->daysAgo(5),
+                ...$this->done($h, $h->ravi, 1),
+            ],
+            'idea-1' => [
+                'title' => 'Film club at the library',
+                'notes' => 'First Saturday of the month.',
+                ...$this->linkTo('https://example.org/library/film-club'),
+                'added_by_user_id' => $h->meera->id,
+                'added_at' => $h->daysAgo(4),
+            ],
+            'idea-2' => [
+                'title' => 'That picnic spot from the photo',
+                'image_url' => $this->picture('https://images.example.net/picnic-spot.jpg', 'Picnic', 600, 400),
+                'added_by_user_id' => $h->kabir->id,
+                'added_at' => $h->daysAgo(3),
+            ],
+            'idea-3' => [
+                'title' => 'Sunday farmers market',
+                'location_url' => 'https://maps.app.goo.gl/devFarmersMarket',
+                'added_by_user_id' => $h->kabir->id,
+                'added_at' => $h->daysAgo(3),
+                ...$this->done($h, $h->meera, 1),
+            ],
+            'idea-4' => [
+                'title' => 'Pottery cafe in Indiranagar',
+                'notes' => 'They keep your bowl for a week while it dries.',
+                ...$this->linkTo('https://www.lonelyplanet.com/india/karnataka/bengaluru'),
+                'site_name' => 'Lonely Planet',
+                'author' => 'Lonely Planet',
+                'image_url' => $this->picture('https://lp-cms-production.imgix.net/bengaluru-og.jpg', 'Bengaluru', 600, 400),
+                'location_label' => 'Clay Studio, Indiranagar',
+                'location_url' => 'https://www.google.com/maps/place/Clay+Studio/@12.9719,77.6412,17z',
+                'lat' => 12.9719,
+                'lng' => 77.6412,
+                'address' => '100 Feet Road, Indiranagar, Bengaluru',
+                'added_by_user_id' => $h->ravi->id,
+                'added_at' => $h->daysAgo(2),
+            ],
+        ];
+
+        $links = [];
+        foreach ($items as $key => $attributes) {
+            $links[$key] = $this->link(Item::factory()->create(['list_id' => $list->id, ...$attributes]), $list->slug);
+        }
+
+        return $links;
+    }
+
+    /** @return array{url: string, url_key: ?string, site_name: ?string} */
+    private function linkTo(string $url): array
+    {
+        return ['url' => $url, 'url_key' => LinkKey::for($url), 'site_name' => LinkKey::siteOf($url)];
+    }
+
+    /** A picture's web address, its bytes already in the picture cache. */
+    private function picture(string $url, string $label, int $width, int $height): string
+    {
+        app(PictureCache::class)->put($url, PlaceholderImage::jpeg($label, $this->pictureSeed++, $width, $height), 'image/jpeg');
+
+        return $url;
     }
 
     /** @return array{legacy_type: string, legacy_id: int} */

@@ -2,7 +2,6 @@
 
 namespace App\MiniApps\Corner\Models;
 
-use App\MiniApps\Corner\Support\ListKind;
 use App\Shell\Models\User;
 use Database\Factories\CornerListFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
@@ -17,7 +16,6 @@ use Illuminate\Support\Carbon;
  * @property int $id
  * @property string $name
  * @property string $slug
- * @property ListKind $kind
  * @property string $icon
  * @property string $done_label
  * @property string $todo_label
@@ -32,7 +30,6 @@ use Illuminate\Support\Carbon;
 #[Fillable([
     'name',
     'slug',
-    'kind',
     'icon',
     'done_label',
     'todo_label',
@@ -69,7 +66,6 @@ class CornerList extends Model
     protected function casts(): array
     {
         return [
-            'kind' => ListKind::class,
             'notify_on_add' => 'boolean',
             'position' => 'integer',
         ];

@@ -27,9 +27,10 @@ penalty the recipient can mark as paid.
 
 Yes. Our Corner holds whatever lists your household makes: books, restaurants, recipes, board
 games, anything. Each list has a name, an icon and its own word for done (read, cooked, played).
-When you make one you choose what goes in it: a plain list, links (YouTube and Spotify bring their
-artwork), titles with posters (from a Plex link) or places on a map. Every item can carry notes. Until
-the first list is made, Our Corner offers a few to add in one tap.
+Every item can have a name, notes, a link, a picture and a place. Paste a link to almost any page
+and its name and picture fill in, when the page offers them; paste a map link, coordinates or just
+a place's name, and "Open in Maps" opens it in your phone's maps app. Until the first list is made,
+Our Corner offers a few to add in one tap.
 
 Anyone can make a list. Its maker or an admin can change it. Its maker can delete it while
 everything in it is theirs; once someone else has added to it, deleting it takes an admin.
@@ -70,9 +71,10 @@ and a video up to 96 MB.
 
 No. Ghar's code has no analytics or telemetry, and the fonts are served by your own install rather
 than by Google. A running install does contact a few outside services to do its job: your mail
-provider, for invites and password resets; browser push services, to deliver Web Push; YouTube,
-Spotify or Plex when someone adds one of their links in Our Corner, to look up its title and
-artwork, which your browser then loads from them; and a breached-password list when someone sets a
+provider, for invites and password resets; browser push services, to deliver Web Push; the page
+behind a link someone adds in Our Corner, to read its name and picture (your install serves the
+picture itself, so browsers never contact that site, and it never fetches from addresses inside
+your own network); and a breached-password list when someone sets a
 password, to which only the first five characters of the password's hash are sent. Google Places,
 Cloudflare Workers AI, an S3 bucket and a Sentry-compatible error tracker are contacted only if you
 set them up.

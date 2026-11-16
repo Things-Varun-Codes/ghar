@@ -70,11 +70,11 @@ final class CornerLinks
         return route('apps.our-corner.items.show', [$slug, $id]);
     }
 
-    /** @return list<array{id: int, title: string, group: string, thumbnail_url: ?string, deep_link_url: string}> */
+    /** @return list<array{id: int, title: string, group: string, thumbnail_url: ?string, icon: string, deep_link_url: string}> */
     private static function search(string $q, int $limit): array
     {
         return Item::query()
-            ->with('list:id,slug,name')
+            ->with('list:id,slug,name,icon')
             ->where('title', 'ilike', CursorList::containsPattern($q))
             ->orderByDesc('added_at')
             ->orderByDesc('id')
@@ -84,7 +84,8 @@ final class CornerLinks
                 'id' => $item->id,
                 'title' => $item->title,
                 'group' => $item->list->name,
-                'thumbnail_url' => $item->image_url,
+                'thumbnail_url' => $item->pictureUrl(),
+                'icon' => $item->list->icon,
                 'deep_link_url' => self::urlFor($item->list->slug, $item->id),
             ])
             ->all();
@@ -92,7 +93,7 @@ final class CornerLinks
 
     /**
      * @param  array<int, int>  $ids
-     * @return array<int, array{title: string, thumbnail_url: ?string, deep_link_url: string}>
+     * @return array<int, array{title: string, thumbnail_url: ?string, icon: string, deep_link_url: string}>
      */
     private static function resolveMany(array $ids, string $column, ?string $legacyType = null): array
     {
@@ -101,14 +102,15 @@ final class CornerLinks
         }
 
         return Item::query()
-            ->with('list:id,slug')
+            ->with('list:id,slug,icon')
             ->whereIn($column, $ids)
             ->when($legacyType !== null, fn ($query) => $query->where('legacy_type', $legacyType))
             ->get()
             ->mapWithKeys(fn (Item $item): array => [
                 (int) $item->{$column} => [
                     'title' => $item->title,
-                    'thumbnail_url' => $item->image_url,
+                    'thumbnail_url' => $item->pictureUrl(),
+                    'icon' => $item->list->icon,
                     'deep_link_url' => self::urlFor($item->list->slug, $item->id),
                 ],
             ])

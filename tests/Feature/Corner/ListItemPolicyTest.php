@@ -2,7 +2,6 @@
 
 namespace Tests\Feature\Corner;
 
-use App\MiniApps\Corner\Support\ListKind;
 use App\Shell\Models\User;
 use Database\Seeders\RoleSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -27,8 +26,9 @@ class ListItemPolicyTest extends TestCase
     {
         parent::setUp();
         $this->seed(RoleSeeder::class);
+        $this->publicDns();
         Http::fake([
-            'youtube.com/oembed*' => Http::response(['title' => 'New Track', 'author_name' => 'Artist'], 200),
+            'example.com/*' => Http::response('<html><head><title>New Track</title></head></html>', 200, ['Content-Type' => 'text/html']),
         ]);
 
         $this->adder = User::factory()->create();
@@ -36,24 +36,22 @@ class ListItemPolicyTest extends TestCase
         $this->admin = User::factory()->admin()->create();
     }
 
-    /** @return array<string, array{0: ListKind, 1: array<string, mixed>}> */
-    public static function kinds(): array
+    /** @return array<string, array{0: string, 1: array<string, mixed>}> */
+    public static function lists(): array
     {
         return [
-            'link' => [ListKind::Link, ['url' => 'https://www.youtube.com/watch?v=dQw4w9WgXcQ']],
-            'poster' => [ListKind::Poster, ['title' => 'Edited']],
-            'plain' => [ListKind::Plain, ['title' => 'Edited']],
-            'place' => [ListKind::Place, [
-                'title' => 'Edited', 'place_id' => 'ChIJ-edited', 'lat' => 12.97, 'lng' => 77.59, 'address' => 'Somewhere',
-            ]],
+            'songs' => ['songs', ['url' => 'https://example.com/new-track']],
+            'movies' => ['movies', ['title' => 'Edited']],
+            'activities' => ['activities', ['title' => 'Edited']],
+            'places' => ['places', ['title' => 'Edited', 'location' => '12.97, 77.59', 'address' => 'Somewhere']],
         ];
     }
 
     /** @param  array<string, mixed>  $update */
-    #[DataProvider('kinds')]
-    public function test_a_member_who_did_not_add_it_can_toggle_done_but_not_edit_or_delete(ListKind $kind, array $update): void
+    #[DataProvider('lists')]
+    public function test_a_member_who_did_not_add_it_can_toggle_done_but_not_edit_or_delete(string $slug, array $update): void
     {
-        $list = $this->listOfKind($kind);
+        $list = $this->listCalled($slug);
         $item = $this->itemIn($list, $this->adder, ['title' => 'Original']);
         $page = "/apps/our-corner/{$list->slug}/{$item->id}";
         $url = "/apps/our-corner/items/{$item->id}";
@@ -81,10 +79,10 @@ class ListItemPolicyTest extends TestCase
     }
 
     /** @param  array<string, mixed>  $update */
-    #[DataProvider('kinds')]
-    public function test_an_admin_may_edit_and_delete_anyones_item(ListKind $kind, array $update): void
+    #[DataProvider('lists')]
+    public function test_an_admin_may_edit_and_delete_anyones_item(string $slug, array $update): void
     {
-        $list = $this->listOfKind($kind);
+        $list = $this->listCalled($slug);
         $item = $this->itemIn($list, $this->adder);
         $page = "/apps/our-corner/{$list->slug}/{$item->id}";
         $url = "/apps/our-corner/items/{$item->id}";
@@ -100,10 +98,10 @@ class ListItemPolicyTest extends TestCase
     }
 
     /** @param  array<string, mixed>  $update */
-    #[DataProvider('kinds')]
-    public function test_the_adder_may_edit_and_delete_their_own_item(ListKind $kind, array $update): void
+    #[DataProvider('lists')]
+    public function test_the_adder_may_edit_and_delete_their_own_item(string $slug, array $update): void
     {
-        $list = $this->listOfKind($kind);
+        $list = $this->listCalled($slug);
         $item = $this->itemIn($list, $this->adder);
         $page = "/apps/our-corner/{$list->slug}/{$item->id}";
         $url = "/apps/our-corner/items/{$item->id}";

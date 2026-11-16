@@ -241,6 +241,7 @@ async function main() {
     const fixturesPhp = `
 use App\\Shell\\Models\\User;
 use App\\MiniApps\\Corner\\Models\\CornerList;
+use App\\MiniApps\\Corner\\Models\\Item;
 use App\\MiniApps\\Mailbox\\Models\\Citation;
 use App\\MiniApps\\Mailbox\\Models\\Coupon;
 use Illuminate\\Support\\Facades\\Password;
@@ -250,15 +251,16 @@ $kabir = User::where('email', '${DEV_ACCOUNTS.kabir}')->firstOrFail();
 
 echo json_encode([
     'resetToken'        => Password::broker()->createToken($kabir),
-    // Per kind of list: its slug, one item id and, for a list that came from the upgrade,
-    // the old id History links still use.
-    'corner'            => CornerList::query()->orderBy('position')->get()
-        ->unique(fn ($l) => $l->kind->value)
-        ->mapWithKeys(fn ($l) => [$l->kind->value => [
-            'slug' => $l->slug,
-            'item' => $l->items()->min('id'),
-            'legacy' => $l->items()->min('legacy_id'),
-        ]]),
+    // An item of each sort, as [list slug, item id]: one with a link, a picture and a place
+    // together, a place with only coordinates, a name and nothing else, and an old id that
+    // History links still use.
+    'corner' => collect([
+        'everything' => Item::query()->whereNotNull('url')->whereNotNull('image_url')->whereNotNull('location_url'),
+        'place' => Item::query()->whereNull('url')->whereNull('location_url')->whereNotNull('lat'),
+        'nameOnly' => Item::query()->whereNull('url')->whereNull('image_url')->whereNull('notes')->whereNull('location_label'),
+    ])->map(fn ($q) => (fn ($i) => ['slug' => $i->list->slug, 'item' => $i->id])($q->with('list')->orderBy('id')->firstOrFail()))
+        ->put('legacy', (fn ($i) => ['slug' => $i->list->slug, 'item' => $i->legacy_id])(Item::query()->with('list')->whereNotNull('legacy_id')->orderBy('id')->firstOrFail()))
+        ->put('longName', ['slug' => CornerList::query()->orderByRaw('length(name) desc')->value('slug')]),
     'cornerEmptyList'   => CornerList::query()->whereDoesntHave('items')->value('slug'),
     'mailboxCitationId'  => Citation::where('recipient_id', $admin->id)->firstOrFail()->id,
     'mailboxCouponId'   => Coupon::where('recipient_id', $admin->id)->firstOrFail()->id,
@@ -397,47 +399,43 @@ echo json_encode([
             description: '/apps/our-corner (Our Corner landing)',
         },
         {
-            path: `/apps/our-corner/${fixtures.corner.link.slug}`,
+            path: `/apps/our-corner/${fixtures.corner.legacy.slug}`,
             auth: true,
-            description: '/apps/our-corner/{list} (a link list)',
+            description:
+                '/apps/our-corner/{list} (a list past one page)',
         },
         {
-            path: `/apps/our-corner/${fixtures.corner.link.slug}/${fixtures.corner.link.item}`,
+            path: `/apps/our-corner/${fixtures.corner.longName.slug}`,
             auth: true,
-            description: '/apps/our-corner/{list}/{item} (a link item)',
+            description:
+                '/apps/our-corner/{list} (a list with a long name)',
         },
         {
-            path: `/apps/our-corner/${fixtures.corner.poster.slug}`,
+            path: `/apps/our-corner/${fixtures.corner.everything.slug}`,
             auth: true,
-            description: '/apps/our-corner/{list} (a poster list)',
+            description:
+                '/apps/our-corner/{list} (links, pictures and places)',
         },
         {
-            path: `/apps/our-corner/${fixtures.corner.poster.slug}/${fixtures.corner.poster.item}`,
+            path: `/apps/our-corner/${fixtures.corner.everything.slug}/${fixtures.corner.everything.item}`,
             auth: true,
-            description: '/apps/our-corner/{list}/{item} (a poster item)',
-        },
-        {
-            path: `/apps/our-corner/${fixtures.corner.place.slug}`,
-            auth: true,
-            description: '/apps/our-corner/{list} (a place list)',
+            description:
+                '/apps/our-corner/{list}/{item} (a link, a picture and a place)',
         },
         {
             path: `/apps/our-corner/${fixtures.corner.place.slug}/${fixtures.corner.place.item}`,
             auth: true,
-            description: '/apps/our-corner/{list}/{item} (a place item)',
+            description:
+                '/apps/our-corner/{list}/{item} (a place with coordinates only)',
         },
         {
-            path: `/apps/our-corner/${fixtures.corner.plain.slug}`,
+            path: `/apps/our-corner/${fixtures.corner.nameOnly.slug}/${fixtures.corner.nameOnly.item}`,
             auth: true,
-            description: '/apps/our-corner/{list} (a plain list)',
+            description:
+                '/apps/our-corner/{list}/{item} (a name and nothing else)',
         },
         {
-            path: `/apps/our-corner/${fixtures.corner.plain.slug}/${fixtures.corner.plain.item}`,
-            auth: true,
-            description: '/apps/our-corner/{list}/{item} (a plain item)',
-        },
-        {
-            path: `/apps/our-corner/${fixtures.corner.link.slug}/${fixtures.corner.link.legacy}`,
+            path: `/apps/our-corner/${fixtures.corner.legacy.slug}/${fixtures.corner.legacy.item}`,
             auth: true,
             description:
                 '/apps/our-corner/{list}/{item} (an old link, by the id it had before lists)',

@@ -3,7 +3,6 @@
 namespace App\MiniApps\Corner\Actions;
 
 use App\MiniApps\Corner\Models\CornerList;
-use App\MiniApps\Corner\Support\ListKind;
 use App\Shell\Models\User;
 use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Support\Facades\DB;
@@ -24,7 +23,6 @@ class CreateList
                 return DB::transaction(fn (): CornerList => CornerList::create([
                     'name' => $data['name'],
                     'slug' => $this->slugFor((string) $data['name']),
-                    'kind' => ListKind::from((string) $data['kind']),
                     'icon' => $data['icon'],
                     'done_label' => $data['done_label'],
                     'todo_label' => $data['todo_label'],

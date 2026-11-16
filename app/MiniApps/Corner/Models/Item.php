@@ -18,8 +18,10 @@ use Illuminate\Support\Carbon;
  * @property string|null $url
  * @property string|null $image_url
  * @property string|null $author
- * @property string|null $provider
- * @property string|null $provider_id
+ * @property string|null $url_key
+ * @property string|null $site_name
+ * @property string|null $location_label
+ * @property string|null $location_url
  * @property string|null $place_id
  * @property string|null $lat decimal(10,7), cast to string
  * @property string|null $lng decimal(10,7), cast to string
@@ -41,8 +43,10 @@ use Illuminate\Support\Carbon;
     'url',
     'image_url',
     'author',
-    'provider',
-    'provider_id',
+    'url_key',
+    'site_name',
+    'location_label',
+    'location_url',
     'place_id',
     'lat',
     'lng',
@@ -82,6 +86,32 @@ class Item extends Model
     public function doneBy(): BelongsTo
     {
         return $this->belongsTo(User::class, 'done_by_user_id');
+    }
+
+    /**
+     * The address a page draws the picture from. Pictures that live on the web go through the
+     * picture route, whose address changes when the picture does so browsers can keep it; a
+     * data: picture (only the sample data has those) is drawn as it is.
+     */
+    public function pictureUrl(): ?string
+    {
+        return self::pictureUrlFor($this->id, $this->image_url);
+    }
+
+    public static function pictureUrlFor(int $id, ?string $source): ?string
+    {
+        if ($source === null || $source === '') {
+            return null;
+        }
+
+        if (str_starts_with($source, 'data:image/')) {
+            return $source;
+        }
+
+        return route('apps.our-corner.items.picture', [
+            'item' => $id,
+            'v' => substr(hash('sha256', $source), 0, 12),
+        ], absolute: false);
     }
 
     public function markDone(User $user): void

@@ -5,7 +5,6 @@ namespace Tests\Feature\Corner;
 use App\MiniApps\Corner\Actions\CreateList;
 use App\MiniApps\Corner\Models\CornerList;
 use App\MiniApps\Corner\Models\Item;
-use App\MiniApps\Corner\Support\ListKind;
 use App\Shell\Models\User;
 use Database\Seeders\RoleSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -44,8 +43,7 @@ class CornerListsTest extends TestCase
     {
         return $overrides + [
             'name' => 'Board games',
-            'kind' => 'plain',
-            'icon' => 'dice',
+            'icon' => 'dices',
             'done_label' => 'Played',
             'todo_label' => 'To play',
             'done_icon' => 'check',
@@ -66,14 +64,13 @@ class CornerListsTest extends TestCase
         $this->movies();
 
         $this->actingAs($this->member)
-            ->post('/apps/our-corner/lists', $this->payload(['name' => '  Board   games ', 'kind' => 'link', 'notify_on_add' => false, 'done_icon' => 'heart']))
+            ->post('/apps/our-corner/lists', $this->payload(['name' => '  Board   games ', 'icon' => 'dice', 'notify_on_add' => false, 'done_icon' => 'heart']))
             ->assertRedirect('/apps/our-corner/board-games')
             ->assertSessionHas(SessionKey::FLASH_DATA, ['toast' => ['type' => 'success', 'message' => 'Made Board games.']]);
 
         $list = CornerList::query()->where('slug', 'board-games')->sole();
         $this->assertSame('Board games', $list->name);
-        $this->assertSame(ListKind::Link, $list->kind);
-        $this->assertSame('dice', $list->icon);
+        $this->assertSame('dices', $list->icon);
         $this->assertSame('Played', $list->done_label);
         $this->assertSame('To play', $list->todo_label);
         $this->assertSame('heart', $list->done_icon);
@@ -167,9 +164,9 @@ class CornerListsTest extends TestCase
         return [
             'no name' => [['name' => '   '], 'name'],
             'name too long' => [['name' => str_repeat('a', 61)], 'name'],
-            'no kind' => [['kind' => null], 'kind'],
-            'unknown kind' => [['kind' => 'video'], 'kind'],
-            'unknown icon' => [['icon' => 'rocket'], 'icon'],
+            'no icon' => [['icon' => ''], 'icon'],
+            'unknown icon' => [['icon' => 'not-an-icon'], 'icon'],
+            'icon not a string' => [['icon' => ['music']], 'icon'],
             'no done word' => [['done_label' => ''], 'done_label'],
             'done word too long' => [['done_label' => str_repeat('a', 25)], 'done_label'],
             'no not-yet word' => [['todo_label' => ''], 'todo_label'],
@@ -210,7 +207,7 @@ class CornerListsTest extends TestCase
 
     public function test_the_creator_changes_the_settings_but_the_address_stays(): void
     {
-        $list = $this->listBy($this->creator, ['name' => 'Books', 'slug' => 'books', 'kind' => ListKind::Plain]);
+        $list = $this->listBy($this->creator, ['name' => 'Books', 'slug' => 'books']);
 
         $this->actingAs($this->creator)
             ->from('/apps/our-corner/books')
@@ -221,7 +218,6 @@ class CornerListsTest extends TestCase
                 'todo_label' => 'To read',
                 'done_icon' => 'heart',
                 'notify_on_add' => false,
-                'kind' => null,
                 'slug' => 'novels',
             ]))
             ->assertRedirect('/apps/our-corner/books')
@@ -231,7 +227,6 @@ class CornerListsTest extends TestCase
         $list->refresh();
         $this->assertSame('Novels', $list->name);
         $this->assertSame('books', $list->slug);
-        $this->assertSame(ListKind::Plain, $list->kind);
         $this->assertSame('book', $list->icon);
         $this->assertSame('Read', $list->done_label);
         $this->assertSame('To read', $list->todo_label);
@@ -239,16 +234,45 @@ class CornerListsTest extends TestCase
         $this->assertFalse($list->notify_on_add);
     }
 
-    public function test_what_goes_in_a_list_cannot_change(): void
+    /** @return array<string, array{0: string, 1: string}> */
+    public static function icons(): array
     {
-        $list = $this->listBy($this->creator, ['kind' => ListKind::Plain]);
+        return [
+            'a lucide name' => ['sailboat', 'sailboat'],
+            'another' => ['rocket', 'rocket'],
+            'case and spaces' => ['  Book-Open ', 'book-open'],
+            'the old dice' => ['dice', 'dices'],
+            'the old paw' => ['paw', 'paw-print'],
+        ];
+    }
+
+    #[DataProvider('icons')]
+    public function test_any_lucide_icon_may_be_chosen_and_old_names_are_spelled_as_lucide_does(string $sent, string $stored): void
+    {
+        $list = $this->listBy($this->creator);
+
+        $this->actingAs($this->creator)
+            ->patch("/apps/our-corner/lists/{$list->id}", $this->payload(['icon' => $sent]))
+            ->assertSessionHasNoErrors();
+
+        $this->assertSame($stored, $list->fresh()->icon);
+    }
+
+    public function test_an_unknown_icon_is_refused_and_a_kind_is_not_a_setting(): void
+    {
+        $list = $this->listBy($this->creator, ['icon' => 'music']);
 
         $this->actingAs($this->creator)
             ->from("/apps/our-corner/{$list->slug}")
-            ->patch("/apps/our-corner/lists/{$list->id}", $this->payload(['kind' => 'link']))
-            ->assertSessionHasErrors(['kind' => "What goes in a list can't be changed once it exists."]);
+            ->patch("/apps/our-corner/lists/{$list->id}", $this->payload(['icon' => 'definitely-not-lucide']))
+            ->assertSessionHasErrors(['icon' => 'Choose one of the icons.']);
+        $this->assertSame('music', $list->fresh()->icon);
 
-        $this->assertSame(ListKind::Plain, $list->fresh()->kind);
+        // A client that still sends a kind is not refused for it; it just isn't kept.
+        $this->actingAs($this->creator)
+            ->patch("/apps/our-corner/lists/{$list->id}", $this->payload(['kind' => 'link']))
+            ->assertSessionHasNoErrors();
+        $this->assertArrayNotHasKey('kind', $list->fresh()->getAttributes());
     }
 
     public function test_an_admin_changes_anyones_list_and_the_four_original_lists(): void
@@ -258,7 +282,7 @@ class CornerListsTest extends TestCase
 
         foreach ([$mine, $songs] as $list) {
             $this->actingAs($this->admin)
-                ->patch("/apps/our-corner/lists/{$list->id}", $this->payload(['kind' => null, 'name' => 'By admin']))
+                ->patch("/apps/our-corner/lists/{$list->id}", $this->payload(['name' => 'By admin']))
                 ->assertSessionHasNoErrors();
 
             $this->assertSame('By admin', $list->fresh()->name);
@@ -272,7 +296,7 @@ class CornerListsTest extends TestCase
 
         foreach ([$mine, $songs] as $list) {
             $this->actingAs($this->member)
-                ->patch("/apps/our-corner/lists/{$list->id}", $this->payload(['kind' => null, 'name' => 'Hijacked']))
+                ->patch("/apps/our-corner/lists/{$list->id}", $this->payload(['name' => 'Hijacked']))
                 ->assertForbidden();
 
             $this->assertNotSame('Hijacked', $list->fresh()->name);
@@ -280,14 +304,14 @@ class CornerListsTest extends TestCase
 
         // The creator of one list has no say over the four original ones.
         $this->actingAs($this->creator)
-            ->patch("/apps/our-corner/lists/{$songs->id}", $this->payload(['kind' => null]))
+            ->patch("/apps/our-corner/lists/{$songs->id}", $this->payload())
             ->assertForbidden();
     }
 
     public function test_changing_a_list_that_does_not_exist_is_a_404(): void
     {
         $this->actingAs($this->admin)
-            ->patch('/apps/our-corner/lists/999999999', $this->payload(['kind' => null]))
+            ->patch('/apps/our-corner/lists/999999999', $this->payload())
             ->assertNotFound();
     }
 

@@ -8,27 +8,9 @@ use Illuminate\Support\Facades\Gate;
 class ItemResource
 {
     /**
-     * Every kind sends every field; the ones a kind doesn't use are null.
+     * Every item has the same parts; the ones it doesn't use are null.
      *
-     * @return array{
-     *     id: int,
-     *     title: string,
-     *     notes: string|null,
-     *     url: string|null,
-     *     image_url: string|null,
-     *     author: string|null,
-     *     provider: string|null,
-     *     place_id: string|null,
-     *     lat: float|null,
-     *     lng: float|null,
-     *     address: string|null,
-     *     added_at: string,
-     *     done_at: string|null,
-     *     is_done: bool,
-     *     can: array{update: bool, delete: bool},
-     *     added_by_user_id: int,
-     *     addedBy: array{id: int, name: string},
-     * }
+     * @return array<string, mixed>
      */
     public function __invoke(Item $item): array
     {
@@ -39,9 +21,13 @@ class ItemResource
             'title' => $item->title,
             'notes' => $item->notes,
             'url' => $item->url,
-            'image_url' => $item->image_url,
+            'site_name' => $item->site_name,
             'author' => $item->author,
-            'provider' => $item->provider,
+            // Where the picture comes from, for the edit form; pages draw picture_url.
+            'image_url' => $item->image_url,
+            'picture_url' => $item->pictureUrl(),
+            'location_label' => $item->location_label,
+            'location_url' => $item->location_url,
             'place_id' => $item->place_id,
             'lat' => $item->lat === null ? null : (float) $item->lat,
             'lng' => $item->lng === null ? null : (float) $item->lng,

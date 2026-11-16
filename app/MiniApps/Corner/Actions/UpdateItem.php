@@ -14,10 +14,10 @@ class UpdateItem
         private readonly ItemDetails $details,
     ) {}
 
-    /** @param  array<string, mixed>  $data validated against the list's kind */
+    /** @param  array<string, mixed>  $data validated by ItemRules */
     public function __invoke(Item $item, array $data): Item
     {
-        $attributes = $this->details->for($item->list->kind, $data, $item);
+        $attributes = $this->details->for($data, $item);
 
         try {
             DB::transaction(fn () => $item->update($attributes));
