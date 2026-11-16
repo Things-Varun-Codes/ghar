@@ -1,0 +1,387 @@
+<?php
+
+namespace Tests\Feature\Corner;
+
+use App\MiniApps\Corner\Models\CornerList;
+use App\MiniApps\Corner\Models\Item;
+use App\MiniApps\Corner\Support\ListKind;
+use App\Shell\Models\User;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Carbon;
+use Inertia\Testing\AssertableInertia;
+use PHPUnit\Framework\Attributes\DataProvider;
+use Tests\Feature\Corner\Concerns\MakesCornerLists;
+use Tests\TestCase;
+
+class CornerListPageTest extends TestCase
+{
+    use MakesCornerLists;
+    use RefreshDatabase;
+
+    private User $user;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+        $this->user = User::factory()->create();
+    }
+
+    /** @return array<string, array{0: ListKind}> */
+    public static function kinds(): array
+    {
+        return [
+            'link' => [ListKind::Link],
+            'poster' => [ListKind::Poster],
+            'plain' => [ListKind::Plain],
+            'place' => [ListKind::Place],
+        ];
+    }
+
+    #[DataProvider('kinds')]
+    public function test_every_kind_renders_one_list_page_with_its_settings_and_items(ListKind $kind): void
+    {
+        $list = $this->listOfKind($kind);
+        $item = $this->itemIn($list, $this->user, ['notes' => 'A note']);
+        // Another list's items never leak in.
+        $this->itemIn(CornerList::factory()->create(), $this->user);
+
+        $this->actingAs($this->user)
+            ->get("/apps/our-corner/{$list->slug}")
+            ->assertOk()
+            ->assertInertia(fn (AssertableInertia $page) => $page
+                ->component('MiniApps/Corner/Pages/List')
+                ->where('list.id', $list->id)
+                ->where('list.slug', $list->slug)
+                ->where('list.name', $list->name)
+                ->where('list.kind', $kind->value)
+                ->where('list.done_label', $list->done_label)
+                ->where('list.todo_label', $list->todo_label)
+                ->where('list.done_icon', $list->done_icon)
+                ->where('list.icon', $list->icon)
+                ->where('list.notify_on_add', true)
+                ->has('items.data', 1)
+                ->where('items.data.0.id', $item->id)
+                ->where('items.data.0.title', $item->title)
+                ->where('items.data.0.notes', 'A note')
+                ->where('items.data.0.is_done', false)
+                ->where('items.data.0.addedBy.id', $this->user->id)
+                ->where('filter', 'all')
+                ->where('sort', 'recent')
+                ->where('q', null));
+    }
+
+    public function test_the_item_payload_carries_every_field_of_its_kind(): void
+    {
+        $songs = $this->songs();
+        $song = $this->itemIn($songs, $this->user, ['author' => 'Queen']);
+        $places = $this->places();
+        $place = $this->itemIn($places, $this->user, ['lat' => 12.3456789, 'lng' => -98.7654321, 'address' => '1 High St']);
+        $doneBy = User::factory()->create();
+        $place->markDone($doneBy);
+
+        $this->actingAs($this->user)
+            ->get("/apps/our-corner/songs/{$song->id}")
+            ->assertInertia(fn (AssertableInertia $page) => $page
+                ->component('MiniApps/Corner/Pages/Item')
+                ->where('list.slug', 'songs')
+                ->where('item.id', $song->id)
+                ->where('item.url', $song->url)
+                ->where('item.image_url', $song->image_url)
+                ->where('item.author', 'Queen')
+                ->where('item.provider', 'youtube')
+                ->where('item.lat', null));
+
+        $this->actingAs($this->user)
+            ->get("/apps/our-corner/places/{$place->id}")
+            ->assertInertia(fn (AssertableInertia $page) => $page
+                ->where('item.lat', 12.3456789)
+                ->where('item.lng', -98.7654321)
+                ->where('item.address', '1 High St')
+                ->where('item.is_done', true)
+                ->where('item.done_at', fn ($at) => is_string($at))
+                ->where('item.url', null));
+    }
+
+    #[DataProvider('kinds')]
+    public function test_filters_scope_rows_and_counts_stay_whole(ListKind $kind): void
+    {
+        $list = $this->listOfKind($kind);
+        $active = $this->itemIn($list, $this->user);
+        $done = $this->itemIn($list, $this->user, ['done_at' => now(), 'done_by_user_id' => $this->user->id]);
+
+        $this->actingAs($this->user)
+            ->get("/apps/our-corner/{$list->slug}?filter=active")
+            ->assertInertia(fn (AssertableInertia $page) => $page
+                ->where('filter', 'active')
+                ->has('items.data', 1)
+                ->where('items.data.0.id', $active->id)
+                ->where('items.counts.all', 2)
+                ->where('items.counts.active', 1)
+                ->where('items.counts.done', 1));
+
+        $this->actingAs($this->user)
+            ->get("/apps/our-corner/{$list->slug}?filter=done")
+            ->assertInertia(fn (AssertableInertia $page) => $page
+                ->where('filter', 'done')
+                ->has('items.data', 1)
+                ->where('items.data.0.id', $done->id));
+
+        foreach (['', '?filter=all', '?filter=garbage', '?filter[]=done'] as $query) {
+            $this->actingAs($this->user)
+                ->get("/apps/our-corner/{$list->slug}{$query}")
+                ->assertInertia(fn (AssertableInertia $page) => $page
+                    ->where('filter', 'all')
+                    ->has('items.data', 2));
+        }
+    }
+
+    public function test_a_page_holds_fifty_rows_and_the_next_link_keeps_the_filter(): void
+    {
+        $list = $this->movies();
+        Item::factory()->count(60)->create(['list_id' => $list->id, 'added_by_user_id' => $this->user->id]);
+        Item::factory()->count(3)->done($this->user)->create(['list_id' => $list->id, 'added_by_user_id' => $this->user->id]);
+
+        $this->actingAs($this->user)
+            ->get('/apps/our-corner/movies?filter=active')
+            ->assertInertia(fn (AssertableInertia $page) => $page
+                ->has('items.data', 50)
+                ->where('items.per_page', 50)
+                ->where('items.counts.all', 63)
+                ->where('items.counts.active', 60)
+                ->where('items.counts.done', 3)
+                ->where('items.next_page_url', fn ($url) => str_contains((string) $url, 'filter=active'))
+                ->missing('items.total')
+                ->missing('items.last_page')
+                ->missing('items.current_page'));
+    }
+
+    public function test_the_second_page_continues_where_the_first_stopped(): void
+    {
+        $list = $this->activities();
+        Item::factory()->count(55)->sequence(fn ($s) => ['added_at' => now()->subMinutes($s->index)])
+            ->create(['list_id' => $list->id, 'added_by_user_id' => $this->user->id]);
+
+        $first = $this->actingAs($this->user)->get("/apps/our-corner/{$list->slug}");
+        $props = $first->viewData('page')['props'];
+        $seen = array_column($props['items']['data'], 'id');
+
+        $second = $this->actingAs($this->user)->get($props['items']['next_page_url']);
+        $more = array_column($second->viewData('page')['props']['items']['data'], 'id');
+
+        $this->assertCount(5, $more);
+        $this->assertSame([], array_intersect($seen, $more));
+        $this->assertNull($second->viewData('page')['props']['items']['next_page_url']);
+    }
+
+    public function test_equal_times_fall_back_to_the_newest_id(): void
+    {
+        $list = $this->movies();
+        $ts = now()->setMicroseconds(0);
+        $ids = collect(range(1, 3))
+            ->map(fn () => $this->itemIn($list, $this->user, ['added_at' => $ts])->id)
+            ->all();
+
+        $this->actingAs($this->user)
+            ->get('/apps/our-corner/movies')
+            ->assertInertia(fn (AssertableInertia $page) => $page
+                ->where('items.data.0.id', $ids[2])
+                ->where('items.data.1.id', $ids[1])
+                ->where('items.data.2.id', $ids[0]));
+    }
+
+    public function test_search_narrows_rows_and_counts_and_matches_the_author_of_a_link(): void
+    {
+        $list = $this->songs();
+        $match = $this->itemIn($list, $this->user, ['title' => 'Bohemian Rhapsody', 'author' => 'Queen']);
+        $byAuthor = $this->itemIn($list, $this->user, ['title' => 'Some Song', 'author' => 'Radiohead']);
+        $this->itemIn($list, $this->user, ['title' => 'Imagine', 'author' => 'John Lennon']);
+
+        $this->actingAs($this->user)
+            ->get('/apps/our-corner/songs?q=bohemian')
+            ->assertInertia(fn (AssertableInertia $page) => $page
+                ->has('items.data', 1)
+                ->where('items.data.0.id', $match->id)
+                ->where('items.counts.all', 1)
+                ->where('q', 'bohemian'));
+
+        $this->actingAs($this->user)
+            ->get('/apps/our-corner/songs?q=radiohead')
+            ->assertInertia(fn (AssertableInertia $page) => $page
+                ->has('items.data', 1)
+                ->where('items.data.0.id', $byAuthor->id));
+
+        // Blank and whitespace-only searches are no search.
+        $this->actingAs($this->user)
+            ->get('/apps/our-corner/songs?q=%20%20')
+            ->assertInertia(fn (AssertableInertia $page) => $page->where('q', null)->has('items.data', 3));
+    }
+
+    public function test_search_reads_the_notes_and_a_place_address(): void
+    {
+        $activities = $this->activities();
+        $noted = $this->itemIn($activities, $this->user, ['title' => 'Hike', 'notes' => 'Bring sunscreen']);
+        $this->itemIn($activities, $this->user, ['title' => 'Swim']);
+
+        $places = $this->places();
+        $bakery = $this->itemIn($places, $this->user, ['title' => 'Bakery', 'address' => '4 Market Street, Mysuru']);
+        $this->itemIn($places, $this->user, ['title' => 'Cafe', 'address' => '1 Fort Road, Kochi']);
+
+        $this->actingAs($this->user)
+            ->get("/apps/our-corner/{$activities->slug}?q=sunscreen")
+            ->assertInertia(fn (AssertableInertia $page) => $page->has('items.data', 1)->where('items.data.0.id', $noted->id));
+
+        $this->actingAs($this->user)
+            ->get('/apps/our-corner/places?q=mysuru')
+            ->assertInertia(fn (AssertableInertia $page) => $page->has('items.data', 1)->where('items.data.0.id', $bakery->id));
+    }
+
+    public function test_search_treats_wildcards_as_text(): void
+    {
+        $list = $this->activities();
+        $this->itemIn($list, $this->user, ['title' => '100% fun']);
+        $this->itemIn($list, $this->user, ['title' => '100 fun']);
+
+        $this->actingAs($this->user)
+            ->get("/apps/our-corner/{$list->slug}?q=".urlencode('0%'))
+            ->assertInertia(fn (AssertableInertia $page) => $page->has('items.data', 1)->where('items.data.0.title', '100% fun'));
+    }
+
+    public function test_sorts_by_title_and_a_link_list_also_by_artist(): void
+    {
+        $list = $this->songs();
+        $this->itemIn($list, $this->user, ['title' => 'Zebra Song', 'author' => 'Alpha Artist']);
+        $this->itemIn($list, $this->user, ['title' => 'Alpha Song', 'author' => 'Zeta Artist']);
+
+        $this->actingAs($this->user)
+            ->get('/apps/our-corner/songs')
+            ->assertInertia(fn (AssertableInertia $page) => $page->where('sorts', ['recent', 'title', 'artist']));
+
+        $this->actingAs($this->user)
+            ->get('/apps/our-corner/songs?sort=title')
+            ->assertInertia(fn (AssertableInertia $page) => $page
+                ->where('sort', 'title')
+                ->where('items.data.0.title', 'Alpha Song')
+                ->where('items.data.1.title', 'Zebra Song'));
+
+        $this->actingAs($this->user)
+            ->get('/apps/our-corner/songs?sort=artist')
+            ->assertInertia(fn (AssertableInertia $page) => $page
+                ->where('sort', 'artist')
+                ->where('items.data.0.author', 'Alpha Artist')
+                ->where('items.data.1.author', 'Zeta Artist'));
+    }
+
+    /** @return array<string, array{0: ListKind}> */
+    public static function kindsWithoutArtists(): array
+    {
+        return [
+            'poster' => [ListKind::Poster],
+            'plain' => [ListKind::Plain],
+            'place' => [ListKind::Place],
+        ];
+    }
+
+    #[DataProvider('kindsWithoutArtists')]
+    public function test_only_a_link_list_sorts_by_artist(ListKind $kind): void
+    {
+        $list = $this->listOfKind($kind);
+
+        $this->actingAs($this->user)
+            ->get("/apps/our-corner/{$list->slug}?sort=artist")
+            ->assertInertia(fn (AssertableInertia $page) => $page
+                ->where('sort', 'recent')
+                ->where('sorts', ['recent', 'title']));
+    }
+
+    public function test_no_sort_or_a_garbage_sort_is_newest_first(): void
+    {
+        $list = $this->songs();
+        $older = $this->itemIn($list, $this->user, ['added_at' => Carbon::now()->subDay()]);
+        $newer = $this->itemIn($list, $this->user, ['added_at' => Carbon::now()]);
+
+        foreach (['', '?sort=garbage', '?sort[]=title'] as $query) {
+            $this->actingAs($this->user)
+                ->get("/apps/our-corner/songs{$query}")
+                ->assertInertia(fn (AssertableInertia $page) => $page
+                    ->where('sort', 'recent')
+                    ->where('items.data.0.id', $newer->id)
+                    ->where('items.data.1.id', $older->id));
+        }
+    }
+
+    public function test_a_missing_list_renders_a_page_saying_so(): void
+    {
+        $this->actingAs($this->user)
+            ->get('/apps/our-corner/no-such-list')
+            ->assertOk()
+            ->assertInertia(fn (AssertableInertia $page) => $page
+                ->component('MiniApps/Corner/Pages/EntityNotFound')
+                ->where('kind', 'list'));
+
+        $this->actingAs($this->user)
+            ->get('/apps/our-corner/no-such-list/1')
+            ->assertOk()
+            ->assertInertia(fn (AssertableInertia $page) => $page
+                ->component('MiniApps/Corner/Pages/EntityNotFound')
+                ->where('kind', 'list'));
+    }
+
+    public function test_a_missing_item_renders_a_page_saying_so(): void
+    {
+        $list = $this->movies();
+        $elsewhere = $this->itemIn(CornerList::factory()->create(), $this->user);
+        $missing = (int) Item::max('id') + 1000;
+
+        foreach ([(string) $missing, (string) $elsewhere->id, 'abc', '-1'] as $id) {
+            $this->actingAs($this->user)
+                ->get("/apps/our-corner/{$list->slug}/{$id}")
+                ->assertOk()
+                ->assertInertia(fn (AssertableInertia $page) => $page
+                    ->component('MiniApps/Corner/Pages/EntityNotFound')
+                    ->where('kind', 'item'));
+        }
+    }
+
+    public function test_an_old_link_still_opens_the_item_and_so_does_its_new_id(): void
+    {
+        $list = $this->songs();
+        $legacyId = 7;
+        $song = $this->itemIn($list, $this->user, ['legacy_type' => 'corner.song', 'legacy_id' => $legacyId]);
+        $this->assertNotSame($legacyId, $song->id);
+
+        foreach ([$legacyId, $song->id] as $id) {
+            $this->actingAs($this->user)
+                ->get("/apps/our-corner/songs/{$id}")
+                ->assertOk()
+                ->assertInertia(fn (AssertableInertia $page) => $page
+                    ->component('MiniApps/Corner/Pages/Item')
+                    ->where('item.id', $song->id));
+        }
+
+        // An old id only counts in the list it came from.
+        $this->actingAs($this->user)
+            ->get("/apps/our-corner/{$this->movies()->slug}/{$legacyId}")
+            ->assertInertia(fn (AssertableInertia $page) => $page->component('MiniApps/Corner/Pages/EntityNotFound'));
+    }
+
+    public function test_a_new_id_wins_over_an_old_one_that_happens_to_match(): void
+    {
+        $list = $this->songs();
+        $newer = $this->itemIn($list, $this->user);
+        // An old item whose old id equals the newer item's id.
+        $this->itemIn($list, $this->user, ['legacy_type' => 'corner.song', 'legacy_id' => $newer->id]);
+
+        $this->actingAs($this->user)
+            ->get("/apps/our-corner/songs/{$newer->id}")
+            ->assertInertia(fn (AssertableInertia $page) => $page->where('item.id', $newer->id));
+    }
+
+    public function test_guests_are_sent_to_log_in(): void
+    {
+        $list = $this->songs();
+
+        $this->get('/apps/our-corner')->assertRedirect('/login');
+        $this->get("/apps/our-corner/{$list->slug}")->assertRedirect('/login');
+        $this->post("/apps/our-corner/{$list->slug}", ['title' => 'X'])->assertRedirect('/login');
+    }
+}

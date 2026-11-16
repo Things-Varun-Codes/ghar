@@ -2,7 +2,8 @@
 
 namespace Tests\Unit\Shell\Support;
 
-use App\MiniApps\Corner\Models\Movie;
+use App\MiniApps\Corner\Models\CornerList;
+use App\MiniApps\Corner\Models\Item;
 use App\Shell\Models\User;
 use App\Shell\Support\CursorList;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -12,20 +13,28 @@ class CursorListTest extends TestCase
 {
     use RefreshDatabase;
 
+    private CornerList $list;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+        $this->list = CornerList::factory()->create();
+    }
+
     private function transform(): \Closure
     {
-        return fn (Movie $m) => ['id' => $m->id, 'title' => $m->title];
+        return fn (Item $m) => ['id' => $m->id, 'title' => $m->title];
     }
 
     public function test_status_scoping_filters_rows_by_nullable_column(): void
     {
         $user = User::factory()->create();
 
-        $active1 = Movie::factory()->create(['added_by_user_id' => $user->id, 'done_at' => null]);
-        $active2 = Movie::factory()->create(['added_by_user_id' => $user->id, 'done_at' => null]);
-        $done1 = Movie::factory()->create(['added_by_user_id' => $user->id, 'done_at' => now()]);
+        $active1 = Item::factory()->create(['list_id' => $this->list->id, 'added_by_user_id' => $user->id, 'done_at' => null]);
+        $active2 = Item::factory()->create(['list_id' => $this->list->id, 'added_by_user_id' => $user->id, 'done_at' => null]);
+        $done1 = Item::factory()->create(['list_id' => $this->list->id, 'added_by_user_id' => $user->id, 'done_at' => now()]);
 
-        $base = fn () => Movie::query()->orderByDesc('added_at')->orderByDesc('id');
+        $base = fn () => Item::query()->orderByDesc('added_at')->orderByDesc('id');
 
         $activeResult = CursorList::make($base())->status('done_at')->paginate('active', 50, $this->transform());
         $doneResult = CursorList::make($base())->status('done_at')->paginate('done', 50, $this->transform());
@@ -48,10 +57,10 @@ class CursorListTest extends TestCase
         $user = User::factory()->create();
 
         // 5 rows, 3 active + 2 done, perPage = 2 so only page 1 (2 rows) returns.
-        Movie::factory()->count(3)->create(['added_by_user_id' => $user->id, 'done_at' => null]);
-        Movie::factory()->count(2)->create(['added_by_user_id' => $user->id, 'done_at' => now()]);
+        Item::factory()->count(3)->create(['list_id' => $this->list->id, 'added_by_user_id' => $user->id, 'done_at' => null]);
+        Item::factory()->count(2)->create(['list_id' => $this->list->id, 'added_by_user_id' => $user->id, 'done_at' => now()]);
 
-        $base = Movie::query()->orderByDesc('added_at')->orderByDesc('id');
+        $base = Item::query()->orderByDesc('added_at')->orderByDesc('id');
 
         $result = CursorList::make($base)->status('done_at')->paginate('all', 2, $this->transform());
 
@@ -65,9 +74,9 @@ class CursorListTest extends TestCase
     public function test_payload_shape_matches_cursor_payload_plus_counts(): void
     {
         $user = User::factory()->create();
-        Movie::factory()->count(5)->create(['added_by_user_id' => $user->id]);
+        Item::factory()->count(5)->create(['list_id' => $this->list->id, 'added_by_user_id' => $user->id]);
 
-        $base = Movie::query()->orderByDesc('added_at')->orderByDesc('id');
+        $base = Item::query()->orderByDesc('added_at')->orderByDesc('id');
 
         $result = CursorList::make($base)->status('done_at')->paginate('all', 2, $this->transform());
 
@@ -87,13 +96,13 @@ class CursorListTest extends TestCase
     {
         $user = User::factory()->create();
 
-        Movie::factory()->create(['added_by_user_id' => $user->id, 'title' => 'Keep Me', 'done_at' => null]);
-        Movie::factory()->create(['added_by_user_id' => $user->id, 'title' => 'Keep Me Too', 'done_at' => now()]);
-        Movie::factory()->create(['added_by_user_id' => $user->id, 'title' => 'Exclude Me', 'done_at' => null]);
+        Item::factory()->create(['list_id' => $this->list->id, 'added_by_user_id' => $user->id, 'title' => 'Keep Me', 'done_at' => null]);
+        Item::factory()->create(['list_id' => $this->list->id, 'added_by_user_id' => $user->id, 'title' => 'Keep Me Too', 'done_at' => now()]);
+        Item::factory()->create(['list_id' => $this->list->id, 'added_by_user_id' => $user->id, 'title' => 'Exclude Me', 'done_at' => null]);
 
         // Simulates a scoping clause (visibleTo, or a future ?q search WHERE)  applied by the
         // caller BEFORE handing $base to CursorList.
-        $base = Movie::query()
+        $base = Item::query()
             ->where('title', 'like', 'Keep Me%')
             ->orderByDesc('added_at')
             ->orderByDesc('id');

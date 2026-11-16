@@ -26,8 +26,9 @@ it are a few small apps for the things families keep track of together:
 
 - **Our History**: a timeline, gallery and calendar of the moments you want to remember, with photos
   and videos.
-- **Our Corner**: shared lists of songs, movies, places and things to do, and a way to mark what
-  you've loved, watched or visited.
+- **Our Corner**: shared lists the household makes for itself (songs, films, places, books,
+  recipes, anything), each with its own icon and its own word for done: loved, watched, visited,
+  read.
 - **Our Mailbox**: notes and bouquets of flowers to one or more people, coupons someone can redeem,
   and citations. A citation is a joke traffic ticket, a mock
   official form for an offence such as leaving wet towels on the bed, with a penalty the recipient

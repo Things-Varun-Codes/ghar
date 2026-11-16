@@ -2,8 +2,8 @@
 
 namespace Tests\Feature\Shell;
 
-use App\MiniApps\Corner\Models\Place;
-use App\MiniApps\Corner\Models\Song;
+use App\MiniApps\Corner\Models\CornerList;
+use App\MiniApps\Corner\Models\Item;
 use App\MiniApps\History\Models\Event;
 use App\MiniApps\Mailbox\Models\Citation;
 use App\MiniApps\Mailbox\Models\MailboxMessage;
@@ -83,8 +83,8 @@ class DashboardSummariesTest extends TestCase
     public function test_corner_line_is_latest_added_across_lists(): void
     {
         $user = User::factory()->create();
-        Song::factory()->create(['added_by_user_id' => $user->id, 'title' => 'Old song', 'added_at' => '2026-10-01 10:00:00']);
-        Place::factory()->create(['added_by_user_id' => $user->id, 'title' => 'Blue Tokai', 'added_at' => '2026-10-20 10:00:00']);
+        Item::factory()->create(['list_id' => CornerList::factory()->create()->id, 'added_by_user_id' => $user->id, 'title' => 'Old song', 'added_at' => '2026-10-01 10:00:00']);
+        Item::factory()->create(['list_id' => CornerList::factory()->create()->id, 'added_by_user_id' => $user->id, 'title' => 'Blue Tokai', 'added_at' => '2026-10-20 10:00:00']);
 
         $this->actingAs($user)->get('/dashboard')
             ->assertInertia(fn ($p) => $p->where('summaries.our-corner', 'Latest: Blue Tokai'));
@@ -102,7 +102,7 @@ class DashboardSummariesTest extends TestCase
     {
         $adder = User::factory()->create();
         $reader = User::factory()->create();
-        Place::factory()->create(['added_by_user_id' => $adder->id, 'title' => 'Blue Tokai', 'added_at' => '2026-10-21 10:00:00']);
+        Item::factory()->create(['list_id' => CornerList::factory()->create()->id, 'added_by_user_id' => $adder->id, 'title' => 'Blue Tokai', 'added_at' => '2026-10-21 10:00:00']);
 
         $this->actingAs($reader)->get('/dashboard')
             ->assertInertia(fn ($p) => $p->where('summaries.our-corner', 'Latest: Blue Tokai'));

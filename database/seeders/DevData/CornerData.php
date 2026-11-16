@@ -2,30 +2,43 @@
 
 namespace Database\Seeders\DevData;
 
-use App\MiniApps\Corner\Models\Activity;
-use App\MiniApps\Corner\Models\Movie;
-use App\MiniApps\Corner\Models\Place;
-use App\MiniApps\Corner\Models\Song;
+use App\MiniApps\Corner\Models\CornerList;
+use App\MiniApps\Corner\Models\Item;
+use App\MiniApps\Corner\Support\ListKind;
 use App\Shell\Models\User;
+use Illuminate\Support\Facades\DB;
 
 /**
- * Corner lists: named items with mixed adders and done states, plus enough
- * filler songs to run past the 50-row page.
+ * Corner lists. Songs, Movies, Places and Activities look the way the upgrade leaves an
+ * install that had them: no creator, and every item remembers its old type and id, so
+ * History's old-style links are exercised. Three more lists were made by people in the
+ * household, to cover who may change and delete a list.
  */
 final class CornerData
 {
     private const FILLER_SONGS = 54;
+
+    /** Above every old id, as the upgrade leaves it, so an old id never names a new item. */
+    private const FIRST_NEW_ID = 100;
+
+    /** @var array<string, int> next old id per old type */
+    private array $legacyIds = [];
 
     /**
      * @return array<string, array{id: int, title: string, type: string, slug: string}> what moments can link to
      */
     public function seed(Household $h): array
     {
+        DB::statement("select setval(pg_get_serial_sequence('corner_items', 'id'), ?)", [self::FIRST_NEW_ID - 1]);
+
         return [
             ...$this->songs($h),
             ...$this->movies($h),
             ...$this->places($h),
             ...$this->activities($h),
+            ...$this->books($h),
+            ...$this->restaurants($h),
+            ...$this->boardGames($h),
         ];
     }
 
@@ -34,6 +47,8 @@ final class CornerData
      */
     private function songs(Household $h): array
     {
+        $list = CornerList::factory()->songs()->create(['position' => 0]);
+
         // [title, author, adder, days ago added, loved by, loved days ago]
         $named = [
             ['Rain on the Tin Roof', 'The Monsoon Club', $h->ravi, 3, null, null],
@@ -46,9 +61,10 @@ final class CornerData
             ['Porch Lights', 'The Neighbours', $h->kabir, 44, null, null],
         ];
 
+        $links = [];
         foreach ($named as $i => [$title, $author, $adder, $added, $lovedBy, $lovedAgo]) {
-            $song = $this->song($h, $i, $title, $author, $adder, $added, $lovedBy, $lovedAgo, withThumbnail: true);
-            $links[$i === 0 ? 'song' : "song-{$i}"] = $this->link($song->id, $title, 'corner.song', 'songs');
+            $song = $this->song($h, $list, $i, $title, $author, $adder, $added, $lovedBy, $lovedAgo, withThumbnail: true);
+            $links[$i === 0 ? 'song' : "song-{$i}"] = $this->legacyLink($song, 'songs');
         }
 
         // Older than the named ones, so the first page reads naturally.
@@ -58,6 +74,7 @@ final class CornerData
 
             $this->song(
                 $h,
+                $list,
                 count($named) + $i,
                 rtrim($h->faker->sentence(3), '.'),
                 $h->faker->name(),
@@ -74,6 +91,7 @@ final class CornerData
 
     private function song(
         Household $h,
+        CornerList $list,
         int $index,
         string $title,
         string $author,
@@ -82,11 +100,12 @@ final class CornerData
         ?User $lovedBy,
         ?int $lovedDaysAgo,
         bool $withThumbnail,
-    ): Song {
+    ): Item {
         $spotify = $index % 3 === 2;
         $providerId = substr(hash('sha256', "dev-song-{$index}"), 0, $spotify ? 22 : 11);
 
-        return Song::factory()->create([
+        return Item::factory()->create([
+            'list_id' => $list->id,
             'provider' => $spotify ? 'spotify' : 'youtube',
             'provider_id' => $providerId,
             'url' => $spotify
@@ -94,11 +113,12 @@ final class CornerData
                 : "https://www.youtube.com/watch?v={$providerId}",
             'title' => $title,
             'author' => $author,
-            'thumbnail_url' => $withThumbnail
+            'image_url' => $withThumbnail
                 ? PlaceholderImage::svgDataUri($title, $index, 320, 320)
                 : null,
             'added_by_user_id' => $adder->id,
             'added_at' => $h->daysAgo($addedDaysAgo),
+            ...$this->legacy('corner.song'),
             ...$this->done($h, $lovedBy, $lovedDaysAgo),
         ]);
     }
@@ -108,6 +128,8 @@ final class CornerData
      */
     private function movies(Household $h): array
     {
+        $list = CornerList::factory()->movies()->create(['position' => 1]);
+
         // [title, adder, days ago added, watched by, watched days ago, has poster]
         $movies = [
             ['The Long Train South', $h->meera, 4, null, null, true],
@@ -120,18 +142,21 @@ final class CornerData
             ['A Very Loud Family', $h->ravi, 70, null, null, false],
         ];
 
+        $links = [];
         foreach ($movies as $i => [$title, $adder, $added, $watchedBy, $watchedAgo, $hasPoster]) {
-            $movie = Movie::factory()->create([
+            $movie = Item::factory()->create([
+                'list_id' => $list->id,
                 'title' => $title,
-                'poster_url' => $hasPoster
+                'image_url' => $hasPoster
                     ? PlaceholderImage::svgDataUri($title, $i + 2, 400, 600)
                     : null,
                 'added_by_user_id' => $adder->id,
                 'added_at' => $h->daysAgo($added),
+                ...$this->legacy('corner.movie'),
                 ...$this->done($h, $watchedBy, $watchedAgo),
             ]);
 
-            $links[$i === 0 ? 'movie' : "movie-{$i}"] = $this->link($movie->id, $title, 'corner.movie', 'movies');
+            $links[$i === 0 ? 'movie' : "movie-{$i}"] = $this->legacyLink($movie, 'movies');
         }
 
         return $links;
@@ -142,6 +167,8 @@ final class CornerData
      */
     private function places(Household $h): array
     {
+        $list = CornerList::factory()->places()->create(['position' => 2]);
+
         // [title, address, lat, lng, adder, days ago added, visited by, visited days ago]
         $places = [
             ['Blue Door Cafe', '12 Fort Road, Kochi', 9.9658, 76.2421, $h->meera, 5, null, null],
@@ -152,8 +179,10 @@ final class CornerData
             ['River Rafting Camp', 'Camp Road, Rishikesh', 30.0869, 78.2676, $h->kabir, 60, null, null],
         ];
 
+        $links = [];
         foreach ($places as $i => [$title, $address, $lat, $lng, $adder, $added, $visitedBy, $visitedAgo]) {
-            $place = Place::factory()->create([
+            $place = Item::factory()->create([
+                'list_id' => $list->id,
                 'title' => $title,
                 'place_id' => 'dev-place-'.$i,
                 'lat' => $lat,
@@ -161,10 +190,11 @@ final class CornerData
                 'address' => $address,
                 'added_by_user_id' => $adder->id,
                 'added_at' => $h->daysAgo($added),
+                ...$this->legacy('corner.place'),
                 ...$this->done($h, $visitedBy, $visitedAgo),
             ]);
 
-            $links[$i === 0 ? 'place' : "place-{$i}"] = $this->link($place->id, $title, 'corner.place', 'places');
+            $links[$i === 0 ? 'place' : "place-{$i}"] = $this->legacyLink($place, 'places');
         }
 
         return $links;
@@ -175,6 +205,8 @@ final class CornerData
      */
     private function activities(Household $h): array
     {
+        $list = CornerList::factory()->activities()->create(['position' => 3]);
+
         // [title, notes, adder, days ago added, done by, done days ago]
         $activities = [
             ['Teach Kabir to make dal', 'Start with the pressure cooker.', $h->meera, 2, null, null],
@@ -185,19 +217,126 @@ final class CornerData
             ['Cycle to the lake', 'Early, before it gets hot.', $h->ravi, 41, $h->kabir, 36],
         ];
 
+        $links = [];
         foreach ($activities as $i => [$title, $notes, $adder, $added, $doneBy, $doneAgo]) {
-            $activity = Activity::factory()->create([
+            $activity = Item::factory()->create([
+                'list_id' => $list->id,
                 'title' => $title,
                 'notes' => $notes,
                 'added_by_user_id' => $adder->id,
                 'added_at' => $h->daysAgo($added),
+                ...$this->legacy('corner.activity'),
                 ...$this->done($h, $doneBy, $doneAgo),
             ]);
 
-            $links[$i === 0 ? 'activity' : "activity-{$i}"] = $this->link($activity->id, $title, 'corner.activity', 'activities');
+            $links[$i === 0 ? 'activity' : "activity-{$i}"] = $this->legacyLink($activity, 'activities');
         }
 
         return $links;
+    }
+
+    /**
+     * Ravi's list, and only Ravi has added to it, so he may delete it.
+     *
+     * @return array<string, array{id: int, title: string, type: string, slug: string}>
+     */
+    private function books(Household $h): array
+    {
+        $list = CornerList::factory()->create([
+            'name' => 'Books', 'slug' => 'books', 'kind' => ListKind::Plain, 'icon' => 'book',
+            'done_label' => 'Read', 'todo_label' => 'To read', 'done_icon' => 'heart',
+            'position' => 4, 'created_by_user_id' => $h->ravi->id, 'created_at' => $h->daysAgo(16),
+        ]);
+
+        // [title, notes, days ago added, read days ago]
+        $books = [
+            ['The Salt Road', 'Borrowed from Meera; give it back.', 14, null],
+            ['A Year of Small Gardens', null, 15, 6],
+            ['The River Children', null, 16, null],
+        ];
+
+        $links = [];
+        foreach ($books as $i => [$title, $notes, $added, $readAgo]) {
+            $book = Item::factory()->create([
+                'list_id' => $list->id,
+                'title' => $title,
+                'notes' => $notes,
+                'added_by_user_id' => $h->ravi->id,
+                'added_at' => $h->daysAgo($added),
+                ...$this->done($h, $readAgo === null ? null : $h->ravi, $readAgo),
+            ]);
+
+            $links[$i === 0 ? 'book' : "book-{$i}"] = $this->link($book, 'books');
+        }
+
+        return $links;
+    }
+
+    /**
+     * Meera's list with a long name. Kabir has added to it, so Meera may change it but it
+     * takes an admin to delete it.
+     *
+     * @return array<string, array{id: int, title: string, type: string, slug: string}>
+     */
+    private function restaurants(Household $h): array
+    {
+        $name = 'Restaurants we keep meaning to try on a slow Sunday';
+        $list = CornerList::factory()->create([
+            'name' => $name, 'slug' => 'restaurants-we-keep-meaning-to-try-on-a-slow-sunday',
+            'kind' => ListKind::Place, 'icon' => 'utensils',
+            'done_label' => 'Eaten at', 'todo_label' => 'To try', 'done_icon' => 'check',
+            'position' => 5, 'created_by_user_id' => $h->meera->id, 'created_at' => $h->daysAgo(10),
+        ]);
+
+        // [title, address, lat, lng, adder, days ago added, eaten by, eaten days ago]
+        $places = [
+            ['Malabar Kitchen', '3 Church Street, Bengaluru', 12.9752, 77.6050, $h->meera, 9, $h->kabir, 2],
+            ['The Dosa Window', '88 MG Road, Bengaluru', 12.9756, 77.6066, $h->kabir, 8, null, null],
+        ];
+
+        $links = [];
+        foreach ($places as $i => [$title, $address, $lat, $lng, $adder, $added, $by, $ago]) {
+            $place = Item::factory()->create([
+                'list_id' => $list->id,
+                'title' => $title,
+                'notes' => $i === 0 ? 'Ask for the fish curry.' : null,
+                'lat' => $lat,
+                'lng' => $lng,
+                'address' => $address,
+                'added_by_user_id' => $adder->id,
+                'added_at' => $h->daysAgo($added),
+                ...$this->done($h, $by, $ago),
+            ]);
+
+            $links[$i === 0 ? 'restaurant' : "restaurant-{$i}"] = $this->link($place, $list->slug);
+        }
+
+        return $links;
+    }
+
+    /**
+     * Kabir's list, still empty, with notifications off.
+     *
+     * @return array<string, array{id: int, title: string, type: string, slug: string}>
+     */
+    private function boardGames(Household $h): array
+    {
+        CornerList::factory()->create([
+            'name' => 'Board games', 'slug' => 'board-games', 'kind' => ListKind::Plain, 'icon' => 'dice',
+            'done_label' => 'Played', 'todo_label' => 'To play', 'done_icon' => 'check',
+            'notify_on_add' => false,
+            'position' => 6, 'created_by_user_id' => $h->kabir->id, 'created_at' => $h->daysAgo(1),
+        ]);
+
+        return [];
+    }
+
+    /** @return array{legacy_type: string, legacy_id: int} */
+    private function legacy(string $type): array
+    {
+        $this->legacyIds[$type] = ($this->legacyIds[$type] ?? 0) + 1;
+
+        return ['legacy_type' => $type, 'legacy_id' => $this->legacyIds[$type]];
     }
 
     /**
@@ -212,10 +351,20 @@ final class CornerData
     }
 
     /**
+     * A link written before lists were customisable: the old type and the old id.
+     *
      * @return array{id: int, title: string, type: string, slug: string}
      */
-    private function link(int $id, string $title, string $type, string $slug): array
+    private function legacyLink(Item $item, string $slug): array
     {
-        return ['id' => $id, 'title' => $title, 'type' => $type, 'slug' => $slug];
+        return ['id' => (int) $item->legacy_id, 'title' => $item->title, 'type' => (string) $item->legacy_type, 'slug' => $slug];
+    }
+
+    /**
+     * @return array{id: int, title: string, type: string, slug: string}
+     */
+    private function link(Item $item, string $slug): array
+    {
+        return ['id' => $item->id, 'title' => $item->title, 'type' => 'corner.item', 'slug' => $slug];
     }
 }

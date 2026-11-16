@@ -437,8 +437,12 @@
 /* ── Landing: a door per list ────────────────────────────────────────────── */
 
 /* Sized by the room, not the viewport: one door a row on a phone, two on a tablet, four wide. */
-[data-app='our-corner'] .corner-doors {
+/* The container is the wrapper: a container query can't restyle the container itself. */
+[data-app='our-corner'] .corner-doors-wrap {
     container: corner-doors / inline-size;
+}
+
+[data-app='our-corner'] .corner-doors {
     display: grid;
     grid-template-columns: minmax(0, 1fr);
     gap: 12px;
@@ -1007,6 +1011,362 @@
     .corner-disclosure[aria-expanded='true']
     .corner-disclosure-icon {
     transform: rotate(180deg);
+}
+
+/* ── Rows: the text under a title stacks ─────────────────────────────────── */
+
+[data-app='our-corner'] .corner-item-main .corner-activity-preview,
+[data-app='our-corner'] .corner-item-main .corner-place-address,
+[data-app='our-corner'] .corner-item-main .corner-row-meta {
+    display: block;
+}
+
+[data-app='our-corner'] .corner-row-pin {
+    color: var(--corner-accent-text);
+}
+
+/* ── Landing: a door's name, icon and menu ───────────────────────────────── */
+
+[data-app='our-corner'] .corner-door-head {
+    display: flex;
+    align-items: flex-start;
+    gap: 4px;
+    min-width: 0;
+}
+
+[data-app='our-corner'] .corner-door-head .corner-door-name {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+}
+
+/* A household names its lists: a long name wraps to two lines and then stops. */
+[data-app='our-corner'] .corner-door-name .shell-card-link {
+    min-width: 0;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    overflow: hidden;
+    overflow-wrap: anywhere;
+}
+
+[data-app='our-corner'] .corner-door-icon {
+    flex: none;
+    align-self: center;
+    color: var(--corner-accent-text);
+}
+
+[data-app='our-corner'] .corner-door-head .corner-list-menu-btn {
+    margin-top: 4px;
+    margin-right: -4px;
+}
+
+/* ── Landing: an empty room's suggestions ────────────────────────────────── */
+
+[data-app='our-corner'] .corner-suggestions {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 16px;
+    max-width: 760px;
+}
+
+[data-app='our-corner'] .corner-suggestions-title {
+    margin: 0;
+    font-family: var(--corner-font-display);
+    font-size: var(--text-title);
+    font-weight: 400;
+    line-height: 1.2;
+    letter-spacing: var(--tracking-display);
+}
+
+[data-app='our-corner'] .corner-suggestions-body {
+    margin: 0;
+    max-width: 56ch;
+    font-size: var(--text-body);
+    line-height: 1.5;
+    color: var(--corner-ink-soft);
+}
+
+[data-app='our-corner'] .corner-suggestion-grid {
+    width: 100%;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(160px, 100%), 1fr));
+    gap: 12px;
+}
+
+[data-app='our-corner'] .corner-suggestion {
+    width: 100%;
+    min-height: 96px;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+    padding: 14px 16px;
+    border: 1px solid var(--corner-border);
+    border-radius: var(--corner-radius-card);
+    background: var(--corner-tile-wash);
+    color: var(--corner-ink);
+    font-family: var(--corner-font);
+    text-align: left;
+    cursor: pointer;
+}
+
+[data-app='our-corner'] .corner-suggestion:hover {
+    border-color: var(--corner-border-hover);
+    background: var(--corner-tile-wash-strong);
+}
+
+[data-app='our-corner'] .corner-suggestion:disabled {
+    cursor: default;
+    opacity: 0.6;
+}
+
+[data-app='our-corner'] .corner-suggestion-icon {
+    margin-bottom: 4px;
+    color: var(--corner-accent-text);
+}
+
+[data-app='our-corner'] .corner-suggestion-name {
+    font-size: var(--text-body);
+    font-weight: 500;
+    line-height: 1.3;
+}
+
+[data-app='our-corner'] .corner-suggestion-kind {
+    font-size: var(--text-meta);
+    font-weight: 500;
+    color: var(--corner-ink-soft);
+}
+
+/* ── List settings sheet ─────────────────────────────────────────────────── */
+
+[data-app='our-corner'].corner-sheet-content {
+    background: var(--corner-paper);
+    color: var(--corner-ink);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+[data-app='our-corner'] .corner-sheet-form {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-height: 0;
+}
+
+[data-app='our-corner'] .corner-sheet-header {
+    flex: none;
+    padding: 20px 64px 16px 24px;
+    border-bottom: 1px solid var(--corner-border);
+}
+
+[data-app='our-corner'] .corner-sheet-title {
+    margin: 0;
+    font-family: var(--corner-font-display);
+    font-size: var(--text-title);
+    font-weight: 400;
+    line-height: 1.2;
+    letter-spacing: var(--tracking-display);
+    color: var(--corner-ink);
+    overflow-wrap: anywhere;
+}
+
+[data-app='our-corner'] .corner-sheet-scroll {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
+}
+
+[data-app='our-corner'] .corner-sheet-body {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    padding: 20px 24px 24px;
+}
+
+/* Always in view: the submit never sits below the fold or under the keyboard. */
+[data-app='our-corner'] .corner-sheet-footer {
+    flex: none;
+    display: flex;
+    justify-content: flex-end;
+    padding: 12px 24px max(16px, env(safe-area-inset-bottom));
+    border-top: 1px solid var(--corner-border);
+    background: var(--corner-paper);
+}
+
+@media (max-width: 639px) {
+    [data-app='our-corner'] .corner-sheet-header,
+    [data-app='our-corner'] .corner-sheet-body,
+    [data-app='our-corner'] .corner-sheet-footer {
+        padding-left: 16px;
+        padding-right: 16px;
+    }
+
+    [data-app='our-corner'] .corner-sheet-header {
+        padding-right: 64px;
+    }
+}
+
+[data-app='our-corner'] .corner-fieldset {
+    min-width: 0;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+[data-app='our-corner'] .corner-fieldset-legend {
+    padding: 0;
+    margin-bottom: 10px;
+    font-size: var(--text-small);
+    font-weight: 500;
+    color: var(--corner-ink);
+}
+
+[data-app='our-corner'] .corner-field-error {
+    margin: 0;
+    font-size: var(--text-small);
+    color: var(--corner-destructive);
+}
+
+[data-app='our-corner'] .corner-kind-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(200px, 100%), 1fr));
+    gap: 8px;
+}
+
+[data-app='our-corner'] .corner-kind-option {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    padding: 12px 14px;
+    border: 1px solid var(--corner-border-input);
+    border-radius: var(--radius-field);
+    background: var(--corner-paper);
+    color: var(--corner-ink);
+    font-family: var(--corner-font);
+    text-align: left;
+    cursor: pointer;
+}
+
+[data-app='our-corner'] .corner-kind-option[aria-checked='true'] {
+    border-color: var(--corner-accent-text);
+    background: var(--corner-tile-wash-strong);
+}
+
+[data-app='our-corner'] .corner-kind-label {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: var(--text-body);
+    font-weight: 500;
+}
+
+[data-app='our-corner'] .corner-kind-label svg {
+    color: var(--corner-accent-text);
+}
+
+[data-app='our-corner'] .corner-kind-description {
+    font-size: var(--text-small);
+    line-height: 1.4;
+    color: var(--corner-ink-soft);
+}
+
+[data-app='our-corner'] .corner-icon-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, 44px);
+    gap: 6px;
+}
+
+[data-app='our-corner'] .corner-icon-option {
+    width: 44px;
+    height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid transparent;
+    border-radius: var(--radius-inner);
+    background: transparent;
+    color: var(--corner-ink-soft);
+    cursor: pointer;
+}
+
+[data-app='our-corner'] .corner-icon-option:hover {
+    background: var(--corner-hover-fill);
+    color: var(--corner-ink);
+}
+
+[data-app='our-corner'] .corner-icon-option[aria-checked='true'] {
+    border-color: var(--corner-accent-text);
+    background: var(--corner-tile-wash-strong);
+    color: var(--corner-accent-text);
+}
+
+[data-app='our-corner'] .corner-chip-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+[data-app='our-corner'] .corner-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    min-height: 44px;
+    padding: 0 16px;
+    border: 1px solid var(--corner-border-input);
+    border-radius: var(--corner-radius-pill);
+    background: var(--corner-paper);
+    color: var(--corner-ink);
+    font-family: var(--corner-font);
+    font-size: var(--text-small);
+    font-weight: 500;
+    cursor: pointer;
+}
+
+[data-app='our-corner'] .corner-chip:hover {
+    background: var(--corner-hover-fill);
+}
+
+[data-app='our-corner'] .corner-chip[aria-checked='true'] {
+    border-color: var(--corner-accent-text);
+    background: var(--corner-tile-wash-strong);
+}
+
+[data-app='our-corner'] .corner-word-pair {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(180px, 100%), 1fr));
+    gap: 12px;
+}
+
+[data-app='our-corner'] .corner-switch-row {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+}
+
+[data-app='our-corner'] .corner-switch-label {
+    display: flex;
+    flex-direction: column;
+    font-size: var(--text-body);
+    font-weight: 500;
+    cursor: pointer;
+}
+
+[data-app='our-corner'] .corner-switch-label .corner-form-hint {
+    font-weight: 400;
 }
 
 /* ── "This isn't here anymore" ───────────────────────────────────────────── */

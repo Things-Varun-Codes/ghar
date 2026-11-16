@@ -240,10 +240,7 @@ async function main() {
     // admin received, or `view` would 403.
     const fixturesPhp = `
 use App\\Shell\\Models\\User;
-use App\\MiniApps\\Corner\\Models\\Song;
-use App\\MiniApps\\Corner\\Models\\Movie;
-use App\\MiniApps\\Corner\\Models\\Activity;
-use App\\MiniApps\\Corner\\Models\\Place;
+use App\\MiniApps\\Corner\\Models\\CornerList;
 use App\\MiniApps\\Mailbox\\Models\\Citation;
 use App\\MiniApps\\Mailbox\\Models\\Coupon;
 use Illuminate\\Support\\Facades\\Password;
@@ -253,10 +250,16 @@ $kabir = User::where('email', '${DEV_ACCOUNTS.kabir}')->firstOrFail();
 
 echo json_encode([
     'resetToken'        => Password::broker()->createToken($kabir),
-    'cornerSongId'      => Song::query()->min('id'),
-    'cornerMovieId'     => Movie::query()->min('id'),
-    'cornerActivityId'  => Activity::query()->min('id'),
-    'cornerPlaceId'     => Place::query()->min('id'),
+    // Per kind of list: its slug, one item id and, for a list that came from the upgrade,
+    // the old id History links still use.
+    'corner'            => CornerList::query()->orderBy('position')->get()
+        ->unique(fn ($l) => $l->kind->value)
+        ->mapWithKeys(fn ($l) => [$l->kind->value => [
+            'slug' => $l->slug,
+            'item' => $l->items()->min('id'),
+            'legacy' => $l->items()->min('legacy_id'),
+        ]]),
+    'cornerEmptyList'   => CornerList::query()->whereDoesntHave('items')->value('slug'),
     'mailboxCitationId'  => Citation::where('recipient_id', $admin->id)->firstOrFail()->id,
     'mailboxCouponId'   => Coupon::where('recipient_id', $admin->id)->firstOrFail()->id,
     // A plain member, never the logged-in account, so no self-edit or
@@ -394,49 +397,55 @@ echo json_encode([
             description: '/apps/our-corner (Our Corner landing)',
         },
         {
-            path: '/apps/our-corner/songs',
+            path: `/apps/our-corner/${fixtures.corner.link.slug}`,
             auth: true,
-            description: '/apps/our-corner/songs (Songs list)',
+            description: '/apps/our-corner/{list} (a link list)',
         },
         {
-            path: `/apps/our-corner/songs/${fixtures.cornerSongId}`,
+            path: `/apps/our-corner/${fixtures.corner.link.slug}/${fixtures.corner.link.item}`,
+            auth: true,
+            description: '/apps/our-corner/{list}/{item} (a link item)',
+        },
+        {
+            path: `/apps/our-corner/${fixtures.corner.poster.slug}`,
+            auth: true,
+            description: '/apps/our-corner/{list} (a poster list)',
+        },
+        {
+            path: `/apps/our-corner/${fixtures.corner.poster.slug}/${fixtures.corner.poster.item}`,
+            auth: true,
+            description: '/apps/our-corner/{list}/{item} (a poster item)',
+        },
+        {
+            path: `/apps/our-corner/${fixtures.corner.place.slug}`,
+            auth: true,
+            description: '/apps/our-corner/{list} (a place list)',
+        },
+        {
+            path: `/apps/our-corner/${fixtures.corner.place.slug}/${fixtures.corner.place.item}`,
+            auth: true,
+            description: '/apps/our-corner/{list}/{item} (a place item)',
+        },
+        {
+            path: `/apps/our-corner/${fixtures.corner.plain.slug}`,
+            auth: true,
+            description: '/apps/our-corner/{list} (a plain list)',
+        },
+        {
+            path: `/apps/our-corner/${fixtures.corner.plain.slug}/${fixtures.corner.plain.item}`,
+            auth: true,
+            description: '/apps/our-corner/{list}/{item} (a plain item)',
+        },
+        {
+            path: `/apps/our-corner/${fixtures.corner.link.slug}/${fixtures.corner.link.legacy}`,
             auth: true,
             description:
-                '/apps/our-corner/songs/{song} (Song detail)',
+                '/apps/our-corner/{list}/{item} (an old link, by the id it had before lists)',
         },
         {
-            path: '/apps/our-corner/movies',
+            path: `/apps/our-corner/${fixtures.cornerEmptyList}`,
             auth: true,
-            description: '/apps/our-corner/movies (Movies list)',
-        },
-        {
-            path: `/apps/our-corner/movies/${fixtures.cornerMovieId}`,
-            auth: true,
-            description:
-                '/apps/our-corner/movies/{movie} (Movie detail)',
-        },
-        {
-            path: '/apps/our-corner/activities',
-            auth: true,
-            description:
-                '/apps/our-corner/activities (Activities list)',
-        },
-        {
-            path: `/apps/our-corner/activities/${fixtures.cornerActivityId}`,
-            auth: true,
-            description:
-                '/apps/our-corner/activities/{activity} (Activity detail)',
-        },
-        {
-            path: '/apps/our-corner/places',
-            auth: true,
-            description: '/apps/our-corner/places (Places list)',
-        },
-        {
-            path: `/apps/our-corner/places/${fixtures.cornerPlaceId}`,
-            auth: true,
-            description:
-                '/apps/our-corner/places/{place} (Place detail)',
+            description: '/apps/our-corner/{list} (an empty list)',
         },
         {
             path: '/apps/our-mailbox',

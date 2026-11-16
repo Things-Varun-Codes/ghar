@@ -47,7 +47,8 @@ type ListPageProps<TItem extends ItemConstraint> = {
     searchPlaceholder?: string;
     sort?: string;
     sortItems?: SortItem[];
-    singularNoun?: string;
+    /* Beside the title: the list's own menu. */
+    actions?: ReactNode;
 };
 
 export default function ListPage<TItem extends ItemConstraint>({
@@ -67,17 +68,13 @@ export default function ListPage<TItem extends ItemConstraint>({
     searchPlaceholder,
     sort,
     sortItems,
-    singularNoun,
+    actions,
 }: ListPageProps<TItem>) {
-    const noun = title.toLowerCase();
+    // A list is named by the household, so its things are just "things": no plural to guess.
+    const noun = 'things';
     const searching = (query ?? '').trim() !== '';
 
-    const defaultEmpty = (
-        <EmptyState
-            title={`No ${noun} yet`}
-            body={`Add your first ${noun.replace(/s$/, '')}.`}
-        />
-    );
+    const defaultEmpty = <EmptyState title={`Nothing in ${title} yet.`} />;
 
     // The reset key needs the counts too: toggle-done moves a row between tabs without changing
     // `all`.
@@ -115,6 +112,7 @@ export default function ListPage<TItem extends ItemConstraint>({
             title={title}
             room={CORNER_ROOM}
             backChevron
+            actions={actions}
             fab={
                 <Fab
                     onClick={onOpenAddDialog}
@@ -136,8 +134,7 @@ export default function ListPage<TItem extends ItemConstraint>({
                                 ? 'match'
                                 : 'matches'
                             : counts.all === 1
-                              ? (singularNoun ??
-                                noun.replace(/ies$/, 'y').replace(/s$/, ''))
+                              ? 'thing'
                               : noun}
                     </span>
                 }
@@ -150,7 +147,7 @@ export default function ListPage<TItem extends ItemConstraint>({
                 tabs={
                     <SegmentedTabs
                         mode="tablist-client"
-                        ariaLabel={`Filter ${noun}`}
+                        ariaLabel={`Filter ${title}`}
                         active={filter}
                         panelId="corner-list-panel"
                         items={tabs.map((t) => ({

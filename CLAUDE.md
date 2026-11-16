@@ -2,8 +2,8 @@
 
 **Ghar** is a private, auth-gated, self-hosted web platform for a family or household. A secure
 shell (dashboard + OS chrome) hosts self-contained mini apps.
-Installed today: **Our History** (timeline, gallery, calendar), **Our Corner** (shared lists — songs,
-movies, activities, places) and **Our Mailbox** (messages, flowers, citations, coupons). **The admin
+Installed today: **Our History** (timeline, gallery, calendar), **Our Corner** (lists the household
+defines: songs, films, places, books…) and **Our Mailbox** (messages, flowers, citations, coupons). **The admin
 chooses which rooms a home has** at Admin → Rooms (`/admin/rooms`); a fresh install starts with none on.
 
 **Core value:** new mini apps can be added — and existing ones updated — without touching the
@@ -36,7 +36,11 @@ Password for every account: `ghar-local-dev`. Mail lands in Mailpit at `http://1
 
 The seed has every state: moments by all four people (photos on the local media disk, Corner links, more
 than one Timeline and Gallery page), Corner items done and not done by different people, 62 Songs
-(past the 50-row page), single and multi-recipient notes and flowers read and unread, coupons
+(past the 50-row page), Corner lists as an upgraded install has them (Songs, Movies, Places and
+Activities: no maker, old ids in `legacy_id`, so `/apps/our-corner/songs/1` and the old-style pills
+on "Diwali on the terrace" resolve) plus Ravi's Books (only his items: he may delete it), Meera's
+long-named restaurants list (Kabir added to it: she may edit it, only an admin may delete it) and
+Kabir's empty Board games with notifications off, single and multi-recipient notes and flowers read and unread, coupons
 issued/requested/part-fulfilled/depleted/expired, citations issued/paid, short links `pantry23`,
 `garage23` and the disabled `bench789`, and a pending invite at
 `/invitations/dev-invite-token-for-local-testing-only`. Row ids are stable after a reset. Ravi and
@@ -391,6 +395,7 @@ Every invited user is a household member (`App\Shell\Services\Household`: `membe
 | Surface                                | Who sees it        | Who may change it                                       |
 | -------------------------------------- | ------------------ | ------------------------------------------------------- |
 | History moments (`EventPolicy`)        | Everyone           | Edit, delete, media: creator or admin                   |
+| Corner lists (`CornerListPolicy`)      | Everyone           | Make: anyone. Edit: maker or admin. Delete: see below   |
 | Corner items (`ListItemPolicy`)        | Everyone           | Edit, delete: adder or admin. Mark done: anyone         |
 | Notes, flowers (`RecipientMailPolicy`) | Sender, recipients | Delete: sender                                          |
 | Coupons, citations (own policies)      | Issuer, recipient  | Request, cancel, pay: recipient. Fulfil, delete: issuer |
@@ -404,7 +409,7 @@ Every invited user is a household member (`App\Shell\Services\Household`: `membe
   (`ValidatesRecipients`). A coupon or citation has one recipient, so several ids issue one row each.
 - **Push:** `PushDispatcher::toHousehold($actor, …)` for new moments and Corner items;
   `toUsers($recipients, …)` for Mailbox. Never hand-roll a recipient query.
-- **Push timing — two accepted shapes, don't "harmonize" them.** Corner (`AddSong` etc.) dispatches
+- **Push timing — two accepted shapes, don't "harmonize" them.** Corner (`AddItem`) dispatches
   inside `DB::afterCommit(...)` within the transaction. Mailbox (`CreateMessage`, `IssueCitation`
   etc.) dispatches on the line after `DB::transaction(...)` returns. Both guarantee no push for a
   rolled-back write.
@@ -435,17 +440,56 @@ Our Corner keeps the four lists.
   `our-mailbox:citations`; bodies never leak offence/penalty/remarks. Drawn as an "official form"
   (`--mailbox-citation-*` / `.mailbox-citation-*`, colours alias `--shell-*`).
 
+## Our Corner lists
+
+Slug `our-corner`; `App\MiniApps\Corner\`; `resources/js/MiniApps/Corner/`. The household makes
+its own lists; nothing about Songs or Movies is hard-coded any more.
+
+- **Two tables.** `corner_lists` (name, `slug`, `kind`, `icon`, `done_label`, `todo_label`,
+  `done_icon` heart|check, `notify_on_add`, `position`, nullable `created_by_user_id`) and
+  `corner_items` (every kind in one table; columns a kind doesn't use stay null). Uniqueness of a
+  link is per list: `(list_id, provider, provider_id)`.
+- **Four kinds, fixed at creation** (`ListKind`): `link` (CD frame, YouTube/Spotify oEmbed; any
+  other site is kept with provider `unknown`), `poster` (an optional Plex link gives the poster),
+  `place` (pin, address, coordinates), `plain`. Every kind has optional `notes`. There are no
+  per-list custom fields, on purpose: a form builder would multiply validation, search and UI for
+  little household value.
+- **The slug never changes** after creation: notifications, History pills and NFC short links
+  point at it. `lists` and `items` are reserved (`CreateList::RESERVED_SLUGS`) because the
+  mutation routes use them at the same depth. Icons are keys from `ListIcon::KEYS`, drawn by
+  `lib/list-icons.ts`; keep the two in step.
+- **Routes.** `/apps/our-corner/{slug}` is a list and `/apps/our-corner/{slug}/{id}` an item, both
+  looked up by hand so a missing one renders `EntityNotFound`. Mutations live at `lists/{id}`
+  and `items/{id}`; `POST /apps/our-corner/{slug}` adds to a list.
+- **Copy never needs a noun.** A list is named by the household, so copy reads "Add to Books",
+  "3 things · 1 read", "Ravi added to Books: The Salt Road". Don't add singular/plural fields.
+- **Who may delete a list:** an admin always; its maker only while every item in it is theirs
+  (`CornerListPolicy::mayDelete`), since deleting a list deletes other people's things. The
+  payload's `delete_needs_admin` lets the menu say so. The four lists the upgrade made have no
+  maker, so only an admin changes them.
+- **Lists from before custom lists.** The migration `2026_11_16_100000_…` moved the old four
+  tables into lists `songs`, `movies`, `activities`, `places`, kept each row's old type and id in
+  `legacy_type` / `legacy_id`, and started new ids above every old one. So
+  `/apps/our-corner/songs/5` finds id 5 in that list or, failing that, `legacy_id` 5. History
+  pills saved before then say `corner.song` (etc.) with the old id: those four types stay
+  registered in `LinkableEntities` as resolve-only aliases (`CornerLinks`), or History would drop
+  them on the next save. New pills use `corner.item`. Never rewrite History's `body_html` from
+  Corner.
+- **A fresh install has no lists.** The empty landing offers `SUGGESTED_LISTS`
+  (`lib/presets.ts`), one tap each through the normal create endpoint.
+
 ## Our Corner item-actions contract
 
-Applies to Songs, Movies, Activities and Places.
+Applies to every list, whatever its kind.
 
 - **`useItemActions`** (`resources/js/MiniApps/Corner/Hooks/useItemActions.ts`) is the sole source
   of Edit, Delete and Toggle-done. Don't hand-roll an Inertia mutation or a confirm dialog.
 - Call it **exactly once per rendered item, inside the card/tile** — never in an index page or the
   list primitive's render callback. Hoisting it hides every row on a single delete, silently.
 - **`DetailPage`** owns the frame (two-column grid, back-reference sidebar, meta, actions, done
-  control) and takes per-type render-props: Songs a CD frame, Movies a poster, Places a pin with
-  address/coordinates, Activities none.
+  control) and takes render-props chosen by the list's kind in `Pages/Item.tsx`: `link` a CD frame,
+  `poster` a poster, `place` a pin with address/coordinates, `plain` none. One list page
+  (`Pages/List.tsx`) renders `ItemTile` for link/poster and `ItemRow` for place/plain.
 - **Delete is deferred, not soft:** the row hides, an Undo toast cancels, the real request fires
   after `DELETE_GRACE_PERIOD_MS` (5000 ms). Hard delete — no `deleted_at`, no restore route (see
   ROADMAP.md for the planned soft-delete work).

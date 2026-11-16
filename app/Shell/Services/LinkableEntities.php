@@ -28,7 +28,7 @@ class LinkableEntities
         ];
     }
 
-    /** @return list<array{type: string, id: int, title: string, thumbnail_url?: ?string}> */
+    /** @return list<array{type: string, id: int, title: string, thumbnail_url?: ?string, deep_link_url?: string, group?: string}> */
     public function search(string $query, array $types = [], int $limit = 20): array
     {
         $types = empty($types) ? array_keys($this->registry) : $types;

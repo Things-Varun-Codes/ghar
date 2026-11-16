@@ -1,7 +1,7 @@
-import { CheckCircle2, Circle } from 'lucide-react';
 import type { ReactNode } from 'react';
 
 import { Toggle } from '@/components/ui/toggle';
+import { DoneGlyph } from '@/MiniApps/Corner/Components/DoneMark';
 import type { MentionedInRef } from '@/MiniApps/Corner/Components/MentionedInList';
 import MentionedInList from '@/MiniApps/Corner/Components/MentionedInList';
 import type {
@@ -9,11 +9,13 @@ import type {
     UseItemActionsReturn,
 } from '@/MiniApps/Corner/Hooks/useItemActions';
 import { CORNER_ROOM } from '@/MiniApps/Corner/Layouts/CornerLayout';
-import HeartMark from '@/Shell/Components/HeartMark';
+import type { DoneIcon } from '@/MiniApps/Corner/lib/types';
+import type { BackTarget } from '@/Shell/Components/BackChevron';
 import Page from '@/Shell/Components/Page';
 
 type DetailPageProps = {
     title: string;
+    back: BackTarget;
     can: ItemPermissions;
     addedByName: string;
     metaSuffix?: ReactNode;
@@ -22,13 +24,15 @@ type DetailPageProps = {
     body?: () => ReactNode;
     externalCta?: () => ReactNode;
     isDone: boolean;
-    doneLabel: { active: string; done: string };
-    doneIcon?: 'check' | 'heart';
+    /* The list's word for done; the toggle's pressed state says whether it is. */
+    doneLabel: string;
+    doneIcon: DoneIcon;
     itemActions: UseItemActionsReturn;
 };
 
 export default function DetailPage({
     title,
+    back,
     can,
     addedByName,
     metaSuffix,
@@ -38,11 +42,11 @@ export default function DetailPage({
     externalCta,
     isDone,
     doneLabel,
-    doneIcon = 'check',
+    doneIcon,
     itemActions,
 }: DetailPageProps) {
     return (
-        <Page tier="app" title={title} room={CORNER_ROOM} backChevron>
+        <Page tier="app" title={title} room={CORNER_ROOM} back={back}>
             <div className="corner-detail">
                 <div className="corner-detail-grid">
                     <div className="corner-detail-main">
@@ -68,22 +72,12 @@ export default function DetailPage({
                                         itemActions.isTogglePending || undefined
                                     }
                                 >
-                                    {doneIcon === 'heart' ? (
-                                        <HeartMark size={16} filled={isDone} />
-                                    ) : isDone ? (
-                                        <CheckCircle2
-                                            aria-hidden="true"
-                                            size={16}
-                                            strokeWidth={1.5}
-                                        />
-                                    ) : (
-                                        <Circle
-                                            aria-hidden="true"
-                                            size={16}
-                                            strokeWidth={1.5}
-                                        />
-                                    )}
-                                    {isDone ? doneLabel.done : doneLabel.active}
+                                    <DoneGlyph
+                                        icon={doneIcon}
+                                        done={isDone}
+                                        size={16}
+                                    />
+                                    {doneLabel}
                                 </Toggle>
 
                                 {can.update && (

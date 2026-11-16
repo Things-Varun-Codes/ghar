@@ -2,8 +2,8 @@
 
 namespace Tests\Feature\Shell;
 
-use App\MiniApps\Corner\Models\Movie;
-use App\MiniApps\Corner\Models\Song;
+use App\MiniApps\Corner\Models\CornerList;
+use App\MiniApps\Corner\Models\Item;
 use App\MiniApps\Mailbox\Models\MailboxMessage;
 use App\Shell\Models\User;
 use App\Shell\Services\DashboardSummaries;
@@ -42,9 +42,15 @@ class DashboardPreviewsTest extends TestCase
 
     public function test_corner_door_shows_the_newest_covers_first(): void
     {
-        Song::factory()->create(['added_by_user_id' => $this->me->id, 'thumbnail_url' => '/old.jpg', 'added_at' => now()->subDays(3)]);
-        Movie::factory()->create(['added_by_user_id' => $this->me->id, 'poster_url' => '/new.jpg', 'added_at' => now()->subDay()]);
-        Movie::factory()->create(['added_by_user_id' => $this->me->id, 'poster_url' => null, 'added_at' => now()]);
+        $songs = CornerList::factory()->songs()->create();
+        $movies = CornerList::factory()->movies()->create();
+        $plain = CornerList::factory()->create();
+        Item::factory()->create(['list_id' => $songs->id, 'added_by_user_id' => $this->me->id, 'image_url' => '/old.jpg', 'added_at' => now()->subDays(3)]);
+        Item::factory()->create(['list_id' => $movies->id, 'added_by_user_id' => $this->partner->id, 'image_url' => '/new.jpg', 'added_at' => now()->subDay()]);
+        Item::factory()->create(['list_id' => $movies->id, 'added_by_user_id' => $this->me->id, 'image_url' => null, 'added_at' => now()]);
+        // The same cover twice shows once.
+        Item::factory()->create(['list_id' => $songs->id, 'added_by_user_id' => $this->me->id, 'image_url' => '/new.jpg', 'added_at' => now()->subDays(2)]);
+        Item::factory()->create(['list_id' => $plain->id, 'added_by_user_id' => $this->me->id, 'added_at' => now()]);
 
         $this->actingAs($this->me)
             ->get('/dashboard')

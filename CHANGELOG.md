@@ -20,11 +20,23 @@ Migrations only run forward.
 - Challans are now called citations everywhere: the screens, the addresses, the database table and
   the notification tag. Old `/apps/our-mailbox/challans` addresses redirect, and reference numbers
   already issued (`OC/2026/000007`) are unchanged.
+- Our Corner's lists are the household's own. Anyone can make a list, with a name, an icon, a word
+  for done (loved, watched, read, cooked or anything) and a heart or a tick. A list holds one kind
+  of thing, chosen when it is made: plain, links in a CD frame, titles with posters, or places on a
+  map. Every item can carry notes. Lists can be renamed and reordered; deleting one with other
+  people's things in it takes an admin.
+- Our Corner with no lists yet (a new install, once the room is on) suggests lists to add in one
+  tap.
+- The History link picker searches every list and shows which list each result is in.
 
 Nothing to do on upgrade. An install that already has people keeps every room on; the migration
 records that. The rooms a source build used to disable in `config/miniapps.php` are now chosen in
 Admin → Rooms instead, so check that page once. The table rename is in the migrations, which run
 on start; back up first, as always.
+
+The upgrade also moves your songs, movies, activities and places into four lists of the same names,
+with everything kept: who added each one, who marked it done and when, artwork, links and
+coordinates. Old links, notifications and the links inside History moments keep working.
 
 ## [1.1.0] - 2026-11-14
 

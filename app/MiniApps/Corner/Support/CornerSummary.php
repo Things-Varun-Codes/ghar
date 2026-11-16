@@ -2,96 +2,101 @@
 
 namespace App\MiniApps\Corner\Support;
 
-use App\MiniApps\Corner\Models\Activity;
-use App\MiniApps\Corner\Models\Movie;
-use App\MiniApps\Corner\Models\Place;
-use App\MiniApps\Corner\Models\Song;
-use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\Model;
+use App\MiniApps\Corner\Http\Resources\ListResource;
+use App\MiniApps\Corner\Models\CornerList;
+use App\Shell\Models\User;
+use Illuminate\Support\Facades\DB;
 
 /**
- * Everything on the Corner landing: a count, a done count and a peek per list. Corner items are
- * the whole household's, so nothing here is scoped to the viewer.
+ * Everything on the Corner landing: each list with a count, a done count and a peek at what
+ * is in it. Corner items are the whole household's, so only the `can` flags depend on the
+ * viewer.
  */
 class CornerSummary
 {
     /** More than a door can show on a wide screen; the CSS clips what doesn't fit. */
     private const COVERS = 5;
 
-    private const ACTIVITIES = 3;
+    private const TITLES = 3;
 
     /**
-     * @return array{
-     *     counts: array{songs: int, movies: int, activities: int, places: int},
-     *     done: array{songs: int, movies: int, activities: int, places: int},
-     *     peeks: array{
-     *         songs: array{images: list<string>},
-     *         movies: array{images: list<string>},
-     *         activities: array{items: list<array{title: string, done: bool}>},
-     *         places: array{title: string, address: ?string}|null,
-     *     },
-     * }
+     * @return list<array<string, mixed>>
      */
-    public static function build(): array
+    public static function build(User $viewer): array
     {
-        $tallies = [
-            'songs' => self::tally(Song::query()),
-            'movies' => self::tally(Movie::query()),
-            'activities' => self::tally(Activity::query()),
-            'places' => self::tally(Place::query()),
-        ];
+        $lists = CornerList::query()->orderBy('position')->orderBy('id')->get();
 
-        $place = self::latest(Place::query())->first(['title', 'address']);
+        if ($lists->isEmpty()) {
+            return [];
+        }
 
-        return [
-            'counts' => array_map(fn (array $t): int => $t['total'], $tallies),
-            'done' => array_map(fn (array $t): int => $t['done'], $tallies),
-            'peeks' => [
-                'songs' => ['images' => self::covers(Song::query(), 'thumbnail_url')],
-                'movies' => ['images' => self::covers(Movie::query(), 'poster_url')],
-                'activities' => [
-                    'items' => self::latest(Activity::query())
-                        ->limit(self::ACTIVITIES)
-                        ->get(['title', 'done_at'])
-                        ->map(fn (Activity $a): array => ['title' => $a->title, 'done' => $a->done_at !== null])
-                        ->all(),
-                ],
-                'places' => $place === null ? null : [
-                    'title' => $place->title,
-                    'address' => $place->address,
-                ],
+        $tallies = DB::table('corner_items')
+            ->selectRaw('list_id, count(*) as total, count(done_at) as done, count(*) filter (where added_by_user_id <> ?) as by_others', [$viewer->id])
+            ->groupBy('list_id')
+            ->get()
+            ->keyBy('list_id');
+
+        $recent = self::recentItems();
+
+        return $lists->map(function (CornerList $list) use ($viewer, $tallies, $recent): array {
+            $tally = $tallies->get($list->id);
+            $items = $recent[$list->id] ?? [];
+
+            return app(ListResource::class)($list, $viewer, (int) ($tally->by_others ?? 0)) + [
+                'count' => (int) ($tally->total ?? 0),
+                'done' => (int) ($tally->done ?? 0),
+                'peek' => self::peek($list->kind, $items),
+            ];
+        })->all();
+    }
+
+    /**
+     * @param  list<object>  $items  newest first
+     * @return array{images: list<string>}|array{items: list<array{title: string, done: bool}>}|array{place: array{title: string, address: ?string}|null}
+     */
+    private static function peek(ListKind $kind, array $items): array
+    {
+        return match ($kind) {
+            ListKind::Link, ListKind::Poster => [
+                'images' => array_values(array_filter(array_map(fn (object $i): ?string => $i->image_url, $items))),
             ],
-        ];
-    }
-
-    /** @return array{total: int, done: int} */
-    private static function tally(Builder $query): array
-    {
-        $row = $query->toBase()
-            ->selectRaw('count(*) as total, count(done_at) as done')
-            ->first();
-
-        return ['total' => (int) $row->total, 'done' => (int) $row->done];
-    }
-
-    /** @return list<string> */
-    private static function covers(Builder $query, string $column): array
-    {
-        return self::latest($query)
-            ->whereNotNull($column)
-            ->limit(self::COVERS)
-            ->pluck($column)
-            ->all();
+            ListKind::Place => [
+                'place' => $items === [] ? null : ['title' => $items[0]->title, 'address' => $items[0]->address],
+            ],
+            ListKind::Plain => [
+                'items' => array_map(
+                    fn (object $i): array => ['title' => $i->title, 'done' => $i->done_at !== null],
+                    array_slice($items, 0, self::TITLES),
+                ),
+            ],
+        };
     }
 
     /**
-     * @template TModel of Model
+     * The newest few items of every list in one query. An item without artwork is still
+     * returned, so a list of links nobody could look up shows an empty frame rather than
+     * older covers.
      *
-     * @param  Builder<TModel>  $query
-     * @return Builder<TModel>
+     * @return array<int, list<object>>
      */
-    private static function latest(Builder $query): Builder
+    private static function recentItems(): array
     {
-        return $query->orderByDesc('added_at')->orderByDesc('id');
+        $ranked = DB::table('corner_items')
+            ->select(['list_id', 'title', 'image_url', 'address', 'done_at'])
+            ->selectRaw('row_number() over (partition by list_id order by added_at desc, id desc) as rank');
+
+        $rows = DB::query()
+            ->fromSub($ranked, 'ranked')
+            ->where('rank', '<=', self::COVERS)
+            ->orderBy('list_id')
+            ->orderBy('rank')
+            ->get();
+
+        $byList = [];
+        foreach ($rows as $row) {
+            $byList[(int) $row->list_id][] = $row;
+        }
+
+        return $byList;
     }
 }

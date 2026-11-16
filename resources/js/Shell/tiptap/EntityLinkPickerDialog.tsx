@@ -37,18 +37,9 @@ type ApiResultRow = {
     title: string;
     thumbnail_url?: string | null;
     deep_link_url?: string | null;
+    /* The list it is in, named by the household. */
+    group?: string | null;
 };
-
-type FilterKey =
-    'all' | 'corner.song' | 'corner.movie' | 'corner.place' | 'corner.activity';
-
-const FILTER_CHIPS: { key: FilterKey; label: string }[] = [
-    { key: 'all', label: 'All' },
-    { key: 'corner.song', label: 'Songs' },
-    { key: 'corner.movie', label: 'Movies' },
-    { key: 'corner.place', label: 'Places' },
-    { key: 'corner.activity', label: 'Activities' },
-];
 
 type Props = {
     open: boolean;
@@ -64,7 +55,6 @@ export default function EntityLinkPickerDialog({
     const isWide = useMediaQuery('(min-width: 720px)');
 
     const [query, setQuery] = useState('');
-    const [filter, setFilter] = useState<FilterKey>('all');
     const [results, setResults] = useState<ApiResultRow[]>([]);
     const [highlightIdx, setHighlightIdx] = useState(0);
     const [loading, setLoading] = useState(false);
@@ -81,7 +71,6 @@ export default function EntityLinkPickerDialog({
 
         /* eslint-disable react-hooks/set-state-in-effect -- One-shot reset on the open→true transition; props -> internal session state sync, not cascading renders. */
         setQuery('');
-        setFilter('all');
         setResults([]);
         setHighlightIdx(0);
         setError(null);
@@ -92,7 +81,7 @@ export default function EntityLinkPickerDialog({
         return () => clearTimeout(t);
     }, [open]);
 
-    const runSearch = useCallback(async (q: string, types: FilterKey) => {
+    const runSearch = useCallback(async (q: string) => {
         if (q.trim().length < 2) {
             setResults([]);
             setLoading(false);
@@ -110,10 +99,6 @@ export default function EntityLinkPickerDialog({
 
         const params = new URLSearchParams();
         params.set('q', q.trim());
-
-        if (types !== 'all') {
-            params.append('types[]', types);
-        }
 
         try {
             const res = await fetch(
@@ -164,7 +149,7 @@ export default function EntityLinkPickerDialog({
         }
 
         debounceTimer.current = setTimeout(() => {
-            runSearch(query, filter);
+            runSearch(query);
         }, SEARCH_DEBOUNCE_MS);
 
         return () => {
@@ -172,7 +157,7 @@ export default function EntityLinkPickerDialog({
                 clearTimeout(debounceTimer.current);
             }
         };
-    }, [query, filter, open, runSearch]);
+    }, [query, open, runSearch]);
 
     useEffect(() => {
         if (!open) {
@@ -231,40 +216,6 @@ export default function EntityLinkPickerDialog({
                 autoComplete="off"
                 className="shell-picker-input"
             />
-
-            <div
-                role="tablist"
-                aria-label="Filter by type"
-                className="flex flex-wrap gap-1.5"
-            >
-                {FILTER_CHIPS.map((chip) => (
-                    <button
-                        key={chip.key}
-                        type="button"
-                        role="tab"
-                        aria-selected={filter === chip.key}
-                        onClick={() => setFilter(chip.key)}
-                        className="shell-picker-tab"
-                        style={{
-                            background:
-                                filter === chip.key
-                                    ? 'var(--shell-text)'
-                                    : 'transparent',
-                            color:
-                                filter === chip.key
-                                    ? 'var(--shell-bg)'
-                                    : 'var(--shell-text)',
-                        }}
-                    >
-                        {chip.key !== 'all' &&
-                            React.createElement(entityIcon(chip.key), {
-                                size: 14,
-                                'aria-hidden': true,
-                            })}
-                        {chip.label}
-                    </button>
-                ))}
-            </div>
 
             <div
                 role="listbox"
@@ -345,9 +296,10 @@ export default function EntityLinkPickerDialog({
                                                 },
                                             )}
                                         </span>
-                                        {row.type
-                                            .replace('corner.', '')
-                                            .replace('history.', '')}
+                                        {row.group ??
+                                            row.type
+                                                .replace('corner.', '')
+                                                .replace('history.', '')}
                                     </span>
                                 </span>
                             </button>
@@ -375,7 +327,7 @@ export default function EntityLinkPickerDialog({
                     <SheetHeader>
                         <SheetTitle>Link something from Our Corner</SheetTitle>
                         <SheetDescription>
-                            Search songs, movies, places and activities.
+                            Search everything on your lists.
                         </SheetDescription>
                     </SheetHeader>
                     {pickerBody}
@@ -390,7 +342,7 @@ export default function EntityLinkPickerDialog({
                 <DialogHeader>
                     <DialogTitle>Link something from Our Corner</DialogTitle>
                     <DialogDescription>
-                        Search songs, movies, places and activities.
+                        Search everything on your lists.
                     </DialogDescription>
                 </DialogHeader>
                 {pickerBody}

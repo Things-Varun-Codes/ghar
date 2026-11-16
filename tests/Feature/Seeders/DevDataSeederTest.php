@@ -2,7 +2,8 @@
 
 namespace Tests\Feature\Seeders;
 
-use App\MiniApps\Corner\Models\Song;
+use App\MiniApps\Corner\Models\CornerList;
+use App\MiniApps\Corner\Policies\CornerListPolicy;
 use App\MiniApps\History\Models\Event;
 use App\MiniApps\Mailbox\Models\Bouquet;
 use App\MiniApps\Mailbox\Models\Citation;
@@ -11,6 +12,7 @@ use App\MiniApps\Mailbox\Models\MailboxMessage;
 use App\Shell\Models\Invitation;
 use App\Shell\Models\ShortLink;
 use App\Shell\Models\User;
+use App\Shell\Services\LinkableEntities;
 use Database\Seeders\DatabaseSeeder;
 use Database\Seeders\DevDataSeeder;
 use Database\Seeders\RoleSeeder;
@@ -60,13 +62,54 @@ class DevDataSeederTest extends TestCase
         }
 
         // Past one page of Songs, the Timeline and the Gallery.
-        $this->assertGreaterThan(50, Song::count());
+        $songs = CornerList::query()->where('slug', 'songs')->firstOrFail();
+        $this->assertGreaterThan(50, $songs->items()->count());
         $this->assertGreaterThan(20, Event::count());
         $this->assertGreaterThan(24, Media::where('collection_name', 'photos')->count());
 
         $this->assertGreaterThan(1, Event::query()->distinct()->count('creator_id'));
-        $this->assertGreaterThan(1, Song::query()->whereNotNull('done_at')->distinct()->count('done_by_user_id'));
+        $this->assertGreaterThan(1, $songs->items()->whereNotNull('done_at')->distinct()->count('done_by_user_id'));
         $this->assertGreaterThan(0, DB::table('entity_references')->where('from_type', 'history.event')->count());
+
+        // The four lists an upgrade leaves, then the household's own.
+        $this->assertSame(
+            ['songs', 'movies', 'places', 'activities'],
+            CornerList::query()->whereNull('created_by_user_id')->orderBy('position')->pluck('slug')->all(),
+        );
+        $this->assertSame(
+            CornerList::query()->count(),
+            CornerList::query()->distinct()->count('position'),
+        );
+        $this->assertSame(0, DB::table('corner_items')
+            ->join('corner_lists', 'corner_lists.id', '=', 'corner_items.list_id')
+            ->whereNull('corner_lists.created_by_user_id')
+            ->whereNull('corner_items.legacy_id')
+            ->count());
+        $this->assertLessThan(
+            (int) DB::table('corner_items')->whereNull('legacy_id')->min('id'),
+            (int) DB::table('corner_items')->max('legacy_id'),
+        );
+
+        // A list only its creator added to, one others added to, and an empty quiet one.
+        $books = CornerList::query()->where('slug', 'books')->firstOrFail();
+        $this->assertSame($ravi->id, $books->created_by_user_id);
+        $this->assertTrue((new CornerListPolicy)->delete($ravi, $books));
+        $shared = CornerList::query()->where('created_by_user_id', $meera->id)->firstOrFail();
+        $this->assertGreaterThan(40, mb_strlen($shared->name));
+        $this->assertFalse((new CornerListPolicy)->delete($meera, $shared));
+        $this->assertTrue((new CornerListPolicy)->update($meera, $shared));
+        $quiet = CornerList::query()->where('created_by_user_id', $kabir->id)->firstOrFail();
+        $this->assertFalse($quiet->notify_on_add);
+        $this->assertSame(0, $quiet->items()->count());
+
+        // Every Corner link a moment holds, old-style or new, resolves.
+        $linkable = app(LinkableEntities::class);
+        $refs = DB::table('entity_references')->where('to_type', 'like', 'corner.%')->get();
+        $this->assertContains('corner.item', $refs->pluck('to_type')->all());
+        $this->assertContains('corner.song', $refs->pluck('to_type')->all());
+        foreach ($refs as $ref) {
+            $this->assertNotNull($linkable->resolve($ref->to_type, (int) $ref->to_id), "{$ref->to_type}:{$ref->to_id} does not resolve");
+        }
 
         // Every generated file exists, so nothing 404s in the browser.
         $media = Media::where('collection_name', 'photos')->firstOrFail();
