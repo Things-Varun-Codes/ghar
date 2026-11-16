@@ -5,7 +5,7 @@ namespace Tests\Feature\Shell;
 use App\MiniApps\Corner\Models\Place;
 use App\MiniApps\Corner\Models\Song;
 use App\MiniApps\History\Models\Event;
-use App\MiniApps\Mailbox\Models\Challan;
+use App\MiniApps\Mailbox\Models\Citation;
 use App\MiniApps\Mailbox\Models\MailboxMessage;
 use App\Shell\Models\User;
 use App\Shell\Services\DashboardSummaries;
@@ -108,7 +108,7 @@ class DashboardSummariesTest extends TestCase
             ->assertInertia(fn ($p) => $p->where('summaries.our-corner', 'Latest: Blue Tokai'));
     }
 
-    public function test_mailbox_line_counts_unread_notes_and_challans_to_pay(): void
+    public function test_mailbox_line_counts_unread_notes_and_citations_to_pay(): void
     {
         $viewer = User::factory()->create();
         $other = User::factory()->create();
@@ -116,10 +116,10 @@ class DashboardSummariesTest extends TestCase
         // Read + other-recipient rows must not count.
         MailboxMessage::factory()->to($viewer, read: true)->create(['sender_id' => $other->id]);
         MailboxMessage::factory()->to($other)->create(['sender_id' => $viewer->id]);
-        Challan::factory()->create(['issuer_id' => $other->id, 'recipient_id' => $viewer->id]);
+        Citation::factory()->create(['issuer_id' => $other->id, 'recipient_id' => $viewer->id]);
 
         $this->actingAs($viewer)->get('/dashboard')
-            ->assertInertia(fn ($p) => $p->where('summaries.our-mailbox', '3 unread notes · 1 challan to pay'));
+            ->assertInertia(fn ($p) => $p->where('summaries.our-mailbox', '3 unread notes · 1 citation to pay'));
     }
 
     public function test_mailbox_line_grammar(): void
@@ -135,9 +135,9 @@ class DashboardSummariesTest extends TestCase
             ->assertInertia(fn ($p) => $p->where('summaries.our-mailbox', '1 unread note'));
 
         MailboxMessage::query()->delete();
-        Challan::factory()->count(2)->create(['issuer_id' => $other->id, 'recipient_id' => $viewer->id]);
+        Citation::factory()->count(2)->create(['issuer_id' => $other->id, 'recipient_id' => $viewer->id]);
         $this->actingAs($viewer)->get('/dashboard')
-            ->assertInertia(fn ($p) => $p->where('summaries.our-mailbox', '2 challans to pay'));
+            ->assertInertia(fn ($p) => $p->where('summaries.our-mailbox', '2 citations to pay'));
     }
 
     public function test_a_throwing_resolver_is_omitted_and_dashboard_still_renders(): void

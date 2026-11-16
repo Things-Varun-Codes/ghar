@@ -3,7 +3,7 @@
 namespace App\MiniApps\Mailbox\Support;
 
 use App\MiniApps\Mailbox\Models\Bouquet;
-use App\MiniApps\Mailbox\Models\Challan;
+use App\MiniApps\Mailbox\Models\Citation;
 use App\MiniApps\Mailbox\Models\Coupon;
 use App\MiniApps\Mailbox\Models\MailboxMessage;
 use App\Shell\Models\User;
@@ -13,8 +13,9 @@ use Throwable;
 
 /**
  * One object per door on the Mailbox landing. Notes and flowers come only from what the viewer
- * received; challans and coupons only from what they issued or received, preferring the one
- * waiting on them. Showing a note or bouquet here doesn't mark it read.
+ * received; citations and coupons only from what they issued or received, preferring the one
+ * waiting on them. Showing a note or bouquet here doesn't mark it read. An entry type that is off
+ * has no peek.
  */
 final class MailboxPeeks
 {
@@ -26,7 +27,7 @@ final class MailboxPeeks
      * @return array{
      *     notes: array{body: string, from: string}|null,
      *     flowers: array{image_url: string, from: string}|null,
-     *     challans: array{ref_no: ?string, status: string, offence: string, issuer: string, recipient: string}|null,
+     *     citations: array{ref_no: ?string, status: string, offence: string, issuer: string, recipient: string}|null,
      *     coupons: array{title: string, remaining: int, quantity: int, status: string, is_expired: bool, issuer: string, recipient: string}|null,
      * }
      */
@@ -34,9 +35,9 @@ final class MailboxPeeks
     {
         return [
             'notes' => self::latestNote($user),
-            'flowers' => $this->bouquet($user),
-            'challans' => $this->challan($user),
-            'coupons' => $this->coupon($user),
+            'flowers' => EntryTypes::on(EntryTypes::FLOWERS) ? $this->bouquet($user) : null,
+            'citations' => EntryTypes::on(EntryTypes::CITATIONS) ? $this->citation($user) : null,
+            'coupons' => EntryTypes::on(EntryTypes::COUPONS) ? $this->coupon($user) : null,
         ];
     }
 
@@ -47,6 +48,10 @@ final class MailboxPeeks
      */
     public static function latestNote(User $user): ?array
     {
+        if (! EntryTypes::on(EntryTypes::MESSAGES)) {
+            return null;
+        }
+
         $note = MailboxMessage::query()
             ->receivedBy($user)
             ->with('sender')
@@ -94,33 +99,33 @@ final class MailboxPeeks
     }
 
     /**
-     * The fields the challan list already shows this viewer, and no more.
+     * The fields the citation list already shows this viewer, and no more.
      *
      * @return array{ref_no: ?string, status: string, offence: string, issuer: string, recipient: string}|null
      */
-    private function challan(User $user): ?array
+    private function citation(User $user): ?array
     {
-        $challan = Challan::query()
+        $citation = Citation::query()
             ->visibleTo($user)
             ->with(['issuer', 'recipient'])
             ->orderByRaw(
                 'case when recipient_id = ? and status = ? then 0 when recipient_id = ? then 1 else 2 end',
-                [$user->id, Challan::STATUS_ISSUED, $user->id],
+                [$user->id, Citation::STATUS_ISSUED, $user->id],
             )
             ->orderByDesc('issued_at')
             ->orderByDesc('id')
             ->first();
 
-        if ($challan === null) {
+        if ($citation === null) {
             return null;
         }
 
         return [
-            'ref_no' => $challan->ref_no,
-            'status' => $challan->status,
-            'offence' => $challan->offence,
-            'issuer' => $challan->issuer->name,
-            'recipient' => $challan->recipient->name,
+            'ref_no' => $citation->ref_no,
+            'status' => $citation->status,
+            'offence' => $citation->offence,
+            'issuer' => $citation->issuer->name,
+            'recipient' => $citation->recipient->name,
         ];
     }
 

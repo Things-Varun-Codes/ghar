@@ -1,8 +1,8 @@
 import { act, fireEvent, render, screen } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 
-import ChallanActions from './ChallanActions';
-import type { ChallanPayload } from './ChallanCard';
+import CitationActions from './CitationActions';
+import type { CitationPayload } from './CitationCard';
 
 const { routerPatch, routerDelete } = vi.hoisted(() => ({
     routerPatch: vi.fn(),
@@ -16,7 +16,7 @@ vi.mock('@inertiajs/react', () => ({
 vi.mock('sonner', () => ({ toast: { error: vi.fn() } }));
 vi.mock('@sentry/react', () => ({ captureException: vi.fn() }));
 
-const challan: ChallanPayload = {
+const citation: CitationPayload = {
     id: 7,
     ref_no: 'OC/2026/000007',
     status: 'issued',
@@ -36,13 +36,13 @@ const challan: ChallanPayload = {
 };
 
 function openConfirm() {
-    render(<ChallanActions challan={challan} />);
+    render(<CitationActions citation={citation} />);
     fireEvent.click(screen.getByRole('button', { name: 'Pay penalty' }));
 
     return screen.getByRole('alertdialog');
 }
 
-describe('ChallanActions pay', () => {
+describe('CitationActions pay', () => {
     it('asks before paying and quotes the penalty', () => {
         const dialog = openConfirm();
 
@@ -69,7 +69,7 @@ describe('ChallanActions pay', () => {
 
         expect(routerPatch).toHaveBeenCalledTimes(1);
         const [url, , options] = routerPatch.mock.calls[0];
-        expect(url).toContain('/challans/7');
+        expect(url).toContain('/citations/7');
 
         act(() => options.onStart());
 
@@ -85,8 +85,8 @@ describe('ChallanActions pay', () => {
 
     it('offers no pay button when paying is not allowed', () => {
         render(
-            <ChallanActions
-                challan={{ ...challan, available_actions: ['delete'] }}
+            <CitationActions
+                citation={{ ...citation, available_actions: ['delete'] }}
             />,
         );
 

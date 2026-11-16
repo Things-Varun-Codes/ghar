@@ -236,7 +236,7 @@ async function main() {
     );
 
 
-    // The walk logs in as the admin, so the challan and coupon must be ones the
+    // The walk logs in as the admin, so the citation and coupon must be ones the
     // admin received, or `view` would 403.
     const fixturesPhp = `
 use App\\Shell\\Models\\User;
@@ -244,7 +244,7 @@ use App\\MiniApps\\Corner\\Models\\Song;
 use App\\MiniApps\\Corner\\Models\\Movie;
 use App\\MiniApps\\Corner\\Models\\Activity;
 use App\\MiniApps\\Corner\\Models\\Place;
-use App\\MiniApps\\Mailbox\\Models\\Challan;
+use App\\MiniApps\\Mailbox\\Models\\Citation;
 use App\\MiniApps\\Mailbox\\Models\\Coupon;
 use Illuminate\\Support\\Facades\\Password;
 
@@ -257,7 +257,7 @@ echo json_encode([
     'cornerMovieId'     => Movie::query()->min('id'),
     'cornerActivityId'  => Activity::query()->min('id'),
     'cornerPlaceId'     => Place::query()->min('id'),
-    'mailboxChallanId'  => Challan::where('recipient_id', $admin->id)->firstOrFail()->id,
+    'mailboxCitationId'  => Citation::where('recipient_id', $admin->id)->firstOrFail()->id,
     'mailboxCouponId'   => Coupon::where('recipient_id', $admin->id)->firstOrFail()->id,
     // A plain member, never the logged-in account, so no self-edit or
     // last-admin guard gets in the way of the edit page.
@@ -324,6 +324,11 @@ echo json_encode([
             path: '/admin/users',
             auth: true,
             description: '/admin/users',
+        },
+        {
+            path: '/admin/rooms',
+            auth: true,
+            description: '/admin/rooms (rooms the admin chooses)',
         },
         {
             path: '/admin/invites',
@@ -444,16 +449,16 @@ echo json_encode([
             description: '/apps/our-mailbox/messages (Messages)',
         },
         {
-            path: '/apps/our-mailbox/challans',
+            path: '/apps/our-mailbox/citations',
             auth: true,
             description:
-                '/apps/our-mailbox/challans (Challans index)',
+                '/apps/our-mailbox/citations (Citations index)',
         },
         {
-            path: `/apps/our-mailbox/challans/${fixtures.mailboxChallanId}`,
+            path: `/apps/our-mailbox/citations/${fixtures.mailboxCitationId}`,
             auth: true,
             description:
-                '/apps/our-mailbox/challans/{challan} (Challan artifact/show)',
+                '/apps/our-mailbox/citations/{citation} (Citation artifact/show)',
         },
         {
             path: '/apps/our-mailbox/coupons',

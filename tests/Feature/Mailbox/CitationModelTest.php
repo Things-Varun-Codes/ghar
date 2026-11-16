@@ -2,13 +2,13 @@
 
 namespace Tests\Feature\Mailbox;
 
-use App\MiniApps\Mailbox\Models\Challan;
+use App\MiniApps\Mailbox\Models\Citation;
 use App\Shell\Models\User;
 use Illuminate\Database\Eloquent\MassAssignmentException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
-class ChallanModelTest extends TestCase
+class CitationModelTest extends TestCase
 {
     use RefreshDatabase;
 
@@ -17,16 +17,16 @@ class ChallanModelTest extends TestCase
         $attacker = User::factory()->create();
         $recipient = User::factory()->create();
 
-        $challan = new Challan;
+        $citation = new Citation;
 
         try {
-            $challan->fill([
+            $citation->fill([
                 'recipient_id' => $recipient->id,
                 'offence' => 'Replied with just k',
                 'penalty' => '3 hugs',
                 // Attempted tampering — all three must be rejected.
                 'ref_no' => 'OC/1999/000001',
-                'status' => Challan::STATUS_PAID,
+                'status' => Citation::STATUS_PAID,
                 'issuer_id' => $attacker->id,
             ]);
             $this->fail('Expected MassAssignmentException for the guarded fields.');
@@ -36,10 +36,10 @@ class ChallanModelTest extends TestCase
             $this->assertStringContainsString('issuer_id', $e->getMessage());
         }
 
-        $this->assertNull($challan->ref_no);
-        $this->assertNotSame(Challan::STATUS_PAID, $challan->status);
-        $this->assertNull($challan->issuer_id);
-        $this->assertSame($recipient->id, $challan->recipient_id);
+        $this->assertNull($citation->ref_no);
+        $this->assertNotSame(Citation::STATUS_PAID, $citation->status);
+        $this->assertNull($citation->issuer_id);
+        $this->assertSame($recipient->id, $citation->recipient_id);
     }
 
     public function test_visibility_scope_is_issuer_or_recipient_only(): void
@@ -48,13 +48,13 @@ class ChallanModelTest extends TestCase
         $recipient = User::factory()->create();
         $bystander = User::factory()->create();
 
-        $challan = Challan::factory()->create([
+        $citation = Citation::factory()->create([
             'issuer_id' => $issuer->id,
             'recipient_id' => $recipient->id,
         ]);
 
-        $this->assertTrue(Challan::query()->visibleTo($issuer)->whereKey($challan->id)->exists());
-        $this->assertTrue(Challan::query()->visibleTo($recipient)->whereKey($challan->id)->exists());
-        $this->assertFalse(Challan::query()->visibleTo($bystander)->whereKey($challan->id)->exists());
+        $this->assertTrue(Citation::query()->visibleTo($issuer)->whereKey($citation->id)->exists());
+        $this->assertTrue(Citation::query()->visibleTo($recipient)->whereKey($citation->id)->exists());
+        $this->assertFalse(Citation::query()->visibleTo($bystander)->whereKey($citation->id)->exists());
     }
 }

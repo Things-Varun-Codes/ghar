@@ -29,7 +29,7 @@ class CornerLandingTest extends TestCase
                 ->has('cornerSummary.counts.activities')
                 ->has('cornerSummary.counts.places')
                 ->missing('cornerSummary.counts.messages')
-                ->missing('cornerSummary.counts.challans'),
+                ->missing('cornerSummary.counts.citations'),
         );
     }
 

@@ -8,12 +8,20 @@ use Illuminate\Support\Facades\DB;
 
 class LinkableEntities
 {
-    /** @var array<string, array{listing: Closure, resolve: Closure, resolveMany: ?Closure}> */
+    /** @var array<string, array{listing: Closure, resolve: Closure, resolveMany: ?Closure, room: ?string}> */
     private array $registry = [];
 
-    public function register(string $type, Closure $listing, Closure $resolve, ?Closure $resolveMany = null): void
+    public function __construct(private readonly Rooms $rooms) {}
+
+    /**
+     * Pass `room` (the registry slug) when the type's pages belong to a room: while that room is
+     * off the type can't be searched and references from it are left out, so nothing links to a
+     * page that answers 404.
+     */
+    public function register(string $type, Closure $listing, Closure $resolve, ?Closure $resolveMany = null, ?string $room = null): void
     {
         $this->registry[$type] = [
+            'room' => $room,
             'listing' => $listing,
             'resolve' => $resolve,
             'resolveMany' => $resolveMany,
@@ -27,7 +35,7 @@ class LinkableEntities
         $results = [];
 
         foreach ($types as $type) {
-            if (! isset($this->registry[$type])) {
+            if (! $this->available($type)) {
                 continue;
             }
             $listing = $this->registry[$type]['listing'];
@@ -115,7 +123,9 @@ class LinkableEntities
             ->where('to_type', $toType)
             ->where('to_id', $toId)
             ->orderByDesc('created_at')
-            ->get();
+            ->get()
+            ->reject(fn ($row): bool => $this->roomIsOff((string) $row->from_type))
+            ->values();
 
         /** @var array<string, list<int>> $idsByType */
         $idsByType = [];
@@ -139,6 +149,18 @@ class LinkableEntities
         ]);
 
         return $result;
+    }
+
+    private function available(string $type): bool
+    {
+        return isset($this->registry[$type]) && ! $this->roomIsOff($type);
+    }
+
+    private function roomIsOff(string $type): bool
+    {
+        $room = $this->registry[$type]['room'] ?? null;
+
+        return $room !== null && ! $this->rooms->isOn($room);
     }
 
     /** @return list<string> */

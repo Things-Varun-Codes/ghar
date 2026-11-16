@@ -2,10 +2,14 @@
 
 namespace Tests\Feature\Shell;
 
+use App\Shell\Services\Rooms;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
 class RuntimePageConfigTest extends TestCase
 {
+    use RefreshDatabase;
+
     public function test_the_page_carries_the_runtime_name_and_browser_dsn(): void
     {
         config([
@@ -33,10 +37,15 @@ class RuntimePageConfigTest extends TestCase
     public function test_the_manifest_offers_a_shortcut_per_enabled_room(): void
     {
         config(['miniapps' => [
-            ['name' => 'Open Room', 'slug' => 'open', 'route' => '/apps/open', 'description' => 'Open.', 'enabled' => true],
-            ['name' => 'Off Room', 'slug' => 'off', 'route' => '/apps/off', 'description' => 'Off.', 'enabled' => false],
-            ['name' => 'Admin Room', 'slug' => 'admin', 'route' => '/apps/admin', 'description' => 'Admin.', 'enabled' => true, 'admin_only' => true],
+            ['name' => 'Open Room', 'slug' => 'open', 'route' => '/apps/open', 'description' => 'Open.'],
+            ['name' => 'Off Room', 'slug' => 'off', 'route' => '/apps/off', 'description' => 'Off.'],
+            ['name' => 'Admin Room', 'slug' => 'admin', 'route' => '/apps/admin', 'description' => 'Admin.', 'admin_only' => true],
         ]]);
+
+        $rooms = app(Rooms::class);
+        $rooms->set('open', true);
+        $rooms->set('off', false);
+        $rooms->set('admin', true);
 
         $this->get('/manifest.webmanifest')
             ->assertOk()

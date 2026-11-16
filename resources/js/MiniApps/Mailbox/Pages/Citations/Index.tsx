@@ -1,27 +1,27 @@
 import { Gavel } from 'lucide-react';
 import { useState } from 'react';
 
-import ChallanCard from '@/MiniApps/Mailbox/Components/ChallanCard';
-import type { ChallanPayload } from '@/MiniApps/Mailbox/Components/ChallanCard';
-import ChallanSheet from '@/MiniApps/Mailbox/Components/ChallanSheet';
+import CitationCard from '@/MiniApps/Mailbox/Components/CitationCard';
+import type { CitationPayload } from '@/MiniApps/Mailbox/Components/CitationCard';
+import CitationSheet from '@/MiniApps/Mailbox/Components/CitationSheet';
 import MailboxListPage from '@/MiniApps/Mailbox/Components/MailboxListPage';
 import type { HouseholdMember } from '@/MiniApps/Mailbox/Components/RecipientPicker';
 import MailboxLayout from '@/MiniApps/Mailbox/Layouts/MailboxLayout';
-import { index } from '@/routes/apps/our-mailbox/challans';
+import { index } from '@/routes/apps/our-mailbox/citations';
 import type { Paginated } from '@/types/paginated';
 
 type Tab = 'received' | 'issued';
 
 type Props = {
-    challans: Paginated<ChallanPayload>;
+    citations: Paginated<CitationPayload>;
     tab: Tab;
     sort: 'recent' | 'oldest';
     q: string | null;
     members: HouseholdMember[];
 };
 
-export default function ChallansIndex({
-    challans,
+export default function CitationsIndex({
+    citations,
     tab,
     sort,
     q,
@@ -32,24 +32,24 @@ export default function ChallansIndex({
     const emptyCopy =
         tab === 'received'
             ? {
-                  title: 'No challans against you yet.',
+                  title: 'No citations against you yet.',
                   body: 'When someone files one, it shows up here.',
               }
             : {
-                  title: "You haven't issued any challans yet.",
+                  title: "You haven't issued any citations yet.",
                   body: 'Tap the plus button to issue your first one.',
               };
 
     return (
         <MailboxLayout>
             <MailboxListPage
-                pageTitle="Challans"
-                paginator={challans}
-                countAll={challans.counts?.all ?? challans.data.length}
-                countNoun={{ one: 'challan', other: 'challans' }}
-                propName="challans"
+                pageTitle="Citations"
+                paginator={citations}
+                countAll={citations.counts?.all ?? citations.data.length}
+                countNoun={{ one: 'citation', other: 'citations' }}
+                propName="citations"
                 tab={tab}
-                tabsAriaLabel="Challan tabs"
+                tabsAriaLabel="Citation tabs"
                 tabItems={[
                     { key: 'received', label: 'Received' },
                     { key: 'issued', label: 'Issued' },
@@ -57,17 +57,17 @@ export default function ChallansIndex({
                 tabHrefFor={(k) => index.url({ query: { tab: k } })}
                 sort={sort}
                 query={q}
-                searchPlaceholder="Search challans"
-                fabAriaLabel="Issue a challan"
+                searchPlaceholder="Search citations"
+                fabAriaLabel="Issue a citation"
                 onFabClick={() => setSheetOpen(true)}
                 emptyIcon={Gavel}
                 emptyTitle={emptyCopy.title}
                 emptyBody={emptyCopy.body}
-                renderItem={(challan) => (
-                    <ChallanCard key={challan.id} challan={challan} />
+                renderItem={(citation) => (
+                    <CitationCard key={citation.id} citation={citation} />
                 )}
             >
-                <ChallanSheet
+                <CitationSheet
                     open={sheetOpen}
                     onOpenChange={setSheetOpen}
                     members={members}

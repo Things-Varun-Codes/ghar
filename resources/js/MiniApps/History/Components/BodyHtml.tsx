@@ -1,5 +1,6 @@
 import React from 'react';
 
+import { useRoomOn } from '@/hooks/use-room-on';
 import { internalHref, thumbnailSrc } from '@/MiniApps/History/lib/pillUrls';
 import { entityIcon } from '@/Shell/linkables/entityIcon';
 
@@ -39,7 +40,8 @@ function CornerLinkRead({
     href: string;
 }) {
     const label = title || 'Corner link';
-    const safeHref = internalHref(href);
+    const cornerOn = useRoomOn('our-corner');
+    const safeHref = cornerOn ? internalHref(href) : null;
     const safeThumbnail = thumbnailSrc(thumbnail);
     const iconEl = React.createElement(entityIcon(type), {
         size: 14,

@@ -13,24 +13,24 @@ import {
 } from '@/components/ui/alert-dialog';
 import { buttonVariants } from '@/components/ui/button';
 import { mutationOptions } from '@/lib/mutation';
-import type { ChallanPayload } from '@/MiniApps/Mailbox/Components/ChallanCard';
-import { destroy, pay } from '@/routes/apps/our-mailbox/challans';
+import type { CitationPayload } from '@/MiniApps/Mailbox/Components/CitationCard';
+import { destroy, pay } from '@/routes/apps/our-mailbox/citations';
 import SubmitButton from '@/Shell/Components/SubmitButton';
 
 type Pending = 'pay' | 'delete' | null;
 
-export default function ChallanActions({
-    challan,
+export default function CitationActions({
+    citation,
     variant = 'detail',
 }: {
-    challan: ChallanPayload;
+    citation: CitationPayload;
     variant?: 'row' | 'detail';
 }) {
     const [pending, setPending] = useState<Pending>(null);
     const [confirmOpen, setConfirmOpen] = useState(false);
     const [payOpen, setPayOpen] = useState(false);
 
-    const actions = challan.available_actions;
+    const actions = citation.available_actions;
     const canPay = actions.includes('pay');
     const canDelete = actions.includes('delete');
 
@@ -47,14 +47,14 @@ export default function ChallanActions({
         }
 
         router.patch(
-            pay.url(challan.id),
+            pay.url(citation.id),
             {},
             {
                 preserveScroll: true,
                 preserveState: false,
                 ...mutationOptions({
-                    component: 'Mailbox/ChallanActions',
-                    action: 'challan.pay',
+                    component: 'Mailbox/CitationActions',
+                    action: 'citation.pay',
                     onPendingChange: (p) => setPending(p ? 'pay' : null),
                 }),
             },
@@ -66,12 +66,12 @@ export default function ChallanActions({
             return;
         }
 
-        router.delete(destroy.url(challan.id), {
+        router.delete(destroy.url(citation.id), {
             preserveScroll: true,
             preserveState: false,
             ...mutationOptions({
-                component: 'Mailbox/ChallanActions',
-                action: 'challan.delete',
+                component: 'Mailbox/CitationActions',
+                action: 'citation.delete',
                 onPendingChange: (p) => {
                     setPending(p ? 'delete' : null);
 
@@ -96,7 +96,7 @@ export default function ChallanActions({
                         onClick={() => setPayOpen(true)}
                         aria-label={
                             variant === 'row'
-                                ? `Pay penalty for “${challan.offence}”`
+                                ? `Pay penalty for “${citation.offence}”`
                                 : undefined
                         }
                         className={
@@ -119,7 +119,7 @@ export default function ChallanActions({
                         onClick={() => setConfirmOpen(true)}
                         aria-label={
                             variant === 'row'
-                                ? `Withdraw “${challan.offence}”`
+                                ? `Withdraw “${citation.offence}”`
                                 : undefined
                         }
                         className="mailbox-btn-neutral mailbox-btn-danger"
@@ -134,8 +134,8 @@ export default function ChallanActions({
                     <AlertDialogHeader>
                         <AlertDialogTitle>Pay this penalty?</AlertDialogTitle>
                         <AlertDialogDescription>
-                            The penalty is “{challan.penalty}”. Once it's paid,
-                            this challan is settled for good.
+                            The penalty is “{citation.penalty}”. Once it's paid,
+                            this citation is settled for good.
                         </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
@@ -151,7 +151,7 @@ export default function ChallanActions({
                 <AlertDialogContent>
                     <AlertDialogHeader>
                         <AlertDialogTitle>
-                            Withdraw this challan?
+                            Withdraw this citation?
                         </AlertDialogTitle>
                         <AlertDialogDescription>
                             This removes it for them too. There's no undo.

@@ -26,6 +26,8 @@ const SKIP = {
         'Fortify registers this route by default, but Ghar defines no confirmPasswordView anywhere in app/ or resources/js/ (grep confirms zero references), so the route cannot render. Delete this SKIP entry the day a confirm-password page is added.',
     'settings/email/verify':
         'Requires a valid URL::temporarySignedRoute signature plus user and email query params, then 302s to settings.profile on success — a signed action endpoint, not a page-mount surface.',
+    'apps/our-mailbox/challans/{id?}':
+        'Permanent redirect from the old citation address — nothing renders.',
     'go/{code}':
         '302 redirect to a stored external destination — nothing renders, so the page-mount assertion does not apply.',
 };

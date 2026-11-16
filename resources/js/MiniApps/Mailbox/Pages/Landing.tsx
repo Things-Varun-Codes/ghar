@@ -6,15 +6,16 @@ import { useId } from 'react';
 import { cn } from '@/lib/utils';
 import MailboxLayout from '@/MiniApps/Mailbox/Layouts/MailboxLayout';
 import { monogram } from '@/MiniApps/Mailbox/lib/monogram';
-import { index as challansIndex } from '@/routes/apps/our-mailbox/challans';
+import { index as citationsIndex } from '@/routes/apps/our-mailbox/citations';
 import { index as couponsIndex } from '@/routes/apps/our-mailbox/coupons';
 import { index as flowersIndex } from '@/routes/apps/our-mailbox/flowers';
 import { index as messagesIndex } from '@/routes/apps/our-mailbox/messages';
+import EmptyState from '@/Shell/Components/EmptyState';
 import Page from '@/Shell/Components/Page';
 
 type Counts = {
     messages: number;
-    challans: number;
+    citations: number;
     flowers: number;
     coupons: number;
 };
@@ -23,13 +24,13 @@ type MailboxSummaryShared = {
     counts: Counts;
     unread_messages: number;
     unread_flowers: number;
-    challans_action_needed: number;
+    citations_action_needed: number;
     coupons_action_needed: number;
 };
 
 type NotePeek = { body: string; from: string };
 type BouquetPeek = { image_url: string; from: string };
-type ChallanPeek = {
+type CitationPeek = {
     ref_no: string | null;
     status: 'issued' | 'paid';
     offence: string;
@@ -49,11 +50,12 @@ type CouponPeek = {
 type MailboxPeeks = {
     notes: NotePeek | null;
     flowers: BouquetPeek | null;
-    challans: ChallanPeek | null;
+    citations: CitationPeek | null;
     coupons: CouponPeek | null;
 };
 
 type Props = {
+    types?: string[];
     mailboxSummary?: MailboxSummaryShared | null;
     mailboxPeeks?: MailboxPeeks | null;
 };
@@ -62,7 +64,7 @@ type Live = { text: string; alert: boolean };
 
 const EMPTY_COUNTS: Counts = {
     messages: 0,
-    challans: 0,
+    citations: 0,
     flowers: 0,
     coupons: 0,
 };
@@ -160,35 +162,35 @@ function BouquetGlimpse({ bouquet }: { bouquet: BouquetPeek | null }) {
     );
 }
 
-function ChallanSlice({ challan }: { challan: ChallanPeek | null }) {
+function CitationSlice({ citation }: { citation: CitationPeek | null }) {
     return (
-        <div className="mailbox-door-challan">
-            <div className="mailbox-challan-masthead">
-                <div className="mailbox-challan-seal">
-                    <span className="mailbox-challan-monogram">
-                        {challan
-                            ? monogram(challan.issuer, challan.recipient)
+        <div className="mailbox-door-citation">
+            <div className="mailbox-citation-masthead">
+                <div className="mailbox-citation-seal">
+                    <span className="mailbox-citation-monogram">
+                        {citation
+                            ? monogram(citation.issuer, citation.recipient)
                             : 'OC'}
                     </span>
                 </div>
                 <div className="min-w-0">
-                    <div className="mailbox-challan-title">
+                    <div className="mailbox-citation-title">
                         Department of the Household
                     </div>
-                    <div className="mailbox-challan-sub">
-                        {challan?.ref_no ?? 'Citations registry'}
+                    <div className="mailbox-citation-sub">
+                        {citation?.ref_no ?? 'Citations registry'}
                     </div>
                 </div>
             </div>
-            {challan && (
+            {citation && (
                 <>
-                    <p className="mailbox-written mailbox-door-challan-offence">
-                        {challan.offence}
+                    <p className="mailbox-written mailbox-door-citation-offence">
+                        {citation.offence}
                     </p>
                     <div
-                        className={`mailbox-challan-stamp mailbox-challan-stamp--${challan.status}`}
+                        className={`mailbox-citation-stamp mailbox-citation-stamp--${citation.status}`}
                     >
-                        {challan.status === 'paid' ? 'Paid' : 'Issued'}
+                        {citation.status === 'paid' ? 'Paid' : 'Issued'}
                     </div>
                 </>
             )}
@@ -260,97 +262,118 @@ function CouponStub({ coupon }: { coupon: CouponPeek | null }) {
     );
 }
 
-export default function Landing({ mailboxSummary, mailboxPeeks }: Props) {
+export default function Landing({
+    types = [],
+    mailboxSummary,
+    mailboxPeeks,
+}: Props) {
     const counts = mailboxSummary?.counts ?? EMPTY_COUNTS;
 
     return (
         <MailboxLayout>
             <Page title="Our Mailbox" documentTitle="Our Mailbox" backChevron>
+                {types.length === 0 && (
+                    <EmptyState
+                        title="Nothing is switched on in the Mailbox"
+                        body="An admin can turn on notes, flowers, coupons and citations."
+                    />
+                )}
                 <div className="mailbox-doors">
-                    <MailboxDoor
-                        title="Notes"
-                        href={messagesIndex.url()}
-                        prefetch={false}
-                        live={
-                            waiting(
-                                mailboxSummary?.unread_messages ?? 0,
-                                'unread',
-                            ) ??
-                            tally(
-                                counts.messages,
-                                'note',
-                                'notes',
-                                'None yet. Write one?',
-                            )
-                        }
-                        peek={<NoteScrap note={mailboxPeeks?.notes ?? null} />}
-                    />
-                    <MailboxDoor
-                        title="Flowers"
-                        href={flowersIndex.url()}
-                        prefetch={false}
-                        live={
-                            waiting(
-                                mailboxSummary?.unread_flowers ?? 0,
-                                'unseen',
-                            ) ??
-                            tally(
-                                counts.flowers,
-                                'bouquet received',
-                                'bouquets received',
-                                'No bouquets yet',
-                            )
-                        }
-                        peek={
-                            <BouquetGlimpse
-                                bouquet={mailboxPeeks?.flowers ?? null}
-                            />
-                        }
-                    />
-                    <MailboxDoor
-                        title="Challans"
-                        href={challansIndex.url()}
-                        prefetch
-                        live={
-                            waiting(
-                                mailboxSummary?.challans_action_needed ?? 0,
-                                'to pay',
-                            ) ??
-                            tally(
-                                counts.challans,
-                                'challan received',
-                                'challans received',
-                                'No challans yet',
-                            )
-                        }
-                        peek={
-                            <ChallanSlice
-                                challan={mailboxPeeks?.challans ?? null}
-                            />
-                        }
-                    />
-                    <MailboxDoor
-                        title="Coupons"
-                        href={couponsIndex.url()}
-                        prefetch
-                        live={
-                            waiting(
-                                mailboxSummary?.coupons_action_needed ?? 0,
-                                'to fulfil',
-                            ) ??
-                            tally(
-                                counts.coupons,
-                                'coupon received',
-                                'coupons received',
-                                'No coupons yet',
-                            )
-                        }
-                        peek={
-                            <CouponStub
-                                coupon={mailboxPeeks?.coupons ?? null}
-                            />
-                        }
-                    />
+                    {types.includes('messages') && (
+                        <MailboxDoor
+                            title="Notes"
+                            href={messagesIndex.url()}
+                            prefetch={false}
+                            live={
+                                waiting(
+                                    mailboxSummary?.unread_messages ?? 0,
+                                    'unread',
+                                ) ??
+                                tally(
+                                    counts.messages,
+                                    'note',
+                                    'notes',
+                                    'None yet. Write one?',
+                                )
+                            }
+                            peek={
+                                <NoteScrap note={mailboxPeeks?.notes ?? null} />
+                            }
+                        />
+                    )}
+                    {types.includes('flowers') && (
+                        <MailboxDoor
+                            title="Flowers"
+                            href={flowersIndex.url()}
+                            prefetch={false}
+                            live={
+                                waiting(
+                                    mailboxSummary?.unread_flowers ?? 0,
+                                    'unseen',
+                                ) ??
+                                tally(
+                                    counts.flowers,
+                                    'bouquet received',
+                                    'bouquets received',
+                                    'No bouquets yet',
+                                )
+                            }
+                            peek={
+                                <BouquetGlimpse
+                                    bouquet={mailboxPeeks?.flowers ?? null}
+                                />
+                            }
+                        />
+                    )}
+                    {types.includes('citations') && (
+                        <MailboxDoor
+                            title="Citations"
+                            href={citationsIndex.url()}
+                            prefetch
+                            live={
+                                waiting(
+                                    mailboxSummary?.citations_action_needed ??
+                                        0,
+                                    'to pay',
+                                ) ??
+                                tally(
+                                    counts.citations,
+                                    'citation received',
+                                    'citations received',
+                                    'No citations yet',
+                                )
+                            }
+                            peek={
+                                <CitationSlice
+                                    citation={mailboxPeeks?.citations ?? null}
+                                />
+                            }
+                        />
+                    )}
+                    {types.includes('coupons') && (
+                        <MailboxDoor
+                            title="Coupons"
+                            href={couponsIndex.url()}
+                            prefetch
+                            live={
+                                waiting(
+                                    mailboxSummary?.coupons_action_needed ?? 0,
+                                    'to fulfil',
+                                ) ??
+                                tally(
+                                    counts.coupons,
+                                    'coupon received',
+                                    'coupons received',
+                                    'No coupons yet',
+                                )
+                            }
+                            peek={
+                                <CouponStub
+                                    coupon={mailboxPeeks?.coupons ?? null}
+                                />
+                            }
+                        />
+                    )}
                 </div>
             </Page>
         </MailboxLayout>

@@ -8,6 +8,24 @@ Minor and patch versions don't.
 Before any upgrade, back up the database and the media volume (DEPLOY.md, "Backups and restore").
 Migrations only run forward.
 
+## [1.2.0] - Unreleased
+
+- The admin chooses the rooms. Admin → Rooms turns Our History, Our Corner and Our Mailbox on or
+  off, and turns the Mailbox's notes, flowers, citations and coupons on or off one by one. A room
+  that is off disappears from Home, the phone bar and the install shortcuts, its addresses stop
+  working and it sends no notifications. What was written in it is kept and comes back when it is
+  turned on again.
+- A new install starts with every room off. Home tells the admin where to turn them on and tells
+  everyone else that nothing is there yet.
+- Challans are now called citations everywhere: the screens, the addresses, the database table and
+  the notification tag. Old `/apps/our-mailbox/challans` addresses redirect, and reference numbers
+  already issued (`OC/2026/000007`) are unchanged.
+
+Nothing to do on upgrade. An install that already has people keeps every room on; the migration
+records that. The rooms a source build used to disable in `config/miniapps.php` are now chosen in
+Admin → Rooms instead, so check that page once. The table rename is in the migrations, which run
+on start; back up first, as always.
+
 ## [1.1.0] - 2026-11-14
 
 - The self-host stack keeps its cache (rate limits and the health heartbeats) in a small Valkey

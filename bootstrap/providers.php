@@ -10,6 +10,6 @@ return [
     AppServiceProvider::class,
     FortifyServiceProvider::class,
     MiniAppServiceProvider::class,
-    // Mini apps' providers are registered by MiniAppServiceProvider when enabled; Telescope by
+    // Mini apps' providers are registered by MiniAppServiceProvider; Telescope by
     // AppServiceProvider, in local only.
 ];

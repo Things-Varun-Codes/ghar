@@ -2,8 +2,9 @@
 
 **Ghar** is a private, auth-gated, self-hosted web platform for a family or household. A secure
 shell (dashboard + OS chrome) hosts self-contained mini apps.
-Enabled today: **Our History** (timeline, gallery, calendar), **Our Corner** (shared lists — songs,
-movies, activities, places) and **Our Mailbox** (messages, flowers, challans, coupons).
+Installed today: **Our History** (timeline, gallery, calendar), **Our Corner** (shared lists — songs,
+movies, activities, places) and **Our Mailbox** (messages, flowers, citations, coupons). **The admin
+chooses which rooms a home has** at Admin → Rooms (`/admin/rooms`); a fresh install starts with none on.
 
 **Core value:** new mini apps can be added — and existing ones updated — without touching the
 shell or other mini apps.
@@ -30,13 +31,13 @@ Password for every account: `ghar-local-dev`. Mail lands in Mailpit at `http://1
 | -------------------- | ----------------------- | ------------------------------------------------------------------------------------------------------------------------------------- |
 | `admin@example.test` | Asha, the only admin    | Admin pages; editing anyone's moment or Corner item; last-admin guards. Has no special access to other people's mail.                 |
 | `ravi@example.test`  | Ravi, adult             | **Non-admin creator**: can edit "Monsoon drive to the coast" (his), can't edit "Meera's first pottery class". Sender of the fixtures. |
-| `meera@example.test` | Meera, adult            | **Recipient**: note 1, bouquet 1, coupon 1 and challan 1 are Ravi's to her alone. Can request the coupon and pay the challan.         |
-| `kabir@example.test` | Kabir, younger, no push | **Non-recipient**: `/apps/our-mailbox/challans/1` and `coupons/1` must 403; note 1 and bouquet 1 must not be listed.                  |
+| `meera@example.test` | Meera, adult            | **Recipient**: note 1, bouquet 1, coupon 1 and citation 1 are Ravi's to her alone. Can request the coupon and pay the citation.       |
+| `kabir@example.test` | Kabir, younger, no push | **Non-recipient**: `/apps/our-mailbox/citations/1` and `coupons/1` must 403; note 1 and bouquet 1 must not be listed.                 |
 
 The seed has every state: moments by all four people (photos on the local media disk, Corner links, more
 than one Timeline and Gallery page), Corner items done and not done by different people, 62 Songs
 (past the 50-row page), single and multi-recipient notes and flowers read and unread, coupons
-issued/requested/part-fulfilled/depleted/expired, challans issued/paid, short links `pantry23`,
+issued/requested/part-fulfilled/depleted/expired, citations issued/paid, short links `pantry23`,
 `garage23` and the disabled `bench789`, and a pending invite at
 `/invitations/dev-invite-token-for-local-testing-only`. Row ids are stable after a reset. Ravi and
 Meera have synthetic push subscriptions that can't deliver; test real push by subscribing a browser.
@@ -146,7 +147,7 @@ PHP/TS identifiers say `ShortLink`.
 - **OS-vs-app split.** The sidebar (from 1024px) is static OS chrome (Home, Settings, Admin). The
   dashboard is the mini-app launcher. **Mini apps are never added to the sidebar.** Below 1024px
   there is no sidebar: a contextual top bar (wordmark on Home; back + page title elsewhere, fed by
-  `Page`) and a bottom bar (`BottomBar`) listing Home plus each enabled room from the registry's
+  `Page`) and a bottom bar (`BottomBar`) listing Home plus each room that is on, from the registry's
   `nav_label` and its own `nav-icon.tsx`. Settings and Admin live in the account menu there.
 - **`AppLayout` is the persistent default layout** (`app.tsx`); pages don't wrap themselves in it.
   Use `Page` for the header: it sets the document title (`room`, `documentTitle`), the back target
@@ -278,7 +279,7 @@ lives on the things themselves.
 
 - **Always the same:** the tinted frame and page sheet (`.shell-frame` / `.shell-sheet`), page titles
   (`.page-h1`), pill buttons, 14px-radius fields, 22px-radius cards, list order (tabs, then count +
-  search + sort), add surfaces and vocabulary (a _moment_, a _note_, a _challan_).
+  search + sort), add surfaces and vocabulary (a _moment_, a _note_, a _citation_).
 - **Two faces with fixed jobs, in every room.** Newsreader (`--font-display`, weight 400) sets page
   titles, section and sheet titles, dates and the title of a moment; its italic is for what was
   filled in or attributed. Hanken Grotesk (`--font-sans`, 400 and 500 only) sets everything else.
@@ -326,7 +327,7 @@ the code:
   pin, and accent washes via `color-mix(in oklab, var(--shell-accent) N%, var(--shell-surface))` —
   never hex. Identity changes
   are CSS-only in `corner.css` over the shared components; don't fork Corner-specific React.
-- **Our Mailbox** owns paper: ruled sheets with a red margin, the challan as an official form, the
+- **Our Mailbox** owns paper: ruled sheets with a red margin, the citation as an official form, the
   coupon as a voucher. A note's body and a coupon's title are in Patrick Hand; what was filled in on
   a form (names, offence, penalty, remarks) is Newsreader italic; the printed parts are the sans at
   13px/500. The form reads as a form through its rules, boxes, seal and stamp, and the stamp is the
@@ -334,10 +335,16 @@ the code:
 
 ## Adding a new mini app
 
-For every `enabled` entry in `config/miniapps.php`, `MiniAppServiceProvider` registers its
-`provider` and loads `routes/miniapps/{slug}.php` (inside `web` + `auth`) and
-`database/migrations/{slug}/`. A disabled app is fully off, so anything it contributes must go
-through its provider. Everything else is a hand edit:
+Every entry in `config/miniapps.php` is _installed_: `MiniAppServiceProvider` always registers its
+`provider` and loads `routes/miniapps/{slug}.php` (inside `web`, `auth` and `room:{slug}`) and
+`database/migrations/{slug}/`. Whether a room is _on_ is the admin's runtime choice, stored in
+`room_settings` and read through `App\Shell\Services\Rooms` (once per request; no cache). A room
+with no row is off. When it is off its routes 404 (middleware `room:{slug}`), it leaves the
+registry props, the manifest shortcuts, Home's summaries and previews, and `PushDispatcher` sends
+nothing for it; its data stays. A provider's `boot()` runs either way, so a resolver or command it
+registers must cope with its room being off (summaries and previews are only asked for rooms that
+are on). The admin page lists rooms from the registry, so a new room needs no edit there.
+Everything else is a hand edit:
 
 1. `config/miniapps.php` entry — include `component_prefix` or `AppLayout`'s chrome-hide breaks,
    and `nav_label` for the phone bottom bar. Ship `resources/js/MiniApps/{App}/nav-icon.tsx` whose
@@ -349,13 +356,16 @@ through its provider. Everything else is a hand edit:
 4. `resources/css/themes/{slug}.css` + its `@import` in `resources/css/app.css` (see below).
 5. `vite.config.ts` `fonts:` — only if the app registers a font.
 6. `resources/js/MiniApps/{App}/` under the registry's `component_prefix`.
-7. `scripts/smoke.mjs` routes for every new authenticated page.
+7. `scripts/smoke.mjs` routes for every new authenticated page. Tests start with every room on
+   (`tests/TestCase`); `DevDataSeeder` turns them all on with `Rooms::turnOnAll()`.
 8. Optional door content on Home, from the provider's `boot()`: a live line with
    `DashboardSummaries::register('{slug}', fn (User $u): ?string => …)` and a glimpse with
    `registerPreview('{slug}', fn (User $u): ?array => …)` (`images`, or `note` + `note_from`). Must
    return only rows the viewer may see; a throwing resolver just shows nothing.
-9. If a table's foreign key to `users` restricts deletes, `UserOwnedContent::register()` it from the
-   provider's `boot()`, so the admin delete can say what blocks it.
+9. If other rooms can link to yours, pass `room: '{slug}'` to `LinkableEntities::register()`: while
+   your room is off its type is not searchable and links to it drop out of other rooms' pages.
+10. If a table's foreign key to `users` restricts deletes, `UserOwnedContent::register()` it from the
+    provider's `boot()`, so the admin delete can say what blocks it.
 
 ## Mini-app theme architecture
 
@@ -367,7 +377,7 @@ here only alias or mix `--shell-*`, never a literal. **Layer 3** `.<app>-*` comp
 > another app's tokens.
 
 - Register fonts through the Vite plugin `fonts:` array, not `@import url(…)`.
-- Exemplars: `themes/history.css` (full three-layer), `themes/mailbox.css` (notebook + challan
+- Exemplars: `themes/history.css` (full three-layer), `themes/mailbox.css` (notebook + citation
   motif), `themes/corner.css` (objects on shared chrome).
 - Shared list band (`ListNavBand` / `ListSortControl`, used by Corner and Mailbox) takes app
   identity via `--list-nav-font` and `--list-nav-radius` declared in the app's `[data-app]` scope —
@@ -383,7 +393,7 @@ Every invited user is a household member (`App\Shell\Services\Household`: `membe
 | History moments (`EventPolicy`)        | Everyone           | Edit, delete, media: creator or admin                   |
 | Corner items (`ListItemPolicy`)        | Everyone           | Edit, delete: adder or admin. Mark done: anyone         |
 | Notes, flowers (`RecipientMailPolicy`) | Sender, recipients | Delete: sender                                          |
-| Coupons, challans (own policies)       | Issuer, recipient  | Request, cancel, pay: recipient. Fulfil, delete: issuer |
+| Coupons, citations (own policies)      | Issuer, recipient  | Request, cancel, pay: recipient. Fulfil, delete: issuer |
 
 - **Enforcement is server-side;** the `can` flags on History and Corner payloads only decide which
   buttons render.
@@ -391,11 +401,11 @@ Every invited user is a household member (`App\Shell\Services\Household`: `membe
   flowers) `receivedBy($user)`. Notes and flowers keep recipients and per-recipient `read_at` in
   `mailbox_message_recipients` / `mailbox_bouquet_recipients` (`HasRecipients`).
 - **Recipients** arrive as `recipient_ids`: one or more other members, never yourself
-  (`ValidatesRecipients`). A coupon or challan has one recipient, so several ids issue one row each.
+  (`ValidatesRecipients`). A coupon or citation has one recipient, so several ids issue one row each.
 - **Push:** `PushDispatcher::toHousehold($actor, …)` for new moments and Corner items;
   `toUsers($recipients, …)` for Mailbox. Never hand-roll a recipient query.
 - **Push timing — two accepted shapes, don't "harmonize" them.** Corner (`AddSong` etc.) dispatches
-  inside `DB::afterCommit(...)` within the transaction. Mailbox (`CreateMessage`, `IssueChallan`
+  inside `DB::afterCommit(...)` within the transaction. Mailbox (`CreateMessage`, `IssueCitation`
   etc.) dispatches on the line after `DB::transaction(...)` returns. Both guarantee no push for a
   rolled-back write.
 
@@ -405,17 +415,25 @@ Slug `our-mailbox`; `App\MiniApps\Mailbox\`; `resources/js/MiniApps/Mailbox/`; r
 `apps.our-mailbox.*` at `/apps/our-mailbox/*`. Holds the directional, non-linkable comms surfaces;
 Our Corner keeps the four lists.
 
-- Messages, Flowers, Challans and Coupons all resolve through `App\Shell\Support\CursorList` with
+- **Entry types switch individually.** `App\MiniApps\Mailbox\Support\EntryTypes` registers notes
+  (`messages`), `flowers`, `citations` and `coupons` as options of the room through
+  `Rooms::registerOption()` from `MailboxServiceProvider::boot()`; an option with no row is on.
+  Routes sit behind `room:our-mailbox,{type}`, so an off type 404s and its writes (and so its push)
+  cannot happen; the landing gets a `types` prop and `MailboxSummary` / `MailboxPeeks` skip it. Rows
+  are kept. The old `/apps/our-mailbox/challans/{id?}` addresses 301 to `citations`, because
+  delivered push notifications and bookmarks hold them.
+
+- Messages, Flowers, Citations and Coupons all resolve through `App\Shell\Support\CursorList` with
   free-text `?q` and whitelisted `?sort` (`recent`/`oldest`, server-authoritative). No status
   column, so `counts` arrive degraded (`active` = `all`, `done` = 0). Each renders `ListNavBand`
   with the server count ("3 notes") left of Sort. Search columns: Messages `body`; Flowers `note`;
-  Challans `offence`/`penalty`/`incident_place`/`remarks`; Coupons `title`/`description`.
-- **Challans** — mock traffic tickets. `mailbox_challans`.
+  Citations `offence`/`penalty`/`incident_place`/`remarks`; Coupons `title`/`description`.
+- **Citations** — mock traffic tickets. `mailbox_citations`.
   `ref_no` = `OC/{year}/{padded id}` (`OC` frozen). `ref_no`/`status`/`issuer_id` guarded;
   `offence` (≤120) and `penalty` (≤80) fillable. Lifecycle `issued → paid` only: recipient-only
   `pay`, issuer-only hard `delete` of an `issued` row; paid is locked. Push tag
-  `our-mailbox:challans`; bodies never leak offence/penalty/remarks. Drawn as an "official form"
-  (`--mailbox-challan-*` / `.mailbox-challan-*`, colours alias `--shell-*`).
+  `our-mailbox:citations`; bodies never leak offence/penalty/remarks. Drawn as an "official form"
+  (`--mailbox-citation-*` / `.mailbox-citation-*`, colours alias `--shell-*`).
 
 ## Our Corner item-actions contract
 

@@ -2,14 +2,14 @@
 
 namespace Database\Factories;
 
-use App\MiniApps\Mailbox\Models\Challan;
+use App\MiniApps\Mailbox\Models\Citation;
 use App\Shell\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
-/** @extends Factory<Challan> */
-class ChallanFactory extends Factory
+/** @extends Factory<Citation> */
+class CitationFactory extends Factory
 {
-    protected $model = Challan::class;
+    protected $model = Citation::class;
 
     public function definition(): array
     {
@@ -23,7 +23,7 @@ class ChallanFactory extends Factory
             'is_repeat' => fake()->boolean(20),
             'penalty' => mb_substr(fake()->words(2, true), 0, 80),
             'remarks' => fake()->optional()->sentence(),
-            'status' => Challan::STATUS_ISSUED,
+            'status' => Citation::STATUS_ISSUED,
             'settled_at' => null,
             'issued_at' => now(),
         ];
@@ -32,7 +32,7 @@ class ChallanFactory extends Factory
     public function paid(): static
     {
         return $this->state(fn () => [
-            'status' => Challan::STATUS_PAID,
+            'status' => Citation::STATUS_PAID,
             'settled_at' => now(),
         ]);
     }

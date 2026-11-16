@@ -2,7 +2,7 @@
 
 namespace Tests\Feature\Shell;
 
-use App\MiniApps\Mailbox\Models\Challan;
+use App\MiniApps\Mailbox\Models\Citation;
 use App\MiniApps\Mailbox\Models\Coupon;
 use App\Shell\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -22,13 +22,13 @@ class ErrorPageTest extends TestCase
         return [$issuer, $recipient, User::factory()->create()];
     }
 
-    public function test_forbidden_challan_renders_the_in_shell_error_page(): void
+    public function test_forbidden_citation_renders_the_in_shell_error_page(): void
     {
         [$issuer, $recipient, $stranger] = $this->pairPlusStranger();
-        $challan = Challan::factory()->create(['issuer_id' => $issuer->id, 'recipient_id' => $recipient->id]);
+        $citation = Citation::factory()->create(['issuer_id' => $issuer->id, 'recipient_id' => $recipient->id]);
 
         $this->actingAs($stranger)
-            ->get("/apps/our-mailbox/challans/{$challan->id}")
+            ->get("/apps/our-mailbox/citations/{$citation->id}")
             ->assertForbidden()
             ->assertInertia(fn (Assert $page) => $page
                 ->component('Shell/Pages/Error')
@@ -58,7 +58,7 @@ class ErrorPageTest extends TestCase
     public function test_missing_record_renders_the_in_shell_404_page(): void
     {
         $this->actingAs(User::factory()->create())
-            ->get('/apps/our-mailbox/challans/999999')
+            ->get('/apps/our-mailbox/citations/999999')
             ->assertNotFound()
             ->assertInertia(fn (Assert $page) => $page
                 ->component('Shell/Pages/Error')
@@ -81,10 +81,10 @@ class ErrorPageTest extends TestCase
     public function test_json_request_keeps_a_json_403(): void
     {
         [$issuer, $recipient, $stranger] = $this->pairPlusStranger();
-        $challan = Challan::factory()->create(['issuer_id' => $issuer->id, 'recipient_id' => $recipient->id]);
+        $citation = Citation::factory()->create(['issuer_id' => $issuer->id, 'recipient_id' => $recipient->id]);
 
         $this->actingAs($stranger)
-            ->getJson("/apps/our-mailbox/challans/{$challan->id}")
+            ->getJson("/apps/our-mailbox/citations/{$citation->id}")
             ->assertForbidden()
             ->assertHeader('Content-Type', 'application/json')
             ->assertJsonMissingPath('component');

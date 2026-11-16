@@ -1,9 +1,9 @@
 import { Link } from '@inertiajs/react';
 
-import ChallanActions from '@/MiniApps/Mailbox/Components/ChallanActions';
-import { show } from '@/routes/apps/our-mailbox/challans';
+import CitationActions from '@/MiniApps/Mailbox/Components/CitationActions';
+import { show } from '@/routes/apps/our-mailbox/citations';
 
-export type ChallanPayload = {
+export type CitationPayload = {
     id: number;
     ref_no: string | null;
     status: 'issued' | 'paid';
@@ -23,21 +23,25 @@ export type ChallanPayload = {
 };
 
 const STATUS_META: Record<
-    ChallanPayload['status'],
+    CitationPayload['status'],
     { label: string; color: string }
 > = {
     issued: { label: 'Issued', color: 'var(--mailbox-destructive)' },
     paid: { label: 'Paid', color: 'var(--mailbox-accent-text)' },
 };
 
-export default function ChallanCard({ challan }: { challan: ChallanPayload }) {
-    const status = STATUS_META[challan.status];
+export default function CitationCard({
+    citation,
+}: {
+    citation: CitationPayload;
+}) {
+    const status = STATUS_META[citation.status];
 
     return (
         <div className="mailbox-card shell-card-stretch shell-lift grid gap-2">
             <div className="flex items-baseline justify-between gap-3">
-                <span className="font-(family-name:--mailbox-challan-font) text-(length:--text-meta) text-(--mailbox-ink-soft) tabular-nums">
-                    {challan.ref_no ?? '—'}
+                <span className="font-(family-name:--mailbox-citation-font) text-(length:--text-meta) text-(--mailbox-ink-soft) tabular-nums">
+                    {citation.ref_no ?? '—'}
                 </span>
                 <span
                     className="mailbox-status-pill"
@@ -51,19 +55,21 @@ export default function ChallanCard({ challan }: { challan: ChallanPayload }) {
             </div>
 
             <Link
-                href={show.url(challan.id)}
+                href={show.url(citation.id)}
                 className="mailbox-written shell-card-link"
             >
-                {challan.offence}
+                {citation.offence}
             </Link>
 
             <span className="text-(length:--mailbox-type-scale-eyebrow) text-(--mailbox-ink-soft)">
-                {challan.penalty}
-                {challan.issued_at_human ? ` · ${challan.issued_at_human}` : ''}
+                {citation.penalty}
+                {citation.issued_at_human
+                    ? ` · ${citation.issued_at_human}`
+                    : ''}
             </span>
 
             <div className="mt-1">
-                <ChallanActions challan={challan} variant="row" />
+                <CitationActions citation={citation} variant="row" />
             </div>
         </div>
     );

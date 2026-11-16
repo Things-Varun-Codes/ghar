@@ -2,15 +2,21 @@
 
 namespace App\Providers;
 
+use App\Shell\Services\Rooms;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ServiceProvider;
 
+/**
+ * Every room in the registry is installed: its provider, routes and migrations always load, so
+ * the admin can turn it on without a restart and its data survives being turned off. Whether a
+ * room is on is checked per request by the `room` middleware.
+ */
 class MiniAppServiceProvider extends ServiceProvider
 {
     public function register(): void
     {
         foreach (config('miniapps', []) as $app) {
-            if (! empty($app['enabled']) && ! empty($app['provider'])) {
+            if (! empty($app['provider'])) {
                 $this->app->register($app['provider']);
             }
         }
@@ -18,27 +24,15 @@ class MiniAppServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
-        // The bundle compiles every app's pages, so their typed route helpers must exist even
-        // for a disabled app. Generation never serves requests.
-        $generatingRouteHelpers = $this->app->runningConsoleCommand('wayfinder:generate');
-
         foreach (config('miniapps', []) as $app) {
-            if (empty($app['enabled']) && ! $generatingRouteHelpers) {
-                continue;
-            }
-
             $slug = $app['slug'] ?? null;
-            if (! is_string($slug) || ! preg_match('/^[a-z][a-z0-9-]*$/', $slug)) {
+            if (! Rooms::validSlug($slug)) {
                 continue;
             }
 
             $routesFile = base_path("routes/miniapps/{$slug}.php");
             if (file_exists($routesFile)) {
-                Route::middleware(['web', 'auth'])->group($routesFile);
-            }
-
-            if (empty($app['enabled'])) {
-                continue;
+                Route::middleware(['web', 'auth', "room:{$slug}"])->group($routesFile);
             }
 
             $migrationsDir = database_path("migrations/{$slug}");

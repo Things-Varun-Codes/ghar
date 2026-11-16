@@ -3,7 +3,7 @@
 namespace Tests\Feature\Mailbox;
 
 use App\MiniApps\Mailbox\Models\Bouquet;
-use App\MiniApps\Mailbox\Models\Challan;
+use App\MiniApps\Mailbox\Models\Citation;
 use App\MiniApps\Mailbox\Models\Coupon;
 use App\MiniApps\Mailbox\Models\MailboxMessage;
 use App\Shell\Models\User;
@@ -30,20 +30,20 @@ class MailboxSearchSortTest extends TestCase
         return [
             'messages' => ['/apps/our-mailbox/messages?tab=received', 'messages'],
             'flowers' => ['/apps/our-mailbox/flowers?tab=received', 'bouquets'],
-            'challans' => ['/apps/our-mailbox/challans?tab=received', 'challans'],
+            'citations' => ['/apps/our-mailbox/citations?tab=received', 'citations'],
             'coupons' => ['/apps/our-mailbox/coupons?tab=received', 'coupons'],
         ];
     }
 
     /** One row from $from to $to, with $text in the surface's first search column. */
-    private function row(User $from, User $to, string $text, ?Carbon $at = null): MailboxMessage|Bouquet|Challan|Coupon
+    private function row(User $from, User $to, string $text, ?Carbon $at = null): MailboxMessage|Bouquet|Citation|Coupon
     {
         $at ??= Carbon::now();
 
         return match ($this->dataName()) {
             'messages' => MailboxMessage::factory()->to($to)->create(['sender_id' => $from->id, 'body' => $text, 'posted_at' => $at]),
             'flowers' => Bouquet::factory()->to($to)->create(['sender_id' => $from->id, 'note' => $text, 'posted_at' => $at]),
-            'challans' => Challan::factory()->create([
+            'citations' => Citation::factory()->create([
                 'issuer_id' => $from->id, 'recipient_id' => $to->id, 'issued_at' => $at,
                 'offence' => $text, 'penalty' => 'none', 'incident_place' => 'none', 'remarks' => 'none',
             ]),
@@ -139,18 +139,18 @@ class MailboxSearchSortTest extends TestCase
                 ->where("{$prop}.counts.done", 0));
     }
 
-    /** @return array<string, array{class-string<Challan|Coupon>, string, string}> */
+    /** @return array<string, array{class-string<Citation|Coupon>, string, string}> */
     public static function secondarySearchColumns(): array
     {
         return [
-            'challan penalty' => [Challan::class, 'challans', 'penalty'],
-            'challan incident place' => [Challan::class, 'challans', 'incident_place'],
-            'challan remarks' => [Challan::class, 'challans', 'remarks'],
+            'citation penalty' => [Citation::class, 'citations', 'penalty'],
+            'citation incident place' => [Citation::class, 'citations', 'incident_place'],
+            'citation remarks' => [Citation::class, 'citations', 'remarks'],
             'coupon description' => [Coupon::class, 'coupons', 'description'],
         ];
     }
 
-    /** @param  class-string<Challan|Coupon>  $model */
+    /** @param  class-string<Citation|Coupon>  $model */
     #[DataProvider('secondarySearchColumns')]
     public function test_search_matches_every_listed_column_on_the_issued_side(string $model, string $slug, string $column): void
     {

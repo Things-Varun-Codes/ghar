@@ -23,6 +23,7 @@ import {
 } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
+import { useRoomOn } from '@/hooks/use-room-on';
 import { EntityLinkNode } from '@/Shell/tiptap/EntityLinkNode';
 import EntityLinkPickerDialog from '@/Shell/tiptap/EntityLinkPickerDialog';
 import type { PickedEntity } from '@/Shell/tiptap/EntityLinkPickerDialog';
@@ -93,6 +94,7 @@ export default function TiptapEditor({
     } | null>(null);
 
     const [pickerOpen, setPickerOpen] = useState(false);
+    const cornerOn = useRoomOn('our-corner');
 
     const placeholderText = placeholder ?? DEFAULT_PLACEHOLDER;
 
@@ -450,19 +452,21 @@ export default function TiptapEditor({
                         <ListOrdered size={18} strokeWidth={1.5} />
                     </ToolbarButton>
                 </ToolbarGroup>
-
-                <ToolbarSeparator />
-
-                <ToolbarGroup>
-                    <ToolbarButton
-                        label="Insert a link to an Our Corner item"
-                        title="Insert a link to an Our Corner item"
-                        active={false}
-                        onClick={() => setPickerOpen(true)}
-                    >
-                        <Link2 size={18} strokeWidth={1.5} />
-                    </ToolbarButton>
-                </ToolbarGroup>
+                {cornerOn && (
+                    <>
+                        <ToolbarSeparator />
+                        <ToolbarGroup>
+                            <ToolbarButton
+                                label="Insert a link to an Our Corner item"
+                                title="Insert a link to an Our Corner item"
+                                active={false}
+                                onClick={() => setPickerOpen(true)}
+                            >
+                                <Link2 size={18} strokeWidth={1.5} />
+                            </ToolbarButton>
+                        </ToolbarGroup>
+                    </>
+                )}
             </div>
 
             <EntityLinkPickerDialog

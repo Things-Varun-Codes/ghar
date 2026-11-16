@@ -45,6 +45,7 @@ class HistoryServiceProvider extends ServiceProvider
 
         $linkable->register(
             type: 'history.event',
+            room: 'our-history',
             listing: fn (string $q, int $limit) => Event::query()
                 ->where(function ($builder) use ($q) {
                     $pattern = CursorList::containsPattern($q);
