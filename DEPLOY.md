@@ -13,6 +13,18 @@ Examples below use `ghar.example.com`. Substitute your own address.
 
 ---
 
+## What you need
+
+- Docker with Compose, on amd64 or arm64.
+- About 200 MB of free RAM when Ghar is idle, and disk for your photos.
+- Nothing else to try it. For real use: an address with HTTPS, and a mail provider so invites reach
+  people.
+
+The stack is three containers: Ghar itself, PostgreSQL 17 and a small Valkey cache. Only Ghar has a
+published port, 8080 by default.
+
+---
+
 ## Quick start
 
 ```sh
@@ -32,9 +44,14 @@ docker compose -f docker-compose.selfhost.yml logs app | grep -A1 "Admin account
 The log shows the admin's password once. Log in at <http://localhost:8080> (change the port with
 `GHAR_PORT`), change the password under Settings, and invite your family from Admin, Invites.
 
-On its first start the container also creates the encryption key and the Web Push keys and keeps
-them in the `app_storage` volume, so there's nothing to generate by hand. To manage them yourself,
-set `APP_KEY`, `VAPID_PUBLIC_KEY` and `VAPID_PRIVATE_KEY` in `.env`. Values in `.env` always win.
+### What the first start does
+
+The container waits for the database, creates the encryption key and the Web Push keys if you
+haven't set them, runs the database migrations, and creates the admin from `GHAR_ADMIN_EMAIL` if
+there isn't one yet. The keys are kept in the `app_storage` volume, so there's nothing to generate
+by hand. To manage them yourself, set `APP_KEY`, `VAPID_PUBLIC_KEY` and `VAPID_PRIVATE_KEY` in
+`.env`. Values in `.env` always win. Every later start repeats the same steps and changes nothing
+that already exists.
 
 Before real use, put it behind HTTPS (next section), set up [mail](#mail) so invites reach people,
 and set up [backups](#backups-and-restore).
@@ -134,6 +151,10 @@ mount, set `GHAR_MEDIA_PATH=/srv/ghar/media` and make it writable by uid 82
 expires within two hours. The link for a file stays the same for an hour at a time, so browsers
 can cache what they have already loaded.
 
+**Upload limits.** A photo can be up to 20 MB (JPEG, PNG, WebP, HEIC or HEIF) and a video up to
+96 MB (MP4, MOV or WebM). SVG is refused. The 96 MB ceiling is set in `docker/nginx/default.conf`
+and `docker/php/php.ini`; change both together.
+
 | Provider      | `S3_ENDPOINT`                                   | `S3_REGION`         | `S3_USE_PATH_STYLE_ENDPOINT` |
 | ------------- | ----------------------------------------------- | ------------------- | ---------------------------- |
 | Cloudflare R2 | `https://<account-id>.r2.cloudflarestorage.com` | `auto`              | `true`                       |
@@ -166,7 +187,7 @@ Building from source with `docker-compose.yml`, the cache defaults to Postgres
 
 ## Upgrading
 
-Images are tagged by exact version (`1.2.3`), minor (`1.2`) and major (`1`). The default
+Ghar's images are tagged by exact version (`1.2.3`), minor (`1.2`) and major (`1`). The default
 `GHAR_VERSION=1` follows every 1.x release, and none of those needs you to change anything. A new
 major version says what to do under **Upgrading** in [`CHANGELOG.md`](./CHANGELOG.md).
 
@@ -188,7 +209,7 @@ older version means restoring the backup from step 2 and pinning the old `GHAR_V
 
 ## Backups and restore
 
-Three things hold your data: the database, the media (with `MEDIA_DISK=local`) and the generated
+Three things hold a Ghar install's data: the database, the media (with `MEDIA_DISK=local`) and the generated
 keys in the storage volume. Run these from the folder with the compose file:
 
 ```sh
@@ -295,6 +316,32 @@ Cloudflare in front of Ghar is optional. If you use it:
 
 ---
 
+## Staying out of search engines
+
+Ghar asks not to be indexed in three ways, and none of them needs setting up: `robots.txt` turns
+away every crawler, every page has a `noindex` robots tag, and every response (pages, redirects,
+photos, scripts) carries an `X-Robots-Tag: noindex, nofollow` header. To check yours:
+
+```sh
+curl -sI https://ghar.example.com/login | grep -i x-robots-tag
+curl -sI https://ghar.example.com/sw.js | grep -i x-robots-tag
+# x-robots-tag: noindex, nofollow
+```
+
+A few things are still yours to decide:
+
+- These are requests, and only well-behaved crawlers honour them. What keeps your household's
+  content private is the login, not the robots rules.
+- `APP_NAME` is public. It is the title of the sign-in page and the name in
+  `/manifest.webmanifest`, so anyone who has the address can read it, and a chat app that previews
+  a pasted link will show it. Leave it as `Ghar`, or choose a name you don't mind strangers seeing.
+- An invite link works for whoever opens it, and the page it opens shows the invited email address.
+  Send it straight to the person rather than into a group chat.
+- If a proxy or CDN in front of Ghar rewrites response headers, make sure it leaves `X-Robots-Tag`
+  alone.
+
+---
+
 ## Building from source
 
 `docker-compose.yml` builds the image from this repository. It's the file a PaaS such as Coolify
@@ -318,6 +365,37 @@ GitHub release. To rehearse one, push a pre-release tag such as `v1.2.3-rc.1`: i
 
 ---
 
+## Troubleshooting
+
+Start with `docker compose -f docker-compose.selfhost.yml logs app`.
+
+- **`required variable DB_PASSWORD is missing a value: Set DB_PASSWORD in .env`**: printed by
+  `docker compose up` itself, not in the log. `.env` is missing, isn't next to the compose file, or
+  `DB_PASSWORD` is empty.
+- **`[entrypoint] FATAL: 'storage/app/private' is not writable by www-data (uid=82)`**: the folder
+  in `GHAR_MEDIA_PATH` belongs to someone else. Run `chown -R 82:82` on it and start again.
+- **`[entrypoint] database did not become available after 60s; aborting`**: the app can't reach or
+  log in to Postgres. If you changed `DB_PASSWORD` after the first start, the database volume still
+  has the old one.
+- **`[entrypoint] FATAL: DB_HOST is empty.`**: only when building from source. Set the `DB_*`
+  variables in your host's environment.
+- **`TRUSTED_PROXIES: '...' is not an IP, a CIDR range, 'private', 'cloudflare' or '*'.`**: a typo
+  in `TRUSTED_PROXIES`. See [Reverse proxy and client IPs](#reverse-proxy-and-client-ips).
+- **`BOUQUET_IMAGE_PROVIDER must be set (cloudflare|fake) in production`**: set it to `fake`, or to
+  `cloudflare` with both Cloudflare values.
+- **`CLOUDFLARE_ACCOUNT_ID and CLOUDFLARE_WORKERS_AI_TOKEN are required when
+  BOUQUET_IMAGE_PROVIDER=cloudflare`**: fill in both, or switch back to `fake`.
+- **`grep "Admin account created"` prints nothing**: the password is printed only on the start that
+  creates the admin. If `GHAR_ADMIN_EMAIL` was empty, set it and run `up -d` again. If you lost the
+  password, use "Forgot password" on the login page; with `MAIL_MAILER=log` the reset link is in
+  the app log.
+- **`413 Request Entity Too Large`** on upload: the file is over 96 MB, or a proxy in front has a
+  lower limit.
+- **"That photo's too big. Keep photos under 20 MB."** or **"That file type isn't supported."**:
+  see the upload limits under [Media storage](#media-storage).
+
+---
+
 ## Environment variables
 
 Every key in `.env.example`; `scripts/check-env-deploy-sync.sh` checks them against the block
@@ -325,7 +403,7 @@ below. A self-host install only needs the few in `.env.selfhost.example`, becaus
 `docker-compose.selfhost.yml` fixes the database, session, cache, queue and log settings itself.
 
 - `APP_NAME`: the name shown everywhere (sign-in page, sidebar, browser tab, installed app, mail),
-  `Ghar` by default. Read at runtime. An already-installed app keeps its old name until reinstalled.
+  `Ghar` by default. Anyone who can reach the sign-in page can read it. Read at runtime. An already-installed app keeps its old name until reinstalled.
 - `APP_ENV` / `APP_DEBUG`: `production` / `false` on a server.
 - `APP_KEY`: generated on first start when empty. `php artisan key:generate --show` makes one.
 - `APP_URL`: the address people open, with `https://` once it's behind TLS.

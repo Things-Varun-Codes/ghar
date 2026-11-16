@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Middleware\AddRobotsHeader;
 use App\Http\Middleware\AddSecurityHeaders;
 use App\Http\Middleware\BlockUnwantedFortifyRoutes;
 use App\Http\Middleware\HandleAppearance;
@@ -27,6 +28,9 @@ return Application::configure(basePath: dirname(__DIR__))
         // Global, not in the web group: under route:cache the compiled collection matches
         // first-registered-wins, so this must run before the router.
         $middleware->prepend(BlockUnwantedFortifyRoutes::class);
+        // Prepended last so it is outermost and also sees responses the middleware above and
+        // the framework's own (post size, maintenance mode) return without calling the router.
+        $middleware->prepend(AddRobotsHeader::class);
 
         // Written in plain text by Playwright, so EncryptCookies would strip it.
         $middleware->encryptCookies(except: ['appearance', 'sidebar_state', 'smoke_theme']);

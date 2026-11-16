@@ -2,13 +2,23 @@
     "$schema": "https://getcomposer.org/schema.json",
     "name": "things-varun-codes/ghar",
     "type": "project",
-    "description": "A private, self-hosted home on the web for a family or household: an auth-gated shell hosting pluggable mini apps.",
+    "description": "A private, self-hosted family app for one household, with a shared timeline of photos and moments, lists of songs, movies and places, and notes to each other.",
     "keywords": [
+        "self-hosted",
+        "family",
+        "household",
+        "timeline",
+        "photos",
         "laravel",
         "inertia",
         "react",
-        "self-hosted"
+        "docker"
     ],
+    "homepage": "https://github.com/Things-Varun-Codes/ghar",
+    "support": {
+        "issues": "https://github.com/Things-Varun-Codes/ghar/issues",
+        "source": "https://github.com/Things-Varun-Codes/ghar"
+    },
     "license": "MIT",
     "require": {
         "php": "^8.4",

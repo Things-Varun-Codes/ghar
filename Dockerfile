@@ -145,7 +145,10 @@ WORKDIR /var/www/html
 # Set by the release workflow from the git tag; empty for a source build.
 ARG GHAR_VERSION=
 LABEL org.opencontainers.image.title="Ghar" \
-      org.opencontainers.image.description="A private, self-hosted home on the web for a family" \
+      org.opencontainers.image.description="A private, self-hosted family app for one household, with a shared timeline of photos and moments, lists of songs, movies and places, and notes to each other." \
+      org.opencontainers.image.url="https://github.com/Things-Varun-Codes/ghar" \
+      org.opencontainers.image.source="https://github.com/Things-Varun-Codes/ghar" \
+      org.opencontainers.image.documentation="https://github.com/Things-Varun-Codes/ghar/blob/main/DEPLOY.md" \
       org.opencontainers.image.licenses="MIT" \
       org.opencontainers.image.version=$GHAR_VERSION
 

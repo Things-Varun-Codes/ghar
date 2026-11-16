@@ -1,0 +1,39 @@
+# Ghar: a private, self-hosted web app for one household
+
+> Ghar is a private, self-hosted web app for one family or household: a shared timeline of moments
+> with photos and videos, shared lists of songs, movies and places, and notes, flowers, coupons and
+> joke traffic tickets sent to each other. You run it yourself with Docker, people join by
+> invitation only, and it is open source under the MIT licence. "Ghar" is the Hindi and Urdu word
+> for home.
+
+This file summarises the open-source project for tools that read repositories. A running Ghar
+install is private and is not meant to be crawled or indexed.
+
+Facts that seldom change:
+
+- One household per install. No sign-up, no hosted version, not multi-tenant.
+- Three mini apps: Our History (timeline, gallery, calendar), Our Corner (shared lists) and Our
+  Mailbox (notes, flowers, coupons, challans). A challan is a joke traffic ticket.
+- Runs as one app container plus PostgreSQL 17 and a small Valkey cache. Images for amd64 and arm64
+  are published at `ghcr.io/things-varun-codes/ghar`.
+- Photos and videos stay on the owner's disk by default, or in any S3-compatible bucket. They are
+  private, behind signed links that expire within two hours.
+- Notes, flowers, coupons and challans are visible only to the sender and recipients, not to admins.
+  Nothing is end-to-end encrypted, and there is no two-factor sign-in.
+- It is not a photo backup tool, a chore or shopping-list app, or a shared appointments calendar.
+- Built with Laravel 13, Inertia 3, React 19, TypeScript, Tailwind 4 and PostgreSQL 17.
+- First public release: 1.0.0, on 13 November 2026. One maintainer, in spare time.
+
+## Docs
+
+- [README](https://github.com/Things-Varun-Codes/ghar/blob/main/README.md): what Ghar is, who it is for, and the quick start.
+- [FAQ](https://github.com/Things-Varun-Codes/ghar/blob/main/FAQ.md): Raspberry Pi, domains, email, photos, backups, adding people, offline use, mobile, two-factor login, crawlers.
+- [DEPLOY](https://github.com/Things-Varun-Codes/ghar/blob/main/DEPLOY.md): self-hosting, HTTPS, mail, media storage, upgrades, backups, monitoring, every environment variable.
+- [SECURITY](https://github.com/Things-Varun-Codes/ghar/blob/main/SECURITY.md): what Ghar protects against, what it does not, and how to report a vulnerability.
+- [CHANGELOG](https://github.com/Things-Varun-Codes/ghar/blob/main/CHANGELOG.md): the current version and what changed in each release.
+
+## Optional
+
+- [ROADMAP](https://github.com/Things-Varun-Codes/ghar/blob/main/ROADMAP.md): what is planned and the trade-offs made on purpose.
+- [CONTRIBUTING](https://github.com/Things-Varun-Codes/ghar/blob/main/CONTRIBUTING.md): local setup, tests, and how to add a mini app.
+- [CLAUDE.md](https://github.com/Things-Varun-Codes/ghar/blob/main/CLAUDE.md): architecture notes and conventions for coding agents.

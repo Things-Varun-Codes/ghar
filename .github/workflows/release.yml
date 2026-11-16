@@ -160,7 +160,10 @@ jobs:
           # GHCR reads a multi-arch image's description from the index, not from labels.
           docker buildx imagetools create "${tags[@]}" \
             --annotation "index:org.opencontainers.image.title=Ghar" \
-            --annotation "index:org.opencontainers.image.description=A private, self-hosted home on the web for a family" \
+            --annotation "index:org.opencontainers.image.description=A private, self-hosted family app for one household, with a shared timeline of photos and moments, lists of songs, movies and places, and notes to each other." \
+            --annotation "index:org.opencontainers.image.url=$GITHUB_SERVER_URL/$GITHUB_REPOSITORY" \
+            --annotation "index:org.opencontainers.image.documentation=$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/blob/main/DEPLOY.md" \
+            --annotation "index:org.opencontainers.image.revision=$GITHUB_SHA" \
             --annotation "index:org.opencontainers.image.source=$GITHUB_SERVER_URL/$GITHUB_REPOSITORY" \
             --annotation "index:org.opencontainers.image.licenses=MIT" \
             --annotation "index:org.opencontainers.image.version=$VERSION" \

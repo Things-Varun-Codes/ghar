@@ -69,7 +69,7 @@ ceiling.
 ## Accepted risks and decisions
 
 - **One household per install.** Every user is a member; multi-tenant is out of scope.
-- **Signed media links work for anyone until they expire** (an hour), like any presigned URL.
+- **Signed media links work for anyone until they expire** (within two hours), like any presigned URL.
 - **No built-in export.** Backups are `pg_dump` plus the media volume or bucket (DEPLOY.md "Backups
   and restore"); there is no in-app download of your data yet.
 - **User offboarding.** Corner/Mailbox user FKs are `restrictOnDelete()` — deleting a user who owns
