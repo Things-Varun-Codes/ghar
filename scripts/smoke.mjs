@@ -326,6 +326,11 @@ echo json_encode([
             description: '/admin/users',
         },
         {
+            path: '/admin/rooms',
+            auth: true,
+            description: '/admin/rooms (rooms the admin chooses)',
+        },
+        {
             path: '/admin/invites',
             auth: true,
             description: '/admin/invites',

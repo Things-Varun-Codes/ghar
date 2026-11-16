@@ -3,6 +3,7 @@
 namespace Tests\Feature\Shell;
 
 use App\Shell\Models\User;
+use App\Shell\Services\Rooms;
 use Database\Seeders\RoleSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Config;
@@ -26,7 +27,6 @@ class MiniAppRegistryPropsTest extends TestCase
                 'slug' => 'treasure-hunt',
                 'route' => 'treasure-hunt.index',
                 'description' => 'The proposal treasure hunt',
-                'enabled' => true,
                 'admin_only' => false,
             ],
             [
@@ -34,7 +34,6 @@ class MiniAppRegistryPropsTest extends TestCase
                 'slug' => 'admin-tool',
                 'route' => 'admin-tool.index',
                 'description' => 'Admin-only tool',
-                'enabled' => true,
                 'admin_only' => true,
             ],
             [
@@ -42,15 +41,25 @@ class MiniAppRegistryPropsTest extends TestCase
                 'slug' => 'coming-soon',
                 'route' => 'coming-soon.index',
                 'description' => 'Not ready',
-                'enabled' => false,
                 'admin_only' => false,
             ],
         ];
     }
 
-    public function test_non_admin_users_get_enabled_public_mini_apps_only(): void
+    /** The fixture rooms are installed; the admin has turned on all but the last. */
+    private function useFixtureRegistry(): void
     {
         Config::set('miniapps', $this->fixtureRegistry);
+
+        $rooms = app(Rooms::class);
+        $rooms->set('treasure-hunt', true);
+        $rooms->set('admin-tool', true);
+        $rooms->set('coming-soon', false);
+    }
+
+    public function test_non_admin_users_get_enabled_public_mini_apps_only(): void
+    {
+        $this->useFixtureRegistry();
 
         $user = User::factory()->create();
         $response = $this->actingAs($user)->get(route('dashboard'));
@@ -64,12 +73,12 @@ class MiniAppRegistryPropsTest extends TestCase
         $slugs = array_column($miniApps, 'slug');
         $this->assertContains('treasure-hunt', $slugs, 'Enabled public mini-app must be in miniApps props');
         $this->assertNotContains('admin-tool', $slugs, 'admin_only mini-apps must NOT reach non-admin users');
-        $this->assertNotContains('coming-soon', $slugs, 'Disabled mini-apps must never appear');
+        $this->assertNotContains('coming-soon', $slugs, 'Rooms that are off must never appear');
     }
 
     public function test_admin_users_also_get_admin_only_mini_apps_but_never_disabled_ones(): void
     {
-        Config::set('miniapps', $this->fixtureRegistry);
+        $this->useFixtureRegistry();
 
         $admin = User::factory()->create();
         $admin->assignRole('admin');
