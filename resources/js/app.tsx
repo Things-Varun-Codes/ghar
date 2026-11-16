@@ -7,6 +7,7 @@ import { watchConnection } from '@/lib/connection';
 import { installNavigation } from '@/lib/navigation';
 import { captureSilent } from '@/lib/observability';
 import { installRouteFocus } from '@/lib/route-focus';
+import { installStaleHistoryReload } from '@/lib/stale-history';
 import AppLayout from '@/Shell/Layouts/AppLayout';
 
 // Server-rendered in app.blade.php, so these come from the runtime environment.
@@ -119,6 +120,7 @@ createInertiaApp({
 });
 
 installNavigation(router);
+installStaleHistoryReload(router);
 installRouteFocus();
 
 watchConnection(appName);
