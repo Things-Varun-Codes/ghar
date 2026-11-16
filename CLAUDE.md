@@ -418,7 +418,7 @@ Every invited user is a household member (`App\Shell\Services\Household`: `membe
 
 Slug `our-mailbox`; `App\MiniApps\Mailbox\`; `resources/js/MiniApps/Mailbox/`; routes
 `apps.our-mailbox.*` at `/apps/our-mailbox/*`. Holds the directional, non-linkable comms surfaces;
-Our Corner keeps the four lists.
+Our Corner keeps the household's shared lists.
 
 - **Entry types switch individually.** `App\MiniApps\Mailbox\Support\EntryTypes` registers notes
   (`messages`), `flowers`, `citations` and `coupons` as options of the room through
@@ -477,6 +477,10 @@ its own lists; nothing about Songs or Movies is hard-coded any more.
   Corner.
 - **A fresh install has no lists.** The empty landing offers `SUGGESTED_LISTS`
   (`lib/presets.ts`), one tap each through the normal create endpoint.
+- **While the room is off** its routes 404, Home shows no door, push is dropped by
+  `PushDispatcher` and every Corner linkable type is registered with `room: 'our-corner'`, so
+  the picker finds nothing. The types stay registered, so History keeps both old and new pills
+  (shown as plain text) when a moment is saved meanwhile.
 
 ## Our Corner item-actions contract
 

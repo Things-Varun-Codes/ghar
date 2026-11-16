@@ -18,6 +18,8 @@ use Illuminate\Support\Collection;
  */
 final class CornerLinks
 {
+    public const ROOM = 'our-corner';
+
     public const TYPE = 'corner.item';
 
     public const LEGACY_TYPES = ['corner.song', 'corner.movie', 'corner.activity', 'corner.place'];
@@ -31,6 +33,7 @@ final class CornerLinks
             listing: fn (string $q, int $limit): array => self::search($q, $limit),
             resolve: fn (int $id): ?array => self::resolveMany([$id], 'id')[$id] ?? null,
             resolveMany: fn (array $ids): array => self::resolveMany($ids, 'id'),
+            room: self::ROOM,
         );
 
         foreach (self::LEGACY_TYPES as $type) {
@@ -39,6 +42,7 @@ final class CornerLinks
                 listing: fn (): array => [],
                 resolve: fn (int $id): ?array => self::resolveMany([$id], 'legacy_id', $type)[$id] ?? null,
                 resolveMany: fn (array $ids): array => self::resolveMany($ids, 'legacy_id', $type),
+                room: self::ROOM,
             );
         }
     }
