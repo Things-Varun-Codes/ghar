@@ -12,7 +12,7 @@ when work lands, delete lines when they stop being true.
   cross-link pills, media on local disk or any S3 bucket, typed or Google Places locations.
 - **Our Corner** — Songs / Movies / Activities / Places lists, detail pages, deferred-delete
   Undo, metadata lookup.
-- **Our Mailbox** — messages, AI bouquets (Cloudflare Workers AI), challans, coupons.
+- **Our Mailbox** — messages, AI bouquets (Cloudflare Workers AI), citations, coupons.
 - **Quality gates** — Eloquent strict mode, GitHub Actions CI, lefthook hooks, route-drift check,
   Vitest unit tier, headless and fault-injection smoke, restrictive user-FK offboarding.
 - **Development** — one-command seeded environment on PostgreSQL with a sample household.

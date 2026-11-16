@@ -13,12 +13,12 @@ Facts that seldom change:
 
 - One household per install. No sign-up, no hosted version, not multi-tenant.
 - Three mini apps: Our History (timeline, gallery, calendar), Our Corner (shared lists) and Our
-  Mailbox (notes, flowers, coupons, challans). A challan is a joke traffic ticket.
+  Mailbox (notes, flowers, coupons, citations). A citation is a joke traffic ticket.
 - Runs as one app container plus PostgreSQL 17 and a small Valkey cache. Images for amd64 and arm64
   are published at `ghcr.io/things-varun-codes/ghar`.
 - Photos and videos stay on the owner's disk by default, or in any S3-compatible bucket. They are
   private, behind signed links that expire within two hours.
-- Notes, flowers, coupons and challans are visible only to the sender and recipients, not to admins.
+- Notes, flowers, coupons and citations are visible only to the sender and recipients, not to admins.
   Nothing is end-to-end encrypted, and there is no two-factor sign-in.
 - It is not a photo backup tool, a chore or shopping-list app, or a shared appointments calendar.
 - Built with Laravel 13, Inertia 3, React 19, TypeScript, Tailwind 4 and PostgreSQL 17.

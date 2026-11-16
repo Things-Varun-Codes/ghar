@@ -1,7 +1,7 @@
 <?php
 
 use App\MiniApps\Mailbox\Controllers\BouquetsController;
-use App\MiniApps\Mailbox\Controllers\ChallansController;
+use App\MiniApps\Mailbox\Controllers\CitationsController;
 use App\MiniApps\Mailbox\Controllers\CouponsController;
 use App\MiniApps\Mailbox\Controllers\MailboxController;
 use App\MiniApps\Mailbox\Controllers\MessagesController;
@@ -17,8 +17,8 @@ Route::prefix('apps/our-mailbox')->name('apps.our-mailbox.')->group(function () 
 
     Route::get('/flowers', [BouquetsController::class, 'index'])->name('flowers.index');
 
-    Route::get('/challans', [ChallansController::class, 'index'])->name('challans.index');
-    Route::get('/challans/{challan}', [ChallansController::class, 'show'])->name('challans.show');
+    Route::get('/citations', [CitationsController::class, 'index'])->name('citations.index');
+    Route::get('/citations/{citation}', [CitationsController::class, 'show'])->name('citations.show');
 
     Route::get('/coupons', [CouponsController::class, 'index'])->name('coupons.index');
     Route::get('/coupons/{coupon}', [CouponsController::class, 'show'])->name('coupons.show');
@@ -31,11 +31,11 @@ Route::prefix('apps/our-mailbox')->name('apps.our-mailbox.')->group(function () 
 
         Route::delete('/flowers/{bouquet}', [BouquetsController::class, 'destroy'])->name('flowers.destroy');
 
-        Route::post('/challans', [ChallansController::class, 'store'])->name('challans.store');
-        Route::patch('/challans/{challan}/pay', [ChallansController::class, 'pay'])
-            ->can('pay', 'challan')->name('challans.pay');
-        Route::delete('/challans/{challan}', [ChallansController::class, 'destroy'])
-            ->can('delete', 'challan')->name('challans.destroy');
+        Route::post('/citations', [CitationsController::class, 'store'])->name('citations.store');
+        Route::patch('/citations/{citation}/pay', [CitationsController::class, 'pay'])
+            ->can('pay', 'citation')->name('citations.pay');
+        Route::delete('/citations/{citation}', [CitationsController::class, 'destroy'])
+            ->can('delete', 'citation')->name('citations.destroy');
 
         Route::post('/coupons', [CouponsController::class, 'store'])->name('coupons.store');
         Route::patch('/coupons/{coupon}/request', [CouponsController::class, 'request'])

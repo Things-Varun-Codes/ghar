@@ -14,7 +14,7 @@ import {
     SEND_FAILED_MESSAGE,
     toastUnshownErrors,
 } from '@/MiniApps/Mailbox/lib/visitFailure';
-import { store } from '@/routes/apps/our-mailbox/challans';
+import { store } from '@/routes/apps/our-mailbox/citations';
 import FormField from '@/Shell/Components/FormField';
 import SubmitButton from '@/Shell/Components/SubmitButton';
 
@@ -24,7 +24,7 @@ type Props = {
     members: HouseholdMember[];
 };
 
-type ChallanFormShape = {
+type CitationFormShape = {
     recipient_ids: number[];
     offence: string;
     incident_date: string;
@@ -49,10 +49,10 @@ const SHOWN_FIELDS = [
 const isShownField = (key: string) =>
     SHOWN_FIELDS.includes(key) || key.startsWith('recipient_ids');
 
-export default function ChallanSheet({ open, onOpenChange, members }: Props) {
+export default function CitationSheet({ open, onOpenChange, members }: Props) {
     const hintId = useId();
 
-    const form = useForm<ChallanFormShape>({
+    const form = useForm<CitationFormShape>({
         recipient_ids: defaultRecipientIds(members),
         offence: '',
         incident_date: '',
@@ -98,11 +98,15 @@ export default function ChallanSheet({ open, onOpenChange, members }: Props) {
             },
             onError: (errs) => {
                 toastUnshownErrors(errs, isShownField, SEND_FAILED_MESSAGE);
-                reportRejected('Mailbox/ChallanSheet', 'challan.create', errs);
+                reportRejected(
+                    'Mailbox/CitationSheet',
+                    'citation.create',
+                    errs,
+                );
             },
             ...transportFailureOptions({
-                component: 'Mailbox/ChallanSheet',
-                action: 'challan.create',
+                component: 'Mailbox/CitationSheet',
+                action: 'citation.create',
                 message: SEND_FAILED_MESSAGE,
             }),
         });
@@ -112,10 +116,10 @@ export default function ChallanSheet({ open, onOpenChange, members }: Props) {
         <ComposeSheet
             open={open}
             onOpenChange={onOpenChange}
-            title="Issue a challan"
-            description="Fill in the challan and choose who it is issued to."
+            title="Issue a citation"
+            description="Fill in the citation and choose who it is issued to."
             isDirty={isDirty}
-            discardTitle="Discard this challan?"
+            discardTitle="Discard this citation?"
             discardBody="The details you entered will be lost."
             onDiscard={handleReset}
             onSubmit={handleSubmit}
@@ -128,7 +132,7 @@ export default function ChallanSheet({ open, onOpenChange, members }: Props) {
                     busyText="Filing…"
                     aria-describedby={hint ? hintId : undefined}
                 >
-                    Issue challan
+                    Issue citation
                 </SubmitButton>
             }
         >
@@ -143,13 +147,13 @@ export default function ChallanSheet({ open, onOpenChange, members }: Props) {
             <div>
                 <FormField
                     label="Offence charged"
-                    name="challan-offence"
+                    name="citation-offence"
                     error={errors.offence}
                     required
                     className="mailbox-form-field"
                 >
                     <input
-                        id="challan-offence"
+                        id="citation-offence"
                         type="text"
                         maxLength={OFFENCE_MAX}
                         value={data.offence}
@@ -162,15 +166,15 @@ export default function ChallanSheet({ open, onOpenChange, members }: Props) {
                 <CharCount length={data.offence.length} max={OFFENCE_MAX} />
             </div>
 
-            <div className="challan-incident-grid grid grid-cols-[minmax(0,1fr)_minmax(0,1fr)] gap-3">
+            <div className="citation-incident-grid grid grid-cols-[minmax(0,1fr)_minmax(0,1fr)] gap-3">
                 <FormField
                     label="Date of incident"
-                    name="challan-date"
+                    name="citation-date"
                     error={errors.incident_date}
                     className="mailbox-form-field"
                 >
                     <input
-                        id="challan-date"
+                        id="citation-date"
                         type="date"
                         value={data.incident_date}
                         onChange={(e) =>
@@ -182,12 +186,12 @@ export default function ChallanSheet({ open, onOpenChange, members }: Props) {
                 <div>
                     <FormField
                         label="Place"
-                        name="challan-place"
+                        name="citation-place"
                         error={errors.incident_place}
                         className="mailbox-form-field"
                     >
                         <input
-                            id="challan-place"
+                            id="citation-place"
                             type="text"
                             maxLength={PLACE_MAX}
                             value={data.incident_place}
@@ -217,13 +221,13 @@ export default function ChallanSheet({ open, onOpenChange, members }: Props) {
             <div>
                 <FormField
                     label="Penalty"
-                    name="challan-penalty"
+                    name="citation-penalty"
                     error={errors.penalty}
                     required
                     className="mailbox-form-field"
                 >
                     <input
-                        id="challan-penalty"
+                        id="citation-penalty"
                         type="text"
                         maxLength={PENALTY_MAX}
                         value={data.penalty}
@@ -239,12 +243,12 @@ export default function ChallanSheet({ open, onOpenChange, members }: Props) {
             <div>
                 <FormField
                     label="Remarks (optional)"
-                    name="challan-remarks"
+                    name="citation-remarks"
                     error={errors.remarks}
                     className="mailbox-form-field"
                 >
                     <textarea
-                        id="challan-remarks"
+                        id="citation-remarks"
                         className="mailbox-field shell-field"
                         value={data.remarks}
                         onChange={(e) => setData('remarks', e.target.value)}

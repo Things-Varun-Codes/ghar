@@ -5,7 +5,7 @@ namespace Tests\Feature\Seeders;
 use App\MiniApps\Corner\Models\Song;
 use App\MiniApps\History\Models\Event;
 use App\MiniApps\Mailbox\Models\Bouquet;
-use App\MiniApps\Mailbox\Models\Challan;
+use App\MiniApps\Mailbox\Models\Citation;
 use App\MiniApps\Mailbox\Models\Coupon;
 use App\MiniApps\Mailbox\Models\MailboxMessage;
 use App\Shell\Models\Invitation;
@@ -80,7 +80,7 @@ class DevDataSeederTest extends TestCase
             $this->assertSame([$meera->id], $mail->recipients()->pluck('users.id')->all());
         }
 
-        foreach ([Coupon::query()->orderBy('id')->firstOrFail(), Challan::query()->orderBy('id')->firstOrFail()] as $slip) {
+        foreach ([Coupon::query()->orderBy('id')->firstOrFail(), Citation::query()->orderBy('id')->firstOrFail()] as $slip) {
             $this->assertSame([$ravi->id, $meera->id], [$slip->issuer_id, $slip->recipient_id]);
         }
 
@@ -101,8 +101,8 @@ class DevDataSeederTest extends TestCase
         $this->assertTrue(Coupon::where('status', Coupon::STATUS_REQUESTED)->exists());
         $this->assertTrue(Coupon::where('status', Coupon::STATUS_ISSUED)->where('redeemed_count', '>', 0)->exists());
         $this->assertTrue(Coupon::where('status', Coupon::STATUS_DEPLETED)->exists());
-        $this->assertTrue(Challan::where('status', Challan::STATUS_ISSUED)->exists());
-        $this->assertTrue(Challan::where('status', Challan::STATUS_PAID)->exists());
+        $this->assertTrue(Citation::where('status', Citation::STATUS_ISSUED)->exists());
+        $this->assertTrue(Citation::where('status', Citation::STATUS_PAID)->exists());
 
         $this->assertSame(2, ShortLink::where('enabled', true)->count());
         $this->assertSame(1, ShortLink::where('enabled', false)->count());

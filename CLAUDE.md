@@ -3,7 +3,7 @@
 **Ghar** is a private, auth-gated, self-hosted web platform for a family or household. A secure
 shell (dashboard + OS chrome) hosts self-contained mini apps.
 Enabled today: **Our History** (timeline, gallery, calendar), **Our Corner** (shared lists — songs,
-movies, activities, places) and **Our Mailbox** (messages, flowers, challans, coupons).
+movies, activities, places) and **Our Mailbox** (messages, flowers, citations, coupons).
 
 **Core value:** new mini apps can be added — and existing ones updated — without touching the
 shell or other mini apps.
@@ -30,13 +30,13 @@ Password for every account: `ghar-local-dev`. Mail lands in Mailpit at `http://1
 | -------------------- | ----------------------- | ------------------------------------------------------------------------------------------------------------------------------------- |
 | `admin@example.test` | Asha, the only admin    | Admin pages; editing anyone's moment or Corner item; last-admin guards. Has no special access to other people's mail.                 |
 | `ravi@example.test`  | Ravi, adult             | **Non-admin creator**: can edit "Monsoon drive to the coast" (his), can't edit "Meera's first pottery class". Sender of the fixtures. |
-| `meera@example.test` | Meera, adult            | **Recipient**: note 1, bouquet 1, coupon 1 and challan 1 are Ravi's to her alone. Can request the coupon and pay the challan.         |
-| `kabir@example.test` | Kabir, younger, no push | **Non-recipient**: `/apps/our-mailbox/challans/1` and `coupons/1` must 403; note 1 and bouquet 1 must not be listed.                  |
+| `meera@example.test` | Meera, adult            | **Recipient**: note 1, bouquet 1, coupon 1 and citation 1 are Ravi's to her alone. Can request the coupon and pay the citation.       |
+| `kabir@example.test` | Kabir, younger, no push | **Non-recipient**: `/apps/our-mailbox/citations/1` and `coupons/1` must 403; note 1 and bouquet 1 must not be listed.                 |
 
 The seed has every state: moments by all four people (photos on the local media disk, Corner links, more
 than one Timeline and Gallery page), Corner items done and not done by different people, 62 Songs
 (past the 50-row page), single and multi-recipient notes and flowers read and unread, coupons
-issued/requested/part-fulfilled/depleted/expired, challans issued/paid, short links `pantry23`,
+issued/requested/part-fulfilled/depleted/expired, citations issued/paid, short links `pantry23`,
 `garage23` and the disabled `bench789`, and a pending invite at
 `/invitations/dev-invite-token-for-local-testing-only`. Row ids are stable after a reset. Ravi and
 Meera have synthetic push subscriptions that can't deliver; test real push by subscribing a browser.
@@ -278,7 +278,7 @@ lives on the things themselves.
 
 - **Always the same:** the tinted frame and page sheet (`.shell-frame` / `.shell-sheet`), page titles
   (`.page-h1`), pill buttons, 14px-radius fields, 22px-radius cards, list order (tabs, then count +
-  search + sort), add surfaces and vocabulary (a _moment_, a _note_, a _challan_).
+  search + sort), add surfaces and vocabulary (a _moment_, a _note_, a _citation_).
 - **Two faces with fixed jobs, in every room.** Newsreader (`--font-display`, weight 400) sets page
   titles, section and sheet titles, dates and the title of a moment; its italic is for what was
   filled in or attributed. Hanken Grotesk (`--font-sans`, 400 and 500 only) sets everything else.
@@ -326,7 +326,7 @@ the code:
   pin, and accent washes via `color-mix(in oklab, var(--shell-accent) N%, var(--shell-surface))` —
   never hex. Identity changes
   are CSS-only in `corner.css` over the shared components; don't fork Corner-specific React.
-- **Our Mailbox** owns paper: ruled sheets with a red margin, the challan as an official form, the
+- **Our Mailbox** owns paper: ruled sheets with a red margin, the citation as an official form, the
   coupon as a voucher. A note's body and a coupon's title are in Patrick Hand; what was filled in on
   a form (names, offence, penalty, remarks) is Newsreader italic; the printed parts are the sans at
   13px/500. The form reads as a form through its rules, boxes, seal and stamp, and the stamp is the
@@ -367,7 +367,7 @@ here only alias or mix `--shell-*`, never a literal. **Layer 3** `.<app>-*` comp
 > another app's tokens.
 
 - Register fonts through the Vite plugin `fonts:` array, not `@import url(…)`.
-- Exemplars: `themes/history.css` (full three-layer), `themes/mailbox.css` (notebook + challan
+- Exemplars: `themes/history.css` (full three-layer), `themes/mailbox.css` (notebook + citation
   motif), `themes/corner.css` (objects on shared chrome).
 - Shared list band (`ListNavBand` / `ListSortControl`, used by Corner and Mailbox) takes app
   identity via `--list-nav-font` and `--list-nav-radius` declared in the app's `[data-app]` scope —
@@ -383,7 +383,7 @@ Every invited user is a household member (`App\Shell\Services\Household`: `membe
 | History moments (`EventPolicy`)        | Everyone           | Edit, delete, media: creator or admin                   |
 | Corner items (`ListItemPolicy`)        | Everyone           | Edit, delete: adder or admin. Mark done: anyone         |
 | Notes, flowers (`RecipientMailPolicy`) | Sender, recipients | Delete: sender                                          |
-| Coupons, challans (own policies)       | Issuer, recipient  | Request, cancel, pay: recipient. Fulfil, delete: issuer |
+| Coupons, citations (own policies)      | Issuer, recipient  | Request, cancel, pay: recipient. Fulfil, delete: issuer |
 
 - **Enforcement is server-side;** the `can` flags on History and Corner payloads only decide which
   buttons render.
@@ -391,11 +391,11 @@ Every invited user is a household member (`App\Shell\Services\Household`: `membe
   flowers) `receivedBy($user)`. Notes and flowers keep recipients and per-recipient `read_at` in
   `mailbox_message_recipients` / `mailbox_bouquet_recipients` (`HasRecipients`).
 - **Recipients** arrive as `recipient_ids`: one or more other members, never yourself
-  (`ValidatesRecipients`). A coupon or challan has one recipient, so several ids issue one row each.
+  (`ValidatesRecipients`). A coupon or citation has one recipient, so several ids issue one row each.
 - **Push:** `PushDispatcher::toHousehold($actor, …)` for new moments and Corner items;
   `toUsers($recipients, …)` for Mailbox. Never hand-roll a recipient query.
 - **Push timing — two accepted shapes, don't "harmonize" them.** Corner (`AddSong` etc.) dispatches
-  inside `DB::afterCommit(...)` within the transaction. Mailbox (`CreateMessage`, `IssueChallan`
+  inside `DB::afterCommit(...)` within the transaction. Mailbox (`CreateMessage`, `IssueCitation`
   etc.) dispatches on the line after `DB::transaction(...)` returns. Both guarantee no push for a
   rolled-back write.
 
@@ -405,17 +405,17 @@ Slug `our-mailbox`; `App\MiniApps\Mailbox\`; `resources/js/MiniApps/Mailbox/`; r
 `apps.our-mailbox.*` at `/apps/our-mailbox/*`. Holds the directional, non-linkable comms surfaces;
 Our Corner keeps the four lists.
 
-- Messages, Flowers, Challans and Coupons all resolve through `App\Shell\Support\CursorList` with
+- Messages, Flowers, Citations and Coupons all resolve through `App\Shell\Support\CursorList` with
   free-text `?q` and whitelisted `?sort` (`recent`/`oldest`, server-authoritative). No status
   column, so `counts` arrive degraded (`active` = `all`, `done` = 0). Each renders `ListNavBand`
   with the server count ("3 notes") left of Sort. Search columns: Messages `body`; Flowers `note`;
-  Challans `offence`/`penalty`/`incident_place`/`remarks`; Coupons `title`/`description`.
-- **Challans** — mock traffic tickets. `mailbox_challans`.
+  Citations `offence`/`penalty`/`incident_place`/`remarks`; Coupons `title`/`description`.
+- **Citations** — mock traffic tickets. `mailbox_citations`.
   `ref_no` = `OC/{year}/{padded id}` (`OC` frozen). `ref_no`/`status`/`issuer_id` guarded;
   `offence` (≤120) and `penalty` (≤80) fillable. Lifecycle `issued → paid` only: recipient-only
   `pay`, issuer-only hard `delete` of an `issued` row; paid is locked. Push tag
-  `our-mailbox:challans`; bodies never leak offence/penalty/remarks. Drawn as an "official form"
-  (`--mailbox-challan-*` / `.mailbox-challan-*`, colours alias `--shell-*`).
+  `our-mailbox:citations`; bodies never leak offence/penalty/remarks. Drawn as an "official form"
+  (`--mailbox-citation-*` / `.mailbox-citation-*`, colours alias `--shell-*`).
 
 ## Our Corner item-actions contract
 

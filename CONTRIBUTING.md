@@ -31,8 +31,8 @@ thing on everyone's machine. They all use the password `ghar-local-dev`.
 | -------------------- | ----------------------- | ------------------------------------------------------------------------------------------------------------------------------------- |
 | `admin@example.test` | Asha, the only admin    | Admin pages; editing anyone's moment or Corner item; last-admin guards. Has no special access to other people's mail.                 |
 | `ravi@example.test`  | Ravi, adult             | **Non-admin creator**: can edit "Monsoon drive to the coast" (his), can't edit "Meera's first pottery class". Sender of the fixtures. |
-| `meera@example.test` | Meera, adult            | **Recipient**: note 1, bouquet 1, coupon 1 and challan 1 are Ravi's to her alone. Can request the coupon and pay the challan.         |
-| `kabir@example.test` | Kabir, younger, no push | **Non-recipient**: `/apps/our-mailbox/challans/1` and `coupons/1` must 403; note 1 and bouquet 1 must not be listed.                  |
+| `meera@example.test` | Meera, adult            | **Recipient**: note 1, bouquet 1, coupon 1 and citation 1 are Ravi's to her alone. Can request the coupon and pay the citation.       |
+| `kabir@example.test` | Kabir, younger, no push | **Non-recipient**: `/apps/our-mailbox/citations/1` and `coupons/1` must 403; note 1 and bouquet 1 must not be listed.                 |
 
 If your scenario isn't covered, extend `database/seeders/DevDataSeeder.php`.
 
@@ -43,7 +43,7 @@ If your scenario isn't covered, extend `database/seeders/DevDataSeeder.php`.
 | `npm test`               | Hooks and utilities (Vitest). Inertia is mocked, so it shows the right call was made.          |
 | `npm run test:rules`     | The custom ESLint rules.                                                                       |
 | `php artisan test`       | HTTP, payload shape, database state, policies (PHPUnit on Postgres, database `ghar_test`).     |
-| `npm run smoke`          | Every page mounts without a console error (headless Chromium).                                    |
+| `npm run smoke`          | Every page mounts without a console error (headless Chromium).                                 |
 | `npm run smoke-loadmore` | The load-more retry recovers from network and server failures. Run it if you touch pagination. |
 | `npm run smoke-mcp`      | Serves the seeded data on `127.0.0.1:8000` for testing in a real browser.                      |
 

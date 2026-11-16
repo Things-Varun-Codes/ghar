@@ -16,7 +16,7 @@
     --mailbox-font-hand: var(--font-hand);
     --mailbox-font-display: var(--font-display);
     --mailbox-font-sans: var(--font-sans);
-    --mailbox-challan-font: var(--font-sans);
+    --mailbox-citation-font: var(--font-sans);
     --mailbox-coupon-font-display: var(--mailbox-font-hand);
     --mailbox-coupon-font-mono: var(--font-sans);
 
@@ -78,19 +78,19 @@
         var(--shell-text-muted)
     );
 
-    --mailbox-challan-faint: color-mix(
+    --mailbox-citation-faint: color-mix(
         in oklab,
         var(--shell-text) 22%,
         transparent
     );
-    --mailbox-challan-masthead-bg: color-mix(
+    --mailbox-citation-masthead-bg: color-mix(
         in oklab,
         var(--shell-accent) 10%,
         var(--shell-surface)
     );
-    --mailbox-challan-seal-color: var(--shell-accent-text);
-    --mailbox-challan-seal-size: 64px;
-    --mailbox-challan-stamp-rotate: -13deg;
+    --mailbox-citation-seal-color: var(--shell-accent-text);
+    --mailbox-citation-seal-size: 64px;
+    --mailbox-citation-stamp-rotate: -13deg;
 
     --mailbox-coupon-seal: var(--shell-accent-text);
     --mailbox-coupon-tint: color-mix(
@@ -355,9 +355,9 @@
     }
 }
 
-/* Challans: the top of the form, with its stamp. */
-[data-app='our-mailbox'] .mailbox-door-challan {
-    --mailbox-challan-seal-size: 40px;
+/* Citations: the top of the form, with its stamp. */
+[data-app='our-mailbox'] .mailbox-door-citation {
+    --mailbox-citation-seal-size: 40px;
     position: relative;
     width: 100%;
     background: var(--mailbox-paper);
@@ -366,31 +366,31 @@
     overflow: hidden;
 }
 
-[data-app='our-mailbox'] .mailbox-door-challan .mailbox-challan-masthead {
+[data-app='our-mailbox'] .mailbox-door-citation .mailbox-citation-masthead {
     gap: 12px;
     padding: 10px 14px;
 }
 
 [data-app='our-mailbox']
-    .mailbox-door-challan
-    .mailbox-challan-seal
-    .mailbox-challan-monogram {
+    .mailbox-door-citation
+    .mailbox-citation-seal
+    .mailbox-citation-monogram {
     font-size: var(--text-meta);
 }
 
-[data-app='our-mailbox'] .mailbox-door-challan .mailbox-challan-title {
+[data-app='our-mailbox'] .mailbox-door-citation .mailbox-citation-title {
     font-size: var(--text-small);
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
 }
 
-[data-app='our-mailbox'] .mailbox-door-challan .mailbox-challan-sub {
+[data-app='our-mailbox'] .mailbox-door-citation .mailbox-citation-sub {
     margin-top: 0;
     font-variant-numeric: tabular-nums;
 }
 
-[data-app='our-mailbox'] .mailbox-written.mailbox-door-challan-offence {
+[data-app='our-mailbox'] .mailbox-written.mailbox-door-citation-offence {
     margin: 0;
     padding: 8px 112px 0 14px;
     font-size: var(--text-body);
@@ -399,7 +399,7 @@
     text-overflow: ellipsis;
 }
 
-[data-app='our-mailbox'] .mailbox-door-challan .mailbox-challan-stamp {
+[data-app='our-mailbox'] .mailbox-door-citation .mailbox-citation-stamp {
     top: auto;
     right: 12px;
     bottom: 8px;
@@ -589,18 +589,18 @@
     border-radius: var(--radius-inner);
 }
 
-/* ── Challan: an official form, told by its rules, boxes, seal and stamp ─ */
+/* ── Citation: an official form, told by its rules, boxes, seal and stamp ─ */
 
 [data-app='our-mailbox'] .mailbox-artifact-page {
     max-width: 640px;
     margin-inline: auto;
 }
 
-[data-app='our-mailbox'] .mailbox-challan-doc {
+[data-app='our-mailbox'] .mailbox-citation-doc {
     position: relative;
     background: var(--mailbox-paper);
     color: var(--mailbox-ink);
-    font-family: var(--mailbox-challan-font);
+    font-family: var(--mailbox-citation-font);
     border: 1.5px solid var(--mailbox-accent-text);
     border-radius: var(--mailbox-paper-radius);
     box-shadow: var(--mailbox-paper-shadow);
@@ -609,7 +609,7 @@
     margin: 0 auto;
 }
 
-[data-app='our-mailbox'] .mailbox-challan-watermark {
+[data-app='our-mailbox'] .mailbox-citation-watermark {
     position: absolute;
     inset: 0;
     display: grid;
@@ -617,36 +617,36 @@
     pointer-events: none;
     overflow: hidden;
 }
-[data-app='our-mailbox'] .mailbox-challan-watermark span {
+[data-app='our-mailbox'] .mailbox-citation-watermark span {
     font-family: var(--mailbox-font-display);
     font-size: 190px;
     font-weight: 400;
     letter-spacing: var(--tracking-display);
-    color: var(--mailbox-challan-seal-color);
+    color: var(--mailbox-citation-seal-color);
     opacity: 0.05;
     transform: rotate(-8deg);
     white-space: nowrap;
 }
 
-[data-app='our-mailbox'] .mailbox-challan-masthead {
+[data-app='our-mailbox'] .mailbox-citation-masthead {
     position: relative;
     z-index: 2;
     display: flex;
     gap: 16px;
     align-items: center;
     padding: 16px 24px;
-    background: var(--mailbox-challan-masthead-bg);
+    background: var(--mailbox-citation-masthead-bg);
     border-bottom: 2px solid var(--mailbox-ink);
 }
-[data-app='our-mailbox'] .mailbox-challan-title {
-    font-family: var(--mailbox-challan-font);
+[data-app='our-mailbox'] .mailbox-citation-title {
+    font-family: var(--mailbox-citation-font);
     font-size: var(--text-subhead);
     font-weight: 500;
     line-height: 1.2;
     text-wrap: balance;
     color: var(--mailbox-ink);
 }
-[data-app='our-mailbox'] .mailbox-challan-sub {
+[data-app='our-mailbox'] .mailbox-citation-sub {
     font-size: var(--text-meta);
     font-weight: 500;
     letter-spacing: 0.01em;
@@ -654,38 +654,38 @@
     color: var(--mailbox-ink-soft);
 }
 
-[data-app='our-mailbox'] .mailbox-challan-seal {
+[data-app='our-mailbox'] .mailbox-citation-seal {
     position: relative;
     flex: none;
-    width: var(--mailbox-challan-seal-size);
-    height: var(--mailbox-challan-seal-size);
+    width: var(--mailbox-citation-seal-size);
+    height: var(--mailbox-citation-seal-size);
     border-radius: var(--radius-pill);
-    border: 2px solid var(--mailbox-challan-seal-color);
-    color: var(--mailbox-challan-seal-color);
+    border: 2px solid var(--mailbox-citation-seal-color);
+    color: var(--mailbox-citation-seal-color);
     display: grid;
     place-items: center;
-    font-family: var(--mailbox-challan-font);
+    font-family: var(--mailbox-citation-font);
     line-height: 1;
 }
-[data-app='our-mailbox'] .mailbox-challan-seal::before {
+[data-app='our-mailbox'] .mailbox-citation-seal::before {
     content: '';
     position: absolute;
     inset: 4px;
     border-radius: var(--radius-pill);
-    border: 1px dashed var(--mailbox-challan-seal-color);
+    border: 1px dashed var(--mailbox-citation-seal-color);
     opacity: 0.6;
 }
-[data-app='our-mailbox'] .mailbox-challan-seal .mailbox-challan-monogram {
+[data-app='our-mailbox'] .mailbox-citation-seal .mailbox-citation-monogram {
     font-size: var(--text-subhead);
     font-weight: 500;
 }
 
-[data-app='our-mailbox'] .mailbox-challan-confidential {
+[data-app='our-mailbox'] .mailbox-citation-confidential {
     position: absolute;
     top: 8px;
     right: 16px;
     z-index: 3;
-    font-family: var(--mailbox-challan-font);
+    font-family: var(--mailbox-citation-font);
     font-size: var(--text-meta);
     font-weight: 500;
     letter-spacing: 0.01em;
@@ -697,12 +697,12 @@
 }
 
 /* The stamp is the form's one device in capitals. */
-[data-app='our-mailbox'] .mailbox-challan-stamp {
+[data-app='our-mailbox'] .mailbox-citation-stamp {
     position: absolute;
     top: 104px;
     right: 24px;
     z-index: 3;
-    font-family: var(--mailbox-challan-font);
+    font-family: var(--mailbox-citation-font);
     font-size: var(--text-title);
     font-weight: 500;
     line-height: 1.2;
@@ -714,19 +714,19 @@
     box-shadow: inset 0 0 0 1px currentColor;
     background: transparent;
     opacity: 0.82;
-    transform: rotate(var(--mailbox-challan-stamp-rotate));
+    transform: rotate(var(--mailbox-citation-stamp-rotate));
     pointer-events: none;
     user-select: none;
 }
 
 @media (max-width: 520px) {
-    [data-app='our-mailbox'] .mailbox-challan-masthead {
+    [data-app='our-mailbox'] .mailbox-citation-masthead {
         padding: 40px 16px 16px;
     }
-    [data-app='our-mailbox'] .mailbox-challan-body {
+    [data-app='our-mailbox'] .mailbox-citation-body {
         padding: 24px 16px;
     }
-    [data-app='our-mailbox'] .mailbox-challan-stamp {
+    [data-app='our-mailbox'] .mailbox-citation-stamp {
         top: 124px;
         right: 16px;
         font-size: var(--text-body);
@@ -734,31 +734,31 @@
         border-width: 3px;
     }
 }
-[data-app='our-mailbox'] .mailbox-challan-stamp--issued {
+[data-app='our-mailbox'] .mailbox-citation-stamp--issued {
     color: var(--mailbox-destructive);
 }
-[data-app='our-mailbox'] .mailbox-challan-stamp--paid {
+[data-app='our-mailbox'] .mailbox-citation-stamp--paid {
     color: var(--mailbox-accent-text);
 }
 
-[data-app='our-mailbox'] .mailbox-challan-body {
+[data-app='our-mailbox'] .mailbox-citation-body {
     position: relative;
     z-index: 2;
     padding: 24px;
 }
-[data-app='our-mailbox'] .mailbox-challan-refrow {
+[data-app='our-mailbox'] .mailbox-citation-refrow {
     display: flex;
     flex-direction: column;
     align-items: flex-start;
     gap: 4px;
     margin-bottom: 16px;
-    font-family: var(--mailbox-challan-font);
+    font-family: var(--mailbox-citation-font);
     font-size: var(--text-body);
     font-variant-numeric: tabular-nums;
     line-height: 1.5;
     color: var(--mailbox-ink);
 }
-[data-app='our-mailbox'] .mailbox-challan-refrow strong {
+[data-app='our-mailbox'] .mailbox-citation-refrow strong {
     display: inline-block;
     min-width: 56px;
     margin-right: 8px;
@@ -768,30 +768,30 @@
     color: var(--mailbox-ink-soft);
 }
 
-[data-app='our-mailbox'] .mailbox-challan-fieldset {
-    border: 1px solid var(--mailbox-challan-faint);
+[data-app='our-mailbox'] .mailbox-citation-fieldset {
+    border: 1px solid var(--mailbox-citation-faint);
     border-radius: var(--mailbox-paper-radius);
     padding: 12px 16px 16px;
     margin: 0 0 16px;
 }
-[data-app='our-mailbox'] .mailbox-challan-fieldset:last-child {
+[data-app='our-mailbox'] .mailbox-citation-fieldset:last-child {
     margin-bottom: 0;
 }
-[data-app='our-mailbox'] .mailbox-challan-legend {
-    font-family: var(--mailbox-challan-font);
+[data-app='our-mailbox'] .mailbox-citation-legend {
+    font-family: var(--mailbox-citation-font);
     font-size: var(--text-meta);
     font-weight: 500;
     letter-spacing: 0.01em;
     padding: 0 8px;
     color: var(--mailbox-ink-soft);
 }
-[data-app='our-mailbox'] .mailbox-challan-grid2 {
+[data-app='our-mailbox'] .mailbox-citation-grid2 {
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 12px 16px;
 }
-[data-app='our-mailbox'] .mailbox-challan-field-label {
-    font-family: var(--mailbox-challan-font);
+[data-app='our-mailbox'] .mailbox-citation-field-label {
+    font-family: var(--mailbox-citation-font);
     font-size: var(--text-meta);
     font-weight: 500;
     letter-spacing: 0.01em;
@@ -799,9 +799,9 @@
     margin-bottom: 4px;
 }
 /* What was filled in reads as ink on the printed form. */
-[data-app='our-mailbox'] .mailbox-challan-field-value,
-[data-app='our-mailbox'] .mailbox-challan-field-value--hand,
-[data-app='our-mailbox'] .mailbox-challan-penalty {
+[data-app='our-mailbox'] .mailbox-citation-field-value,
+[data-app='our-mailbox'] .mailbox-citation-field-value--hand,
+[data-app='our-mailbox'] .mailbox-citation-penalty {
     font-family: var(--mailbox-font-display);
     font-style: italic;
     font-weight: 400;
@@ -812,14 +812,14 @@
     overflow-wrap: anywhere;
 }
 
-[data-app='our-mailbox'] .mailbox-challan-penalty {
-    background: var(--mailbox-challan-masthead-bg);
-    border: 1px dashed var(--mailbox-challan-faint);
+[data-app='our-mailbox'] .mailbox-citation-penalty {
+    background: var(--mailbox-citation-masthead-bg);
+    border: 1px dashed var(--mailbox-citation-faint);
     border-radius: var(--mailbox-paper-radius);
     padding: 12px 16px;
 }
 
-[data-app='our-mailbox'] .mailbox-challan-footer {
+[data-app='our-mailbox'] .mailbox-citation-footer {
     position: relative;
     z-index: 2;
     border-top: 1px solid var(--mailbox-border);
@@ -829,13 +829,13 @@
     line-height: 1.5;
     color: var(--mailbox-ink-soft);
 }
-[data-app='our-mailbox'] .mailbox-challan-footer .mailbox-challan-heart {
+[data-app='our-mailbox'] .mailbox-citation-footer .mailbox-citation-heart {
     display: inline-block;
     vertical-align: -2px;
     color: var(--mailbox-destructive);
 }
 
-/* The offence as the title of a challan in the list. */
+/* The offence as the title of a citation in the list. */
 [data-app='our-mailbox'] .mailbox-written {
     font-family: var(--mailbox-font-display);
     font-style: italic;
@@ -1430,7 +1430,7 @@
     box-shadow: none;
 }
 
-[data-app='our-mailbox'] #challan-date,
+[data-app='our-mailbox'] #citation-date,
 [data-app='our-mailbox'] #coupon-expiry {
     -webkit-appearance: none;
     appearance: none;
@@ -1441,7 +1441,7 @@
 }
 
 @media (max-width: 720px) {
-    [data-app='our-mailbox'] .challan-incident-grid {
+    [data-app='our-mailbox'] .citation-incident-grid {
         grid-template-columns: minmax(0, 1fr);
     }
 }

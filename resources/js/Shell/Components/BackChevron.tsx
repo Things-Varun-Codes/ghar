@@ -15,7 +15,7 @@ const PARENT_LABELS: Record<string, string> = {
     '/apps/our-corner/activities': 'Activities',
     '/apps/our-corner': 'Our Corner',
     // A parent with no entry here falls back to Home, so every Mailbox list needs one.
-    '/apps/our-mailbox/challans': 'Challans',
+    '/apps/our-mailbox/citations': 'Citations',
     '/apps/our-mailbox/coupons': 'Coupons',
     '/apps/our-mailbox/messages': 'Notes',
     '/apps/our-mailbox/flowers': 'Flowers',

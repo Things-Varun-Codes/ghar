@@ -41,7 +41,7 @@ return [
         'nav_label' => 'Mailbox',
         'slug' => 'our-mailbox',
         'route' => '/apps/our-mailbox',
-        'description' => 'Notes, flowers, challans and coupons for each other.',
+        'description' => 'Notes, flowers, citations and coupons for each other.',
         'enabled' => true,
         'provider' => MailboxServiceProvider::class,
         'admin_only' => false,

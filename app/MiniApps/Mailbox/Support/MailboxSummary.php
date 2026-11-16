@@ -3,7 +3,7 @@
 namespace App\MiniApps\Mailbox\Support;
 
 use App\MiniApps\Mailbox\Models\Bouquet;
-use App\MiniApps\Mailbox\Models\Challan;
+use App\MiniApps\Mailbox\Models\Citation;
 use App\MiniApps\Mailbox\Models\Coupon;
 use App\MiniApps\Mailbox\Models\MailboxMessage;
 use App\Shell\Models\User;
@@ -12,10 +12,10 @@ class MailboxSummary
 {
     /**
      * @return array{
-     *     counts: array{messages: int, challans: int, flowers: int, coupons: int},
+     *     counts: array{messages: int, citations: int, flowers: int, coupons: int},
      *     unread_messages: int,
      *     unread_flowers: int,
-     *     challans_action_needed: int,
+     *     citations_action_needed: int,
      *     coupons_action_needed: int,
      * }
      */
@@ -24,10 +24,10 @@ class MailboxSummary
         $messagesCount = MailboxMessage::query()->receivedBy($user)->count();
         $unread = MailboxMessage::query()->unreadBy($user)->count();
 
-        $challansCount = Challan::where('recipient_id', $user->id)->count();
+        $citationsCount = Citation::where('recipient_id', $user->id)->count();
 
-        $challansActionNeeded = Challan::where('recipient_id', $user->id)
-            ->where('status', Challan::STATUS_ISSUED)
+        $citationsActionNeeded = Citation::where('recipient_id', $user->id)
+            ->where('status', Citation::STATUS_ISSUED)
             ->count();
 
         $flowersCount = Bouquet::query()->receivedBy($user)->count();
@@ -42,13 +42,13 @@ class MailboxSummary
         return [
             'counts' => [
                 'messages' => $messagesCount,
-                'challans' => $challansCount,
+                'citations' => $citationsCount,
                 'flowers' => $flowersCount,
                 'coupons' => $couponsCount,
             ],
             'unread_messages' => $unread,
             'unread_flowers' => $unreadFlowers,
-            'challans_action_needed' => $challansActionNeeded,
+            'citations_action_needed' => $citationsActionNeeded,
             'coupons_action_needed' => $couponsActionNeeded,
         ];
     }

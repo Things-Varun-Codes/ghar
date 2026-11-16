@@ -3,7 +3,7 @@
 namespace Database\Seeders\DevData;
 
 use App\MiniApps\Mailbox\Models\Bouquet;
-use App\MiniApps\Mailbox\Models\Challan;
+use App\MiniApps\Mailbox\Models\Citation;
 use App\MiniApps\Mailbox\Models\Coupon;
 use App\MiniApps\Mailbox\Models\MailboxMessage;
 use App\Shell\Models\User;
@@ -20,7 +20,7 @@ final class MailboxData
         $this->notes($h);
         $this->flowers($h);
         $this->coupons($h);
-        $this->challans($h);
+        $this->citations($h);
     }
 
     private function notes(Household $h): void
@@ -113,10 +113,10 @@ final class MailboxData
         }
     }
 
-    private function challans(Household $h): void
+    private function citations(Household $h): void
     {
         // [offence, penalty, issuer, recipient, days ago, place, repeat, remarks, paid days ago]
-        $challans = [
+        $citations = [
             ['Leaving wet towels on the bed', 'Fold the laundry', $h->ravi, $h->meera, 2, 'Main bedroom', false, 'First warning.', null],
             ['Finishing the good biscuits', 'Replace them, with interest', $h->meera, $h->ravi, 9, 'Kitchen', true, null, 6],
             ['Switching off the wifi at 9pm', 'Ten extra minutes', $h->kabir, $h->admin, 4, 'The router', false, 'Unconstitutional.', null],
@@ -124,10 +124,10 @@ final class MailboxData
             ['Practising drums after dinner', 'Headphones for a week', $h->ravi, $h->kabir, 16, null, false, null, null],
         ];
 
-        foreach ($challans as [$offence, $penalty, $issuer, $recipient, $days, $place, $repeat, $remarks, $paidAgo]) {
+        foreach ($citations as [$offence, $penalty, $issuer, $recipient, $days, $place, $repeat, $remarks, $paidAgo]) {
             $issued = $h->daysAgo($days);
 
-            $challan = Challan::factory()->create([
+            $citation = Citation::factory()->create([
                 'issuer_id' => $issuer->id,
                 'recipient_id' => $recipient->id,
                 'ref_no' => null,
@@ -137,13 +137,13 @@ final class MailboxData
                 'is_repeat' => $repeat,
                 'penalty' => $penalty,
                 'remarks' => $remarks,
-                'status' => $paidAgo === null ? Challan::STATUS_ISSUED : Challan::STATUS_PAID,
+                'status' => $paidAgo === null ? Citation::STATUS_ISSUED : Citation::STATUS_PAID,
                 'settled_at' => $paidAgo === null ? null : $h->daysAgo($paidAgo),
                 'issued_at' => $issued,
             ]);
 
-            $challan->ref_no = sprintf('OC/%d/%06d', $issued->year, $challan->id);
-            $challan->save();
+            $citation->ref_no = sprintf('OC/%d/%06d', $issued->year, $citation->id);
+            $citation->save();
         }
     }
 

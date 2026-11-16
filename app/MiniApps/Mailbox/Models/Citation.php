@@ -4,7 +4,7 @@ namespace App\MiniApps\Mailbox\Models;
 
 use App\Shell\Models\User;
 use Carbon\CarbonImmutable;
-use Database\Factories\ChallanFactory;
+use Database\Factories\CitationFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -38,7 +38,7 @@ use Illuminate\Support\Carbon;
     'penalty',
     'remarks',
 ])]
-class Challan extends Model
+class Citation extends Model
 {
     use HasFactory;
 
@@ -46,7 +46,7 @@ class Challan extends Model
 
     public const STATUS_PAID = 'paid';
 
-    protected $table = 'mailbox_challans';
+    protected $table = 'mailbox_citations';
 
     public function scopeVisibleTo(Builder $query, User $viewer): Builder
     {
@@ -65,9 +65,9 @@ class Challan extends Model
         return $this->belongsTo(User::class, 'recipient_id');
     }
 
-    protected static function newFactory(): ChallanFactory
+    protected static function newFactory(): CitationFactory
     {
-        return ChallanFactory::new();
+        return CitationFactory::new();
     }
 
     /** @return array<string, string> */

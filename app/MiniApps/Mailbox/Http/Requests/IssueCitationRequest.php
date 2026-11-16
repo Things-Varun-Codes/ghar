@@ -5,7 +5,7 @@ namespace App\MiniApps\Mailbox\Http\Requests;
 use App\MiniApps\Mailbox\Http\Requests\Concerns\ValidatesRecipients;
 use Illuminate\Foundation\Http\FormRequest;
 
-class IssueChallanRequest extends FormRequest
+class IssueCitationRequest extends FormRequest
 {
     use ValidatesRecipients;
 

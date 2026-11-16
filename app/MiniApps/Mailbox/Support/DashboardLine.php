@@ -11,7 +11,7 @@ final class DashboardLine
         $summary = MailboxSummary::forUser($user);
 
         $unread = $summary['unread_messages'];
-        $challans = $summary['challans_action_needed'];
+        $citations = $summary['citations_action_needed'];
 
         $parts = [];
 
@@ -19,8 +19,8 @@ final class DashboardLine
             $parts[] = $unread.' unread '.($unread === 1 ? 'note' : 'notes');
         }
 
-        if ($challans > 0) {
-            $parts[] = $challans.' '.($challans === 1 ? 'challan' : 'challans').' to pay';
+        if ($citations > 0) {
+            $parts[] = $citations.' '.($citations === 1 ? 'citation' : 'citations').' to pay';
         }
 
         return $parts === [] ? 'All caught up' : implode(' · ', $parts);

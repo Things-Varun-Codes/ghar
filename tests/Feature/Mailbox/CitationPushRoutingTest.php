@@ -2,14 +2,14 @@
 
 namespace Tests\Feature\Mailbox;
 
-use App\MiniApps\Mailbox\Models\Challan;
+use App\MiniApps\Mailbox\Models\Citation;
 use App\Shell\Models\User;
 use App\Shell\Notifications\GenericPushNotification;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Notification;
 use Tests\TestCase;
 
-class ChallanPushRoutingTest extends TestCase
+class CitationPushRoutingTest extends TestCase
 {
     use RefreshDatabase;
 
@@ -26,7 +26,7 @@ class ChallanPushRoutingTest extends TestCase
         Notification::fake();
         [$issuer, $recipient] = $this->seedPair();
 
-        $this->actingAs($issuer)->post('/apps/our-mailbox/challans', [
+        $this->actingAs($issuer)->post('/apps/our-mailbox/citations', [
             'recipient_ids' => [$recipient->id],
             'offence' => 'Stole all the blankets in the night',
             'penalty' => 'a back rub',
@@ -40,9 +40,9 @@ class ChallanPushRoutingTest extends TestCase
                 $body = $notification->toWebPush($recipient, $notification)->toArray()['body'] ?? '';
                 $tag = $notification->toWebPush($recipient, $notification)->toArray()['tag'] ?? null;
 
-                return $tag === 'our-mailbox:challans'
+                return $tag === 'our-mailbox:citations'
                     && str_contains($body, 'Alice')
-                    && str_contains($body, 'challan')
+                    && str_contains($body, 'citation')
                     // No offence / penalty / remarks leak.
                     && ! str_contains($body, 'blankets')
                     && ! str_contains($body, 'back rub')
@@ -57,12 +57,12 @@ class ChallanPushRoutingTest extends TestCase
     {
         Notification::fake();
         [$issuer, $recipient] = $this->seedPair();
-        $challan = Challan::factory()->create([
+        $citation = Citation::factory()->create([
             'issuer_id' => $issuer->id,
             'recipient_id' => $recipient->id,
         ]);
 
-        $this->actingAs($recipient)->patch("/apps/our-mailbox/challans/{$challan->id}/pay");
+        $this->actingAs($recipient)->patch("/apps/our-mailbox/citations/{$citation->id}/pay");
 
         Notification::assertSentTo(
             $issuer,
@@ -70,7 +70,7 @@ class ChallanPushRoutingTest extends TestCase
             function (GenericPushNotification $notification) use ($issuer) {
                 $arr = $notification->toWebPush($issuer, $notification)->toArray();
 
-                return ($arr['tag'] ?? null) === 'our-mailbox:challans'
+                return ($arr['tag'] ?? null) === 'our-mailbox:citations'
                     && str_contains($arr['body'] ?? '', 'Bob');
             }
         );

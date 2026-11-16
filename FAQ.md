@@ -12,13 +12,13 @@ Mailbox (notes, bouquets of flowers, coupons and joke traffic tickets, sent to o
 Ghar is open source under the MIT licence. There is no hosted version: you run it yourself with
 Docker.
 
-## What do "Ghar" and "challan" mean?
+## What do "Ghar" and "citation" mean?
 
 "Ghar" is the Hindi and Urdu word for home. Because it is an everyday word, this project is easiest
 to find as "Ghar, the self-hosted household app", or by its image name,
 `ghcr.io/things-varun-codes/ghar`.
 
-A challan is what a traffic ticket is called in India. In Ghar it is a joke one: a mock official
+A citation is what a traffic ticket is called in India. In Ghar it is a joke one: a mock official
 form that one person issues to another for an offence such as leaving wet towels on the bed, with a
 penalty the recipient can mark as paid.
 
