@@ -73,8 +73,13 @@ Meera have synthetic push subscriptions that can't deliver; test real push by su
 - **First start:** `docker/docker-entrypoint.sh` generates `APP_KEY` and VAPID keys into
   `storage/app/generated-secrets.env` when unset, migrates, seeds roles, and creates the
   `GHAR_ADMIN_EMAIL` admin if none exists. Every step must stay idempotent.
-- **Releases:** add a `CHANGELOG.md` section, then tag `vX.Y.Z`; the workflow fails without the
-  section. A change that needs action on upgrade is a major version and says so under **Upgrading**.
+- **Releases:** every change a household can notice adds a change file to `.changes/` in the same
+  pull request (format and wording: `.changes/README.md`); a `feat:` or `fix:` pull request fails
+  the "Change file" check without one. Never edit `CHANGELOG.md` by hand. `npm run release` folds
+  the files into a new section, picks the version from their types and opens the release pull
+  request; `npm run release:tag` tags the merged commit, which starts the workflow. Both are the
+  maintainer's to run. A change that needs action on upgrade sets `breaking: true`, which makes
+  the release a major version and puts the entry under **Upgrading**.
 
 ## Technology stack
 
@@ -237,7 +242,8 @@ Five tiers; none replaces another. Start with [How to test locally](#how-to-test
   cancels with zero network traffic; unmounting mid-window deliberately does **not** cancel the
   delete) and `useCursorPagination`'s superseded-visit guard (an older visit's `onFinish` must not
   clear a newer visit's `navigating`). Use this tier for new hook/utility logic with branching or
-  timing. The custom ESLint rules' tests run with `npm run test:rules`.
+  timing. The custom ESLint rules' tests run with `npm run test:rules`, the release script's with
+  `npm run test:scripts`.
 - **PHPUnit — `php artisan test`.** HTTP, Inertia payload shape, DB state, policies, middleware.
   Runs on **Postgres**, like prod: the `ghar_test` database on `127.0.0.1:5432` (phpunit.xml; a real
   `DB_*` env var overrides it). Start the dev container first. `RefreshDatabase` wraps each test in a

@@ -42,8 +42,9 @@ If your scenario isn't covered, extend `database/seeders/DevDataSeeder.php`.
 | ------------------------ | ---------------------------------------------------------------------------------------------- |
 | `npm test`               | Hooks and utilities (Vitest). Inertia is mocked, so it shows the right call was made.          |
 | `npm run test:rules`     | The custom ESLint rules.                                                                       |
+| `npm run test:scripts`   | The release script: change files, versions and the changelog section.                          |
 | `php artisan test`       | HTTP, payload shape, database state, policies (PHPUnit on Postgres, database `ghar_test`).     |
-| `npm run smoke`          | Every page mounts without a console error (headless Chromium).                                    |
+| `npm run smoke`          | Every page mounts without a console error (headless Chromium).                                 |
 | `npm run smoke-loadmore` | The load-more retry recovers from network and server failures. Run it if you touch pagination. |
 | `npm run smoke-mcp`      | Serves the seeded data on `127.0.0.1:8000` for testing in a real browser.                      |
 
@@ -61,7 +62,8 @@ GitHub Actions runs types, lint, formatting, static analysis, the tests and the 
 every pull request. It also builds the production image and starts it with
 `docker-compose.selfhost.yml`, so a change to the Dockerfile or the entrypoint is tested before a
 release. A pull request that adds a dependency with a known vulnerability, or under a GPL or AGPL
-licence, fails the dependency review.
+licence, fails the dependency review. The "Change file" check fails a pull request whose title isn't
+a Conventional Commits title, or a `feat:` or `fix:` that has no change file.
 
 `main` only takes pull requests, squash-merged once those checks pass. Workflows from a first-time
 contributor wait for a maintainer to start them.
@@ -69,7 +71,11 @@ contributor wait for a maintainer to start them.
 ## Pull requests
 
 - Keep each one to one change and explain why, not just what.
-- Commits follow [Conventional Commits](https://www.conventionalcommits.org): `fix(corner): …`.
+- The title follows [Conventional Commits](https://www.conventionalcommits.org): `fix(corner): …`.
+  It becomes the commit on `main`.
+- If someone using or running Ghar would notice the change, add a change file to `.changes/`. It
+  becomes the changelog entry; [`.changes/README.md`](./.changes/README.md) has the format and the
+  wording. Don't edit `CHANGELOG.md`.
 - Add a test that fails without your change.
 - Third-party GitHub Actions are pinned to a full commit SHA, with the version in a comment.
 - New environment variables go in `.env.example` and the env block in `DEPLOY.md`, and in

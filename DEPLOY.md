@@ -358,10 +358,18 @@ The build needs about 2 GB of RAM. For readable browser stack traces, set the bu
 `SENTRY_URL`, `SENTRY_AUTH_TOKEN`, `SENTRY_ORG` and `SENTRY_PROJECT`, and the build uploads
 sourcemaps. They are build-time only and never reach the running container.
 
-To cut a release, add its section to `CHANGELOG.md` and push a tag such as `v1.2.3`.
-`.github/workflows/release.yml` runs CI, builds both architectures, and publishes the images and the
-GitHub release. To rehearse one, push a pre-release tag such as `v1.2.3-rc.1`: it publishes only
-`:1.2.3-rc.1`, leaves `:1`, `:1.2` and `:latest` alone, and uses the `1.2.3` changelog section.
+To cut a release:
+
+1. `npm run release:notes` shows the next version and what it will say. The entries come from the
+   change files in `.changes/`, and their types decide the version.
+2. `npm run release` writes that section into `CHANGELOG.md`, deletes the change files and opens a
+   pull request. Pass `-- --version 2.0.0` to choose the version yourself.
+3. Merge it, then `npm run release:tag`. It tags the merged commit `v1.2.3` and pushes the tag.
+
+The tag starts `.github/workflows/release.yml`, which runs CI, builds both architectures, and
+publishes the images and the GitHub release. To rehearse one, push a pre-release tag such as
+`v1.2.3-rc.1` by hand after step 2 is merged: it publishes only `:1.2.3-rc.1`, leaves `:1`,
+`:1.2` and `:latest` alone, and uses the `1.2.3` changelog section.
 
 ---
 
@@ -384,7 +392,7 @@ Start with `docker compose -f docker-compose.selfhost.yml logs app`.
 - **`BOUQUET_IMAGE_PROVIDER must be set (cloudflare|fake) in production`**: set it to `fake`, or to
   `cloudflare` with both Cloudflare values.
 - **`CLOUDFLARE_ACCOUNT_ID and CLOUDFLARE_WORKERS_AI_TOKEN are required when
-  BOUQUET_IMAGE_PROVIDER=cloudflare`**: fill in both, or switch back to `fake`.
+BOUQUET_IMAGE_PROVIDER=cloudflare`**: fill in both, or switch back to `fake`.
 - **`grep "Admin account created"` prints nothing**: the password is printed only on the start that
   creates the admin. If `GHAR_ADMIN_EMAIL` was empty, set it and run `up -d` again. If you lost the
   password, use "Forgot password" on the login page; with `MAIL_MAILER=log` the reset link is in

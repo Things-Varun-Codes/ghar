@@ -54,6 +54,9 @@ pre-push:
       # Diffs live authenticated GET routes against scripts/smoke.mjs's routes
       # array so the smoke harness can't drift from the route table.
       run: node scripts/check-smoke-routes.mjs
+    change-files:
+      # Every file in .changes/ parses, so a release can't fail on one later.
+      run: node scripts/release.mjs check && npm run test:scripts
     pint:
       # Repo-wide PHP style check (pre-commit only sees staged files).
       run: ./vendor/bin/pint --test

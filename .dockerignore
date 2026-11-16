@@ -94,6 +94,7 @@
 /ROADMAP.md
 /SECURITY.md
 /CHANGELOG.md
+/.changes
 /docs
 
 # Nested env files — the root `.env` glob does NOT match these

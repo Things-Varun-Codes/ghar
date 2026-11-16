@@ -1,7 +1,8 @@
 # Changelog
 
-Every release gets a section here before its tag is pushed; the release workflow publishes that
-section as the GitHub release notes. Versions follow [semantic versioning](https://semver.org):
+Each section here is put together from the change files in `.changes/` by `npm run release`, so
+don't edit this file by hand. The release workflow publishes a version's section as its GitHub
+release notes. Versions follow [semantic versioning](https://semver.org):
 a major version can need you to do something when you upgrade, and says what under **Upgrading**.
 Minor and patch versions don't.
 
