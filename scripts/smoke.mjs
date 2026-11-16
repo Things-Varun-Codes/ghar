@@ -499,7 +499,22 @@ echo json_encode([
     await loginPage.fill('input[name="email"]', fixtures.email);
     await loginPage.fill('input[name="password"]', fixtures.password);
     await loginPage.click('button[type="submit"]');
-    await loginPage.waitForLoadState('networkidle');
+
+    // Login is an XHR, not a document load. If the page has already gone idle,
+    // waitForLoadState('networkidle') returns at once and closing the page
+    // cancels the login, so every authenticated route then renders /login.
+    try {
+        await loginPage.waitForURL((url) => url.pathname !== '/login', {
+            timeout: 30_000,
+        });
+    } catch {
+        console.error(
+            `[smoke] ERROR: still on /login 30s after signing in as ${fixtures.email}`,
+        );
+        await cleanup();
+        process.exit(1);
+    }
+
     await loginPage.close();
 
     let passed = 0;
