@@ -69,9 +69,6 @@
     border-radius: var(--corner-radius-card);
     padding: 12px;
     font-family: var(--corner-font);
-    transition:
-        transform var(--dur-out) var(--corner-ease),
-        border-color var(--dur-out) var(--corner-ease);
 }
 
 /* A row card has no picture to sit against the edge, so it takes the fuller inset. */
@@ -79,25 +76,13 @@
     padding: 16px 12px 16px 20px;
 }
 
+/* The card lifts with .shell-lift; its artwork leans in. */
 @media (hover: hover) and (pointer: fine) {
-    [data-app='our-corner'] .corner-card:hover {
-        transform: translateY(-2px);
-        border-color: var(--corner-border-hover);
-        transition-duration: var(--dur-card);
-    }
-
     [data-app='our-corner'] .corner-card:hover .corner-cd-cover,
     [data-app='our-corner'] .corner-card:hover .corner-poster-cover {
         transform: scale(1.03);
         transition-duration: var(--dur-media, 300ms);
     }
-}
-
-/* Pressing a button inside the card must not press the card. */
-[data-app='our-corner'] a.corner-card:active,
-[data-app='our-corner'] .corner-card:has(.shell-card-link:active) {
-    transform: scale(0.995);
-    transition-duration: var(--dur-press);
 }
 
 [data-app='our-corner'] a.corner-card:focus-visible {
@@ -121,21 +106,19 @@
     }
 
     [data-app='our-corner'] .corner-card .corner-done-toggle--icon {
-        position: relative;
         min-width: 40px;
         width: 40px;
         height: 40px;
     }
 
+    /* Side by side, the tap areas grow only upwards and downwards. */
     [data-app='our-corner'] .corner-card .corner-done-toggle--icon::after,
     [data-app='our-corner'] .corner-card .corner-tile-icon-btn::after {
-        content: '';
-        position: absolute;
-        inset: -2px 0;
+        width: 100%;
     }
 }
 
-@media (min-width: 1024px) {
+@variant lg {
     [data-app='our-corner'] .corner-tile-grid {
         grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
     }
@@ -334,11 +317,6 @@
     text-decoration: none;
     cursor: pointer;
     box-shadow: none;
-    transition:
-        background-color var(--dur-out) var(--corner-ease),
-        border-color var(--dur-out) var(--corner-ease),
-        color var(--dur-out) var(--corner-ease),
-        transform var(--dur-out) var(--corner-ease);
 }
 
 [data-app='our-corner'] .corner-detail-action:hover,
@@ -424,9 +402,6 @@
     color: var(--corner-ink);
     text-decoration: none;
     cursor: pointer;
-    transition:
-        background-color var(--dur-out) var(--corner-ease),
-        transform var(--dur-out) var(--corner-ease);
 }
 
 [data-app='our-corner'] .corner-icon-btn {
@@ -434,17 +409,10 @@
     height: 44px;
 }
 
-/* 40px drawn so three fit under a narrow tile; the tap area is still 44px. */
+/* 40px drawn so three fit under a narrow tile; .shell-hit-44 keeps the tap area at 44px. */
 [data-app='our-corner'] .corner-tile-icon-btn {
-    position: relative;
     width: 40px;
     height: 40px;
-}
-
-[data-app='our-corner'] .corner-tile-icon-btn::after {
-    content: '';
-    position: absolute;
-    inset: -2px;
 }
 
 [data-app='our-corner'] .corner-icon-btn:hover,
@@ -454,34 +422,11 @@
     background: color-mix(in oklab, var(--corner-ink) 6%, transparent);
 }
 
-@media (hover: hover) and (pointer: fine) {
-    [data-app='our-corner'] .corner-detail-action:hover,
-    [data-app='our-corner'] .corner-done-toggle:hover,
-    [data-app='our-corner'] .corner-detail-cta:hover,
-    [data-app='our-corner'] .corner-not-found-back:hover,
-    [data-app='our-corner'] .corner-icon-btn:hover,
-    [data-app='our-corner'] .corner-tile-icon-btn:hover {
-        transform: translateY(-1px);
-        transition-duration: var(--dur-in);
-    }
+/* .shell-press draws the outline; Toggle's own ring would double it. */
+[data-app='our-corner'] .corner-done-toggle:focus-visible {
+    box-shadow: none;
 }
 
-[data-app='our-corner'] .corner-detail-action:active,
-[data-app='our-corner'] .corner-done-toggle:active,
-[data-app='our-corner'] .corner-detail-cta:active,
-[data-app='our-corner'] .corner-not-found-back:active,
-[data-app='our-corner'] .corner-icon-btn:active,
-[data-app='our-corner'] .corner-tile-icon-btn:active {
-    transform: translateY(1px) scale(0.985);
-    transition-duration: var(--dur-press);
-}
-
-[data-app='our-corner'] .corner-detail-action:focus-visible,
-[data-app='our-corner'] .corner-done-toggle:focus-visible,
-[data-app='our-corner'] .corner-detail-cta:focus-visible,
-[data-app='our-corner'] .corner-not-found-back:focus-visible,
-[data-app='our-corner'] .corner-icon-btn:focus-visible,
-[data-app='our-corner'] .corner-tile-icon-btn:focus-visible,
 [data-app='our-corner'] .corner-backref-missing-toggle:focus-visible,
 [data-app='our-corner'] a.backref-card:focus-visible {
     outline: 2px solid var(--corner-action);
@@ -909,22 +854,6 @@
     border-radius: var(--corner-radius-corner);
     color: var(--corner-ink);
     font-family: var(--corner-font);
-    transition:
-        transform var(--dur-out) var(--corner-ease),
-        border-color var(--dur-out) var(--corner-ease);
-}
-
-@media (hover: hover) and (pointer: fine) {
-    [data-app='our-corner'] a.backref-card:hover {
-        transform: translateY(-2px);
-        border-color: var(--corner-border-hover);
-        transition-duration: var(--dur-card);
-    }
-}
-
-[data-app='our-corner'] a.backref-card:active {
-    transform: scale(0.995);
-    transition-duration: var(--dur-press);
 }
 
 [data-app='our-corner'] .corner-backref-link {
@@ -1162,30 +1091,14 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-    [data-app='our-corner'] .corner-card,
-    [data-app='our-corner'] .backref-card,
     [data-app='our-corner'] .corner-cd-cover,
     [data-app='our-corner'] .corner-poster-cover,
-    [data-app='our-corner'] .corner-detail-action,
-    [data-app='our-corner'] .corner-done-toggle,
-    [data-app='our-corner'] .corner-detail-cta,
-    [data-app='our-corner'] .corner-not-found-back,
-    [data-app='our-corner'] .corner-icon-btn,
-    [data-app='our-corner'] .corner-tile-icon-btn,
     [data-app='our-corner'] .corner-disclosure-icon {
         transition: none;
     }
 
-    [data-app='our-corner'] .corner-card,
-    [data-app='our-corner'] .backref-card,
     [data-app='our-corner'] .corner-cd-cover,
-    [data-app='our-corner'] .corner-poster-cover,
-    [data-app='our-corner'] .corner-detail-action,
-    [data-app='our-corner'] .corner-done-toggle,
-    [data-app='our-corner'] .corner-detail-cta,
-    [data-app='our-corner'] .corner-not-found-back,
-    [data-app='our-corner'] .corner-icon-btn,
-    [data-app='our-corner'] .corner-tile-icon-btn {
+    [data-app='our-corner'] .corner-poster-cover {
         transform: none !important;
     }
 }

@@ -108,7 +108,7 @@ export default function SongTile({ song, listType, onEdit }: Props) {
         <AppCard
             variant="list"
             data-app="our-corner"
-            className="shell-card-stretch"
+            className="shell-card-stretch shell-lift"
         >
             <a
                 href={detailHref}
@@ -153,13 +153,13 @@ export default function SongTile({ song, listType, onEdit }: Props) {
                     rel="noopener noreferrer"
                     aria-label={providerLabel(song.provider, song.title)}
                     title={providerLabel(song.provider, song.title)}
-                    className="corner-tile-icon-btn"
+                    className="corner-tile-icon-btn shell-press shell-hit-44"
                 >
                     <ProviderIcon provider={song.provider} />
                 </a>
 
                 <Toggle
-                    className="corner-done-toggle corner-done-toggle--icon"
+                    className="corner-done-toggle corner-done-toggle--icon shell-press shell-hit-44"
                     pressed={isDone}
                     onPressedChange={handleToggleDone}
                     aria-disabled={isTogglePending || undefined}
@@ -177,7 +177,7 @@ export default function SongTile({ song, listType, onEdit }: Props) {
                             <button
                                 type="button"
                                 aria-label={`Actions for ${song.title}`}
-                                className="corner-tile-icon-btn"
+                                className="corner-tile-icon-btn shell-press shell-hit-44"
                             >
                                 <MoreHorizontal size={18} aria-hidden="true" />
                             </button>
@@ -185,7 +185,6 @@ export default function SongTile({ song, listType, onEdit }: Props) {
                         <DropdownMenuContent
                             onCloseAutoFocus={menu.onCloseAutoFocus}
                             align="end"
-                            data-app="our-corner"
                         >
                             {onEdit && song.can.update && (
                                 <DropdownMenuItem

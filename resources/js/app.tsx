@@ -2,8 +2,9 @@ import { createInertiaApp, router } from '@inertiajs/react';
 import * as Sentry from '@sentry/react';
 import { createRoot } from 'react-dom/client';
 import { Toaster } from '@/components/ui/sonner';
-import { recordNavigation } from '@/lib/back-navigation';
+import { installOverlayHistory } from '@/hooks/use-overlay-history';
 import { watchConnection } from '@/lib/connection';
+import { installNavigation } from '@/lib/navigation';
 import { captureSilent } from '@/lib/observability';
 import { installRouteFocus } from '@/lib/route-focus';
 import AppLayout from '@/Shell/Layouts/AppLayout';
@@ -47,6 +48,9 @@ if (import.meta.env.PROD && sentryDsn) {
         integrations: [Sentry.browserTracingIntegration()],
     });
 }
+
+// Before createInertiaApp: its popstate listener must run after this one.
+installOverlayHistory();
 
 createInertiaApp({
     title: (title) => (title ? `${title} — ${appName}` : appName),
@@ -116,16 +120,8 @@ createInertiaApp({
     },
 });
 
-router.on('navigate', (event) => {
-    recordNavigation(event.detail.page.url);
-});
-
-// A replace visit (BackChevron's fallback) fires no navigate event.
-router.on('success', (event) => {
-    recordNavigation(event.detail.page.url);
-});
-
-installRouteFocus(router);
+installNavigation(router);
+installRouteFocus();
 
 watchConnection(appName);
 

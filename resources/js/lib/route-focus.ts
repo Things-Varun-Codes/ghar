@@ -1,5 +1,5 @@
-import type { router as inertiaRouter } from '@inertiajs/react';
-import { pathOf } from '@/lib/url';
+import type { VisitInfo } from '@/lib/navigation';
+import { onPageChange } from '@/lib/navigation';
 
 /*
  * After a client-side visit the browser keeps focus on whatever was clicked (or drops it to
@@ -8,8 +8,6 @@ import { pathOf } from '@/lib/url';
  * load, on a form submit that keeps focus, and on a visit that keeps the page (a filter, sort, search or
  * load-more: same path, or preserveScroll).
  */
-
-export type VisitInfo = { method: string; preserveScroll: boolean };
 
 export type RouteChange = {
     /** null on the first page load. */
@@ -134,77 +132,24 @@ function apply(action: FocusAction): void {
     announce(document.title);
 }
 
-type Router = typeof inertiaRouter;
-
-export function installRouteFocus(router: Router): void {
-    const visits = new Map<string, VisitInfo>();
-    let previousPath: string | null = null;
+export function installRouteFocus(): void {
     let previousHeading: string | null = null;
 
-    // After React has committed the page and Inertia's <Head> has set the title.
-    const handle = (url: string, visit: VisitInfo | null) => {
+    onPageChange((change) => {
+        // After React has committed the page and Inertia's <Head> has set the title.
         window.requestAnimationFrame(() => {
-            const nextPath = pathOf(url);
             const heading = headingText();
 
             const action = routeFocusAction({
-                previousPath,
-                nextPath,
-                visit,
+                previousPath: change.previousPath,
+                nextPath: change.path,
+                visit: change.visit,
                 sameHeading: heading !== null && heading === previousHeading,
                 focusLost: focusLost(),
             });
 
-            previousPath = nextPath;
             previousHeading = heading;
             apply(action);
         });
-    };
-
-    router.on('before', (event) => {
-        const visit = event.detail.visit;
-
-        if (visit.prefetch) {
-            return;
-        }
-
-        visits.set(visit.id, {
-            method: String(visit.method).toLowerCase(),
-            preserveScroll: visit.preserveScroll === true,
-        });
-
-        // A visit that never succeeds leaves its entry behind; keep only the recent ones.
-        if (visits.size > 20) {
-            const oldest = visits.keys().next().value;
-
-            if (oldest !== undefined) {
-                visits.delete(oldest);
-            }
-        }
-    });
-
-    router.on('success', (event) => {
-        const id = event.detail.visitId;
-        const visit = (id !== undefined && visits.get(id)) || {
-            method: 'get',
-            preserveScroll: false,
-        };
-
-        if (id !== undefined) {
-            visits.delete(id);
-        }
-
-        handle(event.detail.page.url, visit);
-    });
-
-    router.on('navigate', (event) => {
-        if (event.detail.type === 'initial') {
-            handle(event.detail.page.url, {
-                method: 'get',
-                preserveScroll: true,
-            });
-        } else if (event.detail.type === 'history') {
-            handle(event.detail.page.url, null);
-        }
     });
 }

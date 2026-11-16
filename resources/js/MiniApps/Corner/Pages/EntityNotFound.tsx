@@ -35,7 +35,7 @@ export default function EntityNotFound({ kind }: Props) {
                         </p>
                         <Link
                             href={landing.url()}
-                            className="corner-not-found-back"
+                            className="corner-not-found-back shell-press"
                         >
                             <ChevronLeft
                                 aria-hidden="true"

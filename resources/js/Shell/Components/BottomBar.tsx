@@ -1,19 +1,19 @@
 import { Link, usePage } from '@inertiajs/react';
 import type { LucideIcon } from 'lucide-react';
-import { BookHeart, House, LayoutGrid, Mailbox, Sofa } from 'lucide-react';
+import { House, LayoutGrid } from 'lucide-react';
 import { dashboard } from '@/routes';
-import { roomsForBar } from '@/Shell/Components/bottom-bar';
+import { navIconFor, roomsForBar } from '@/Shell/Components/bottom-bar';
 import type { MiniApp } from '@/types/miniapp';
 
 /*
- * Names a registry entry may use for its `icon`. An unknown name falls back to a neutral tile,
- * so an app added without an entry here still gets a door in the bar.
+ * Each room supplies its bar icon as the default export of MiniApps/{App}/nav-icon.tsx. A build-time
+ * glob keeps the shell free of named imports, so a new room needs no shell edit. Eager: each module
+ * is a single lucide icon, so the first paint has no flash and no extra request.
  */
-const ROOM_ICONS: Record<string, LucideIcon> = {
-    BookHeart,
-    Mailbox,
-    Sofa,
-};
+const navIcons = import.meta.glob<LucideIcon>('../../MiniApps/*/nav-icon.tsx', {
+    eager: true,
+    import: 'default',
+});
 
 type SharedProps = { miniApps?: MiniApp[] };
 
@@ -43,7 +43,7 @@ export default function BottomBar({
                         key={app.slug}
                         href={app.route}
                         label={app.nav_label ?? app.name.replace(/^Our\s+/, '')}
-                        Icon={(app.icon && ROOM_ICONS[app.icon]) || LayoutGrid}
+                        Icon={navIconFor(app, navIcons) ?? LayoutGrid}
                         current={
                             activeRoom?.slug === app.slug
                                 ? path === app.route

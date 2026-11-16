@@ -1,25 +1,6 @@
 import { router } from '@inertiajs/react';
+import { previousUrl } from '@/lib/navigation';
 import { pathOf } from '@/lib/url';
-
-// The page before the current one, by path. Same-path visits (a search, a filter, a
-// load-more) update the current URL in place so the previous page survives them.
-let current: string | null = null;
-let previous: string | null = null;
-
-export function recordNavigation(url: string): void {
-    if (current !== null && pathOf(url) === pathOf(current)) {
-        current = url;
-
-        return;
-    }
-
-    previous = current;
-    current = url;
-}
-
-export function previousUrl(): string | null {
-    return previous;
-}
 
 /**
  * Back to `parent`. If the parent is the page we came from, step back through history so its
@@ -27,6 +8,8 @@ export function previousUrl(): string | null {
  * bounce between the two.
  */
 export function goBack(parent: string): void {
+    const previous = previousUrl();
+
     if (previous !== null && pathOf(previous) === pathOf(parent)) {
         window.history.back();
 
@@ -34,9 +17,4 @@ export function goBack(parent: string): void {
     }
 
     router.visit(parent, { replace: true });
-}
-
-export function resetNavigationForTests(): void {
-    current = null;
-    previous = null;
 }

@@ -23,7 +23,7 @@ export default function MobileTopBar({
     const title = info?.title ?? activeRoom?.name ?? appName;
 
     return (
-        <header className="shell-topbar fixed top-0 right-0 left-0 z-50 grid grid-cols-[44px_minmax(0,1fr)_44px] items-center gap-2 bg-(--sidebar)">
+        <header className="shell-topbar fixed top-0 right-0 left-0 z-(--z-topbar) grid grid-cols-[44px_minmax(0,1fr)_44px] items-center gap-2 bg-(--sidebar)">
             <div className="flex">
                 {!onHome && <BackChevron back={info?.back} />}
             </div>

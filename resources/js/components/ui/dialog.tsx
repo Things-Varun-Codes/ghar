@@ -1,7 +1,7 @@
 import * as DialogPrimitive from "@radix-ui/react-dialog"
-import { XIcon } from "lucide-react"
 import * as React from "react"
 
+import { OverlayClose } from "@/components/ui/overlay-close"
 import { useKeyboardAwareDialog } from "@/hooks/use-keyboard-aware-dialog"
 import { useAppAttrs } from "@/hooks/use-app-attrs"
 import { useReturnFocus } from "@/hooks/use-return-focus"
@@ -62,10 +62,7 @@ function DialogContent({
         {...returnFocus}
       >
         {children}
-        <DialogPrimitive.Close className="shell-press shell-focus absolute top-2 right-2 z-10 inline-flex size-11 items-center justify-center rounded-full text-(--shell-text) hover:bg-(--shell-hover) disabled:pointer-events-none">
-          <XIcon className="size-5" strokeWidth={1.5} aria-hidden="true" />
-          <span className="sr-only">Close</span>
-        </DialogPrimitive.Close>
+        <OverlayClose />
       </DialogPrimitive.Content>
     </DialogPortal>
   )

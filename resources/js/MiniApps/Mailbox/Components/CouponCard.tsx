@@ -45,7 +45,7 @@ export default function CouponCard({ coupon }: { coupon: CouponPayload }) {
     const pipCount = Math.min(coupon.quantity, MAX_PIPS);
 
     return (
-        <div className="mailbox-card shell-card-stretch grid gap-2">
+        <div className="mailbox-card shell-card-stretch shell-lift grid gap-2">
             <div className="flex items-baseline justify-between gap-3">
                 <span className="font-(family-name:--mailbox-coupon-font-mono) text-(length:--text-meta) text-(--mailbox-ink-soft) tabular-nums">
                     {coupon.code ?? '—'}

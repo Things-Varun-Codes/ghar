@@ -73,7 +73,7 @@ export default function FilterRail({
                             type="button"
                             onClick={() => navigate(opt.key, filters.year)}
                             aria-pressed={isActive}
-                            className="history-chip"
+                            className="history-chip shell-press"
                         >
                             {opt.label}
                             {opt.count !== undefined && (
@@ -97,7 +97,7 @@ export default function FilterRail({
                         type="button"
                         onClick={() => navigate(filters.type, null)}
                         aria-pressed={filters.year === null}
-                        className="history-chip"
+                        className="history-chip shell-press"
                     >
                         All
                     </button>
@@ -110,7 +110,7 @@ export default function FilterRail({
                                 type="button"
                                 onClick={() => navigate(filters.type, year)}
                                 aria-pressed={isActive}
-                                className="history-chip"
+                                className="history-chip shell-press"
                             >
                                 {year}
                             </button>

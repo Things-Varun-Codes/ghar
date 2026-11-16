@@ -116,7 +116,10 @@ function YearDropdown({
     return (
         <DropdownMenu>
             <DropdownMenuTrigger asChild>
-                <button type="button" className="history-year-trigger">
+                <button
+                    type="button"
+                    className="history-year-trigger shell-press"
+                >
                     <span>Year: {activeLabel}</span>
                     <ChevronDown
                         aria-hidden="true"

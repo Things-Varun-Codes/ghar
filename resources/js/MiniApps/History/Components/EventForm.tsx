@@ -278,7 +278,7 @@ const EventForm = forwardRef<EventFormHandle, EventFormProps>(
                             onChange={(e) =>
                                 setData('occurred_on', e.target.value)
                             }
-                            className="history-date-input"
+                            className="history-date-input shell-field"
                         />
                         {errors.occurred_on && (
                             <p
@@ -301,7 +301,7 @@ const EventForm = forwardRef<EventFormHandle, EventFormProps>(
                             value={data.title}
                             onChange={(e) => setData('title', e.target.value)}
                             placeholder="e.g. Grandma's 80th"
-                            className="history-date-input"
+                            className="history-date-input shell-field"
                         />
                     </div>
 

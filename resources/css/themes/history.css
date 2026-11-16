@@ -94,7 +94,7 @@
     padding: 16px 36px;
 }
 
-@media (min-width: 768px) {
+@variant md {
     .history-year-banner {
         margin-left: -80px; /* wider wrapper padding-left is 80px */
         padding: 32px 80px 16px 80px; /* padding-top 32 absorbs the visual breathing room */
@@ -102,7 +102,7 @@
 }
 
 /* From lg the sidebar replaces the top bar, so only the toolbar is above. */
-@media (min-width: 1024px) {
+@variant lg {
     .history-year-banner {
         top: var(--history-subtoolbar-h, 60px);
     }
@@ -122,7 +122,7 @@
     z-index: 12;
 }
 
-@media (min-width: 768px) {
+@variant md {
     .history-sort-toolbar {
         display: flex;
         align-items: center;
@@ -142,7 +142,7 @@
 .history-timeline-dot {
     left: -28px;
 }
-@media (min-width: 768px) {
+@variant md {
     .history-timeline-wrapper {
         padding-left: 80px;
     }
@@ -171,7 +171,7 @@
 }
 
 /* Below 1024px the fixed rail would overlap the centred cards. */
-@media (min-width: 1024px) {
+@variant lg {
     .history-year-rail {
         display: flex;
     }
@@ -182,9 +182,9 @@
     max-width: 1100px; /* base: <1024px, no rail — full design width */
 }
 
-@media (min-width: 1024px) {
+@variant lg {
     .history-timeline-body {
-        max-width: min(1100px, calc(100vw - 432px));
+        max-width: min(1100px, calc(100vw - var(--shell-sidebar-w) - 192px));
     }
 }
 
@@ -227,7 +227,7 @@
     display: none;
 }
 
-@media (max-width: 767.98px) {
+@variant max-md {
     .history-filter-rail {
         display: none;
     }
@@ -245,108 +245,23 @@
  * between views.
  */
 /* Below lg there is no sidebar and the index tier already spans the page. */
-@media (min-width: 1024px) {
+@variant lg {
     [data-app='our-history'] .history-gallery-wide {
-        /* The wrapper is left-anchored at x≈304 (240px sidebar + a 64px content
-         * inset). Subtract the sidebar + an EQUAL 64px gutter on each side so the
+        /* The wrapper is left-anchored past the sidebar and a 64px content inset.
+         * Subtract the sidebar + an EQUAL 64px gutter on each side so the
          * masonry's right edge mirrors its left inset (symmetric gutters) instead
          * of running flush to the viewport edge. */
-        width: calc(100vw - 240px - 128px);
+        width: calc(100vw - var(--shell-sidebar-w) - 128px);
         max-width: none;
     }
 }
 
 /*
- * One pointer vocabulary for every pill in the room: a step up on hover, a press on click.
- * Colours change in each control's own rule below.
+ * The room draws focus as a box-shadow ring (above), so .shell-press's outline would double it.
+ * Button keeps both, as before.
  */
-[data-app='our-history']
-    :is(
-        .history-btn-keep-media,
-        .history-btn-destructive,
-        .history-btn-keep-event,
-        .history-btn-delete,
-        .history-btn-edit,
-        .history-btn-close,
-        .history-btn-cancel,
-        .history-btn-save,
-        .history-btn-keep-editing,
-        .history-btn-discard,
-        .history-btn-add-first,
-        .history-clear-filters,
-        .history-chip,
-        .history-cal-chip,
-        .history-cal-navbtn,
-        .history-cal-otd-card,
-        .history-sort-trigger,
-        .history-year-trigger,
-        .history-continue-link,
-        .history-upload-retry,
-        .tiptap-link-popover-btn
-    ) {
-    transition:
-        background-color var(--dur-out) var(--ease-ui),
-        border-color var(--dur-out) var(--ease-ui),
-        color var(--dur-out) var(--ease-ui),
-        transform var(--dur-out) var(--ease-ui);
-}
-
-@media (hover: hover) and (pointer: fine) {
-    [data-app='our-history']
-        :is(
-            .history-btn-keep-media,
-            .history-btn-destructive,
-            .history-btn-keep-event,
-            .history-btn-delete,
-            .history-btn-edit,
-            .history-btn-close,
-            .history-btn-cancel,
-            .history-btn-save,
-            .history-btn-keep-editing,
-            .history-btn-discard,
-            .history-btn-add-first,
-            .history-clear-filters,
-            .history-chip,
-            .history-cal-chip,
-            .history-cal-navbtn,
-            .history-cal-otd-card,
-            .history-sort-trigger,
-            .history-year-trigger,
-            .history-continue-link,
-            .history-upload-retry,
-            .tiptap-link-popover-btn
-        ):hover:not(:disabled) {
-        transform: translateY(-1px);
-        transition-duration: var(--dur-in);
-    }
-}
-
-[data-app='our-history']
-    :is(
-        .history-btn-keep-media,
-        .history-btn-destructive,
-        .history-btn-keep-event,
-        .history-btn-delete,
-        .history-btn-edit,
-        .history-btn-close,
-        .history-btn-cancel,
-        .history-btn-save,
-        .history-btn-keep-editing,
-        .history-btn-discard,
-        .history-btn-add-first,
-        .history-clear-filters,
-        .history-chip,
-        .history-cal-chip,
-        .history-cal-navbtn,
-        .history-cal-otd-card,
-        .history-sort-trigger,
-        .history-year-trigger,
-        .history-continue-link,
-        .history-upload-retry,
-        .tiptap-link-popover-btn
-    ):active:not(:disabled) {
-    transform: translateY(1px) scale(0.985);
-    transition-duration: var(--dur-press);
+[data-app='our-history'] .shell-press:not(.shell-btn):focus-visible {
+    outline: none;
 }
 
 /* ---- Buttons ---- */
@@ -483,7 +398,7 @@
     border-top-right-radius: calc(var(--history-radius-control) - 1px);
 }
 
-@media (max-width: 767.98px) {
+@variant max-md {
     [data-app='our-history'] .tiptap-toolbar-sep {
         display: none;
     }
@@ -808,9 +723,6 @@
     border-radius: var(--history-radius-card);
     padding: 20px;
     margin-bottom: 16px;
-    transition:
-        transform var(--dur-card) var(--ease-ui),
-        border-color var(--dur-card) var(--ease-ui);
 }
 
 /* Whatever comes last in a card sits on the card's own padding, not on its margin as well. */
@@ -843,7 +755,7 @@
     transition: transform var(--dur-card) var(--ease-ui);
 }
 
-@media (min-width: 768px) {
+@variant md {
     [data-app='our-history'] .history-event-card {
         padding: 24px;
     }
@@ -853,13 +765,8 @@
     }
 }
 
-/* A card that opens the moment lifts; its dot stays on the rail. */
+/* A card that opens the moment lifts (.shell-lift); its dot stays on the rail. */
 @media (hover: hover) and (pointer: fine) {
-    [data-app='our-history'] .history-event-card.shell-card-stretch:hover {
-        transform: translateY(-2px);
-        border-color: var(--history-lift-border);
-    }
-
     [data-app='our-history']
         .history-event-card.shell-card-stretch:hover
         .history-timeline-marker {
@@ -1359,30 +1266,8 @@
     display: flex;
     flex-direction: column;
     overflow: hidden;
-}
-
-[data-app='our-history'] .history-sheet-close,
-[data-app='our-history'] .history-sheet-close-float {
-    position: absolute;
-    top: 12px;
-    right: 12px;
-    width: 44px;
-    height: 44px;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    background: transparent;
-    border: none;
-    border-radius: var(--radius-pill);
-    color: var(--history-ink-soft);
-    cursor: pointer;
-    font-size: var(--text-subhead);
-    line-height: 1;
-    z-index: 2;
-    transition:
-        background-color var(--dur-out) var(--ease-ui),
-        color var(--dur-out) var(--ease-ui),
-        transform var(--dur-out) var(--ease-ui);
+    --overlay-close-ink: var(--history-ink-soft);
+    --overlay-close-hover: var(--history-hover);
 }
 
 /* Sits over the scrolling story, so it carries its own ground. */
@@ -1393,20 +1278,10 @@
     border: 1px solid var(--history-rule);
 }
 
-[data-app='our-history'] .history-sheet-close:hover {
-    background: var(--history-hover);
-    color: var(--history-ink);
-}
-
-[data-app='our-history'] .history-sheet-close-float:hover {
-    background: var(--history-card);
-    color: var(--history-ink);
-}
-
-[data-app='our-history']
-    :is(.history-sheet-close, .history-sheet-close-float):active {
-    transform: scale(0.94);
-    transition-duration: var(--dur-press);
+@media (hover: hover) {
+    [data-app='our-history'] .history-sheet-close-float:hover {
+        background: var(--history-card);
+    }
 }
 
 [data-app='our-history'] .history-sheet-title {
@@ -1487,7 +1362,7 @@
     gap: 24px;
 }
 
-@media (max-width: 767.98px) {
+@variant max-md {
     [data-app='our-history'] .history-form-layout {
         grid-template-columns: minmax(0, 1fr);
         grid-template-areas: 'date' 'title' 'loc' 'body' 'media' 'foot';
@@ -1516,19 +1391,6 @@
     border: 1px solid var(--history-control-border);
     border-radius: var(--history-radius-control);
     box-sizing: border-box;
-    transition: border-color var(--dur-out) var(--ease-ui);
-}
-
-[data-app='our-history']
-    :is(.history-date-input, .tiptap-link-popover-input):hover {
-    border-color: color-mix(in oklab, var(--history-ink) 48%, transparent);
-}
-
-/* Drawn in full at once: a focus state never fades in. */
-[data-app='our-history']
-    :is(.history-date-input, .tiptap-link-popover-input):focus-visible {
-    border-color: var(--history-action);
-    box-shadow: var(--history-field-focus);
 }
 
 [data-app='our-history'] #event-occurred-on {
@@ -1693,9 +1555,8 @@
     flex-shrink: 0;
 }
 
-/* 28px to fit the tile; the pseudo-element keeps the 44px touch target. */
+/* 28px to fit the tile; .shell-hit-44 keeps the 44px touch target. */
 [data-app='our-history'] .history-upload-retry {
-    position: relative;
     font-family: var(--history-font-sans);
     font-size: var(--text-meta);
     font-weight: 500;
@@ -1708,12 +1569,6 @@
     margin-top: 4px;
     min-height: 28px;
     flex-shrink: 0;
-}
-
-[data-app='our-history'] .history-upload-retry::after {
-    content: '';
-    position: absolute;
-    inset: -8px;
 }
 
 [data-app='our-history'] .history-upload-retry:hover {
@@ -1772,11 +1627,11 @@
 }
 
 [data-app='our-history'].history-alert-overlay {
-    z-index: 60;
+    z-index: var(--z-overlay-raised);
 }
 
 [data-app='our-history'].history-delete-overlay {
-    z-index: 50;
+    z-index: var(--z-overlay);
 }
 
 [data-app='our-history'].history-alert-dialog,
@@ -1795,14 +1650,20 @@
 }
 
 [data-app='our-history'].history-alert-dialog {
-    z-index: 61;
+    z-index: calc(var(--z-overlay-raised) + 1);
 }
 
 [data-app='our-history'].history-delete-dialog {
-    z-index: 51;
+    z-index: calc(var(--z-overlay) + 1);
 }
 
-@media (min-width: 768px) {
+/* The discard prompt is the shell's AlertDialog, which centres and animates with translate. */
+[data-app='our-history'].history-discard-dialog {
+    display: block;
+    transform: none;
+}
+
+@variant md {
     [data-app='our-history'].history-alert-dialog,
     [data-app='our-history'].history-delete-dialog {
         padding: 32px;
@@ -1850,7 +1711,7 @@
     margin-bottom: 24px;
 }
 
-@media (min-width: 768px) {
+@variant md {
     [data-app='our-history'] .history-cal-otd {
         padding: 24px;
     }
@@ -2348,32 +2209,8 @@
 
     [data-app='our-history']
         :is(
-            .history-btn-keep-media,
-            .history-btn-destructive,
-            .history-btn-keep-event,
-            .history-btn-delete,
-            .history-btn-edit,
-            .history-btn-close,
-            .history-btn-cancel,
-            .history-btn-save,
-            .history-btn-keep-editing,
-            .history-btn-discard,
-            .history-btn-add-first,
-            .history-clear-filters,
-            .history-chip,
-            .history-cal-chip,
-            .history-cal-navbtn,
-            .history-cal-otd-card,
-            .history-sort-trigger,
-            .history-year-trigger,
-            .history-continue-link,
-            .history-upload-retry,
-            .tiptap-link-popover-btn,
             .tiptap-toolbar-btn,
-            .history-sheet-close,
-            .history-sheet-close-float,
             .history-cal-cell--event,
-            .history-event-card,
             .history-timeline-marker,
             .history-media-remove-dot
         ),

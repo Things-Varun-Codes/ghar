@@ -144,7 +144,7 @@ export default function MovieAddDialog({ open, onOpenChange, item }: Props) {
             busyText={isEdit ? 'Saving…' : 'Adding movie…'}
             processing={processing}
             onSubmit={handleSubmit}
-            isDirty={() => isDirty}
+            isDirty={isDirty}
             renderFields={() => (
                 <>
                     <FormField

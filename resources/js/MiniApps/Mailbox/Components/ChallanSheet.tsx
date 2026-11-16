@@ -156,7 +156,7 @@ export default function ChallanSheet({ open, onOpenChange, members }: Props) {
                         onChange={(e) => setData('offence', e.target.value)}
                         aria-required="true"
                         placeholder="e.g. Replied with just 'k' to a whole paragraph"
-                        className="mailbox-field"
+                        className="mailbox-field shell-field"
                     />
                 </FormField>
                 <CharCount length={data.offence.length} max={OFFENCE_MAX} />
@@ -176,7 +176,7 @@ export default function ChallanSheet({ open, onOpenChange, members }: Props) {
                         onChange={(e) =>
                             setData('incident_date', e.target.value)
                         }
-                        className="mailbox-field"
+                        className="mailbox-field shell-field"
                     />
                 </FormField>
                 <div>
@@ -195,7 +195,7 @@ export default function ChallanSheet({ open, onOpenChange, members }: Props) {
                                 setData('incident_place', e.target.value)
                             }
                             placeholder="e.g. the group chat"
-                            className="mailbox-field"
+                            className="mailbox-field shell-field"
                         />
                     </FormField>
                     <CharCount
@@ -230,7 +230,7 @@ export default function ChallanSheet({ open, onOpenChange, members }: Props) {
                         onChange={(e) => setData('penalty', e.target.value)}
                         aria-required="true"
                         placeholder="e.g. 3 hugs, payable on demand"
-                        className="mailbox-field"
+                        className="mailbox-field shell-field"
                     />
                 </FormField>
                 <CharCount length={data.penalty.length} max={PENALTY_MAX} />
@@ -245,7 +245,7 @@ export default function ChallanSheet({ open, onOpenChange, members }: Props) {
                 >
                     <textarea
                         id="challan-remarks"
-                        className="mailbox-field"
+                        className="mailbox-field shell-field"
                         value={data.remarks}
                         onChange={(e) => setData('remarks', e.target.value)}
                         rows={3}

@@ -3,9 +3,11 @@
 //
 // The fetch listener answers top-level page navigations only, and only to replace a network
 // failure with /offline.html. It caches nothing but that one static file: app pages are
-// private and always come from the network. No navigation preload either: a navigation the
-// worker passes on would then be requested twice. Everything else (Inertia's XHR visits, assets,
-// media, cross-origin requests) never reaches respondWith, so the browser handles it natively.
+// private and always come from the network. Navigation preload starts that request while the
+// worker boots, so every navigation the worker sees must use the preload response: one it
+// passed on would be requested a second time. Everything else (Inertia's XHR visits, assets,
+// media, cross-origin requests) never reaches respondWith, and where the browser has static
+// routing it never wakes the worker at all.
 
 const OFFLINE_CACHE = 'ghar-offline-v1';
 const OFFLINE_URL = '/offline.html';
@@ -15,7 +17,29 @@ const OFFLINE_URL = '/offline.html';
 const BYPASS_PATHS = ['/sw.js', '/manifest.webmanifest', '/healthz', '/up'];
 const BYPASS_PREFIXES = ['/go/'];
 
+// One rule per non-navigation request mode, so no rule can match a page load. Navigations are
+// sent to the fetch listener first anyway, in case a browser ignores the condition.
+const STATIC_ROUTES = [
+    { condition: { requestMode: 'navigate' }, source: 'fetch-event' },
+    { condition: { requestMode: 'same-origin' }, source: 'network' },
+    { condition: { requestMode: 'cors' }, source: 'network' },
+    { condition: { requestMode: 'no-cors' }, source: 'network' },
+];
+
+async function addStaticRoutes(event) {
+    if (typeof event.addRoutes !== 'function') {
+        return;
+    }
+
+    try {
+        await event.addRoutes(STATIC_ROUTES);
+    } catch {
+        // Rules the browser rejects leave every request on the fetch listener, as without the API.
+    }
+}
+
 self.addEventListener('install', (event) => {
+    event.waitUntil(addStaticRoutes(event));
     event.waitUntil(
         caches
             .open(OFFLINE_CACHE)
@@ -43,39 +67,59 @@ self.addEventListener('activate', (event) => {
                     .map((key) => caches.delete(key)),
             );
 
+            if (self.registration.navigationPreload) {
+                await self.registration.navigationPreload
+                    .enable()
+                    .catch(() => undefined);
+            }
+
             await self.clients.claim();
         })(),
     );
 });
 
-function isOfflineCandidate(request) {
-    if (request.mode !== 'navigate' || request.method !== 'GET') {
-        return false;
-    }
-
-    const url = new URL(request.url);
-
-    if (url.origin !== self.location.origin) {
-        return false;
-    }
-
+function isPageLoad(request) {
     return (
-        !BYPASS_PATHS.includes(url.pathname) &&
-        !BYPASS_PREFIXES.some((prefix) => url.pathname.startsWith(prefix))
+        request.mode === 'navigate' &&
+        request.method === 'GET' &&
+        new URL(request.url).origin === self.location.origin
     );
 }
 
+function isBypassed(request) {
+    const { pathname } = new URL(request.url);
+
+    return (
+        BYPASS_PATHS.includes(pathname) ||
+        BYPASS_PREFIXES.some((prefix) => pathname.startsWith(prefix))
+    );
+}
+
+// preloadResponse resolves to undefined where navigation preload is off or unsupported.
+async function fromNetwork(event) {
+    const preloaded = await event.preloadResponse;
+
+    return preloaded ?? fetch(event.request);
+}
+
 self.addEventListener('fetch', (event) => {
-    if (!isOfflineCandidate(event.request)) {
+    if (!isPageLoad(event.request)) {
+        return;
+    }
+
+    // The server's own response, untouched: never cached, never replaced by the offline page.
+    if (isBypassed(event.request)) {
+        event.respondWith(fromNetwork(event));
+
         return;
     }
 
     event.respondWith(
         (async () => {
             try {
-                return await fetch(event.request);
+                return await fromNetwork(event);
             } catch (error) {
-                // fetch() only rejects when there is no response at all; a 404 or 500 from the
+                // Both reject only when there is no response at all; a 404 or 500 from the
                 // server still comes back as itself.
                 const offline = await caches.match(OFFLINE_URL, {
                     cacheName: OFFLINE_CACHE,

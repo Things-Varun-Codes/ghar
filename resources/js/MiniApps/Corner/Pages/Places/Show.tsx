@@ -94,7 +94,7 @@ export default function PlacesShow({ place, mentioned_in }: Props) {
                         href={googleMapsUrl(place)}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="corner-detail-cta"
+                        className="corner-detail-cta shell-press"
                     >
                         Open in Google Maps
                         <ArrowUpRight

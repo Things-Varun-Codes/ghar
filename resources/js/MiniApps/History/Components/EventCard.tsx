@@ -117,7 +117,7 @@ export default function EventCard({ event, onRead }: EventCardProps) {
             id={`event-${event.id}`}
             className={cn(
                 'history-event-card',
-                isTappable && 'shell-card-stretch',
+                isTappable && 'shell-card-stretch shell-lift',
             )}
         >
             <span

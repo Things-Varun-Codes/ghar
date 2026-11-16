@@ -165,8 +165,6 @@ export default function Timeline({
     const [sheetMode, setSheetMode] = useState<'add' | 'edit' | 'read'>('add');
     const [editingEvent, setEditingEvent] = useState<HistoryEvent | null>(null);
 
-    const lastTriggerRef = useRef<HTMLElement | null>(null);
-
     useMomentFromUrl(moment, initialEvents.data, (event) => {
         setEditingEvent(event);
         setSheetMode('read');
@@ -313,8 +311,6 @@ export default function Timeline({
                 ariaLabel="Add moment"
                 icon={<Plus aria-hidden="true" size={24} strokeWidth={2.5} />}
                 onClick={() => {
-                    lastTriggerRef.current =
-                        document.activeElement as HTMLElement | null;
                     setEditingEvent(null);
                     setSheetMode('add');
                     setSheetOpen(true);
@@ -329,13 +325,11 @@ export default function Timeline({
                         <button
                             type="button"
                             onClick={() => {
-                                lastTriggerRef.current =
-                                    document.activeElement as HTMLElement | null;
                                 setEditingEvent(null);
                                 setSheetMode('add');
                                 setSheetOpen(true);
                             }}
-                            className="history-btn-add-first"
+                            className="history-btn-add-first shell-press"
                         >
                             Add your first moment
                         </button>
@@ -368,8 +362,6 @@ export default function Timeline({
                                     <EventCard
                                         event={event}
                                         onRead={(id) => {
-                                            lastTriggerRef.current =
-                                                document.activeElement as HTMLElement | null;
                                             const target =
                                                 accumulatedEvents.find(
                                                     (e) => e.id === id,
@@ -409,7 +401,6 @@ export default function Timeline({
                 onOpenChange={setSheetOpen}
                 mode={sheetMode}
                 editingEvent={editingEvent}
-                triggerRef={lastTriggerRef}
             />
         </HistoryLayout>
     );

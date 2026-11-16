@@ -188,25 +188,9 @@
     outline: none;
 }
 
-[data-app='our-mailbox'] .mailbox-card.shell-card-stretch {
-    transition:
-        transform var(--dur-out) var(--ease-ui),
-        border-color var(--dur-out) var(--ease-ui);
-}
-
-@media (hover: hover) and (pointer: fine) {
-    [data-app='our-mailbox'] .mailbox-card.shell-card-stretch:hover {
-        transform: translateY(-2px);
-        border-color: var(--mailbox-hover-border);
-        transition-duration: var(--dur-card);
-    }
-}
-
-/* Pressing the card's own link sets it back down; pressing a button inside it does not. */
-[data-app='our-mailbox']
-    .mailbox-card.shell-card-stretch:has(.shell-card-link:active) {
+/* Paper doesn't shrink: pressing the card's own link sets the lifted card back down. */
+[data-app='our-mailbox'] .mailbox-card.shell-lift:has(.shell-card-link:active) {
     transform: none;
-    transition-duration: var(--dur-press);
 }
 
 [data-app='our-mailbox'] .mailbox-status-pill {
@@ -234,13 +218,7 @@
     justify-content: center;
     transition: background-color var(--dur-out) var(--ease-ui);
 }
-/* The button stays 32px so the note keeps its rule rhythm; the tap area is 44px. */
-[data-app='our-mailbox'] .mailbox-card-menu::before,
-[data-app='our-mailbox'] .mailbox-card-menu-square::before {
-    content: '';
-    position: absolute;
-    inset: -6px;
-}
+/* The button stays 32px so the note keeps its rule rhythm; .shell-hit-44 keeps the tap area. */
 [data-app='our-mailbox'] .mailbox-card-menu:hover,
 [data-app='our-mailbox'] .mailbox-card-menu-square:hover,
 [data-app='our-mailbox'] .mailbox-card-menu[data-state='open'],
@@ -1164,6 +1142,8 @@
     overflow: hidden;
     display: flex;
     flex-direction: column;
+    --overlay-close-ink: var(--mailbox-ink-soft);
+    --overlay-close-hover: var(--mailbox-hover-wash);
 }
 
 [data-app='our-mailbox'] .mailbox-sheet-form {
@@ -1187,33 +1167,6 @@
     line-height: 1.2;
     letter-spacing: var(--tracking-display);
     color: var(--mailbox-ink);
-}
-
-[data-app='our-mailbox'] .mailbox-sheet-close {
-    position: absolute;
-    top: 12px;
-    right: 12px;
-    width: 44px;
-    height: 44px;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    border: none;
-    border-radius: var(--radius-pill);
-    background: transparent;
-    color: var(--mailbox-ink-soft);
-    cursor: pointer;
-    transition:
-        background-color var(--dur-out) var(--ease-ui),
-        color var(--dur-out) var(--ease-ui);
-}
-[data-app='our-mailbox'] .mailbox-sheet-close:hover {
-    background: var(--mailbox-hover-wash);
-    color: var(--mailbox-ink);
-}
-[data-app='our-mailbox'] .mailbox-sheet-close:focus-visible {
-    outline: 2px solid var(--mailbox-action);
-    outline-offset: 2px;
 }
 
 [data-app='our-mailbox'] .mailbox-sheet-scroll {
@@ -1416,7 +1369,6 @@
     border: 1px solid var(--mailbox-border-input);
     border-radius: var(--radius-field);
     padding: 8px 16px;
-    transition: border-color var(--dur-out) var(--ease-ui);
 }
 [data-app='our-mailbox'] .mailbox-field::placeholder,
 [data-app='our-mailbox'] .mailbox-bouquet-mood-input::placeholder,
@@ -1462,26 +1414,12 @@
     min-height: 180px;
 }
 
-[data-app='our-mailbox']
-    :is(
-        .mailbox-field,
-        .mailbox-bouquet-mood-input,
-        .mailbox-bouquet-note-input,
-        .mailbox-note-input
-    ):hover {
-    border-color: color-mix(in oklab, var(--mailbox-ink) 48%, transparent);
-}
-
-/* Drawn in full at once: the focus state never fades in. */
+/*
+ * The room's fields carry .shell-field. This also gives every other input here, such as the
+ * list search, the same focus, drawn in full at once.
+ */
 [data-app='our-mailbox'] textarea:focus-visible,
-[data-app='our-mailbox'] input:focus-visible,
-[data-app='our-mailbox']
-    :is(
-        .mailbox-field,
-        .mailbox-bouquet-mood-input,
-        .mailbox-bouquet-note-input,
-        .mailbox-note-input
-    ):focus-visible {
+[data-app='our-mailbox'] input:focus-visible {
     outline: none;
     border-color: var(--mailbox-action);
     box-shadow: var(--mailbox-field-focus);
@@ -1616,39 +1554,6 @@
 [data-app='our-mailbox']
     :is(
         .mailbox-btn-neutral,
-        .mailbox-btn-primary,
-        .mailbox-btn-primary-row,
-        .mailbox-btn-send-another,
-        .mailbox-coupon-step,
-        .mailbox-flower-chip,
-        .mailbox-recipient-chip
-    ) {
-    transition:
-        background-color var(--dur-out) var(--ease-ui),
-        border-color var(--dur-out) var(--ease-ui),
-        color var(--dur-out) var(--ease-ui),
-        transform var(--dur-out) var(--ease-ui);
-}
-
-@media (hover: hover) and (pointer: fine) {
-    [data-app='our-mailbox']
-        :is(
-            .mailbox-btn-neutral,
-            .mailbox-btn-primary,
-            .mailbox-btn-primary-row,
-            .mailbox-btn-send-another,
-            .mailbox-coupon-step,
-            .mailbox-flower-chip,
-            .mailbox-recipient-chip
-        ):hover {
-        transform: translateY(-1px);
-        transition-duration: var(--dur-in);
-    }
-}
-
-[data-app='our-mailbox']
-    :is(
-        .mailbox-btn-neutral,
         .mailbox-btn-primary-row,
         .mailbox-btn-send-another,
         .mailbox-coupon-step
@@ -1676,24 +1581,9 @@
         .mailbox-btn-primary-row,
         .mailbox-btn-send-another,
         .mailbox-coupon-step,
-        .mailbox-flower-chip,
-        .mailbox-recipient-chip
-    ):active {
-    transform: translateY(1px) scale(0.985);
-    transition-duration: var(--dur-press);
-}
-
-[data-app='our-mailbox']
-    :is(
-        .mailbox-btn-neutral,
-        .mailbox-btn-primary,
-        .mailbox-btn-primary-row,
-        .mailbox-btn-send-another,
-        .mailbox-coupon-step,
         .mailbox-flower-chip
     ):disabled {
     cursor: not-allowed;
-    transform: none;
 }
 [data-app='our-mailbox'] .mailbox-btn-send-another:disabled,
 [data-app='our-mailbox'] .mailbox-coupon-step:disabled {
@@ -1707,12 +1597,6 @@
 
 [data-app='our-mailbox']
     :is(
-        .mailbox-btn-neutral,
-        .mailbox-btn-primary,
-        .mailbox-btn-primary-row,
-        .mailbox-btn-send-another,
-        .mailbox-coupon-step,
-        .mailbox-flower-chip,
         .mailbox-link-retry,
         .mailbox-card-menu,
         .mailbox-card-menu-square,
@@ -1725,19 +1609,8 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-    [data-app='our-mailbox'] .mailbox-card.shell-card-stretch,
     [data-app='our-mailbox'] .mailbox-bouquet-image-button img,
-    [data-app='our-mailbox'] .mailbox-door-bouquet,
-    [data-app='our-mailbox']
-        :is(
-            .mailbox-btn-neutral,
-            .mailbox-btn-primary,
-            .mailbox-btn-primary-row,
-            .mailbox-btn-send-another,
-            .mailbox-coupon-step,
-            .mailbox-flower-chip,
-            .mailbox-recipient-chip
-        ) {
+    [data-app='our-mailbox'] .mailbox-door-bouquet {
         transform: none !important;
         transition: none;
     }

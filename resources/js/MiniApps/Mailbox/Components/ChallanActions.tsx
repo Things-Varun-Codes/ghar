@@ -148,7 +148,7 @@ export default function ChallanActions({
             </AlertDialog>
 
             <AlertDialog open={confirmOpen} onOpenChange={setConfirmOpen}>
-                <AlertDialogContent data-app="our-mailbox">
+                <AlertDialogContent>
                     <AlertDialogHeader>
                         <AlertDialogTitle>
                             Withdraw this citation?

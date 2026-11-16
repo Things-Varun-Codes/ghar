@@ -632,7 +632,7 @@ function UploadTile({
                     type="button"
                     variant="outline"
                     onClick={onRetry}
-                    className="history-upload-retry h-auto w-auto shadow-none"
+                    className="history-upload-retry shell-hit-44 h-auto w-auto shadow-none"
                 >
                     Retry
                 </Button>

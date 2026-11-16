@@ -103,7 +103,7 @@ export default function SongsShow({ song, mentioned_in }: Props) {
                         href={song.url}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="corner-detail-cta"
+                        className="corner-detail-cta shell-press"
                     >
                         {providerLabel(song.provider)}
                         <ArrowUpRight

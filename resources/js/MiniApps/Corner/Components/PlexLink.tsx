@@ -11,7 +11,7 @@ export default function PlexLink({ href, label = 'Open in Plex' }: Props) {
             rel="noopener noreferrer"
             aria-label={label}
             title={label}
-            className="corner-tile-icon-btn"
+            className="corner-tile-icon-btn shell-press shell-hit-44"
         >
             <svg
                 width="22"

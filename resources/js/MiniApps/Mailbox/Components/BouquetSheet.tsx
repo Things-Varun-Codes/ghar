@@ -285,7 +285,7 @@ export default function BouquetSheet({
                                 aria-pressed={selected}
                                 title={flower.meaning}
                                 onClick={() => toggleFlower(flower.key)}
-                                className="mailbox-flower-chip"
+                                className="mailbox-flower-chip shell-press"
                             >
                                 {flower.name}
                             </button>
@@ -322,7 +322,7 @@ export default function BouquetSheet({
                     }}
                     disabled={generating || processing}
                     placeholder="e.g. wild meadow, bright and cheerful…"
-                    className="mailbox-bouquet-mood-input"
+                    className="mailbox-bouquet-mood-input shell-field"
                 />
             </FormField>
 
@@ -387,7 +387,7 @@ export default function BouquetSheet({
                 >
                     <textarea
                         id="bouquet-note"
-                        className="mailbox-hand mailbox-bouquet-note-input"
+                        className="mailbox-hand mailbox-bouquet-note-input shell-field"
                         value={data.note}
                         onChange={(e) => setData('note', e.target.value)}
                         rows={4}

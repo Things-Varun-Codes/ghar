@@ -54,7 +54,10 @@ export default function SortDropdown({
     return (
         <DropdownMenu>
             <DropdownMenuTrigger asChild>
-                <button type="button" className="history-sort-trigger">
+                <button
+                    type="button"
+                    className="history-sort-trigger shell-press"
+                >
                     <span>Sort: {activeLabel}</span>
                     <ChevronDown
                         aria-hidden="true"

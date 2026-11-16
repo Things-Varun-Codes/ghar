@@ -72,7 +72,7 @@ export default function MentionedInList({ mentionedIn }: Props) {
                             <li key={`${ref.from_type}-${ref.from_id}`}>
                                 {snap.deep_link_url ? (
                                     <Link
-                                        className="backref-card corner-backref-link"
+                                        className="backref-card corner-backref-link shell-lift"
                                         href={snap.deep_link_url}
                                     >
                                         {content}

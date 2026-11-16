@@ -97,7 +97,7 @@ function MailboxDoor({
     const liveId = useId();
 
     return (
-        <article className="mailbox-card mailbox-door shell-card-stretch">
+        <article className="mailbox-card mailbox-door shell-card-stretch shell-lift">
             <div className="mailbox-door-peek" aria-hidden="true">
                 {peek}
             </div>

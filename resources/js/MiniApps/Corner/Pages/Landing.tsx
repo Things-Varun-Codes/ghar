@@ -223,7 +223,7 @@ function CornerDoor({
     const liveId = useId();
 
     return (
-        <article className="corner-card corner-door shell-card-stretch">
+        <article className="corner-card corner-door shell-card-stretch shell-lift">
             <div className="corner-door-peek" aria-hidden="true">
                 <DoorPeek door={door} peeks={peeks} />
             </div>

@@ -109,10 +109,12 @@ Fortify (login, remember-me, logout, password reset) + `spatie/laravel-permissio
   `icon-maskable-512.png`, `apple-touch-icon.png` (180×180).
 - `public/sw.js` handles the install/activate lifecycle, Web Push display and notification clicks.
   Registered from `resources/js/app.tsx` in production only. Its one `fetch` listener answers
-  same-origin page navigations only: it passes them straight to the network and serves the
-  precached `public/offline.html` when the network is unreachable. It never caches an app page and
-  never touches XHR, assets, media, `/go/*`, `/healthz`, `/up`, `/sw.js` or the manifest. Bump
-  `OFFLINE_CACHE` in `sw.js` whenever `offline.html` changes.
+  same-origin page navigations only: it passes them to the network (through navigation preload
+  where the browser has it) and serves the precached `public/offline.html` when the network is
+  unreachable. Navigations to `/go/*`, `/healthz`, `/up`, `/sw.js` and the manifest are passed
+  through unchanged and never get the offline page. It never caches an app page; XHR, assets and
+  media skip the worker (static routes on `requestMode`, where supported). Bump `OFFLINE_CACHE` in
+  `sw.js` whenever `offline.html` changes.
 - iOS standalone + theme-color meta tags live in `resources/views/app.blade.php`.
 - **Cloudflare must not cache** `/manifest.webmanifest`, `/sw.js`, `/healthz` or `/go/*` (Cache Rule
   bypass — see DEPLOY.md). A cached `/go/{code}` 302 silently defeats the short-link kill switch.
@@ -139,15 +141,18 @@ PHP/TS identifiers say `ShortLink`.
   dashboard is the mini-app launcher. **Mini apps are never added to the sidebar.** Below 1024px
   there is no sidebar: a contextual top bar (wordmark on Home; back + page title elsewhere, fed by
   `Page`) and a bottom bar (`BottomBar`) listing Home plus each enabled room from the registry's
-  `nav_label` and `icon`. Settings and Admin live in the account menu there.
+  `nav_label` and its own `nav-icon.tsx`. Settings and Admin live in the account menu there.
 - **`AppLayout` is the persistent default layout** (`app.tsx`); pages don't wrap themselves in it.
   Use `Page` for the header: it sets the document title (`room`, `documentTitle`), the back target
   (`back`) and the phone top bar's title. On a route change focus moves to the page's `h1`
   (`lib/route-focus.ts`), except for same-path visits such as filter, sort and search.
 - **Back goes back.** `BackChevron` steps through history when the parent is the page you came
   from, and replaces the entry otherwise. Every sheet and dialog that composes or shows an item
-  calls `useOverlayHistory` (`resources/js/hooks/use-overlay-history.ts`), so the back gesture
-  closes it through its dirty gate instead of leaving the page. A History moment is addressable at
+  goes through `useOverlayHistory` (`resources/js/hooks/use-overlay-history.ts`), so the back
+  gesture closes it instead of leaving the page. One with a draft uses `useDraftCloseGate` +
+  `DiscardDraftDialog`, which own the "Discard?" prompt for every way of closing. `app.tsx` calls
+  `installOverlayHistory()` before `createInertiaApp`: `popstate` listeners run in the order they
+  were added, and Inertia's would otherwise reload the page and drop the draft first. A History moment is addressable at
   `/apps/our-history?moment={id}`.
 - **Portal `data-app` propagation.** Radix Dialog / Sheet / AlertDialog / Popover / Select
   portals render at `<body>`, outside the mini app's `[data-app]` scope. Spread
@@ -273,8 +278,11 @@ lives on the things themselves.
 - **One radius family and one motion vocabulary**, as tokens in `app.css`: `--radius-pill`,
   `--radius-field`, `--radius-pop`, `--radius-card`, `--radius-inner`; `--ease-ui` with `--dur-in`,
   `--dur-out`, `--dur-press`, `--dur-card`. A button steps up 1px on hover and presses on click
-  (`.shell-press`); a card that opens something lifts 2px; a fill darkens toward the ink, never
-  lightens. Nothing bounces, and nothing fades in as a list loads. Cards carry no resting shadow.
+  (`.shell-press`); a field takes `.shell-field`; a card that opens something lifts 2px
+  (`.shell-lift`); a small control gets its 44px tap area from `.shell-hit-44`; a fill darkens
+  toward the ink, never lightens. Use these classes instead of re-declaring the recipe in a room's
+  stylesheet. Write the two layout thresholds as `@variant md` / `@variant lg` in CSS and
+  `useIsPhone()` / `useHasSidebar()` in TSX, and stacking layers as the `--z-*` tokens. Nothing bounces, and nothing fades in as a list loads. Cards carry no resting shadow.
 - **Two jobs for colour.** `--shell-action` is the only action colour. `--shell-accent` only marks
   what is selected or tints a surface; it never fills a button. Destructive stays outlined until the
   final confirm.
@@ -322,8 +330,9 @@ For every `enabled` entry in `config/miniapps.php`, `MiniAppServiceProvider` reg
 through its provider. Everything else is a hand edit:
 
 1. `config/miniapps.php` entry — include `component_prefix` or `AppLayout`'s chrome-hide breaks,
-   and `nav_label` + `icon` for the phone bottom bar (an icon name the shell doesn't know falls
-   back to a generic one; add it to `ROOM_ICONS` in `Shell/Components/BottomBar.tsx`).
+   and `nav_label` for the phone bottom bar. Ship `resources/js/MiniApps/{App}/nav-icon.tsx` whose
+   default export is the room's lucide icon (`export { Map as default } from 'lucide-react';`); the
+   shell finds it by glob, and a room without one shows a generic grid icon.
 2. `provider` in that entry; registry order is boot order.
 3. Console commands and scheduled tasks go in the provider's `boot()` (`$this->commands([...])`,
    `callAfterResolving(Schedule::class, …)`), never `bootstrap/app.php` or `routes/console.php`.

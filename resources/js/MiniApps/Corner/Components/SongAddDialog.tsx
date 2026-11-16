@@ -119,7 +119,7 @@ export default function SongAddDialog({ open, onOpenChange, item }: Props) {
             busyText={isEdit ? 'Saving…' : 'Adding song…'}
             processing={processing}
             onSubmit={handleSubmit}
-            isDirty={() => isDirty}
+            isDirty={isDirty}
             renderFields={() => (
                 <>
                     <FormField

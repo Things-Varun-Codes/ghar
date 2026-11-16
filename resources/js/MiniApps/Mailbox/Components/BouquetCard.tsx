@@ -119,7 +119,7 @@ export default function BouquetCard({ message, onDelete, isFocused }: Props) {
                                 <button
                                     type="button"
                                     aria-label={`Actions for your bouquet to ${recipientNames}, ${message.posted_at_human}`}
-                                    className="mailbox-card-menu-square"
+                                    className="mailbox-card-menu-square shell-hit-44"
                                 >
                                     <MoreHorizontal
                                         size={18}
@@ -131,7 +131,6 @@ export default function BouquetCard({ message, onDelete, isFocused }: Props) {
                             <DropdownMenuContent
                                 onCloseAutoFocus={menu.onCloseAutoFocus}
                                 align="end"
-                                data-app="our-mailbox"
                             >
                                 <DropdownMenuItem
                                     variant="destructive"
@@ -151,7 +150,7 @@ export default function BouquetCard({ message, onDelete, isFocused }: Props) {
                         open={confirmOpen}
                         onOpenChange={setConfirmOpen}
                     >
-                        <AlertDialogContent data-app="our-mailbox">
+                        <AlertDialogContent>
                             <AlertDialogHeader>
                                 <AlertDialogTitle>
                                     Delete this bouquet?

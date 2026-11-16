@@ -66,7 +66,7 @@ export default function RecipientPicker({
                     {members.map((member) => (
                         <label
                             key={member.id}
-                            className="mailbox-recipient-chip"
+                            className="mailbox-recipient-chip shell-press"
                         >
                             <input
                                 type="checkbox"

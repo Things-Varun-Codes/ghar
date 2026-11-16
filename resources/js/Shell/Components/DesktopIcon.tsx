@@ -23,7 +23,7 @@ export default function DesktopIcon({
             prefetch="mount"
             aria-label={`Open ${app.name}`}
             aria-describedby={summary ? liveId : undefined}
-            className={`os-door os-door--${app.slug} shell-focus`}
+            className={`os-door os-door--${app.slug} shell-lift shell-focus`}
         >
             <span className="os-door-glimpse" aria-hidden="true">
                 {preview?.note ? (

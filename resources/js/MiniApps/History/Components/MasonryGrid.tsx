@@ -1,4 +1,5 @@
 import { Play } from 'lucide-react';
+import { useIsPhone } from '@/hooks/use-breakpoint';
 import { useMediaQuery } from '@/hooks/use-media-query';
 
 export type GalleryMediaItem = {
@@ -25,7 +26,7 @@ type Props = {
 export default function MasonryGrid({ media, onTileClick }: Props) {
     // Read synchronously on the first render, so the grid never mounts at one column count and
     // reflows to another.
-    const phone = useMediaQuery('(max-width: 767.98px)');
+    const phone = useIsPhone();
     const tablet = useMediaQuery('(max-width: 1279.98px)');
     const wide = useMediaQuery('(min-width: 1536px)');
     const colCount = phone ? 2 : tablet ? 3 : wide ? 5 : 4;

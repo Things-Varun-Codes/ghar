@@ -52,7 +52,7 @@ export default function ListItemCard<TItem extends ItemConstraint>({
         <AppCard
             variant="list"
             data-app="our-corner"
-            className="shell-card-stretch"
+            className="shell-card-stretch shell-lift"
         >
             <div className="corner-item-row">
                 <div className="corner-item-main">{renderMain()}</div>
@@ -68,7 +68,7 @@ export default function ListItemCard<TItem extends ItemConstraint>({
                                             ? `Actions for ${item.title}`
                                             : 'Actions'
                                     }
-                                    className="corner-icon-btn"
+                                    className="corner-icon-btn shell-press"
                                 >
                                     <MoreHorizontal
                                         size={18}
@@ -79,7 +79,6 @@ export default function ListItemCard<TItem extends ItemConstraint>({
                             <DropdownMenuContent
                                 onCloseAutoFocus={menu.onCloseAutoFocus}
                                 align="end"
-                                data-app="our-corner"
                             >
                                 {onEdit && can.update && (
                                     <DropdownMenuItem

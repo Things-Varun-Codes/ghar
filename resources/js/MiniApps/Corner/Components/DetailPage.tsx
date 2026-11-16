@@ -59,7 +59,7 @@ export default function DetailPage({
                                 {externalCta?.()}
 
                                 <Toggle
-                                    className="corner-done-toggle"
+                                    className="corner-done-toggle shell-press"
                                     pressed={isDone}
                                     onPressedChange={
                                         itemActions.handleToggleDone
@@ -89,7 +89,7 @@ export default function DetailPage({
                                 {can.update && (
                                     <button
                                         type="button"
-                                        className="corner-detail-action"
+                                        className="corner-detail-action shell-press"
                                         onClick={itemActions.handleEdit}
                                     >
                                         Edit
@@ -98,7 +98,7 @@ export default function DetailPage({
                                 {can.delete && (
                                     <button
                                         type="button"
-                                        className="corner-detail-action corner-detail-action--destructive"
+                                        className="corner-detail-action corner-detail-action--destructive shell-press"
                                         onClick={itemActions.handleDelete}
                                     >
                                         Remove

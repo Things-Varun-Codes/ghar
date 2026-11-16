@@ -1,7 +1,7 @@
 import { router } from '@inertiajs/react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { useMediaQuery } from '@/hooks/use-media-query';
+import { useIsPhone } from '@/hooks/use-breakpoint';
 import CalendarMonth from '@/MiniApps/History/Components/CalendarMonth';
 import type { CalendarEvent } from '@/MiniApps/History/Components/CalendarMonth';
 import EventSheet from '@/MiniApps/History/Components/EventSheet';
@@ -71,7 +71,7 @@ export default function Calendar({
     availableYears,
     moment,
 }: Props) {
-    const isMobile = useMediaQuery('(max-width: 767.98px)');
+    const isMobile = useIsPhone();
 
     const lastTriggerRef = useRef<HTMLElement | null>(null);
     const [sheetOpen, setSheetOpen] = useState(false);
@@ -162,7 +162,7 @@ export default function Calendar({
                 <div className="history-cal-yearnav">
                     <button
                         type="button"
-                        className="history-cal-navbtn"
+                        className="history-cal-navbtn shell-press"
                         onClick={() => goYear(year - 1)}
                         disabled={prevDisabled}
                         aria-label="Previous year"
@@ -176,7 +176,7 @@ export default function Calendar({
                     <span className="history-cal-year-label">{year}</span>
                     <button
                         type="button"
-                        className="history-cal-navbtn"
+                        className="history-cal-navbtn shell-press"
                         onClick={() => goYear(year + 1)}
                         disabled={nextDisabled}
                         aria-label="Next year"
@@ -217,7 +217,7 @@ export default function Calendar({
                                 <button
                                     key={e.id}
                                     type="button"
-                                    className="history-cal-otd-card"
+                                    className="history-cal-otd-card shell-press"
                                     onClick={() => openEvent(e)}
                                 >
                                     <span
@@ -285,7 +285,7 @@ export default function Calendar({
                                     role="tab"
                                     aria-selected={selected}
                                     className={[
-                                        'history-cal-chip',
+                                        'history-cal-chip shell-press',
                                         selected && 'history-cal-chip--sel',
                                         !hasEvents && 'history-cal-chip--none',
                                     ]

@@ -1,11 +1,11 @@
 import { router } from '@inertiajs/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { goBack } from '@/lib/back-navigation';
 import {
-    goBack,
     previousUrl,
     recordNavigation,
     resetNavigationForTests,
-} from '@/lib/back-navigation';
+} from '@/lib/navigation';
 
 vi.mock('@inertiajs/react', () => ({
     router: { visit: vi.fn() },

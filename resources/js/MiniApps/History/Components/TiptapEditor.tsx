@@ -497,7 +497,7 @@ export default function TiptapEditor({
                         inputMode="url"
                         autoFocus
                         placeholder="https://"
-                        className="tiptap-link-popover-input"
+                        className="tiptap-link-popover-input shell-field"
                         value={linkUrl}
                         onChange={(e) => {
                             setLinkUrl(e.target.value);
@@ -523,14 +523,14 @@ export default function TiptapEditor({
                             type="button"
                             onClick={() => closeLinkPopover(false)}
                             tabIndex={-1}
-                            className="tiptap-link-popover-btn tiptap-link-popover-btn--cancel"
+                            className="shell-press tiptap-link-popover-btn tiptap-link-popover-btn--cancel"
                         >
                             Cancel
                         </button>
                         <button
                             type="button"
                             onClick={applyLink}
-                            className="tiptap-link-popover-btn tiptap-link-popover-btn--apply"
+                            className="shell-press tiptap-link-popover-btn tiptap-link-popover-btn--apply"
                         >
                             {editingExistingLink ? 'Update' : 'Add'}
                         </button>
@@ -538,7 +538,7 @@ export default function TiptapEditor({
                             <button
                                 type="button"
                                 onClick={removeLink}
-                                className="tiptap-link-popover-btn tiptap-link-popover-btn--remove"
+                                className="shell-press tiptap-link-popover-btn tiptap-link-popover-btn--remove"
                             >
                                 Remove link
                             </button>

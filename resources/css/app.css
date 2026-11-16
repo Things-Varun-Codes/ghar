@@ -163,7 +163,16 @@
     :root {
         --radius: 0.875rem;
 
+        /* The stacking layers, lowest first. */
         --z-floating: 20; /* FABs — above page content, below shell chrome */
+        --z-chrome: 40; /* the bottom bar and the desktop account button */
+        /* Level with sheets and dialogs: they mount later in the body, so they still cover it. */
+        --z-topbar: 50;
+        --z-overlay: 50; /* sheets, dialogs, menus */
+        --z-overlay-raised: 60; /* a confirm opened over a sheet */
+        --z-skip: 60; /* the focused skip link, over everything */
+
+        --shell-sidebar-w: 240px;
 
         /* The phone top bar, grown by the notch in an installed PWA. */
         --shell-topbar-h: calc(56px + env(safe-area-inset-top));
@@ -212,14 +221,14 @@
         --dur-media: 300ms; /* a photo easing in its zoom; slower than a control */
     }
 
-    @media (min-width: 768px) {
+    @variant md {
         :root {
             --shell-main-px: 32px;
         }
     }
 
     /* From lg the sidebar is the chrome: no top or bottom bar. */
-    @media (min-width: 1024px) {
+    @variant lg {
         :root {
             --shell-bottombar-h: 0px;
             --shell-main-pt: 32px;
@@ -305,7 +314,7 @@
     .shell-toolbar {
         position: sticky;
         top: var(--shell-topbar-h); /* below lg: clear the fixed MobileTopBar */
-        z-index: 12; /* content band, below the floating FAB (--z-floating: 20) */
+        z-index: 12; /* content band, below the floating FAB (--z-floating) */
         display: flex;
         align-items: center;
         justify-content: space-between;
@@ -316,7 +325,7 @@
         margin-bottom: 24px;
     }
 
-    @media (min-width: 1024px) {
+    @variant lg {
         .shell-toolbar {
             top: 0; /* desktop: no fixed top bar; pins flush to viewport top */
         }
@@ -325,6 +334,35 @@
     .shell-toolbar > div {
         min-width: 0;
         max-width: 100%;
+    }
+
+    /* A room tints it with --overlay-close-ink / --overlay-close-hover on its sheet. */
+    .shell-close {
+        position: absolute;
+        top: 8px;
+        right: 8px;
+        z-index: 10;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 44px;
+        height: 44px;
+        border: none;
+        border-radius: var(--radius-pill);
+        background: transparent;
+        color: var(--overlay-close-ink, var(--shell-text));
+        cursor: pointer;
+    }
+
+    @media (hover: hover) {
+        .shell-close:hover {
+            background-color: var(--overlay-close-hover, var(--shell-hover));
+            color: var(--shell-text);
+        }
+    }
+
+    .shell-close:disabled {
+        pointer-events: none;
     }
 
     .list-nav-band-tabs {
@@ -348,7 +386,7 @@
         width: min(400px, 100%);
     }
 
-    @media (max-width: 767px) {
+    @variant max-md {
         .list-nav-band > div:last-child {
             flex: 1 1 100%;
         }
@@ -409,7 +447,7 @@
     [data-slot$='-content'],
     [data-slot$='-overlay'],
     .shell-fab,
-    .os-door,
+    .shell-lift,
     .shell-press,
     .shell-card-stretch {
         animation-duration: 1ms !important;
@@ -417,8 +455,8 @@
         transition-duration: 1ms !important;
     }
 
-    .shell-press:hover,
-    .shell-press:active,
+    .shell-press:hover:not(:disabled),
+    .shell-press:active:not(:disabled),
     .shell-card-stretch:hover,
     .shell-card-stretch:active {
         transform: none;
@@ -475,7 +513,7 @@
     background-color: var(--background);
 }
 
-@media (min-width: 1024px) {
+@variant lg {
     .shell-sheet {
         border-top-left-radius: var(--radius-card);
         border-bottom-left-radius: var(--radius-card);
@@ -499,7 +537,7 @@
 /*
  * One button behaviour for the whole house: a step up on hover, a press on click, the fill
  * moving toward the ink (never lighter, or the label loses contrast). Movement only where there
- * is a real pointer.
+ * is a real pointer. A disabled .shell-press stays put; Button gets that from pointer-events.
  */
 .shell-btn,
 .shell-press {
@@ -518,14 +556,14 @@
 
 @media (hover: hover) and (pointer: fine) {
     .shell-btn:hover,
-    .shell-press:hover {
+    .shell-press:hover:not(:disabled) {
         transform: translateY(-1px);
         transition-duration: var(--dur-in);
     }
 }
 
 .shell-btn:active,
-.shell-press:active {
+.shell-press:active:not(:disabled) {
     transform: translateY(1px) scale(0.985);
     transition-duration: var(--dur-press);
 }
@@ -557,13 +595,53 @@
     text-decoration-color: currentColor;
 }
 
+/* A card that opens something lifts; pressing a button inside it must not press the card. */
+.shell-lift {
+    transition:
+        transform var(--dur-out) var(--ease-ui),
+        border-color var(--dur-out) var(--ease-ui);
+}
+
+@media (hover: hover) and (pointer: fine) {
+    .shell-lift:hover {
+        transform: translateY(-2px);
+        border-color: var(--shell-lift-border);
+        transition-duration: var(--dur-card);
+    }
+}
+
+a.shell-lift:active,
+.shell-lift:has(.shell-card-link:active) {
+    transform: scale(0.995);
+    transition-duration: var(--dur-press);
+}
+
+/* A control drawn smaller than 44px keeps a 44px tap area. Takes the element's ::after. */
+.shell-hit-44 {
+    position: relative;
+}
+
+.shell-hit-44::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: max(100%, 44px);
+    height: max(100%, 44px);
+    translate: -50% -50%;
+}
+
 @media (prefers-reduced-motion: reduce) {
     .shell-btn,
     .shell-press,
     .shell-btn:hover,
-    .shell-press:hover,
+    .shell-press:hover:not(:disabled),
     .shell-btn:active,
-    .shell-press:active {
+    .shell-press:active:not(:disabled),
+    .shell-lift,
+    .shell-lift:hover,
+    a.shell-lift:active,
+    .shell-lift:has(.shell-card-link:active) {
         transform: none;
     }
 }
@@ -733,9 +811,6 @@ button[type='submit'][data-slot='button'] {
     border: 1px solid var(--border);
     color: var(--foreground);
     text-decoration: none;
-    transition:
-        transform var(--dur-out) var(--ease-ui),
-        border-color var(--dur-out) var(--ease-ui);
 }
 
 .os-door:first-child {
@@ -744,20 +819,9 @@ button[type='submit'][data-slot='button'] {
 }
 
 @media (hover: hover) and (pointer: fine) {
-    .os-door:hover {
-        transform: translateY(-2px);
-        border-color: var(--shell-lift-border);
-        transition-duration: var(--dur-card);
-    }
-
     .os-door:hover .os-door-images img {
         transform: scale(1.03);
     }
-}
-
-.os-door:active {
-    transform: scale(0.995);
-    transition-duration: var(--dur-press);
 }
 
 .os-door-glimpse {
@@ -898,7 +962,7 @@ button[type='submit'][data-slot='button'] {
     }
 }
 
-@media (max-width: 1023px) {
+@variant max-lg {
     .os-home {
         padding: 12px 0 8px;
     }
@@ -909,9 +973,6 @@ button[type='submit'][data-slot='button'] {
 }
 
 @media (prefers-reduced-motion: reduce) {
-    .os-door,
-    .os-door:hover,
-    .os-door:active,
     .os-door:hover .os-door-images img {
         transform: none;
     }
@@ -1346,9 +1407,9 @@ button[type='submit'][data-slot='button'] {
     outline: none;
 }
 
-@media (min-width: 1024px) {
+@variant lg {
     .shell-main {
-        margin-left: 240px; /* the sidebar */
+        margin-left: var(--shell-sidebar-w);
     }
 }
 
@@ -1377,7 +1438,9 @@ button[type='submit'][data-slot='button'] {
     right: 0;
     bottom: 0;
     left: 0;
-    z-index: 40; /* over the Fab and content; sheets and dialogs (z-50) cover it */
+    z-index: var(
+        --z-chrome
+    ); /* over the Fab and content; sheets and dialogs cover it */
     height: var(--shell-bottombar-h);
     padding: 0 env(safe-area-inset-right) env(safe-area-inset-bottom)
         env(safe-area-inset-left);
@@ -1470,7 +1533,7 @@ button[type='submit'][data-slot='button'] {
 }
 
 /* Keep a focused control clear of the fixed top bar, the bottom bar and the FAB. */
-@media (max-width: 1023px) {
+@variant max-lg {
     html {
         scroll-padding-top: calc(var(--shell-topbar-h) + 16px);
         scroll-padding-bottom: var(--shell-main-pb);
@@ -1726,7 +1789,7 @@ button[type='submit'][data-slot='button'] {
     align-items: center;
     justify-content: center;
     cursor: pointer;
-    z-index: var(--z-floating, 20);
+    z-index: var(--z-floating);
 }
 
 .shell-segmented {

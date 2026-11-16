@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { roomsForBar } from '@/Shell/Components/bottom-bar';
+import { navIconFor, roomsForBar } from '@/Shell/Components/bottom-bar';
 import type { MiniApp } from '@/types/miniapp';
 
 function app(slug: string, prefix?: string): MiniApp {
@@ -22,5 +22,25 @@ describe('roomsForBar', () => {
             'c',
             'd',
         ]);
+    });
+});
+
+describe('navIconFor', () => {
+    const modules = {
+        '../../MiniApps/History/nav-icon.tsx': 'history',
+        '../../MiniApps/Corner/nav-icon.tsx': 'corner',
+    };
+
+    it('finds the icon module of the room named by component_prefix', () => {
+        expect(navIconFor(app('h', 'MiniApps/History/'), modules)).toBe(
+            'history',
+        );
+    });
+
+    it('is undefined without a prefix or a module', () => {
+        expect(navIconFor(app('x'), modules)).toBeUndefined();
+        expect(
+            navIconFor(app('m', 'MiniApps/Mailbox/'), modules),
+        ).toBeUndefined();
     });
 });

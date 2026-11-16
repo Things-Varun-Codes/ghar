@@ -191,7 +191,7 @@ export default function ComposerSheet({ open, onOpenChange, members }: Props) {
                     <textarea
                         id="mailbox-composer-body"
                         ref={textareaRef}
-                        className="mailbox-hand mailbox-composer-paper mailbox-note-input"
+                        className="mailbox-hand mailbox-composer-paper mailbox-note-input shell-field"
                         value={data.body}
                         onChange={(e) => setData('body', e.target.value)}
                         maxLength={BODY_MAX}

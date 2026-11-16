@@ -10,8 +10,9 @@ import { hasParam, withParam, withoutParam } from '@/lib/url';
  *
  * Inertia keeps its page in history.state and, on popstate, remounts the page from it. That
  * would throw away a draft, so a popstate that leaves our entry is stopped before Inertia sees
- * it (a capture listener on window runs before Inertia's bubble one) and then handed to the
- * topmost overlay, whose own dirty gate decides. Afterwards a client-side `router.replace`
+ * it and then handed to the topmost overlay, whose own dirty gate decides. Chromium runs
+ * window's popstate listeners in the order they were added, capture or not, so ours must be
+ * added before Inertia's: app.tsx calls installOverlayHistory() before createInertiaApp(). Afterwards a client-side `router.replace`
  * writes the current page into the entry we landed on, so Inertia's copy stays current.
  *
  * Nested overlays share the one entry: only the first pushes, back goes to the topmost, and
@@ -200,6 +201,20 @@ export function createOverlayHistory(env: OverlayHistoryEnv) {
 
 export type OverlayHistory = ReturnType<typeof createOverlayHistory>;
 
+let popHandler: ((event: Event) => void) | null = null;
+let popListenerAdded = false;
+
+export function installOverlayHistory(): void {
+    if (popListenerAdded) {
+        return;
+    }
+
+    popListenerAdded = true;
+    window.addEventListener('popstate', (event) => popHandler?.(event), {
+        capture: true,
+    });
+}
+
 const browserEnv: OverlayHistoryEnv = {
     length: () => window.history.length,
     href: () =>
@@ -230,7 +245,8 @@ const browserEnv: OverlayHistoryEnv = {
     },
     defer: (fn) => queueMicrotask(fn),
     listen: ({ pop, before, success }) => {
-        window.addEventListener('popstate', pop, { capture: true });
+        popHandler = pop;
+        installOverlayHistory();
         router.on('before', (event) => before(event.detail.visit));
         router.on('success', (event) => success(event.detail.page.url));
     },

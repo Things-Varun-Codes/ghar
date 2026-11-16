@@ -158,7 +158,7 @@ export default function CouponActions({
             </div>
 
             <AlertDialog open={confirmOpen} onOpenChange={setConfirmOpen}>
-                <AlertDialogContent data-app="our-mailbox">
+                <AlertDialogContent>
                     <AlertDialogHeader>
                         <AlertDialogTitle>
                             Withdraw this coupon?

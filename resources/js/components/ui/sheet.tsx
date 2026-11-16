@@ -1,7 +1,7 @@
 import * as SheetPrimitive from "@radix-ui/react-dialog"
-import { XIcon } from "lucide-react"
 import * as React from "react"
 
+import { OverlayClose } from "@/components/ui/overlay-close"
 import { useAllowTouchSelection } from "@/hooks/use-allow-touch-selection"
 import { useAppAttrs } from "@/hooks/use-app-attrs"
 import { useReturnFocus } from "@/hooks/use-return-focus"
@@ -37,11 +37,14 @@ function SheetContent({
   className,
   children,
   side = "right",
+  showCloseButton = true,
   onOpenAutoFocus,
   onCloseAutoFocus,
   ...props
 }: React.ComponentProps<typeof SheetPrimitive.Content> & {
   side?: "top" | "right" | "bottom" | "left"
+  /* Off when the sheet places its own OverlayClose. */
+  showCloseButton?: boolean
 }) {
   const appAttrs = useAppAttrs()
   const returnFocus = useReturnFocus({ onOpenAutoFocus, onCloseAutoFocus })
@@ -70,10 +73,7 @@ function SheetContent({
         {...returnFocus}
       >
         {children}
-        <SheetPrimitive.Close className="shell-press shell-focus absolute top-2 right-2 z-10 inline-flex size-11 items-center justify-center rounded-full text-(--shell-text) hover:bg-(--shell-hover) disabled:pointer-events-none">
-          <XIcon className="size-5" strokeWidth={1.5} aria-hidden="true" />
-          <span className="sr-only">Close</span>
-        </SheetPrimitive.Close>
+        {showCloseButton && <OverlayClose />}
       </SheetPrimitive.Content>
     </SheetPortal>
   )

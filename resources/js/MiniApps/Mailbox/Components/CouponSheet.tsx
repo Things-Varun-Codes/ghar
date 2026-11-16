@@ -150,7 +150,7 @@ export default function CouponSheet({ open, onOpenChange, members }: Props) {
                         onChange={(e) => setData('title', e.target.value)}
                         aria-required="true"
                         placeholder="e.g. One free car wash"
-                        className="mailbox-field"
+                        className="mailbox-field shell-field"
                     />
                 </FormField>
                 <CharCount length={data.title.length} max={TITLE_MAX} />
@@ -166,7 +166,7 @@ export default function CouponSheet({ open, onOpenChange, members }: Props) {
                         aria-label="Fewer"
                         onClick={() => setQuantity(data.quantity - 1)}
                         disabled={data.quantity <= QTY_MIN}
-                        className="mailbox-coupon-step"
+                        className="mailbox-coupon-step shell-press"
                     >
                         <Minus size={20} strokeWidth={1.5} aria-hidden="true" />
                     </button>
@@ -181,7 +181,7 @@ export default function CouponSheet({ open, onOpenChange, members }: Props) {
                         aria-label="More"
                         onClick={() => setQuantity(data.quantity + 1)}
                         disabled={data.quantity >= QTY_MAX}
-                        className="mailbox-coupon-step"
+                        className="mailbox-coupon-step shell-press"
                     >
                         <Plus size={20} strokeWidth={1.5} aria-hidden="true" />
                     </button>
@@ -208,7 +208,7 @@ export default function CouponSheet({ open, onOpenChange, members }: Props) {
                     type="date"
                     value={data.expires_at}
                     onChange={(e) => setData('expires_at', e.target.value)}
-                    className="mailbox-field"
+                    className="mailbox-field shell-field"
                 />
             </FormField>
 
@@ -221,7 +221,7 @@ export default function CouponSheet({ open, onOpenChange, members }: Props) {
                 >
                     <textarea
                         id="coupon-description"
-                        className="mailbox-field"
+                        className="mailbox-field shell-field"
                         value={data.description}
                         onChange={(e) => setData('description', e.target.value)}
                         rows={3}

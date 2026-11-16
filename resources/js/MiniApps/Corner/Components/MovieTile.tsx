@@ -66,7 +66,7 @@ export default function MovieTile({ movie, listType, onEdit }: Props) {
         <AppCard
             variant="list"
             data-app="our-corner"
-            className="shell-card-stretch"
+            className="shell-card-stretch shell-lift"
         >
             <a
                 href={detailHref}
@@ -113,7 +113,7 @@ export default function MovieTile({ movie, listType, onEdit }: Props) {
                 )}
 
                 <Toggle
-                    className="corner-done-toggle corner-done-toggle--icon"
+                    className="corner-done-toggle corner-done-toggle--icon shell-press shell-hit-44"
                     pressed={isDone}
                     onPressedChange={handleToggleDone}
                     aria-disabled={isTogglePending || undefined}
@@ -135,7 +135,7 @@ export default function MovieTile({ movie, listType, onEdit }: Props) {
                             <button
                                 type="button"
                                 aria-label={`Actions for ${movie.title}`}
-                                className="corner-tile-icon-btn"
+                                className="corner-tile-icon-btn shell-press shell-hit-44"
                             >
                                 <MoreHorizontal size={18} aria-hidden="true" />
                             </button>
@@ -143,7 +143,6 @@ export default function MovieTile({ movie, listType, onEdit }: Props) {
                         <DropdownMenuContent
                             onCloseAutoFocus={menu.onCloseAutoFocus}
                             align="end"
-                            data-app="our-corner"
                         >
                             {onEdit && movie.can.update && (
                                 <DropdownMenuItem

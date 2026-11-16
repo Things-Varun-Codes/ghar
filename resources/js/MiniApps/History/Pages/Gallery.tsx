@@ -223,7 +223,7 @@ export default function Gallery({
                                 onClick={() =>
                                     router.get(window.location.pathname)
                                 }
-                                className="history-clear-filters"
+                                className="history-clear-filters shell-press"
                             >
                                 Clear filters
                             </button>

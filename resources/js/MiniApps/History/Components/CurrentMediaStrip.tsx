@@ -161,7 +161,7 @@ export default function CurrentMediaStrip({
                             <AlertDialogPrimitive.Cancel asChild>
                                 <button
                                     type="button"
-                                    className="history-btn-keep-media"
+                                    className="history-btn-keep-media shell-press"
                                 >
                                     Keep
                                 </button>
@@ -171,7 +171,7 @@ export default function CurrentMediaStrip({
                                 <button
                                     type="button"
                                     onClick={handleConfirm}
-                                    className="history-btn-destructive"
+                                    className="history-btn-destructive shell-press"
                                 >
                                     Yes, delete
                                 </button>

@@ -68,7 +68,7 @@ export default function ActivityAddDialog({ open, onOpenChange, item }: Props) {
             busyText={isEdit ? 'Saving…' : 'Adding activity…'}
             processing={processing}
             onSubmit={handleSubmit}
-            isDirty={() => isDirty}
+            isDirty={isDirty}
             renderFields={() => (
                 <>
                     <FormField

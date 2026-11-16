@@ -25,7 +25,6 @@ class MiniAppRegistryPropsTest extends TestCase
                 'name' => 'Treasure Hunt',
                 'slug' => 'treasure-hunt',
                 'route' => 'treasure-hunt.index',
-                'icon' => 'Map',
                 'description' => 'The proposal treasure hunt',
                 'enabled' => true,
                 'admin_only' => false,
@@ -34,7 +33,6 @@ class MiniAppRegistryPropsTest extends TestCase
                 'name' => 'Admin Tool',
                 'slug' => 'admin-tool',
                 'route' => 'admin-tool.index',
-                'icon' => 'Settings',
                 'description' => 'Admin-only tool',
                 'enabled' => true,
                 'admin_only' => true,
@@ -43,7 +41,6 @@ class MiniAppRegistryPropsTest extends TestCase
                 'name' => 'Coming Soon',
                 'slug' => 'coming-soon',
                 'route' => 'coming-soon.index',
-                'icon' => 'Clock',
                 'description' => 'Not ready',
                 'enabled' => false,
                 'admin_only' => false,
@@ -102,7 +99,7 @@ class MiniAppRegistryPropsTest extends TestCase
         }
     }
 
-    public function test_the_bottom_bar_gets_a_short_label_and_an_icon_for_each_room(): void
+    public function test_the_bottom_bar_gets_a_short_label_and_an_icon_module_for_each_room(): void
     {
         $this->assertNotEmpty(config('miniapps'));
 
@@ -111,7 +108,11 @@ class MiniAppRegistryPropsTest extends TestCase
 
         foreach ($page['props']['miniApps'] as $app) {
             $this->assertNotEmpty($app['nav_label'] ?? null, "{$app['slug']} needs a nav_label for the bottom bar");
-            $this->assertNotEmpty($app['icon'] ?? null, "{$app['slug']} needs an icon for the bottom bar");
+            $this->assertNotEmpty($app['component_prefix'] ?? null, "{$app['slug']} needs a component_prefix");
+            $this->assertFileExists(
+                resource_path("js/{$app['component_prefix']}nav-icon.tsx"),
+                "{$app['slug']} needs a nav-icon.tsx for the bottom bar",
+            );
         }
     }
 }

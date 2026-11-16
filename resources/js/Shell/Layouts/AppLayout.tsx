@@ -38,16 +38,16 @@ function Shell({ children }: { children: ReactNode }) {
             >
                 <a
                     href="#main-content"
-                    className="shell-focus shell-skip-link sr-only focus:not-sr-only focus:fixed focus:left-4 focus:z-[60]"
+                    className="shell-focus shell-skip-link sr-only focus:not-sr-only focus:fixed focus:left-4 focus:z-(--z-skip)"
                 >
                     Skip to main content
                 </a>
 
-                <aside className="fixed top-0 bottom-0 left-0 hidden w-60 overflow-y-auto overscroll-contain lg:block">
+                <aside className="fixed top-0 bottom-0 left-0 hidden w-(--shell-sidebar-w) overflow-y-auto overscroll-contain lg:block">
                     <Sidebar />
                 </aside>
 
-                <div className="fixed top-4 right-4 z-40 hidden lg:block">
+                <div className="fixed top-4 right-4 z-(--z-chrome) hidden lg:block">
                     <AccountMenu />
                 </div>
 

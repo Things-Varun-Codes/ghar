@@ -1,25 +1,18 @@
-import * as SheetPrimitive from '@radix-ui/react-dialog';
-import { X } from 'lucide-react';
 import type { FormEvent, ReactNode } from 'react';
-import { useState } from 'react';
+import { OverlayClose } from '@/components/ui/overlay-close';
 import {
-    AlertDialog,
-    AlertDialogAction,
-    AlertDialogCancel,
-    AlertDialogContent,
-    AlertDialogDescription,
-    AlertDialogFooter,
-    AlertDialogHeader,
-    AlertDialogTitle,
-} from '@/components/ui/alert-dialog';
-import { buttonVariants } from '@/components/ui/button';
-import { useAllowTouchSelection } from '@/hooks/use-allow-touch-selection';
+    Sheet,
+    SheetContent,
+    SheetDescription,
+    SheetTitle,
+} from '@/components/ui/sheet';
 import { useBodyScrollLock } from '@/hooks/use-body-scroll-lock';
+import { useDraftCloseGate } from '@/hooks/use-draft-close-gate';
 import { useKeyboardViewport } from '@/hooks/use-keyboard-viewport';
 import { useMediaQuery } from '@/hooks/use-media-query';
-import { useOverlayHistory } from '@/hooks/use-overlay-history';
 import { useSwipeDismiss } from '@/hooks/use-swipe-dismiss';
 import { cn } from '@/lib/utils';
+import DiscardDraftDialog from '@/Shell/Components/DiscardDraftDialog';
 
 type Props = {
     open: boolean;
@@ -60,133 +53,88 @@ export default function ComposeSheet({
 }: Props) {
     const isWide = useMediaQuery('(min-width: 720px)');
     const side = isWide ? 'right' : 'bottom';
-    const [discardOpen, setDiscardOpen] = useState(false);
     const keyboard = useKeyboardViewport(open && side === 'bottom');
 
     useBodyScrollLock(open);
-    useAllowTouchSelection();
 
-    const handleOpenChange = (next: boolean) => {
-        if (!next && isDirty) {
-            setDiscardOpen(true);
-
-            return;
-        }
-
-        onOpenChange(next);
-    };
-
-    // Back closes the discard prompt first (as "keep editing"), then the sheet through its gate.
-    useOverlayHistory(open, () =>
-        discardOpen ? setDiscardOpen(false) : handleOpenChange(false),
-    );
+    const gate = useDraftCloseGate({
+        open,
+        isDirty,
+        onClose: () => onOpenChange(false),
+        onDiscard,
+    });
 
     const swipeHandlers = useSwipeDismiss({
         enabled: side === 'bottom',
-        onDismiss: () => handleOpenChange(false),
+        onDismiss: gate.requestClose,
     });
 
     return (
         <>
-            <SheetPrimitive.Root open={open} onOpenChange={handleOpenChange}>
-                <SheetPrimitive.Portal>
-                    <SheetPrimitive.Overlay className="fixed inset-0 z-50 bg-black/80 data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:animate-in data-[state=open]:fade-in-0 motion-reduce:animate-none" />
-                    <SheetPrimitive.Content
-                        data-app="our-mailbox"
-                        data-scroll-container=""
-                        className={cn(
-                            'mailbox-sheet-content fixed z-50 shadow-lg transition ease-in-out data-[state=closed]:duration-300 data-[state=open]:duration-500 motion-reduce:animate-none',
-                            'data-[state=closed]:animate-out data-[state=open]:animate-in',
-                            side === 'right' &&
-                                'inset-y-0 right-0 h-full w-[90vw] max-w-[640px] border-l data-[state=closed]:slide-out-to-right data-[state=open]:slide-in-from-right',
-                            side === 'bottom' &&
-                                'inset-x-0 bottom-0 h-[90dvh] w-full border-t data-[state=closed]:slide-out-to-bottom data-[state=open]:slide-in-from-bottom',
-                        )}
-                        style={
-                            keyboard
-                                ? {
-                                      top: `${keyboard.offsetTop}px`,
-                                      bottom: 'auto',
-                                      height: `${keyboard.height}px`,
-                                  }
-                                : undefined
-                        }
+            <Sheet open={open} onOpenChange={gate.onOpenChange}>
+                <SheetContent
+                    side={side}
+                    showCloseButton={false}
+                    className={cn(
+                        'mailbox-sheet-content gap-0 shadow-lg',
+                        side === 'right' &&
+                            'w-[90vw] max-w-[640px] sm:max-w-[640px]',
+                        side === 'bottom' && 'h-[90dvh] w-full pb-0',
+                    )}
+                    style={
+                        keyboard
+                            ? {
+                                  top: `${keyboard.offsetTop}px`,
+                                  bottom: 'auto',
+                                  height: `${keyboard.height}px`,
+                              }
+                            : undefined
+                    }
+                >
+                    <form
+                        noValidate
+                        onSubmit={onSubmit}
+                        className="mailbox-sheet-form"
                     >
-                        <form
-                            noValidate
-                            onSubmit={onSubmit}
-                            className="mailbox-sheet-form"
+                        <div className="mailbox-sheet-header">
+                            <SheetTitle className="mailbox-sheet-title">
+                                {title}
+                            </SheetTitle>
+                            <SheetDescription className="sr-only">
+                                {description}
+                            </SheetDescription>
+                        </div>
+
+                        {/* Block scroller, no display:flex: iOS Safari freezes a flex + overflow:auto element. */}
+                        <div
+                            {...swipeHandlers}
+                            className="mailbox-sheet-scroll"
                         >
-                            <div className="mailbox-sheet-header">
-                                <SheetPrimitive.Title className="mailbox-sheet-title">
-                                    {title}
-                                </SheetPrimitive.Title>
-                                <SheetPrimitive.Description className="sr-only">
-                                    {description}
-                                </SheetPrimitive.Description>
+                            <div className="mailbox-sheet-body">{children}</div>
+                        </div>
+
+                        <div className="mailbox-sheet-footer">
+                            {hint && (
+                                <p id={hintId} className="mailbox-sheet-hint">
+                                    {hint}
+                                </p>
+                            )}
+                            <div className="mailbox-sheet-actions">
+                                {actions}
                             </div>
+                        </div>
+                    </form>
 
-                            {/* Block scroller, no display:flex: iOS Safari freezes a flex + overflow:auto element. */}
-                            <div
-                                {...swipeHandlers}
-                                className="mailbox-sheet-scroll"
-                            >
-                                <div className="mailbox-sheet-body">
-                                    {children}
-                                </div>
-                            </div>
+                    {/* Last in the DOM so opening focuses the first field, not the close. */}
+                    <OverlayClose className="top-3 right-3" />
+                </SheetContent>
+            </Sheet>
 
-                            <div className="mailbox-sheet-footer">
-                                {hint && (
-                                    <p
-                                        id={hintId}
-                                        className="mailbox-sheet-hint"
-                                    >
-                                        {hint}
-                                    </p>
-                                )}
-                                <div className="mailbox-sheet-actions">
-                                    {actions}
-                                </div>
-                            </div>
-                        </form>
-
-                        {/* Last in the DOM so opening focuses the first field, not the close. */}
-                        <SheetPrimitive.Close
-                            className="mailbox-sheet-close"
-                            aria-label="Close"
-                        >
-                            <X size={20} strokeWidth={1.5} aria-hidden="true" />
-                        </SheetPrimitive.Close>
-                    </SheetPrimitive.Content>
-                </SheetPrimitive.Portal>
-            </SheetPrimitive.Root>
-
-            <AlertDialog open={discardOpen} onOpenChange={setDiscardOpen}>
-                <AlertDialogContent data-app="our-mailbox">
-                    <AlertDialogHeader>
-                        <AlertDialogTitle>{discardTitle}</AlertDialogTitle>
-                        <AlertDialogDescription>
-                            {discardBody}
-                        </AlertDialogDescription>
-                    </AlertDialogHeader>
-                    <AlertDialogFooter>
-                        <AlertDialogCancel>Keep editing</AlertDialogCancel>
-                        <AlertDialogAction
-                            className={buttonVariants({
-                                variant: 'destructive',
-                            })}
-                            onClick={() => {
-                                setDiscardOpen(false);
-                                onDiscard();
-                                onOpenChange(false);
-                            }}
-                        >
-                            Discard
-                        </AlertDialogAction>
-                    </AlertDialogFooter>
-                </AlertDialogContent>
-            </AlertDialog>
+            <DiscardDraftDialog
+                {...gate.prompt}
+                title={discardTitle}
+                description={discardBody}
+            />
         </>
     );
 }

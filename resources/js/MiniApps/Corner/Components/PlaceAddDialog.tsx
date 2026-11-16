@@ -110,7 +110,7 @@ export default function PlaceAddDialog({ open, onOpenChange, item }: Props) {
             busyText={isEdit ? 'Saving…' : 'Adding place…'}
             processing={processing}
             onSubmit={handleSubmit}
-            isDirty={() => isDirty}
+            isDirty={isDirty}
             renderFields={() =>
                 hasPlacesSearch ? (
                     <div className="flex flex-col gap-1">
