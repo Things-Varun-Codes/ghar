@@ -153,7 +153,11 @@ PHP/TS identifiers say `ShortLink`.
   (`back`) and the phone top bar's title. On a route change focus moves to the page's `h1`
   (`lib/route-focus.ts`), except for same-path visits such as filter, sort and search.
 - **Back goes back.** `BackChevron` steps through history when the parent is the page you came
-  from, and replaces the entry otherwise. Every sheet and dialog that composes or shows an item
+  from, and replaces the entry otherwise. A page owns one history entry:
+  `lib/navigation.ts` turns a GET to the path already shown (filter, sort, search, tab, page
+  number) into a replace, so back leaves the page instead of undoing the filter. Link to another
+  page with Inertia's `Link`: a plain `<a>` reloads the document and the chevron forgets where
+  you came from. Every sheet and dialog that composes or shows an item
   goes through `useOverlayHistory` (`resources/js/hooks/use-overlay-history.ts`), so the back
   gesture closes it instead of leaving the page. One with a draft uses `useDraftCloseGate` +
   `DiscardDraftDialog`, which own the "Discard?" prompt for every way of closing. `app.tsx` calls

@@ -4,7 +4,7 @@ import type { PageChange } from '@/lib/navigation';
 import {
     installNavigation,
     onPageChange,
-    previousUrl,
+    previousPath,
     resetNavigationForTests,
 } from '@/lib/navigation';
 
@@ -23,18 +23,34 @@ function fakeRouter() {
     const fire = (name: string, detail: Record<string, unknown>) =>
         handlers[name]?.forEach((handler) => handler({ detail }));
 
+    const before = (
+        id: string,
+        visit: Record<string, unknown> = {},
+        url = '/somewhere-else',
+    ) => {
+        const pending: Record<string, unknown> = {
+            id,
+            url: new URL(url, 'http://ghar.test'),
+            method: 'get',
+            preserveScroll: false,
+            prefetch: false,
+            replace: false,
+            ...visit,
+        };
+        fire('before', { visit: pending });
+
+        return pending;
+    };
+
     return {
         router,
-        before: (id: string, visit: Record<string, unknown> = {}) =>
-            fire('before', {
-                visit: {
-                    id,
-                    method: 'get',
-                    preserveScroll: false,
-                    prefetch: false,
-                    ...visit,
-                },
-            }),
+        before,
+        /** A get that pushes a history entry. */
+        visit: (id: string, url: string) => {
+            before(id, {}, url);
+            fire('navigate', { page: { url }, type: 'visit', visitId: id });
+            fire('success', { page: { url }, visitId: id });
+        },
         navigate: (
             url: string,
             type: 'initial' | 'visit' | 'history',
@@ -82,7 +98,7 @@ describe('navigation tracker', () => {
                 visit: { method: 'post', preserveScroll: true },
             },
         ]);
-        expect(previousUrl()).toBe('/dashboard');
+        expect(previousPath()).toBe('/dashboard');
     });
 
     it('records a replace visit, which fires no navigate', () => {
@@ -90,7 +106,8 @@ describe('navigation tracker', () => {
         inertia.success('/apps/our-corner', 'v1');
 
         expect(changes[1].previousPath).toBe('/dashboard');
-        expect(previousUrl()).toBe('/dashboard');
+        // The entry was rewritten, so the dashboard is no longer under it.
+        expect(previousPath()).toBeNull();
     });
 
     it('reads the options of a visit served from the prefetch cache', () => {
@@ -125,7 +142,65 @@ describe('navigation tracker', () => {
             previousPath: '/apps/our-corner',
             visit: null,
         });
-        expect(previousUrl()).toBe('/apps/our-corner');
+        expect(previousPath()).toBeNull();
+    });
+
+    it('knows what is under each page after stepping back', () => {
+        inertia.visit('v1', '/apps/our-corner');
+        inertia.visit('v2', '/apps/our-corner/songs');
+        inertia.visit('v3', '/apps/our-corner/songs/4');
+
+        inertia.navigate('/apps/our-corner/songs', 'history');
+        expect(previousPath()).toBe('/apps/our-corner');
+
+        inertia.navigate('/apps/our-corner', 'history');
+        expect(previousPath()).toBe('/dashboard');
+
+        inertia.navigate('/apps/our-corner/songs', 'history');
+        expect(previousPath()).toBe('/apps/our-corner');
+    });
+
+    it('drops the pages ahead when a visit pushes after stepping back', () => {
+        inertia.visit('v1', '/apps/our-corner');
+        inertia.navigate('/dashboard', 'history');
+        inertia.visit('v2', '/apps/our-mailbox');
+
+        expect(previousPath()).toBe('/dashboard');
+
+        inertia.navigate('/apps/our-corner', 'history');
+        expect(previousPath()).toBeNull();
+    });
+
+    it('keeps what is under a page that a replace visit rewrote', () => {
+        inertia.visit('v1', '/apps/our-corner');
+        inertia.visit('v2', '/apps/our-corner/songs/4');
+        inertia.before('v3');
+        inertia.success('/apps/our-corner/songs', 'v3');
+
+        expect(previousPath()).toBe('/apps/our-corner');
+    });
+
+    it('holds a page to one history entry: a get to the path already shown replaces it', () => {
+        inertia.visit('v1', '/apps/our-corner/songs');
+
+        const url = '/apps/our-corner/songs?filter=done';
+
+        expect(inertia.before('v2', {}, url).replace).toBe(true);
+        expect(inertia.before('v3', { method: 'post' }, url).replace).toBe(
+            false,
+        );
+        expect(inertia.before('v4', { prefetch: true }, url).replace).toBe(
+            false,
+        );
+        expect(
+            inertia.before('v5', {}, '/apps/our-corner/songs/4').replace,
+        ).toBe(false);
+    });
+
+    it('claims no previous page for a history entry it never saw', () => {
+        inertia.navigate('/apps/our-mailbox', 'history');
+
+        expect(previousPath()).toBeNull();
     });
 
     it('keeps the previous page across a client-side visit to the same path', () => {
@@ -135,7 +210,7 @@ describe('navigation tracker', () => {
         inertia.navigate('/apps/our-history?moment=4', 'visit', 'c1');
 
         expect(changes).toHaveLength(2);
-        expect(previousUrl()).toBe('/dashboard');
+        expect(previousPath()).toBe('/dashboard');
     });
 
     it('reports a same-path visit with the same path before and after', () => {
@@ -143,11 +218,10 @@ describe('navigation tracker', () => {
         inertia.navigate('/apps/our-corner/songs', 'visit', 'v1');
         inertia.success('/apps/our-corner/songs', 'v1');
         inertia.before('v2');
-        inertia.navigate('/apps/our-corner/songs?q=rain', 'visit', 'v2');
         inertia.success('/apps/our-corner/songs?q=rain', 'v2');
 
         expect(changes[2].previousPath).toBe('/apps/our-corner/songs');
-        expect(previousUrl()).toBe('/dashboard');
+        expect(previousPath()).toBe('/dashboard');
     });
 
     it('stops reporting to a listener that unsubscribed', () => {

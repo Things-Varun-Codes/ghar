@@ -2,8 +2,9 @@ import type { router as inertiaRouter } from '@inertiajs/react';
 import { pathOf } from '@/lib/url';
 
 /*
- * The one listener on Inertia's page changes. It keeps the current and previous page for
- * BackChevron and tells subscribers (route focus) about each completed page change.
+ * The one listener on Inertia's page changes. It keeps the stack of pages under the current one
+ * for BackChevron, holds a page to one history entry, and tells subscribers (route focus) about
+ * each completed page change.
  *
  * Inertia's events, as of @inertiajs/core 3.x:
  * - a server visit fires `before`, then `navigate` (type "visit") when it pushes a history
@@ -26,31 +27,72 @@ export type PageChange = {
     visit: VisitInfo | null;
 };
 
-// The page before the current one, by path. Same-path visits (a search, a filter, a
-// load-more) update the current URL in place so the previous page survives them.
-let current: string | null = null;
-let previous: string | null = null;
+/*
+ * The paths in this tab's history as this document has seen them, and which one is showing.
+ * Entries that differ only by query (a filter, an open sheet's own entry) are one page here.
+ */
+let pages: string[] = [];
+let at = -1;
+
+/** How a page change reached history: a new entry, the current one rewritten, or back/forward. */
+export type NavigationKind = 'push' | 'replace' | 'history';
+
+// Back/forward doesn't say which way it went, so take the nearest known page with that path,
+// the one below first.
+function stepTo(path: string): number | null {
+    for (let distance = 1; distance < pages.length; distance++) {
+        if (pages[at - distance] === path) {
+            return at - distance;
+        }
+
+        if (pages[at + distance] === path) {
+            return at + distance;
+        }
+    }
+
+    return null;
+}
 
 const listeners = new Set<(change: PageChange) => void>();
 
 /** Returns the path that was current before `url`. */
-export function recordNavigation(url: string): string | null {
-    const from = current === null ? null : pathOf(current);
+export function recordNavigation(
+    url: string,
+    kind: NavigationKind = 'push',
+): string | null {
+    const from = pages[at] ?? null;
+    const path = pathOf(url);
 
-    if (from !== null && pathOf(url) === from) {
-        current = url;
+    if (path === from) {
+        return from;
+    }
+
+    if (kind === 'push') {
+        pages.length = at + 1;
+        pages.push(path);
+        at++;
 
         return from;
     }
 
-    previous = current;
-    current = url;
+    const step = kind === 'history' ? stepTo(path) : null;
+
+    if (step !== null) {
+        at = step;
+    } else if (from !== null && kind === 'replace') {
+        pages[at] = path;
+    } else {
+        // Nothing is known about what is under this entry: it is from before this document loaded.
+        pages = [path];
+        at = 0;
+    }
 
     return from;
 }
 
-export function previousUrl(): string | null {
-    return previous;
+/** The page one step back in history, or null when this document hasn't seen one. */
+export function previousPath(): string | null {
+    return pages[at - 1] ?? null;
 }
 
 export function onPageChange(
@@ -81,8 +123,16 @@ export function installNavigation(router: Router): void {
             return;
         }
 
+        const method = String(visit.method).toLowerCase();
+
+        // A page owns one history entry: another view of it (filter, sort, search, tab, page
+        // number) rewrites that entry, so back leaves the page instead of undoing the filter.
+        if (method === 'get' && pathOf(visit.url.href) === pages[at]) {
+            visit.replace = true;
+        }
+
         visits.set(visit.id, {
-            method: String(visit.method).toLowerCase(),
+            method,
             preserveScroll: visit.preserveScroll === true,
         });
 
@@ -98,7 +148,10 @@ export function installNavigation(router: Router): void {
 
     router.on('navigate', (event) => {
         const { page, type, visitId } = event.detail;
-        const from = recordNavigation(page.url);
+        const from = recordNavigation(
+            page.url,
+            type === 'history' ? 'history' : 'push',
+        );
 
         if (type === 'initial') {
             emit(page.url, from, { method: 'get', preserveScroll: true });
@@ -111,11 +164,11 @@ export function installNavigation(router: Router): void {
 
     router.on('success', (event) => {
         const { page, visitId } = event.detail;
-        const recorded = recordNavigation(page.url);
+        // No `navigate` of its own means the visit rewrote the entry it started on.
         const from =
             navigated !== null && navigated.visitId === visitId
                 ? navigated.from
-                : recorded;
+                : recordNavigation(page.url, 'replace');
         navigated = null;
 
         const visit = (visitId !== undefined && visits.get(visitId)) || {
@@ -132,7 +185,7 @@ export function installNavigation(router: Router): void {
 }
 
 export function resetNavigationForTests(): void {
-    current = null;
-    previous = null;
+    pages = [];
+    at = -1;
     listeners.clear();
 }

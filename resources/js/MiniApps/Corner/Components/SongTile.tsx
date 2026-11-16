@@ -1,3 +1,4 @@
+import { Link } from '@inertiajs/react';
 import { MoreHorizontal } from 'lucide-react';
 import { useState } from 'react';
 
@@ -110,7 +111,7 @@ export default function SongTile({ song, listType, onEdit }: Props) {
             data-app="our-corner"
             className="shell-card-stretch shell-lift"
         >
-            <a
+            <Link
                 href={detailHref}
                 className="shell-card-link block text-inherit no-underline"
             >
@@ -144,7 +145,7 @@ export default function SongTile({ song, listType, onEdit }: Props) {
                 {song.author && (
                     <span className="corner-tile-meta">{song.author}</span>
                 )}
-            </a>
+            </Link>
 
             <div className="mt-2 flex items-center justify-between">
                 <a

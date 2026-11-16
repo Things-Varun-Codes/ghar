@@ -1,3 +1,4 @@
+import { Link } from '@inertiajs/react';
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import ActivityAddDialog from '@/MiniApps/Corner/Components/ActivityAddDialog';
@@ -92,7 +93,7 @@ export default function ActivitiesIndex({
                                 const detailHref = show.url(activity.id);
 
                                 return (
-                                    <a
+                                    <Link
                                         href={detailHref}
                                         className="shell-card-link block min-w-0 flex-1 text-inherit no-underline"
                                     >
@@ -112,7 +113,7 @@ export default function ActivitiesIndex({
                                         <p className="corner-row-meta">
                                             Added by {activity.addedBy.name}
                                         </p>
-                                    </a>
+                                    </Link>
                                 );
                             }}
                         />
