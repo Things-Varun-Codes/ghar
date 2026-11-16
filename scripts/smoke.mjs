@@ -1,7 +1,7 @@
 /**
  * Browser smoke: boots `artisan serve` on its own `ghar_smoke` database, seeds the
- * sample household, and walks every listed route once per theme in headless
- * Chromium. Fails on a console error, a non-200 or a missing heading.
+ * sample household, and walks every listed route in headless Chromium. Fails on a
+ * console error, a non-200 or a missing heading.
  *
  * Usage: npm run smoke [-- --no-google]
  *   --no-google  also asserts the location field is a plain, typeable input
@@ -207,35 +207,6 @@ async function startServe() {
     console.log(' ready');
 }
 
-// A single isPortFree() check would race the dying process.
-async function stopServe() {
-    if (serveProc && serveProc.pid) {
-        try {
-            process.kill(-serveProc.pid, 'SIGTERM');
-        } catch {
-            try {
-                serveProc.kill('SIGTERM');
-            } catch {
-                // Best-effort teardown: it may already be gone.
-            }
-        }
-    }
-
-    const deadline = Date.now() + BOOT_TIMEOUT_MS;
-
-    while (Date.now() < deadline) {
-        if (await isPortFree(SERVE_HOST, SERVE_PORT)) {
-            return;
-        }
-
-        await new Promise((resolve) => setTimeout(resolve, POLL_INTERVAL_MS));
-    }
-
-    throw new Error(
-        `Timed out waiting for ${SERVE_HOST}:${SERVE_PORT} to free after SIGTERM (${BOOT_TIMEOUT_MS}ms)`,
-    );
-}
-
 async function main() {
     console.log('[smoke] starting Ghar browser smoke harness');
 
@@ -358,11 +329,6 @@ echo json_encode([
             path: '/admin/invites',
             auth: true,
             description: '/admin/invites',
-        },
-        {
-            path: '/admin/theme',
-            auth: true,
-            description: '/admin/theme (Wayfinder admin page)',
         },
         {
             path: `/admin/users/${fixtures.otherUserId}/edit`,
@@ -536,153 +502,40 @@ echo json_encode([
     await loginPage.waitForLoadState('networkidle');
     await loginPage.close();
 
-    // Walks every route once per theme. SmokeThemeOverrideMiddleware reads the cookie.
-    const themes = ['pastel', 'warm'];
-    const setThemeCookie = async (ctx, themeSlug) => {
-        await ctx.addCookies([
-            {
-                name: 'smoke_theme',
-                value: themeSlug,
-                url: BASE_URL,
-            },
-        ]);
-    };
-
     let passed = 0;
-    const total = routes.length * themes.length;
+    const total = routes.length;
     const failures = [];
 
-    for (const [themeIndex, themeSlug] of themes.entries()) {
-        // Recycle the server between passes: `artisan serve` is single-threaded and
-        // the last routes of a second pass time out on a server this tired.
-        if (themeIndex > 0) {
-            await stopServe();
-            await startServe();
+    console.log(`\n[smoke] === walking ${routes.length} routes ===`);
+
+    for (const route of routes) {
+        const desc = route.description;
+        const jsErrors = [];
+        let ctx;
+
+        if (route.auth) {
+            ctx = authContext;
+        } else {
+            ctx = await browser.newContext();
         }
 
-        await setThemeCookie(authContext, themeSlug);
-        console.log(
-            `\n[smoke] === walking ${routes.length} routes in theme: ${themeSlug} ===`,
-        );
+        // JSON endpoints mount no React app, so the heading sentinels don't apply.
+        if (route.expect === 'json') {
+            try {
+                route.before?.();
 
-        for (const route of routes) {
-            const desc = `[${themeSlug}] ${route.description}`;
-            const jsErrors = [];
-            let ctx;
+                const apiRes = await ctx.request.get(
+                    `${BASE_URL}${route.path}`,
+                );
+                const status = apiRes.status();
+                const accepted = route.acceptStatuses ?? [200];
 
-            if (route.auth) {
-                ctx = authContext;
-            } else {
-                ctx = await browser.newContext();
-                await setThemeCookie(ctx, themeSlug);
-            }
-
-            // JSON endpoints mount no React app, so the heading sentinels don't apply.
-            if (route.expect === 'json') {
-                try {
-                    route.before?.();
-
-                    const apiRes = await ctx.request.get(
-                        `${BASE_URL}${route.path}`,
-                    );
-                    const status = apiRes.status();
-                    const accepted = route.acceptStatuses ?? [200];
-
-                    if (!accepted.includes(status)) {
-                        failures.push({
-                            route: desc,
-                            error: `HTTP ${status} (expected one of: ${accepted.join(', ')})`,
-                            jsErrors: [],
-                        });
-
-                        if (!route.auth) {
-await ctx.close();
-}
-
-                        continue;
-                    }
-
-                    let body;
-
-                    try {
-                        body = await apiRes.json();
-                    } catch (e) {
-                        failures.push({
-                            route: desc,
-                            error: `Response body is not valid JSON: ${e.message}`,
-                            jsErrors: [],
-                        });
-
-                        if (!route.auth) {
-await ctx.close();
-}
-
-                        continue;
-                    }
-
-                    const missing = (route.requireKeys ?? []).filter(
-                        (k) => !(k in body),
-                    );
-
-                    if (missing.length > 0) {
-                        failures.push({
-                            route: desc,
-                            error: `Missing JSON keys: ${missing.join(', ')}`,
-                            jsErrors: [],
-                        });
-
-                        if (!route.auth) {
-await ctx.close();
-}
-
-                        continue;
-                    }
-
-                    passed++;
-                    console.log(
-                        `  [smoke] PASS  ${desc} (status=${status}, keys=${Object.keys(body).length})`,
-                    );
-                } catch (err) {
+                if (!accepted.includes(status)) {
                     failures.push({
                         route: desc,
-                        error: err.message,
+                        error: `HTTP ${status} (expected one of: ${accepted.join(', ')})`,
                         jsErrors: [],
                     });
-                    console.error(`  [smoke] FAIL  ${desc}: ${err.message}`);
-                } finally {
-                    if (!route.auth) {
-await ctx.close();
-}
-                }
-
-                continue;
-            }
-
-            const page = await ctx.newPage();
-
-            page.on('pageerror', (err) => {
-                jsErrors.push(`[pageerror] ${err.message}`);
-            });
-            page.on('console', (msg) => {
-                if (msg.type() === 'error') {
-                    jsErrors.push(`[console.error] ${msg.text()}`);
-                }
-            });
-
-            try {
-                const res = await page.goto(`${BASE_URL}${route.path}`, {
-                    waitUntil: 'load',
-                });
-
-                const status = res?.status();
-
-                if (status !== 200) {
-                    failures.push({
-                        route: desc,
-                        error: `HTTP ${status} (expected 200)`,
-                        jsErrors,
-                    });
-                    await page.close();
 
                     if (!route.auth) {
 await ctx.close();
@@ -691,38 +544,16 @@ await ctx.close();
                     continue;
                 }
 
-                if (jsErrors.length > 0) {
-                    failures.push({
-                        route: desc,
-                        error: `${jsErrors.length} JS error(s)`,
-                        jsErrors,
-                    });
-                    await page.close();
-
-                    if (!route.auth) {
-await ctx.close();
-}
-
-                    continue;
-                }
-
-                const headingEl = page.locator('h1, h2').first();
-                let headingText = '';
+                let body;
 
                 try {
-                    headingText =
-                        (await headingEl.textContent({ timeout: 5_000 })) ?? '';
-                } catch {
-                    headingText = '';
-                }
-
-                if (!headingText || headingText.trim().length === 0) {
+                    body = await apiRes.json();
+                } catch (e) {
                     failures.push({
                         route: desc,
-                        error: 'No visible h1/h2 heading found — React may not have mounted',
-                        jsErrors,
+                        error: `Response body is not valid JSON: ${e.message}`,
+                        jsErrors: [],
                     });
-                    await page.close();
 
                     if (!route.auth) {
 await ctx.close();
@@ -731,70 +562,181 @@ await ctx.close();
                     continue;
                 }
 
-                if (route.auth) {
-                    const isNonDashboard = route.path !== '/dashboard';
-                    const chevronCount = await page
-                        .locator('button[aria-label^="Back to"]')
-                        .count();
+                const missing = (route.requireKeys ?? []).filter(
+                    (k) => !(k in body),
+                );
 
-                    if (isNonDashboard && chevronCount === 0) {
-                        failures.push({
-                            route: desc,
-                            error:
-                                'BackChevron missing on authenticated inner page — ' +
-                                'expected button[aria-label^="Back to"] to be present',
-                            jsErrors,
-                        });
-                        await page.close();
+                if (missing.length > 0) {
+                    failures.push({
+                        route: desc,
+                        error: `Missing JSON keys: ${missing.join(', ')}`,
+                        jsErrors: [],
+                    });
 
-                        if (!route.auth) {
+                    if (!route.auth) {
 await ctx.close();
 }
 
-                        continue;
-                    }
-
-                    if (!isNonDashboard && chevronCount > 0) {
-                        failures.push({
-                            route: desc,
-                            error:
-                                'BackChevron present on /dashboard — ' +
-                                'expected BackChevron to return null on the home page',
-                            jsErrors,
-                        });
-                        await page.close();
-
-                        if (!route.auth) {
-await ctx.close();
-}
-
-                        continue;
-                    }
+                    continue;
                 }
 
                 passed++;
                 console.log(
-                    `  [smoke] PASS  ${desc} (heading: "${headingText.trim()}")`,
+                    `  [smoke] PASS  ${desc} (status=${status}, keys=${Object.keys(body).length})`,
                 );
             } catch (err) {
                 failures.push({
                     route: desc,
                     error: err.message,
-                    jsErrors,
+                    jsErrors: [],
                 });
                 console.error(`  [smoke] FAIL  ${desc}: ${err.message}`);
             } finally {
+                if (!route.auth) {
+await ctx.close();
+}
+            }
+
+            continue;
+        }
+
+        const page = await ctx.newPage();
+
+        page.on('pageerror', (err) => {
+            jsErrors.push(`[pageerror] ${err.message}`);
+        });
+        page.on('console', (msg) => {
+            if (msg.type() === 'error') {
+                jsErrors.push(`[console.error] ${msg.text()}`);
+            }
+        });
+
+        try {
+            const res = await page.goto(`${BASE_URL}${route.path}`, {
+                waitUntil: 'load',
+            });
+
+            const status = res?.status();
+
+            if (status !== 200) {
+                failures.push({
+                    route: desc,
+                    error: `HTTP ${status} (expected 200)`,
+                    jsErrors,
+                });
                 await page.close();
 
                 if (!route.auth) {
 await ctx.close();
 }
-            }
-        }
-    } // end for (themeSlug of themes)
 
-    // The field mounts only when the EventSheet is open. Runs in the last theme, so
-    // anything asserted here must be theme-independent.
+                continue;
+            }
+
+            if (jsErrors.length > 0) {
+                failures.push({
+                    route: desc,
+                    error: `${jsErrors.length} JS error(s)`,
+                    jsErrors,
+                });
+                await page.close();
+
+                if (!route.auth) {
+await ctx.close();
+}
+
+                continue;
+            }
+
+            const headingEl = page.locator('h1, h2').first();
+            let headingText = '';
+
+            try {
+                headingText =
+                    (await headingEl.textContent({ timeout: 5_000 })) ?? '';
+            } catch {
+                headingText = '';
+            }
+
+            if (!headingText || headingText.trim().length === 0) {
+                failures.push({
+                    route: desc,
+                    error: 'No visible h1/h2 heading found — React may not have mounted',
+                    jsErrors,
+                });
+                await page.close();
+
+                if (!route.auth) {
+await ctx.close();
+}
+
+                continue;
+            }
+
+            if (route.auth) {
+                const isNonDashboard = route.path !== '/dashboard';
+                // One link holds the chevron and the parent's name, so its name starts
+                // "Back to …" whether the label shows or sits in aria-label.
+                const chevronCount = await page
+                    .getByRole('link', { name: /^Back to / })
+                    .count();
+
+                if (isNonDashboard && chevronCount === 0) {
+                    failures.push({
+                        route: desc,
+                        error:
+                            'BackChevron missing on authenticated inner page — ' +
+                            'expected a link named "Back to …" to be present',
+                        jsErrors,
+                    });
+                    await page.close();
+
+                    if (!route.auth) {
+await ctx.close();
+}
+
+                    continue;
+                }
+
+                if (!isNonDashboard && chevronCount > 0) {
+                    failures.push({
+                        route: desc,
+                        error:
+                            'BackChevron present on /dashboard — ' +
+                            'expected BackChevron to return null on the home page',
+                        jsErrors,
+                    });
+                    await page.close();
+
+                    if (!route.auth) {
+await ctx.close();
+}
+
+                    continue;
+                }
+            }
+
+            passed++;
+            console.log(
+                `  [smoke] PASS  ${desc} (heading: "${headingText.trim()}")`,
+            );
+        } catch (err) {
+            failures.push({
+                route: desc,
+                error: err.message,
+                jsErrors,
+            });
+            console.error(`  [smoke] FAIL  ${desc}: ${err.message}`);
+        } finally {
+            await page.close();
+
+            if (!route.auth) {
+await ctx.close();
+}
+        }
+    }
+
+    // The field mounts only when the EventSheet is open.
     if (noGoogle) {
         const sheetPage = await authContext.newPage();
         const sheetErrors = [];

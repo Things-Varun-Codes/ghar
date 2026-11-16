@@ -37,16 +37,16 @@ type Props = {
     onEdit?: () => void;
 };
 
-function providerLabel(provider: string): string {
+function providerLabel(provider: string, title: string): string {
     if (provider === 'youtube') {
-        return 'Open in YouTube';
+        return `Open ${title} in YouTube`;
     }
 
     if (provider === 'spotify') {
-        return 'Open in Spotify';
+        return `Open ${title} in Spotify`;
     }
 
-    return 'Open link';
+    return `Open ${title}`;
 }
 
 // Real brand colours: a third-party mark isn't app chrome.
@@ -85,13 +85,18 @@ export default function SongTile({ song, listType, onEdit }: Props) {
     const isDone = song.done_at !== null;
     const detailHref = show.url(song.id);
 
-    const { isPendingDelete, handleEdit, handleToggleDone, handleDelete } =
-        useItemActions({
-            type: listType,
-            id: song.id,
-            title: song.title,
-            onOpenEdit: onEdit,
-        });
+    const {
+        isPendingDelete,
+        isTogglePending,
+        handleEdit,
+        handleToggleDone,
+        handleDelete,
+    } = useItemActions({
+        type: listType,
+        id: song.id,
+        title: song.title,
+        onOpenEdit: onEdit,
+    });
 
     if (isPendingDelete) {
         return null;
@@ -128,7 +133,7 @@ export default function SongTile({ song, listType, onEdit }: Props) {
                             <SongIcon
                                 size={32}
                                 strokeWidth={1.5}
-                                className="text-(--corner-accent)"
+                                className="text-(--corner-accent-text)"
                             />
                         </div>
                     )}
@@ -146,8 +151,8 @@ export default function SongTile({ song, listType, onEdit }: Props) {
                     href={song.url}
                     target="_blank"
                     rel="noopener noreferrer"
-                    aria-label={providerLabel(song.provider)}
-                    title={providerLabel(song.provider)}
+                    aria-label={providerLabel(song.provider, song.title)}
+                    title={providerLabel(song.provider, song.title)}
                     className="corner-tile-icon-btn"
                 >
                     <ProviderIcon provider={song.provider} />
@@ -157,20 +162,21 @@ export default function SongTile({ song, listType, onEdit }: Props) {
                     className="corner-done-toggle corner-done-toggle--icon"
                     pressed={isDone}
                     onPressedChange={handleToggleDone}
-                    aria-label={isDone ? 'Unlove this song' : 'Love this song'}
-                    title={isDone ? 'Unlove this song' : 'Love this song'}
+                    aria-disabled={isTogglePending || undefined}
+                    aria-label={`Love ${song.title}`}
+                    title={isDone ? 'Loved' : 'Love this song'}
                 >
                     <HeartMark filled={isDone} />
                 </Toggle>
 
-                {!canManage && <span aria-hidden="true" className="w-[40px]" />}
+                {!canManage && <span aria-hidden="true" className="w-10" />}
 
                 {canManage && (
                     <DropdownMenu>
                         <DropdownMenuTrigger asChild>
                             <button
                                 type="button"
-                                aria-label="Item actions"
+                                aria-label={`Actions for ${song.title}`}
                                 className="corner-tile-icon-btn"
                             >
                                 <MoreHorizontal size={18} aria-hidden="true" />

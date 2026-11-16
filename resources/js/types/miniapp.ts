@@ -9,4 +9,9 @@ export type MiniApp = {
     slug: string;
     route: string;
     description: string;
+    component_prefix?: string;
+    /** A lucide icon name for the phone bottom bar. */
+    icon?: string;
+    /** The short bottom-bar label; defaults to the name without "Our". */
+    nav_label?: string;
 };

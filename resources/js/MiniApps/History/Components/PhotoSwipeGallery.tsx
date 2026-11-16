@@ -7,7 +7,9 @@ import {
     useImperativeHandle,
     useMemo,
     useRef,
+    useState,
 } from 'react';
+import { useOverlayHistory } from '@/hooks/use-overlay-history';
 import { escapeHtml } from '@/lib/utils';
 
 import type { GalleryMediaItem } from './MasonryGrid';
@@ -38,6 +40,10 @@ type PswpDataItem = {
 const PhotoSwipeGallery = forwardRef<PhotoSwipeGalleryHandle, Props>(
     function PhotoSwipeGallery({ media }, ref) {
         const lightboxRef = useRef<PhotoSwipeLightbox | null>(null);
+        const [isOpen, setIsOpen] = useState(false);
+
+        // Back closes the lightbox first; inside a moment's sheet it shares the sheet's entry.
+        useOverlayHistory(isOpen, () => lightboxRef.current?.pswp?.close());
 
         const mediaSignature = useMemo(
             () => media.map((m) => m.id).join(','),
@@ -132,9 +138,9 @@ const PhotoSwipeGallery = forwardRef<PhotoSwipeGalleryHandle, Props>(
                             'bottom:0',
                             'left:0',
                             'right:0',
-                            'padding:16px 20px',
+                            'padding:16px 24px',
                             'background:linear-gradient(transparent,rgba(0,0,0,0.7))',
-                            'color:#fff' /* theme-invariant: PhotoSwipe controls are always white over dark media */,
+                            'color:#fff' /* PhotoSwipe controls are always white over dark media */,
                             'font-family:var(--font-sans)',
                             'pointer-events:none',
                             'z-index:10',
@@ -157,10 +163,10 @@ const PhotoSwipeGallery = forwardRef<PhotoSwipeGalleryHandle, Props>(
 
                 captionEl.innerHTML = [
                     title &&
-                        `<div style="font-family:var(--font-wordmark);font-size:18px;font-weight:400;margin-bottom:4px;">${escapeHtml(title)}</div>`,
+                        `<div style="font-family:var(--font-display);font-size:20px;font-weight:400;line-height:1.2;margin-bottom:4px;">${escapeHtml(title)}</div>`,
                     date &&
-                        `<div style="font-size:12px;opacity:0.85;margin-bottom:4px;">${escapeHtml(date)}</div>`,
-                    `<div style="font-size:11px;opacity:0.65;font-variant-numeric:tabular-nums;">${counter}</div>`,
+                        `<div style="font-size:14px;opacity:0.85;margin-bottom:4px;">${escapeHtml(date)}</div>`,
+                    `<div style="font-size:13px;opacity:0.7;font-variant-numeric:tabular-nums;">${counter}</div>`,
                 ]
                     .filter(Boolean)
                     .join('');
@@ -172,12 +178,16 @@ const PhotoSwipeGallery = forwardRef<PhotoSwipeGalleryHandle, Props>(
             lightbox.on('change', updateCaption);
             lightbox.on('afterInit', updateCaption);
 
+            lightbox.on('beforeOpen', () => setIsOpen(true));
+            lightbox.on('close', () => setIsOpen(false));
+
             lightbox.init();
             lightboxRef.current = lightbox;
 
             return () => {
                 lightbox.destroy();
                 lightboxRef.current = null;
+                setIsOpen(false);
             };
             // mediaSignature is the stable identity for `media`; including media
             // itself would re-run on every render.

@@ -1,4 +1,5 @@
 import { router } from '@inertiajs/react';
+import * as Sentry from '@sentry/react';
 import { useRef, useState } from 'react';
 import { toast } from 'sonner';
 
@@ -40,6 +41,8 @@ export type UseItemActionsOptions = {
 
 export type UseItemActionsReturn = {
     isPendingDelete: boolean;
+    /* A toggle is in flight; the control ignores taps until it settles. */
+    isTogglePending: boolean;
     handleEdit: () => void;
     handleToggleDone: () => void;
     handleDelete: () => void;
@@ -71,6 +74,42 @@ const ROUTE_HELPERS: Record<
     },
 };
 
+export const TOGGLE_FAILED_MESSAGE = "Couldn't update that. Try again.";
+
+/*
+ * Transport and HTTP failures never reach a validation onError, so all three are handled.
+ * Returning false keeps Inertia's error modal and unhandled rejection away: the toast is the
+ * surface.
+ */
+function failureHandlers(action: string, onFailed: () => void) {
+    const tags = { component: 'Corner/useItemActions', action };
+
+    return {
+        onError: (errors: Record<string, string>) => {
+            Sentry.captureException(new Error(`${action} rejected`), {
+                tags,
+                extra: { errors },
+            });
+            onFailed();
+        },
+        onNetworkError: (error: Error) => {
+            Sentry.captureException(error, { tags });
+            onFailed();
+
+            return false;
+        },
+        onHttpException: (response: { status: number }) => {
+            Sentry.captureException(
+                new Error(`${action} failed with HTTP ${response.status}`),
+                { tags },
+            );
+            onFailed();
+
+            return false;
+        },
+    };
+}
+
 type PendingDelete = {
     timerId: ReturnType<typeof setTimeout>;
     toastId: string | number;
@@ -84,6 +123,8 @@ export function useItemActions({
     onDeleted,
 }: UseItemActionsOptions): UseItemActionsReturn {
     const [isPendingDelete, setIsPendingDelete] = useState(false);
+    const [isTogglePending, setIsTogglePending] = useState(false);
+    const toggleInFlightRef = useRef(false);
 
     const pendingRef = useRef<PendingDelete | null>(null);
 
@@ -92,10 +133,27 @@ export function useItemActions({
     };
 
     const handleToggleDone = () => {
+        // A ref, not the state: a double tap lands before the re-render that would disable it.
+        if (toggleInFlightRef.current) {
+            return;
+        }
+
+        toggleInFlightRef.current = true;
+        setIsTogglePending(true);
+
         router.patch(
             ROUTE_HELPERS[type].toggleDoneUrl(id),
             {},
-            { preserveScroll: true },
+            {
+                preserveScroll: true,
+                ...failureHandlers('toggle-done', () => {
+                    toast.error(TOGGLE_FAILED_MESSAGE);
+                }),
+                onFinish: () => {
+                    toggleInFlightRef.current = false;
+                    setIsTogglePending(false);
+                },
+            },
         );
     };
 
@@ -116,8 +174,16 @@ export function useItemActions({
         setIsPendingDelete(true);
 
         const timerId = setTimeout(() => {
+            pendingRef.current = null;
             router.delete(ROUTE_HELPERS[type].destroyUrl(id), {
                 preserveScroll: true,
+                // Still on the list, the row comes back; a detail page has already left.
+                ...failureHandlers('delete', () => {
+                    setIsPendingDelete(false);
+                    toast.error(
+                        `Couldn't remove ${title ?? 'that'}. Try again.`,
+                    );
+                }),
             });
         }, DELETE_GRACE_PERIOD_MS);
 
@@ -138,6 +204,7 @@ export function useItemActions({
 
     return {
         isPendingDelete,
+        isTogglePending,
         handleEdit,
         handleToggleDone,
         handleDelete,

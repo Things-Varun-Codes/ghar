@@ -2,7 +2,7 @@ import { router, usePage } from '@inertiajs/react';
 import * as DialogPrimitive from '@radix-ui/react-dialog';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
-import { useThemeAttrs } from '@/hooks/use-theme-attrs';
+import { useAppAttrs } from '@/hooks/use-app-attrs';
 import { captureSilent } from '@/lib/observability';
 import events from '@/routes/apps/our-history/events';
 import type { Auth } from '@/types/auth';
@@ -22,7 +22,7 @@ export default function DeleteEventDialog({
     onDeleting,
     onDeleted,
 }: Props) {
-    const themeAttrs = useThemeAttrs();
+    const appAttrs = useAppAttrs();
     const { auth } = usePage<{ auth: Auth }>().props;
     const userRole: 'admin' | 'user' | 'guest' = auth.user
         ? auth.user.roles?.[0] === 'admin'
@@ -62,10 +62,10 @@ export default function DeleteEventDialog({
             <DialogPrimitive.Portal>
                 <DialogPrimitive.Overlay
                     className="history-delete-overlay"
-                    {...themeAttrs}
+                    {...appAttrs}
                 />
                 <DialogPrimitive.Content
-                    {...themeAttrs}
+                    {...appAttrs}
                     className="history-delete-dialog"
                 >
                     <DialogPrimitive.Title className="history-delete-title">

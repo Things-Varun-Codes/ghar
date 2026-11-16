@@ -1,7 +1,6 @@
 import { Head, usePage } from '@inertiajs/react';
 import DesktopIcon from '@/Shell/Components/DesktopIcon';
 import EmptyState from '@/Shell/Components/EmptyState';
-import AppLayout from '@/Shell/Layouts/AppLayout';
 import type { MiniApp, MiniAppPreview } from '@/types/miniapp';
 
 function greetingFor(hour: number): string {
@@ -49,7 +48,7 @@ export default function Dashboard() {
     const homeLine = HOME_LINES[dayIndex % HOME_LINES.length];
 
     return (
-        <AppLayout>
+        <>
             <Head title="Home" />
 
             <div className="os-home">
@@ -76,6 +75,6 @@ export default function Dashboard() {
                     />
                 )}
             </div>
-        </AppLayout>
+        </>
     );
 }

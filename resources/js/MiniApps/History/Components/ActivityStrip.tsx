@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { formatDate } from '@/lib/utils';
+import { formatDate } from '@/lib/dates';
 
 type Change = {
     id: number;
@@ -39,9 +39,7 @@ function relativeTime(isoDate: string): string {
         return `${days}d ago`;
     }
 
-    return formatDate(isoDate, {
-        intl: { month: 'short', day: 'numeric', year: 'numeric' },
-    });
+    return formatDate(isoDate);
 }
 
 export default function ActivityStrip({ changes }: ActivityStripProps) {
@@ -75,12 +73,12 @@ export default function ActivityStrip({ changes }: ActivityStripProps) {
                     viewBox="0 0 24 24"
                     fill="none"
                     stroke="currentColor"
-                    strokeWidth="2.5"
+                    strokeWidth="1.5"
                     strokeLinecap="round"
                     strokeLinejoin="round"
                     aria-hidden="true"
                     focusable="false"
-                    className="ml-auto text-(--history-ink-soft) [transition:transform_0.15s_ease]"
+                    className="ml-auto text-(--history-ink-soft) [transition:transform_var(--dur-in)_var(--ease-ui)]"
                     style={{ transform: expanded ? 'rotate(180deg)' : 'none' }}
                 >
                     <polyline points="6 9 12 15 18 9" />

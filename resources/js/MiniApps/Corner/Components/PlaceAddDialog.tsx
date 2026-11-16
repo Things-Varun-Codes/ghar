@@ -113,7 +113,7 @@ export default function PlaceAddDialog({ open, onOpenChange, item }: Props) {
             isDirty={() => isDirty}
             renderFields={() =>
                 hasPlacesSearch ? (
-                    <div className="flex flex-col gap-1.5">
+                    <div className="flex flex-col gap-1">
                         <FormField label="Where?" name="place-search">
                             <PlacesLocationField
                                 onSelect={(loc) => {
@@ -142,7 +142,7 @@ export default function PlaceAddDialog({ open, onOpenChange, item }: Props) {
                             />
                         </FormField>
                         {!hasPick && (
-                            <p className="mx-0 mt-1 mb-0 text-[12px] text-(--corner-ink-soft)">
+                            <p className="corner-form-hint">
                                 Search and pick a place to enable the
                                 {isEdit ? ' Save changes' : ' Add'} button.
                             </p>
@@ -165,7 +165,7 @@ export default function PlaceAddDialog({ open, onOpenChange, item }: Props) {
                                 onChange={(e) =>
                                     setData('title', e.target.value)
                                 }
-                                className="text-[16px]"
+                                className="text-(length:--text-body)"
                             />
                         </FormField>
                         <FormField
@@ -182,7 +182,7 @@ export default function PlaceAddDialog({ open, onOpenChange, item }: Props) {
                                 onChange={(e) =>
                                     setData('address', e.target.value)
                                 }
-                                className="text-[16px]"
+                                className="text-(length:--text-body)"
                             />
                         </FormField>
                     </>

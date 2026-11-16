@@ -1,4 +1,5 @@
-import { useEffect, useState } from 'react';
+import { Play } from 'lucide-react';
+import { useMediaQuery } from '@/hooks/use-media-query';
 
 export type GalleryMediaItem = {
     id: number;
@@ -21,46 +22,13 @@ type Props = {
     onTileClick: (index: number) => void;
 };
 
-function getColumnCount(): number {
-    if (window.matchMedia('(max-width: 700px)').matches) {
-        return 2;
-    }
-
-    if (window.matchMedia('(max-width: 1100px)').matches) {
-        return 3;
-    }
-
-    if (window.matchMedia('(min-width: 1600px)').matches) {
-        return 5;
-    }
-
-    return 4;
-}
-
 export default function MasonryGrid({ media, onTileClick }: Props) {
-    const [colCount, setColCount] = useState(4);
-
-    useEffect(() => {
-        const mq700 = window.matchMedia('(max-width: 700px)');
-        const mq1100 = window.matchMedia('(max-width: 1100px)');
-        const mq1600 = window.matchMedia('(min-width: 1600px)');
-
-        const handleChange = () => {
-            setColCount(getColumnCount());
-        };
-
-        mq700.addEventListener('change', handleChange);
-        mq1100.addEventListener('change', handleChange);
-        mq1600.addEventListener('change', handleChange);
-
-        handleChange();
-
-        return () => {
-            mq700.removeEventListener('change', handleChange);
-            mq1100.removeEventListener('change', handleChange);
-            mq1600.removeEventListener('change', handleChange);
-        };
-    }, []);
+    // Read synchronously on the first render, so the grid never mounts at one column count and
+    // reflows to another.
+    const phone = useMediaQuery('(max-width: 767.98px)');
+    const tablet = useMediaQuery('(max-width: 1279.98px)');
+    const wide = useMediaQuery('(min-width: 1536px)');
+    const colCount = phone ? 2 : tablet ? 3 : wide ? 5 : 4;
 
     if (media.length === 0) {
         return null;
@@ -123,7 +91,7 @@ function MasonryTile({ item, index, onTileClick }: TileProps) {
         >
             {isPendingPhoto ? (
                 <div
-                    className="history-pending-tile"
+                    className="history-pending-tile shell-skeleton"
                     aria-hidden="true"
                     style={{
                         aspectRatio:
@@ -136,6 +104,8 @@ function MasonryTile({ item, index, onTileClick }: TileProps) {
                 <img
                     src={thumbSrc}
                     alt={item.alt || ''}
+                    width={item.width ?? undefined}
+                    height={item.height ?? undefined}
                     loading="lazy"
                     decoding="async"
                     className="block h-auto w-full"
@@ -160,7 +130,7 @@ function MasonryTile({ item, index, onTileClick }: TileProps) {
 
             {item.kind === 'video' && (
                 <span aria-hidden="true" className="history-masonry-play">
-                    ▶
+                    <Play size={28} strokeWidth={1.5} fill="currentColor" />
                 </span>
             )}
         </button>

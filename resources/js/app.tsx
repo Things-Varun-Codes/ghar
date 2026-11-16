@@ -2,7 +2,11 @@ import { createInertiaApp, router } from '@inertiajs/react';
 import * as Sentry from '@sentry/react';
 import { createRoot } from 'react-dom/client';
 import { Toaster } from '@/components/ui/sonner';
+import { recordNavigation } from '@/lib/back-navigation';
+import { watchConnection } from '@/lib/connection';
 import { captureSilent } from '@/lib/observability';
+import { installRouteFocus } from '@/lib/route-focus';
+import AppLayout from '@/Shell/Layouts/AppLayout';
 
 // Server-rendered in app.blade.php, so these come from the runtime environment.
 const meta = (name: string): string | undefined =>
@@ -11,6 +15,14 @@ const meta = (name: string): string | undefined =>
 
 const appName = meta('application-name') ?? 'Ghar';
 const sentryDsn = meta('sentry-dsn');
+
+// offline.html is static and can't ask the server for the install's name.
+try {
+    localStorage.setItem('ghar.appName', appName);
+    // eslint-disable-next-line local/no-silent-error -- storage blocked (private mode): the offline page shows its default name.
+} catch {
+    // Nothing to do.
+}
 
 const pages = import.meta.glob('./**/Pages/**/*.tsx') as Record<
     string,
@@ -56,6 +68,10 @@ createInertiaApp({
         return module.default as React.ComponentType;
     },
 
+    // Every signed-in page shares one AppLayout, so the chrome stays mounted between visits.
+    layout: (name) =>
+        name.startsWith('Shell/Pages/Auth/') ? undefined : AppLayout,
+
     setup({ el, App, props }) {
         const root = createRoot(el);
         root.render(
@@ -73,7 +89,14 @@ createInertiaApp({
                 )}
             >
                 <App {...props} />
-                <Toaster />
+                <Toaster
+                    offset={{ bottom: 'var(--shell-toast-bottom)' }}
+                    mobileOffset={{
+                        bottom: 'var(--shell-toast-bottom)',
+                        left: 'max(16px, env(safe-area-inset-left))',
+                        right: 'max(16px, env(safe-area-inset-right))',
+                    }}
+                />
             </Sentry.ErrorBoundary>,
         );
 
@@ -93,10 +116,23 @@ createInertiaApp({
     },
 
     progress: {
-        // Read before any [data-theme] exists, so a literal that works on both themes.
-        color: '#3A2A1A',
+        // A CSS colour, so the bar follows --shell-action.
+        color: 'var(--shell-action)',
     },
 });
+
+router.on('navigate', (event) => {
+    recordNavigation(event.detail.page.url);
+});
+
+// A replace visit (BackChevron's fallback) fires no navigate event.
+router.on('success', (event) => {
+    recordNavigation(event.detail.page.url);
+});
+
+installRouteFocus(router);
+
+watchConnection();
 
 // Prefetched pages are kept for a few seconds. Anything that writes may have changed
 // what they show, so a write drops them all rather than risk a stale list.

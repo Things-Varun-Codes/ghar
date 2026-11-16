@@ -1,5 +1,6 @@
 import { useForm } from '@inertiajs/react';
-import { useState } from 'react';
+import { ChevronDown } from 'lucide-react';
+import { useId, useState } from 'react';
 import { Input } from '@/components/ui/input';
 import { useDirtyFormGate } from '@/hooks/use-dirty-form-gate';
 import ListAddDialog from '@/MiniApps/Corner/Components/ListAddDialog';
@@ -48,6 +49,8 @@ export default function MovieAddDialog({ open, onOpenChange, item }: Props) {
     const { isDirty, reset: gateReset } = useDirtyFormGate(form);
 
     const [linkInput, setLinkInput] = useState(item?.plex_url ?? '');
+    const [plexOpen, setPlexOpen] = useState(Boolean(item?.plex_url));
+    const plexRegionId = useId();
     const [previewImageBroken, setPreviewImageBroken] = useState(false);
     const {
         preview,
@@ -62,8 +65,12 @@ export default function MovieAddDialog({ open, onOpenChange, item }: Props) {
             poster_url: json.poster_url ?? null,
             watch_url: json.watch_url ?? url,
         }),
+        // The title is typed first now, so Plex only fills it when it's still empty.
         onResult: (json) => {
-            setData('title', json.title ?? '');
+            if (data.title.trim() === '') {
+                setData('title', json.title ?? '');
+            }
+
             setData('plex_url', json.watch_url ?? '');
         },
         noMatchMessage: NOT_FOUND_MESSAGE,
@@ -85,6 +92,9 @@ export default function MovieAddDialog({ open, onOpenChange, item }: Props) {
         triggerPreview(next);
     };
 
+    // A Plex error must never sit inside a collapsed section.
+    const showPlex = plexOpen || Boolean(errors.plex_url);
+
     const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault();
 
@@ -94,6 +104,7 @@ export default function MovieAddDialog({ open, onOpenChange, item }: Props) {
                 reset();
                 gateReset();
                 setLinkInput('');
+                setPlexOpen(false);
                 clearPreview();
                 setPreviewImageBroken(false);
                 onOpenChange(false);
@@ -121,6 +132,7 @@ export default function MovieAddDialog({ open, onOpenChange, item }: Props) {
 
                 if (!next && !isDirty) {
                     setLinkInput('');
+                    setPlexOpen(Boolean(item?.plex_url));
                     clearPreview();
                     setPreviewImageBroken(false);
                 }
@@ -136,85 +148,6 @@ export default function MovieAddDialog({ open, onOpenChange, item }: Props) {
             renderFields={() => (
                 <>
                     <FormField
-                        label="Plex link (optional)"
-                        name="plex_link"
-                        error={errors.plex_url}
-                    >
-                        <Input
-                            id="plex_link"
-                            type="url"
-                            inputMode="url"
-                            placeholder="Paste a Plex share link…"
-                            autoComplete="off"
-                            value={linkInput}
-                            onChange={(e) => handleLinkChange(e.target.value)}
-                            onBlur={(e) => triggerPreview(e.target.value)}
-                            onPaste={(e) => {
-                                const pasted = e.clipboardData.getData('text');
-
-                                if (pasted) {
-                                    triggerPreview(pasted);
-                                }
-                            }}
-                            className="text-[16px]"
-                        />
-                    </FormField>
-
-                    {preview.kind === 'loading' && (
-                        <LoadingState rows={1} variant="card" />
-                    )}
-
-                    {preview.kind === 'ok' && (
-                        <div
-                            role="region"
-                            aria-label="Movie preview"
-                            className="corner-preview-card"
-                        >
-                            {preview.poster_url && !previewImageBroken ? (
-                                <img
-                                    src={preview.poster_url}
-                                    alt=""
-                                    width={88}
-                                    height={66}
-                                    onError={() => setPreviewImageBroken(true)}
-                                    className="corner-preview-thumb"
-                                />
-                            ) : (
-                                <div
-                                    aria-hidden="true"
-                                    className="corner-preview-placeholder"
-                                >
-                                    <MovieIcon
-                                        size={32}
-                                        strokeWidth={1.5}
-                                        aria-hidden="true"
-                                        className="text-(--corner-accent)"
-                                    />
-                                </div>
-                            )}
-                            <div className="min-w-0 flex-1">
-                                <p className="corner-preview-title">
-                                    {preview.title}
-                                </p>
-                                {preview.year !== null && (
-                                    <p className="mx-0 mt-1 mb-0 text-[13px] text-(--corner-ink-soft)">
-                                        {preview.year}
-                                    </p>
-                                )}
-                            </div>
-                        </div>
-                    )}
-
-                    {preview.kind === 'error' && (
-                        <p
-                            role="alert"
-                            className="m-0 text-[13px] text-(--corner-ink-soft)"
-                        >
-                            {preview.message}
-                        </p>
-                    )}
-
-                    <FormField
                         label="Movie title"
                         name="title"
                         error={errors.title}
@@ -224,11 +157,120 @@ export default function MovieAddDialog({ open, onOpenChange, item }: Props) {
                             type="text"
                             placeholder="e.g. Inception"
                             autoComplete="off"
+                            autoFocus
+                            maxLength={255}
                             value={data.title}
                             onChange={(e) => setData('title', e.target.value)}
-                            className="text-[16px]"
+                            className="text-(length:--text-body)"
                         />
                     </FormField>
+
+                    <button
+                        type="button"
+                        className="corner-disclosure"
+                        aria-expanded={showPlex}
+                        aria-controls={plexRegionId}
+                        onClick={() => setPlexOpen(!showPlex)}
+                    >
+                        <ChevronDown
+                            aria-hidden="true"
+                            size={16}
+                            strokeWidth={1.5}
+                            className="corner-disclosure-icon"
+                        />
+                        Plex link (optional)
+                    </button>
+
+                    <div
+                        id={plexRegionId}
+                        hidden={!showPlex}
+                        className="flex flex-col gap-4"
+                    >
+                        <FormField
+                            label="Plex link"
+                            name="plex_link"
+                            error={errors.plex_url}
+                        >
+                            <Input
+                                id="plex_link"
+                                type="url"
+                                inputMode="url"
+                                placeholder="Paste a Plex share link…"
+                                autoComplete="off"
+                                maxLength={2048}
+                                value={linkInput}
+                                onChange={(e) =>
+                                    handleLinkChange(e.target.value)
+                                }
+                                onBlur={(e) => triggerPreview(e.target.value)}
+                                onPaste={(e) => {
+                                    const pasted =
+                                        e.clipboardData.getData('text');
+
+                                    if (pasted) {
+                                        triggerPreview(pasted);
+                                    }
+                                }}
+                                className="text-(length:--text-body)"
+                            />
+                        </FormField>
+
+                        {preview.kind === 'loading' && (
+                            <LoadingState rows={1} variant="card" />
+                        )}
+
+                        {preview.kind === 'ok' && (
+                            <div
+                                role="region"
+                                aria-label="Movie preview"
+                                className="corner-preview-card"
+                            >
+                                {preview.poster_url && !previewImageBroken ? (
+                                    <img
+                                        src={preview.poster_url}
+                                        alt=""
+                                        width={88}
+                                        height={66}
+                                        onError={() =>
+                                            setPreviewImageBroken(true)
+                                        }
+                                        className="corner-preview-thumb"
+                                    />
+                                ) : (
+                                    <div
+                                        aria-hidden="true"
+                                        className="corner-preview-placeholder"
+                                    >
+                                        <MovieIcon
+                                            size={32}
+                                            strokeWidth={1.5}
+                                            aria-hidden="true"
+                                            className="text-(--corner-accent-text)"
+                                        />
+                                    </div>
+                                )}
+                                <div className="min-w-0 flex-1">
+                                    <p className="corner-preview-title">
+                                        {preview.title}
+                                    </p>
+                                    {preview.year !== null && (
+                                        <p className="corner-preview-meta">
+                                            {preview.year}
+                                        </p>
+                                    )}
+                                </div>
+                            </div>
+                        )}
+
+                        {preview.kind === 'error' && (
+                            <p
+                                role="alert"
+                                className="m-0 text-(length:--text-small) text-(--corner-ink-soft)"
+                            >
+                                {preview.message}
+                            </p>
+                        )}
+                    </div>
                 </>
             )}
         />

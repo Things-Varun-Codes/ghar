@@ -38,9 +38,24 @@ class LocalMediaDiskTest extends TestCase
         $this->get($url)->assertOk()->assertStreamedContent('jpeg-bytes');
     }
 
+    public function test_a_signed_file_may_be_cached_and_revalidated(): void
+    {
+        $url = app(SignedUrls::class)->forDiskObject('local', '7/photo.jpg');
+
+        $response = $this->get($url)->assertOk();
+
+        $response->assertHeader('Cache-Control', 'immutable, max-age=3600, private');
+        $etag = $response->headers->get('ETag');
+        $this->assertNotEmpty($etag);
+
+        $this->get($url, ['If-None-Match' => $etag])->assertStatus(304);
+    }
+
     public function test_the_file_is_not_readable_without_a_signature(): void
     {
-        $this->get('/storage/7/photo.jpg')->assertForbidden();
+        $response = $this->get('/storage/7/photo.jpg')->assertForbidden();
+
+        $this->assertStringNotContainsString('max-age', (string) $response->headers->get('Cache-Control'));
     }
 
     public function test_a_tampered_path_is_refused(): void

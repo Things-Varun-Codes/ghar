@@ -101,4 +101,17 @@ class MiniAppRegistryPropsTest extends TestCase
             $this->assertTrue(class_exists($app['provider']), "{$app['slug']} provider must exist");
         }
     }
+
+    public function test_the_bottom_bar_gets_a_short_label_and_an_icon_for_each_room(): void
+    {
+        $this->assertNotEmpty(config('miniapps'));
+
+        $user = User::factory()->create();
+        $page = json_decode(json_encode($this->actingAs($user)->get(route('dashboard'))->viewData('page')), true);
+
+        foreach ($page['props']['miniApps'] as $app) {
+            $this->assertNotEmpty($app['nav_label'] ?? null, "{$app['slug']} needs a nav_label for the bottom bar");
+            $this->assertNotEmpty($app['icon'] ?? null, "{$app['slug']} needs an icon for the bottom bar");
+        }
+    }
 }

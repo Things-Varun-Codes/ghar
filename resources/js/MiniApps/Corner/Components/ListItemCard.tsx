@@ -63,7 +63,11 @@ export default function ListItemCard<TItem extends ItemConstraint>({
                             <DropdownMenuTrigger asChild>
                                 <button
                                     type="button"
-                                    aria-label="Item actions"
+                                    aria-label={
+                                        item.title
+                                            ? `Actions for ${item.title}`
+                                            : 'Actions'
+                                    }
                                     className="corner-icon-btn"
                                 >
                                     <MoreHorizontal

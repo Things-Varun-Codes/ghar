@@ -1,6 +1,10 @@
+import { Head } from '@inertiajs/react';
 import type { ReactNode } from 'react';
 
+import { pageTitle } from '@/lib/title';
+import type { BackTarget } from '@/Shell/Components/BackChevron';
 import PageHeader from '@/Shell/Components/PageHeader';
+import { usePublishShellPage } from '@/Shell/Layouts/shell-chrome';
 
 type PageProps = {
     tier?: 'prose' | 'index' | 'app';
@@ -8,6 +12,14 @@ type PageProps = {
     eyebrow?: string;
     subtitle?: string;
     backChevron?: boolean;
+    /** An explicit back target; implies a back control. */
+    back?: BackTarget;
+    /**
+     * Sets the document title to "{documentTitle ?? title} · {room}". Leave both unset when
+     * the page renders its own <Head>.
+     */
+    room?: string;
+    documentTitle?: string;
     actions?: ReactNode;
     belowHeader?: ReactNode;
     tabs?: ReactNode;
@@ -18,7 +30,6 @@ type PageProps = {
      */
     fab?: ReactNode;
     pb?: string;
-    bleed?: boolean;
     className?: string;
 };
 
@@ -34,21 +45,24 @@ export default function Page({
     eyebrow,
     subtitle,
     backChevron,
+    back,
+    room,
+    documentTitle,
     actions,
     belowHeader,
     tabs,
     children,
     fab,
     pb = 'pb-8',
-    bleed = false,
     className,
 }: PageProps) {
+    usePublishShellPage(title, back);
+
     const effectivePb = fab ? 'pb-[120px]' : pb;
 
     const containerClass = [
         TIER_MAX_WIDTH[tier],
-        bleed ? '' : 'sm:px-8',
-        'pt-2 sm:pt-8',
+        'pt-2 lg:pt-8',
         effectivePb,
         className,
     ]
@@ -57,11 +71,15 @@ export default function Page({
 
     return (
         <div className={containerClass}>
+            {(room !== undefined || documentTitle !== undefined) && (
+                <Head title={pageTitle(documentTitle ?? title, room)} />
+            )}
             <PageHeader
                 title={title}
                 eyebrow={eyebrow}
                 subtitle={subtitle}
                 backChevron={backChevron}
+                back={back}
                 actions={actions}
             />
             {belowHeader && <div className="mb-6">{belowHeader}</div>}

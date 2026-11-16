@@ -1,6 +1,6 @@
-import { Search } from 'lucide-react';
+import { Search, X } from 'lucide-react';
 import type { ReactNode } from 'react';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 import ListSortControl from '@/Shell/Components/ListSortControl';
 import type { SortItem } from '@/Shell/Components/ListSortControl';
@@ -38,6 +38,15 @@ export default function ListNavBand({
     tabs,
 }: ListNavBandProps) {
     const [searchValue, setSearchValue] = useState(query ?? '');
+    const searchInput = useRef<HTMLInputElement>(null);
+    // Clearing skips the typing debounce but still goes through it, so only one visit fires.
+    const clearNow = useRef(false);
+
+    const clearSearch = () => {
+        clearNow.current = true;
+        setSearchValue('');
+        searchInput.current?.focus();
+    };
 
     useEffect(() => {
         // Keep local state in sync when the server prop changes out from
@@ -47,6 +56,9 @@ export default function ListNavBand({
     }, [query]);
 
     useEffect(() => {
+        const delay = clearNow.current ? 0 : 300;
+        clearNow.current = false;
+
         if (searchPlaceholder === undefined) {
             return;
         }
@@ -57,7 +69,7 @@ export default function ListNavBand({
 
         const timeout = setTimeout(() => {
             onSearch(searchValue || undefined);
-        }, 300);
+        }, delay);
 
         return () => clearTimeout(timeout);
         // eslint-disable-next-line react-hooks/exhaustive-deps -- debounce follows typing only; onSearch and query change identity on every render
@@ -69,17 +81,36 @@ export default function ListNavBand({
                 <Search
                     aria-hidden="true"
                     size={16}
-                    strokeWidth={2}
+                    strokeWidth={1.5}
                     className="shell-list-search-icon"
                 />
                 <input
-                    type="text"
+                    ref={searchInput}
+                    type="search"
+                    enterKeyHint="search"
+                    autoComplete="off"
                     value={searchValue}
                     onChange={(e) => setSearchValue(e.target.value)}
+                    onKeyDown={(e) => {
+                        if (e.key === 'Escape' && searchValue !== '') {
+                            e.preventDefault();
+                            clearSearch();
+                        }
+                    }}
                     placeholder={searchPlaceholder}
                     aria-label={searchPlaceholder}
                     className="shell-list-search"
                 />
+                {searchValue !== '' && (
+                    <button
+                        type="button"
+                        onClick={clearSearch}
+                        aria-label="Clear search"
+                        className="shell-list-search-clear shell-focus"
+                    >
+                        <X size={16} strokeWidth={1.5} aria-hidden="true" />
+                    </button>
+                )}
             </div>
         ) : null;
 

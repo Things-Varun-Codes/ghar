@@ -1,5 +1,5 @@
-import { Head } from '@inertiajs/react';
 import { useState } from 'react';
+import { Button } from '@/components/ui/button';
 import ListItemCard from '@/MiniApps/Corner/Components/ListItemCard';
 import ListPage from '@/MiniApps/Corner/Components/ListPage';
 import PlaceAddDialog from '@/MiniApps/Corner/Components/PlaceAddDialog';
@@ -44,7 +44,6 @@ export default function PlacesIndex({ places, filter, sort, q }: Props) {
 
     return (
         <AppLayout>
-            <Head title="Places" />
             <CornerLayout>
                 <ListPage<PlaceItem>
                     title="Places"
@@ -87,7 +86,7 @@ export default function PlacesIndex({ places, filter, sort, q }: Props) {
                                             size={18}
                                             strokeWidth={1.5}
                                             color="var(--corner-accent-text, var(--corner-ink))"
-                                            className="mt-0.5 shrink-0"
+                                            className="mt-1 shrink-0"
                                         />
                                         <div className="min-w-0 flex-1">
                                             <span className="corner-row-title">
@@ -103,7 +102,7 @@ export default function PlacesIndex({ places, filter, sort, q }: Props) {
                                                     {place.address}
                                                 </p>
                                             )}
-                                            <p className="mx-0 mt-1 mb-0 text-[12px] text-[var(--corner-ink-soft,var(--corner-ink))]">
+                                            <p className="corner-row-meta">
                                                 Added by {place.addedBy.name}
                                             </p>
                                         </div>
@@ -117,6 +116,15 @@ export default function PlacesIndex({ places, filter, sort, q }: Props) {
                             <EmptyState
                                 title="No places yet."
                                 body="Add somewhere you'd like to go."
+                                action={
+                                    <Button
+                                        type="button"
+                                        className="shell-press"
+                                        onClick={() => setAddOpen(true)}
+                                    >
+                                        Add a place
+                                    </Button>
+                                }
                             />
                         ),
                         active: (

@@ -27,7 +27,8 @@ class MessagesTest extends TestCase
             'body' => 'Hi from the test suite',
         ]);
 
-        $response->assertRedirect('/apps/our-mailbox/messages');
+        $response->assertRedirect('/apps/our-mailbox/messages?tab=sent');
+        $this->assertSuccessToast($response, 'Note sent.');
 
         $message = MailboxMessage::firstOrFail();
         $this->assertSame($sender->id, $message->sender_id);
@@ -200,7 +201,7 @@ class MessagesTest extends TestCase
                 'recipient_ids' => [$first->id, $second->id],
                 'body' => 'Family dinner on Sunday',
             ])
-            ->assertRedirect('/apps/our-mailbox/messages');
+            ->assertRedirect('/apps/our-mailbox/messages?tab=sent');
 
         $message = MailboxMessage::firstOrFail();
 
@@ -242,7 +243,7 @@ class MessagesTest extends TestCase
             ->assertInertia(fn ($page) => $page
                 ->where('mailboxSummary.counts.messages', 0)
                 ->where('mailboxSummary.unread_messages', 0)
-                ->where('mailboxSummary.latest_unread_preview', null));
+                ->where('mailboxPeeks.notes', null));
 
         $this->actingAs($recipient)
             ->get('/apps/our-mailbox/messages?tab=received')
@@ -337,6 +338,7 @@ class MessagesTest extends TestCase
             ->delete('/apps/our-mailbox/messages/'.$message->id);
 
         $response->assertRedirect('/apps/our-mailbox/messages');
+        $this->assertSuccessToast($response, 'Note deleted.');
 
         $this->assertDatabaseMissing('mailbox_messages', ['id' => $message->id]);
     }

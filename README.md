@@ -90,7 +90,7 @@ Outgoing mail shows up in Mailpit at <http://127.0.0.1:8025>.
 ```sh
 npm test                 # unit tests
 php artisan test         # backend tests, against Postgres
-npm run smoke            # opens every page in a headless browser, in both themes
+npm run smoke            # opens every page in a headless browser
 npm run smoke-loadmore   # breaks pagination on purpose and checks the recovery
 npm run smoke-mcp        # serves the sample data for testing by hand
 ```

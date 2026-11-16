@@ -41,7 +41,8 @@ export default function DayEventMenu({
                     className={cn(
                         `history-cal-cell history-cal-cell--event${todayClass}`,
                     )}
-                    aria-label={`${MONTH_NAMES[month - 1]} ${day}: ${events.length} moments, choose one to open`}
+                    aria-label={`${day} ${MONTH_NAMES[month - 1]}: ${events.length} moments, choose one to open`}
+                    aria-current={todayClass ? 'date' : undefined}
                     style={
                         thumb
                             ? { backgroundImage: `url("${thumb}")` }
@@ -66,7 +67,7 @@ export default function DayEventMenu({
                 className="history-cal-daymenu"
             >
                 <DropdownMenuLabel className="history-cal-daymenu-head">
-                    {MONTH_NAMES[month - 1]} {day} · {events.length} moments
+                    {day} {MONTH_NAMES[month - 1]} · {events.length} moments
                 </DropdownMenuLabel>
                 {events.map((event) => {
                     const t = firstThumb(event);

@@ -3,7 +3,8 @@ import { XIcon } from "lucide-react"
 import * as React from "react"
 
 import { useKeyboardAwareDialog } from "@/hooks/use-keyboard-aware-dialog"
-import { useThemeAttrs } from "@/hooks/use-theme-attrs"
+import { useAppAttrs } from "@/hooks/use-app-attrs"
+import { useReturnFocus } from "@/hooks/use-return-focus"
 import { cn } from "@/lib/utils"
 
 function Dialog({
@@ -26,7 +27,7 @@ function DialogOverlay({
     <DialogPrimitive.Overlay
       data-slot="dialog-overlay"
       className={cn(
-        "data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 fixed inset-0 z-50 bg-black/80",
+        "shell-scrim data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 fixed inset-0 z-50 ease-(--ease-ui) data-[state=closed]:duration-(--dur-out) data-[state=open]:duration-(--dur-card)",
         className
       )}
       {...props}
@@ -37,11 +38,14 @@ function DialogOverlay({
 function DialogContent({
   className,
   children,
+  onOpenAutoFocus,
+  onCloseAutoFocus,
   ...props
 }: React.ComponentProps<typeof DialogPrimitive.Content>) {
-  const themeAttrs = useThemeAttrs()
+  const appAttrs = useAppAttrs()
   const contentRef = React.useRef<HTMLDivElement>(null)
   useKeyboardAwareDialog(contentRef)
+  const returnFocus = useReturnFocus({ onOpenAutoFocus, onCloseAutoFocus })
   return (
     <DialogPortal data-slot="dialog-portal">
       <DialogOverlay />
@@ -50,15 +54,16 @@ function DialogContent({
         data-slot="dialog-content"
         data-scroll-container=""
         className={cn(
-          "bg-background data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 fixed top-[50%] left-[50%] z-50 grid w-full max-w-[calc(100%-2rem)] translate-x-[-50%] translate-y-[-50%] gap-4 rounded-lg border p-6 shadow-lg duration-200 sm:max-w-lg",
+          "bg-background data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=open]:slide-in-from-bottom-2 fixed top-[50%] left-[50%] z-50 grid w-full max-w-[calc(100%-2rem)] translate-x-[-50%] translate-y-[-50%] gap-4 rounded-lg border p-6 ease-(--ease-ui) data-[state=closed]:duration-(--dur-out) data-[state=open]:duration-(--dur-card) sm:max-w-lg",
           className
         )}
-        {...themeAttrs}
+        {...appAttrs}
         {...props}
+        {...returnFocus}
       >
         {children}
-        <DialogPrimitive.Close className="ring-offset-background focus:ring-ring data-[state=open]:bg-accent data-[state=open]:text-muted-foreground absolute top-4 right-4 rounded-xs opacity-70 transition-opacity hover:opacity-100 focus:ring-2 focus:ring-offset-2 focus:outline-hidden disabled:pointer-events-none [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4">
-          <XIcon />
+        <DialogPrimitive.Close className="shell-press shell-focus absolute top-2 right-2 z-10 inline-flex size-11 items-center justify-center rounded-full text-(--shell-text) hover:bg-(--shell-hover) disabled:pointer-events-none">
+          <XIcon className="size-5" strokeWidth={1.5} aria-hidden="true" />
           <span className="sr-only">Close</span>
         </DialogPrimitive.Close>
       </DialogPrimitive.Content>
@@ -96,7 +101,7 @@ function DialogTitle({
   return (
     <DialogPrimitive.Title
       data-slot="dialog-title"
-      className={cn("text-lg leading-none font-semibold", className)}
+      className={cn("text-lg leading-none font-medium", className)}
       {...props}
     />
   )

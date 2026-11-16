@@ -45,7 +45,15 @@ export const MONTH_NAMES = [
     'November',
     'December',
 ];
-const DOW = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
+const DOW = [
+    'Sunday',
+    'Monday',
+    'Tuesday',
+    'Wednesday',
+    'Thursday',
+    'Friday',
+    'Saturday',
+];
 
 export function firstThumb(event: CalendarEvent): string | null {
     const withImage = event.media.find((m) => m.thumb || m.poster);
@@ -95,6 +103,7 @@ export default function CalendarMonth({
             todayMonthDay.month === month &&
             todayMonthDay.day === d;
         const todayClass = isToday ? ' history-cal-today' : '';
+        const current = isToday ? ('date' as const) : undefined;
 
         if (evs && evs.length > 0) {
             if (evs.length > 1) {
@@ -119,7 +128,8 @@ export default function CalendarMonth({
                         type="button"
                         className={`history-cal-cell history-cal-cell--event${todayClass}`}
                         onClick={() => onOpen(event)}
-                        aria-label={`${MONTH_NAMES[month - 1]} ${d}: ${label}`}
+                        aria-label={`${d} ${MONTH_NAMES[month - 1]}: ${label}`}
+                        aria-current={current}
                         style={
                             thumb
                                 ? { backgroundImage: `url("${thumb}")` }
@@ -144,6 +154,7 @@ export default function CalendarMonth({
                 <div
                     key={d}
                     className={`history-cal-cell history-cal-cell--empty${todayClass}`}
+                    aria-current={current}
                 >
                     {d}
                 </div>,
@@ -151,26 +162,59 @@ export default function CalendarMonth({
         }
     }
 
+    const weeks: ReactNode[][] = [];
+
+    cells.forEach((cell, i) => {
+        if (i % 7 === 0) {
+            weeks.push([]);
+        }
+
+        weeks[weeks.length - 1].push(cell);
+    });
+
+    const monthName = MONTH_NAMES[month - 1];
+    const headingId = `history-cal-${year}-${month}`;
+
     return (
         <div
             className={`history-cal-month ${size === 'large' ? 'history-cal-month--large' : ''}`}
         >
             <div className="history-cal-month-head">
-                <span className="history-cal-month-name">
-                    {MONTH_NAMES[month - 1]}
-                </span>
+                <h2 id={headingId} className="history-cal-month-name">
+                    {monthName}
+                    <span className="sr-only"> {year}</span>
+                </h2>
                 <span className="history-cal-month-count">
                     {monthEventCount > 0
                         ? `${monthEventCount} ${monthEventCount === 1 ? 'moment' : 'moments'}`
                         : ''}
                 </span>
             </div>
-            <div className="history-cal-dow" aria-hidden="true">
-                {DOW.map((d, i) => (
-                    <span key={i}>{d}</span>
-                ))}
+            {/* A table, not an ARIA grid: the days are plain tab stops with no arrow-key roving. */}
+            <div role="table" aria-labelledby={headingId}>
+                <div role="row" className="history-cal-dow">
+                    {DOW.map((d) => (
+                        <span key={d} role="columnheader" aria-label={d}>
+                            <span aria-hidden="true">{d[0]}</span>
+                        </span>
+                    ))}
+                </div>
+                <div className="history-cal-grid">
+                    {weeks.map((week, w) => (
+                        <div key={w} role="row" className="history-cal-week">
+                            {week.map((cell, c) => (
+                                <div
+                                    key={c}
+                                    role="cell"
+                                    className="history-cal-slot"
+                                >
+                                    {cell}
+                                </div>
+                            ))}
+                        </div>
+                    ))}
+                </div>
             </div>
-            <div className="history-cal-grid">{cells}</div>
         </div>
     );
 }

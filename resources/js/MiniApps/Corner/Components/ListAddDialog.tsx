@@ -18,6 +18,7 @@ import {
     DialogHeader,
     DialogTitle,
 } from '@/components/ui/dialog';
+import { useOverlayHistory } from '@/hooks/use-overlay-history';
 import SubmitButton from '@/Shell/Components/SubmitButton';
 
 type ListAddDialogProps = {
@@ -68,6 +69,11 @@ export default function ListAddDialog({
 
         onOpenChange(next);
     };
+
+    // Back closes the discard prompt first (as "keep editing"), then the dialog through its gate.
+    useOverlayHistory(open, () =>
+        confirmOpen ? setConfirmOpen(false) : handleOpenChange(false),
+    );
 
     return (
         <>

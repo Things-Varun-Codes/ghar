@@ -1,4 +1,4 @@
-import { Head, router } from '@inertiajs/react';
+import { router } from '@inertiajs/react';
 import { useState } from 'react';
 import DetailPage from '@/MiniApps/Corner/Components/DetailPage';
 import type { MentionedInRef } from '@/MiniApps/Corner/Components/MentionedInList';
@@ -44,7 +44,6 @@ export default function MoviesShow({ movie, mentioned_in }: Props) {
 
     return (
         <AppLayout>
-            <Head title={movie.title} />
             <CornerLayout>
                 <DetailPage
                     title={movie.title}

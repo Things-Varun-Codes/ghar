@@ -278,8 +278,8 @@ Cloudflare in front of Ghar is optional. If you use it:
   `TRUSTED_PROXIES=cloudflare,private`.
 - Allow ports 80 and 443 only from [Cloudflare's ranges](https://www.cloudflare.com/ips/), so
   nobody can reach the origin directly and forge headers.
-- Add a Cache Rule that **bypasses cache** for `/manifest.webmanifest`, `/sw.js`, `/healthz` and
-  anything starting with `/go/`. The first three keep app updates and probes fresh. `/go/` matters
+- Add a Cache Rule that **bypasses cache** for `/manifest.webmanifest`, `/sw.js`, `/offline.html`,
+  `/healthz` and anything starting with `/go/`. The first four keep app updates and probes fresh. `/go/` matters
   for correctness: a cached short-link redirect would keep working after you disable the link.
 
     ```sh

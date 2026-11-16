@@ -12,6 +12,7 @@ use App\MiniApps\Corner\Http\Resources\SongResource;
 use App\MiniApps\Corner\Models\Song;
 use App\Shell\Services\LinkableEntities;
 use App\Shell\Support\CursorList;
+use App\Shell\Support\FlashToast;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
@@ -76,6 +77,9 @@ class SongsController
 
         $action($request->validated('url'), $adder);
 
+        FlashToast::success('Song added.');
+
+        // No query string: a new item must show even if a search or filter was active.
         return redirect('/apps/our-corner/songs');
     }
 

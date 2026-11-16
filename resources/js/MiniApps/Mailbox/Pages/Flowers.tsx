@@ -2,6 +2,7 @@ import { router } from '@inertiajs/react';
 import { Heart } from 'lucide-react';
 import { useState } from 'react';
 
+import { mutationOptions } from '@/lib/mutation';
 import type { BouquetItem } from '@/MiniApps/Mailbox/Components/BouquetCard';
 import BouquetCard from '@/MiniApps/Mailbox/Components/BouquetCard';
 import BouquetSheet from '@/MiniApps/Mailbox/Components/BouquetSheet';
@@ -38,6 +39,10 @@ export default function Flowers({
         router.delete(destroy.url(id), {
             preserveScroll: true,
             preserveState: false,
+            ...mutationOptions({
+                component: 'Mailbox/Flowers',
+                action: 'bouquet.delete',
+            }),
         });
     };
 
@@ -56,7 +61,6 @@ export default function Flowers({
         <AppLayout>
             <MailboxLayout>
                 <MailboxListPage
-                    headTitle="Flowers"
                     pageTitle="Flowers"
                     paginator={bouquets}
                     countAll={bouquets.counts?.all ?? bouquets.data.length}

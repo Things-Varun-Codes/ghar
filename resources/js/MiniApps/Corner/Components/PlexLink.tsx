@@ -1,15 +1,16 @@
 type Props = {
     href: string;
+    label?: string;
 };
 
-export default function PlexLink({ href }: Props) {
+export default function PlexLink({ href, label = 'Open in Plex' }: Props) {
     return (
         <a
             href={href}
             target="_blank"
             rel="noopener noreferrer"
-            aria-label="Open in Plex"
-            title="Open in Plex"
+            aria-label={label}
+            title={label}
             className="corner-tile-icon-btn"
         >
             <svg

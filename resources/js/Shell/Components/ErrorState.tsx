@@ -41,7 +41,7 @@ export default function ErrorState({
                     variant === 'inline'
                         ? 'leading-tight'
                         : 'mt-4 leading-tight',
-                    'font-semibold text-(--shell-text)',
+                    'font-medium text-(--shell-text)',
                 )}
                 style={{ fontSize: variant === 'inline' ? '14px' : '18px' }}
             >

@@ -59,7 +59,7 @@ export default function SortDropdown({
                     <ChevronDown
                         aria-hidden="true"
                         size={14}
-                        strokeWidth={2}
+                        strokeWidth={1.5}
                         className="shrink-0 opacity-[0.6]"
                     />
                 </button>
@@ -89,7 +89,7 @@ export default function SortDropdown({
                                 <Check
                                     aria-hidden="true"
                                     size={14}
-                                    strokeWidth={2.5}
+                                    strokeWidth={1.5}
                                     className="shrink-0 text-(--history-accent-ink-strong)"
                                 />
                             )}

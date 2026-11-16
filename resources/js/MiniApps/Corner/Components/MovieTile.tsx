@@ -43,13 +43,18 @@ export default function MovieTile({ movie, listType, onEdit }: Props) {
     const isDone = movie.done_at !== null;
     const detailHref = show.url(movie.id);
 
-    const { isPendingDelete, handleEdit, handleToggleDone, handleDelete } =
-        useItemActions({
-            type: listType,
-            id: movie.id,
-            title: movie.title,
-            onOpenEdit: onEdit,
-        });
+    const {
+        isPendingDelete,
+        isTogglePending,
+        handleEdit,
+        handleToggleDone,
+        handleDelete,
+    } = useItemActions({
+        type: listType,
+        id: movie.id,
+        title: movie.title,
+        onOpenEdit: onEdit,
+    });
 
     if (isPendingDelete) {
         return null;
@@ -84,7 +89,7 @@ export default function MovieTile({ movie, listType, onEdit }: Props) {
                             <MovieIcon
                                 size={32}
                                 strokeWidth={1.5}
-                                className="text-(--corner-accent)"
+                                className="text-(--corner-accent-text)"
                             />
                         </div>
                     )}
@@ -99,35 +104,37 @@ export default function MovieTile({ movie, listType, onEdit }: Props) {
 
             <div className="mt-2 flex items-center justify-between">
                 {movie.plex_url ? (
-                    <PlexLink href={movie.plex_url} />
+                    <PlexLink
+                        href={movie.plex_url}
+                        label={`Open ${movie.title} in Plex`}
+                    />
                 ) : (
-                    <span className="w-[40px] shrink-0" />
+                    <span className="w-10 shrink-0" />
                 )}
 
                 <Toggle
                     className="corner-done-toggle corner-done-toggle--icon"
                     pressed={isDone}
                     onPressedChange={handleToggleDone}
-                    aria-label={
-                        isDone ? 'Unmark as watched' : 'Mark as watched'
-                    }
-                    title={isDone ? 'Unmark as watched' : 'Mark as watched'}
+                    aria-disabled={isTogglePending || undefined}
+                    aria-label={`Watched ${movie.title}`}
+                    title={isDone ? 'Watched' : 'Mark as watched'}
                 >
                     {isDone ? (
-                        <CheckCircle2 aria-hidden="true" />
+                        <CheckCircle2 aria-hidden="true" strokeWidth={1.5} />
                     ) : (
-                        <Circle aria-hidden="true" />
+                        <Circle aria-hidden="true" strokeWidth={1.5} />
                     )}
                 </Toggle>
 
-                {!canManage && <span aria-hidden="true" className="w-[40px]" />}
+                {!canManage && <span aria-hidden="true" className="w-10" />}
 
                 {canManage && (
                     <DropdownMenu>
                         <DropdownMenuTrigger asChild>
                             <button
                                 type="button"
-                                aria-label="Item actions"
+                                aria-label={`Actions for ${movie.title}`}
                                 className="corner-tile-icon-btn"
                             >
                                 <MoreHorizontal size={18} aria-hidden="true" />

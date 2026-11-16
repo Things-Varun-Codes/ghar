@@ -27,7 +27,11 @@ export default function FormField({
     const errorId = `${name}-error`;
     const helperId = `${name}-helper`;
 
-    const describedBy = error ? errorId : helper ? helperId : undefined;
+    // Both the helper and the error describe the field; the error reads first.
+    const describedBy =
+        [error ? errorId : null, helper ? helperId : null]
+            .filter(Boolean)
+            .join(' ') || undefined;
 
     const wrapperClass = [
         // iOS-zoom guard + touch-target floor
@@ -38,10 +42,17 @@ export default function FormField({
         .filter(Boolean)
         .join(' ');
 
+    const child = isValidElement(children)
+        ? (children as ReactElement<Record<string, unknown>>)
+        : null;
+    const ownDescribedBy = child?.props['aria-describedby'] as
+        string | undefined;
     const childWithAria =
-        isValidElement(children) && describedBy
-            ? cloneElement(children as ReactElement<Record<string, unknown>>, {
-                  'aria-describedby': describedBy,
+        child && describedBy
+            ? cloneElement(child, {
+                  'aria-describedby': [describedBy, ownDescribedBy]
+                      .filter(Boolean)
+                      .join(' '),
                   ...(error ? { 'aria-invalid': true } : {}),
               })
             : children;
@@ -50,7 +61,7 @@ export default function FormField({
         <div className={wrapperClass}>
             <label
                 htmlFor={labelFor}
-                className="mb-1.5 block text-[14px] font-semibold text-(--foreground)"
+                className="mb-1.5 block text-[14px] font-medium text-(--foreground)"
             >
                 {label}
                 {required && (
@@ -72,7 +83,7 @@ export default function FormField({
                     {error}
                 </p>
             )}
-            {!error && helper && (
+            {helper && (
                 <p
                     id={helperId}
                     className="mt-1 text-(length:--text-small) font-normal text-(--muted-foreground)"

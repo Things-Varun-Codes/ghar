@@ -1,5 +1,6 @@
 import { Head, Link } from '@inertiajs/react';
 import type { LucideIcon } from 'lucide-react';
+import { useId } from 'react';
 
 import CornerLayout from '@/MiniApps/Corner/Layouts/CornerLayout';
 import { index as activities } from '@/routes/apps/our-corner/activities';
@@ -10,35 +11,39 @@ import Page from '@/Shell/Components/Page';
 import AppLayout from '@/Shell/Layouts/AppLayout';
 import { entityIcon } from '@/Shell/linkables/entityIcon';
 
-type Counts = {
-    songs: number;
-    movies: number;
-    activities: number;
-    places: number;
+type Slug = 'songs' | 'movies' | 'activities' | 'places';
+
+type Tally = Record<Slug, number>;
+
+type Peeks = {
+    songs: { images: string[] };
+    movies: { images: string[] };
+    activities: { items: { title: string; done: boolean }[] };
+    places: { title: string; address: string | null } | null;
 };
 
-type Peek = { images?: string[]; title?: string | null };
-
 type CornerSummaryShared = {
-    counts: Counts;
-    peeks?: Partial<Record<keyof Counts, Peek>>;
+    counts: Tally;
+    done?: Tally;
+    peeks?: Peeks;
 };
 
 type Props = {
     cornerSummary?: CornerSummaryShared | null;
 };
 
-type ListCard = {
-    slug: 'songs' | 'movies' | 'activities' | 'places';
+type Door = {
+    slug: Slug;
     label: string;
     href: string;
     Icon: LucideIcon;
     // Both plural forms are written out: a trailing-s rule can't handle irregulars.
     singularNoun: string;
     pluralNoun: string;
+    doneWord: string;
 };
 
-const LIST_CARDS: readonly ListCard[] = [
+const DOORS: readonly Door[] = [
     {
         slug: 'songs',
         label: 'Songs',
@@ -46,6 +51,7 @@ const LIST_CARDS: readonly ListCard[] = [
         Icon: entityIcon('corner.song'),
         singularNoun: 'song',
         pluralNoun: 'songs',
+        doneWord: 'loved',
     },
     {
         slug: 'movies',
@@ -54,6 +60,7 @@ const LIST_CARDS: readonly ListCard[] = [
         Icon: entityIcon('corner.movie'),
         singularNoun: 'movie',
         pluralNoun: 'movies',
+        doneWord: 'watched',
     },
     {
         slug: 'activities',
@@ -62,6 +69,7 @@ const LIST_CARDS: readonly ListCard[] = [
         Icon: entityIcon('corner.activity'),
         singularNoun: 'activity',
         pluralNoun: 'activities',
+        doneWord: 'done',
     },
     {
         slug: 'places',
@@ -70,79 +78,189 @@ const LIST_CARDS: readonly ListCard[] = [
         Icon: entityIcon('corner.place'),
         singularNoun: 'place',
         pluralNoun: 'places',
+        doneWord: 'visited',
     },
 ];
 
-const EMPTY_COUNTS: Counts = {
-    songs: 0,
-    movies: 0,
-    activities: 0,
-    places: 0,
-};
+/** Empty frames on the shelf: an empty list still reads as a place for things. */
+const EMPTY_FRAMES = 3;
 
-function CardPeek({ peek, Icon }: { peek?: Peek; Icon: LucideIcon }) {
-    const images = peek?.images ?? [];
-
-    if (images.length > 0) {
-        return (
-            <span className="corner-landing-peek" aria-hidden="true">
-                {images.map((src) => (
-                    <img key={src} src={src} alt="" loading="lazy" />
-                ))}
-            </span>
-        );
+function liveLine(door: Door, count: number, done: number): string {
+    if (count === 0) {
+        return `No ${door.pluralNoun} yet`;
     }
 
+    const total = `${count} ${count === 1 ? door.singularNoun : door.pluralNoun}`;
+
+    return done > 0 ? `${total} · ${done} ${door.doneWord}` : total;
+}
+
+function Shelf({
+    images,
+    frame,
+    Icon,
+}: {
+    images: string[];
+    frame: 'cd' | 'poster';
+    Icon: LucideIcon;
+}) {
+    const frameClass = frame === 'cd' ? 'corner-cd' : 'corner-poster';
+    const coverClass =
+        frame === 'cd' ? 'corner-cd-cover' : 'corner-poster-cover';
+    const fallbackClass =
+        frame === 'cd' ? 'corner-cd-fallback' : 'corner-poster-fallback';
+
     return (
-        <span
-            className="corner-landing-peek corner-landing-peek--text"
-            aria-hidden="true"
-        >
-            {peek?.title ?? (
-                <Icon
-                    size={28}
-                    strokeWidth={1.5}
-                    className="corner-landing-icon"
-                />
-            )}
+        <span className="corner-door-shelf">
+            {images.length > 0
+                ? images.map((src) => (
+                      <span key={src} className={frameClass}>
+                          <img
+                              src={src}
+                              alt=""
+                              loading="lazy"
+                              decoding="async"
+                              className={coverClass}
+                          />
+                      </span>
+                  ))
+                : Array.from({ length: EMPTY_FRAMES }, (_, i) => (
+                      <span
+                          key={i}
+                          className={`${frameClass} corner-door-frame--empty`}
+                      >
+                          <span className={fallbackClass}>
+                              <Icon size={22} strokeWidth={1.5} />
+                          </span>
+                      </span>
+                  ))}
         </span>
     );
 }
 
-export default function Landing({ cornerSummary }: Props) {
-    const counts = cornerSummary?.counts ?? EMPTY_COUNTS;
+function DoorPeek({ door, peeks }: { door: Door; peeks?: Peeks }) {
+    const { Icon } = door;
 
+    switch (door.slug) {
+        case 'songs':
+            return (
+                <Shelf
+                    images={peeks?.songs.images ?? []}
+                    frame="cd"
+                    Icon={Icon}
+                />
+            );
+        case 'movies':
+            return (
+                <Shelf
+                    images={peeks?.movies.images ?? []}
+                    frame="poster"
+                    Icon={Icon}
+                />
+            );
+        case 'activities': {
+            const items = peeks?.activities.items ?? [];
+
+            return items.length > 0 ? (
+                <ul className="corner-door-scrap">
+                    {items.map((item, i) => (
+                        <li key={`${i}-${item.title}`}>
+                            <span className="corner-door-scrap-title">
+                                {item.title}
+                            </span>
+                            {item.done && (
+                                <span className="corner-sticker corner-sticker--inline">
+                                    Done
+                                </span>
+                            )}
+                        </li>
+                    ))}
+                </ul>
+            ) : (
+                <span className="corner-door-empty">
+                    <Icon size={28} strokeWidth={1.5} />
+                </span>
+            );
+        }
+        case 'places': {
+            const place = peeks?.places ?? null;
+
+            return (
+                <span className="corner-door-pin">
+                    <Icon
+                        size={28}
+                        strokeWidth={1.5}
+                        className="corner-door-pin-icon"
+                    />
+                    {place && (
+                        <span className="corner-door-pin-text">
+                            <span className="corner-door-pin-title">
+                                {place.title}
+                            </span>
+                            {place.address && (
+                                <span className="corner-door-pin-address">
+                                    {place.address}
+                                </span>
+                            )}
+                        </span>
+                    )}
+                </span>
+            );
+        }
+    }
+}
+
+function CornerDoor({
+    door,
+    count,
+    done,
+    peeks,
+}: {
+    door: Door;
+    count: number;
+    done: number;
+    peeks?: Peeks;
+}) {
+    const liveId = useId();
+
+    return (
+        <article className="corner-card corner-door shell-card-stretch">
+            <div className="corner-door-peek" aria-hidden="true">
+                <DoorPeek door={door} peeks={peeks} />
+            </div>
+            <h2 className="corner-door-name">
+                <Link
+                    href={door.href}
+                    prefetch="mount"
+                    aria-describedby={liveId}
+                    className="shell-card-link"
+                >
+                    {door.label}
+                </Link>
+            </h2>
+            <p id={liveId} className="corner-door-live">
+                {liveLine(door, count, done)}
+            </p>
+        </article>
+    );
+}
+
+export default function Landing({ cornerSummary }: Props) {
     return (
         <AppLayout>
             <Head title="Our Corner" />
             <CornerLayout>
                 <Page tier="index" title="Our Corner" backChevron>
-                    <div className="corner-landing-stack">
-                        <div className="corner-landing-grid">
-                            {LIST_CARDS.map((card) => (
-                                <Link
-                                    key={card.slug}
-                                    href={card.href}
-                                    prefetch="mount"
-                                    aria-label={`Open ${card.label}`}
-                                    className="corner-card corner-landing-card"
-                                >
-                                    <CardPeek
-                                        peek={cornerSummary?.peeks?.[card.slug]}
-                                        Icon={card.Icon}
-                                    />
-                                    <span className="corner-landing-label">
-                                        {card.label}
-                                    </span>
-                                    <span className="corner-landing-count">
-                                        {counts[card.slug]}{' '}
-                                        {counts[card.slug] === 1
-                                            ? card.singularNoun
-                                            : card.pluralNoun}
-                                    </span>
-                                </Link>
-                            ))}
-                        </div>
+                    <div className="corner-doors">
+                        {DOORS.map((door) => (
+                            <CornerDoor
+                                key={door.slug}
+                                door={door}
+                                count={cornerSummary?.counts[door.slug] ?? 0}
+                                done={cornerSummary?.done?.[door.slug] ?? 0}
+                                peeks={cornerSummary?.peeks}
+                            />
+                        ))}
                     </div>
                 </Page>
             </CornerLayout>

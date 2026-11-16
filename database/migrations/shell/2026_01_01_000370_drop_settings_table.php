@@ -5,23 +5,22 @@ use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
 /**
- * Key/value store for instance-wide settings (e.g. the active theme). A
- * missing key falls back to its config default, so nothing is seeded here.
+ * The table only ever held the active theme, and there is one look now. Installs from
+ * before that still have it; new ones never create it.
  */
 return new class extends Migration
 {
     public function up(): void
     {
-        Schema::create('settings', function (Blueprint $table) {
-            $table->string('key')->primary();
-            // Capped because values are shared into every page render.
-            $table->string('value', 1024);
-            $table->timestamp('updated_at')->nullable();
-        });
+        Schema::dropIfExists('settings');
     }
 
     public function down(): void
     {
-        Schema::dropIfExists('settings');
+        Schema::create('settings', function (Blueprint $table) {
+            $table->string('key')->primary();
+            $table->string('value', 1024);
+            $table->timestamp('updated_at')->nullable();
+        });
     }
 };

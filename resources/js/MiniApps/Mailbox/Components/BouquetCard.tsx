@@ -18,6 +18,7 @@ import {
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { useMenuAction } from '@/hooks/use-menu-action';
+import { cn } from '@/lib/utils';
 import BouquetDialog from '@/MiniApps/Mailbox/Components/BouquetDialog';
 import type { FlowerEntry } from '@/MiniApps/Mailbox/Components/NoteCard';
 import AppCard from '@/Shell/Components/AppCard';
@@ -46,15 +47,19 @@ export default function BouquetCard({ message, onDelete, isFocused }: Props) {
     const [lightboxOpen, setLightboxOpen] = useState(false);
     const [confirmOpen, setConfirmOpen] = useState(false);
     const menu = useMenuAction();
+    const recipientNames = message.recipients.map((r) => r.name).join(', ');
+    const from = message.is_mine
+        ? 'your bouquet'
+        : `bouquet from ${message.sender.name}`;
 
     return (
         <>
             <AppCard
                 variant="list"
                 base="mailbox-card"
-                className={['mailbox-bouquet', isFocused ? 'focused' : '']
-                    .filter(Boolean)
-                    .join(' ')}
+                className={cn('mailbox-bouquet', isFocused && 'focused')}
+                // Focusable only when a link pointed here, so the list scroll can land on it.
+                tabIndex={isFocused ? -1 : undefined}
                 id={`mailbox-note-${message.id}`}
                 data-id={message.id}
             >
@@ -62,7 +67,7 @@ export default function BouquetCard({ message, onDelete, isFocused }: Props) {
                     {message.image_url && (
                         <button
                             type="button"
-                            aria-label="View bouquet fullscreen"
+                            aria-label={`View ${from}, ${message.posted_at_human}, fullscreen`}
                             onClick={() => setLightboxOpen(true)}
                             className="mailbox-bouquet-image-button"
                         >
@@ -75,7 +80,7 @@ export default function BouquetCard({ message, onDelete, isFocused }: Props) {
                                 aria-hidden="true"
                                 className="mailbox-bouquet-expand"
                             >
-                                <Maximize2 size={11} strokeWidth={2.5} />
+                                <Maximize2 size={16} strokeWidth={1.5} />
                             </span>
                         </button>
                     )}
@@ -99,8 +104,11 @@ export default function BouquetCard({ message, onDelete, isFocused }: Props) {
 
                 <div className="flex items-end justify-between gap-2">
                     <p className="mailbox-hand-meta mailbox-bouquet-meta">
+                        {message.is_unread && (
+                            <span className="mailbox-unread">New</span>
+                        )}
                         {message.is_mine
-                            ? `you to ${message.recipients.map((r) => r.name).join(', ')}`
+                            ? `you to ${recipientNames}`
                             : message.sender.name}{' '}
                         · {message.posted_at_human}
                     </p>
@@ -110,11 +118,12 @@ export default function BouquetCard({ message, onDelete, isFocused }: Props) {
                             <DropdownMenuTrigger asChild>
                                 <button
                                     type="button"
-                                    aria-label="Bouquet actions"
+                                    aria-label={`Actions for your bouquet to ${recipientNames}, ${message.posted_at_human}`}
                                     className="mailbox-card-menu-square"
                                 >
                                     <MoreHorizontal
                                         size={18}
+                                        strokeWidth={1.5}
                                         aria-hidden="true"
                                     />
                                 </button>

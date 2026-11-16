@@ -1,10 +1,18 @@
 import { Link, usePage } from '@inertiajs/react';
+import { LogOut } from 'lucide-react';
+import { useId, useState } from 'react';
 import {
     Popover,
     PopoverContent,
     PopoverTrigger,
 } from '@/components/ui/popover';
 import { logout } from '@/routes';
+import type { ShellNavItem } from '@/Shell/Components/shell-nav';
+import {
+    ADMIN_ITEMS,
+    SETTINGS_ITEMS,
+    isRouteActive,
+} from '@/Shell/Components/shell-nav';
 
 type SharedProps = {
     auth: { user: { name: string; email: string; roles: string[] } | null };
@@ -16,12 +24,29 @@ function initials(name: string): string {
     return parts.map((p) => p.charAt(0).toUpperCase()).join('') || '?';
 }
 
-export default function AccountMenu() {
-    const { props } = usePage<SharedProps>();
+/**
+ * `withNav` is the phone menu: below `lg` there is no sidebar, so Settings and Admin live here.
+ */
+export default function AccountMenu({
+    withNav = false,
+}: {
+    withNav?: boolean;
+}) {
+    const { props, url } = usePage<SharedProps>();
     const user = props.auth.user;
+    const isAdmin = user?.roles?.includes('admin') ?? false;
+    const [open, setOpen] = useState(false);
+
+    // The layout persists across visits, so a menu left open would outlive the page it was on.
+    const [seenUrl, setSeenUrl] = useState(url);
+
+    if (url !== seenUrl) {
+        setSeenUrl(url);
+        setOpen(false);
+    }
 
     return (
-        <Popover>
+        <Popover open={open} onOpenChange={setOpen}>
             <PopoverTrigger asChild>
                 <button
                     type="button"
@@ -36,7 +61,8 @@ export default function AccountMenu() {
             <PopoverContent
                 align="end"
                 sideOffset={8}
-                className="w-56 border-(--border) bg-(--card) p-1 text-(--foreground)"
+                collisionPadding={8}
+                className={`${withNav ? 'w-64' : 'w-56'} max-h-(--radix-popover-content-available-height) overflow-y-auto border-(--border) bg-(--card) p-1 text-(--foreground)`}
             >
                 {user && (
                     <>
@@ -48,16 +74,86 @@ export default function AccountMenu() {
                         </div>
                     </>
                 )}
+                {withNav && (
+                    <nav aria-label="Account">
+                        <MenuGroup
+                            label="Settings"
+                            items={SETTINGS_ITEMS}
+                            url={url}
+                            onNavigate={() => setOpen(false)}
+                        />
+                        {isAdmin && (
+                            <MenuGroup
+                                label="Admin"
+                                items={ADMIN_ITEMS}
+                                url={url}
+                                onNavigate={() => setOpen(false)}
+                            />
+                        )}
+                    </nav>
+                )}
                 <div className="mt-1 mb-1 border-t border-t-(--border)" />
                 <Link
                     href={logout.url()}
                     method="post"
                     as="button"
-                    className="shell-account-signout flex w-full items-center rounded-md px-3 text-left"
+                    className="shell-focus shell-account-signout flex w-full items-center gap-3 rounded-md px-3 text-left"
                 >
+                    {withNav && (
+                        <LogOut
+                            size={18}
+                            strokeWidth={1.5}
+                            aria-hidden="true"
+                        />
+                    )}
                     Sign out
                 </Link>
             </PopoverContent>
         </Popover>
+    );
+}
+
+function MenuGroup({
+    label,
+    items,
+    url,
+    onNavigate,
+}: {
+    label: string;
+    items: ShellNavItem[];
+    url: string;
+    onNavigate: () => void;
+}) {
+    const id = useId();
+
+    return (
+        <div className="border-t border-t-(--border) pt-1 pb-1 first:mt-1">
+            <p id={id} className="shell-account-group-label">
+                {label}
+            </p>
+            <ul aria-labelledby={id}>
+                {items.map(({ href, label: itemLabel, icon: Icon }) => {
+                    const active = isRouteActive(url, href);
+
+                    return (
+                        <li key={href}>
+                            <Link
+                                href={href}
+                                onClick={onNavigate}
+                                aria-current={active ? 'page' : undefined}
+                                className="shell-focus shell-account-item flex items-center gap-3 rounded-md px-3"
+                            >
+                                <Icon
+                                    size={18}
+                                    strokeWidth={1.5}
+                                    aria-hidden="true"
+                                />
+                                {itemLabel}
+                            </Link>
+                        </li>
+                    );
+                })}
+            </ul>
+        </div>
     );
 }

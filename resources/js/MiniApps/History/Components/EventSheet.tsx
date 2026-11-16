@@ -1,12 +1,14 @@
 import * as AlertDialogPrimitive from '@radix-ui/react-alert-dialog';
 import * as SheetPrimitive from '@radix-ui/react-dialog';
+import { X } from 'lucide-react';
 import * as React from 'react';
 import { useEffect, useRef, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { useAllowTouchSelection } from '@/hooks/use-allow-touch-selection';
+import { useAppAttrs } from '@/hooks/use-app-attrs';
 import { useBodyScrollLock } from '@/hooks/use-body-scroll-lock';
 import { useMediaQuery } from '@/hooks/use-media-query';
-import { useThemeAttrs } from '@/hooks/use-theme-attrs';
+import { useOverlayHistory } from '@/hooks/use-overlay-history';
 import { cn } from '@/lib/utils';
 import type { EventPermissions } from './CalendarMonth';
 import DeleteEventDialog from './DeleteEventDialog';
@@ -58,7 +60,7 @@ function HistorySheetOverlay({
             className={cn(
                 'fixed inset-0 z-50 data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:animate-in data-[state=open]:fade-in-0',
                 className,
-                'bg-[rgba(45,36,27,0.55)]',
+                'bg-foreground/55',
             )}
             {...props}
         />
@@ -72,11 +74,11 @@ export default function EventSheet({
     editingEvent,
     triggerRef,
 }: EventSheetProps) {
-    // Portal-theme forwarding for the raw Radix primitives used below
+    // Portal data-app forwarding for the raw Radix primitives used below
     // (SheetPrimitive.Content + AlertDialogPrimitive.Content). The shadcn
     // wrappers in @/components/ui/* auto-forward this; raw primitives
     // need an explicit spread.
-    const themeAttrs = useThemeAttrs();
+    const appAttrs = useAppAttrs();
     useAllowTouchSelection();
     const [isDirty, setIsDirty] = useState(false);
     const [confirmOpen, setConfirmOpen] = useState(false);
@@ -87,7 +89,8 @@ export default function EventSheet({
     const [deleteOpen, setDeleteOpen] = useState(false);
     const formRef = useRef<EventFormHandle>(null);
 
-    const isDesktop = useMediaQuery('(min-width: 720px)');
+    // The phone pattern (bottom sheet) runs up to lg, like the shell's chrome.
+    const isDesktop = useMediaQuery('(min-width: 1024px)');
     const side = isDesktop ? 'right' : 'bottom';
 
     const prefersReducedMotion = useMediaQuery(
@@ -186,9 +189,30 @@ export default function EventSheet({
         closeAndReturn(false);
     }
 
+    // Back answers the innermost question first: the discard prompt (as "keep editing"), then the
+    // delete prompt, then the sheet through the same dirty gate as its close button. An open
+    // lightbox registers its own entry above this one, so it closes before any of these.
+    useOverlayHistory(
+        open,
+        () => {
+            if (confirmOpen) {
+                setConfirmOpen(false);
+            } else if (deleteOpen) {
+                setDeleteOpen(false);
+            } else {
+                handleOpenChange(false);
+            }
+        },
+        {
+            param:
+                editingEvent && mode !== 'add'
+                    ? ['moment', String(editingEvent.id)]
+                    : null,
+        },
+    );
+
     const contentClassName = cn(
-        'fixed z-50 flex flex-col shadow-lg transition ease-in-out',
-        'data-[state=closed]:duration-300 data-[state=open]:duration-500',
+        'fixed z-50 flex flex-col shadow-lg ease-(--ease-ui) data-[state=closed]:duration-(--dur-out) data-[state=open]:duration-(--dur-card)',
         !prefersReducedMotion && [
             side === 'right' &&
                 'data-[state=closed]:animate-out data-[state=closed]:slide-out-to-right data-[state=open]:animate-in data-[state=open]:slide-in-from-right',
@@ -207,7 +231,7 @@ export default function EventSheet({
                     <HistorySheetOverlay />
 
                     <SheetPrimitive.Content
-                        {...themeAttrs}
+                        {...appAttrs}
                         data-scroll-container=""
                         className={cn(
                             contentClassName,
@@ -262,14 +286,22 @@ export default function EventSheet({
                                 className="history-sheet-close-float"
                                 aria-label="Close"
                             >
-                                ×
+                                <X
+                                    aria-hidden="true"
+                                    size={20}
+                                    strokeWidth={1.5}
+                                />
                             </SheetPrimitive.Close>
                         ) : (
                             <SheetPrimitive.Close
                                 className="history-sheet-close"
                                 aria-label="Close"
                             >
-                                ×
+                                <X
+                                    aria-hidden="true"
+                                    size={20}
+                                    strokeWidth={1.5}
+                                />
                             </SheetPrimitive.Close>
                         )}
 
@@ -304,14 +336,14 @@ export default function EventSheet({
                             style={{
                                 padding:
                                     displayMode === 'read'
-                                        ? '28px 20px 20px 20px'
-                                        : '0 20px 20px 20px',
+                                        ? '32px 24px 24px'
+                                        : '0 24px 24px',
                             }}
                         >
                             {displayMode === 'read' && editingEvent ? (
                                 <EventReadView event={editingEvent} />
                             ) : (
-                                <div className="pt-5">
+                                <div className="pt-6">
                                     {/*
                                      * Keyed on the event id: the editor is uncontrolled, so showing
                                      * another event needs a remount.
@@ -451,10 +483,10 @@ export default function EventSheet({
                 <AlertDialogPrimitive.Portal>
                     <AlertDialogPrimitive.Overlay
                         className="history-alert-overlay"
-                        {...themeAttrs}
+                        {...appAttrs}
                     />
                     <AlertDialogPrimitive.Content
-                        {...themeAttrs}
+                        {...appAttrs}
                         className="history-alert-dialog"
                     >
                         <AlertDialogPrimitive.Title className="history-alert-title-lg">

@@ -2,6 +2,7 @@ import { router } from '@inertiajs/react';
 import { Heart } from 'lucide-react';
 import { useState } from 'react';
 
+import { mutationOptions } from '@/lib/mutation';
 import ComposerSheet from '@/MiniApps/Mailbox/Components/ComposerSheet';
 import MailboxListPage from '@/MiniApps/Mailbox/Components/MailboxListPage';
 import NoteCard from '@/MiniApps/Mailbox/Components/NoteCard';
@@ -29,6 +30,10 @@ export default function Messages({ messages, tab, sort, q, members }: Props) {
         router.delete(destroy.url(id), {
             preserveScroll: true,
             preserveState: false,
+            ...mutationOptions({
+                component: 'Mailbox/Messages',
+                action: 'message.delete',
+            }),
         });
     };
 
@@ -47,7 +52,6 @@ export default function Messages({ messages, tab, sort, q, members }: Props) {
         <AppLayout>
             <MailboxLayout>
                 <MailboxListPage
-                    headTitle="Messages"
                     pageTitle="Notes"
                     paginator={messages}
                     countAll={messages.counts?.all ?? messages.data.length}

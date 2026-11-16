@@ -1,5 +1,7 @@
 import { Head } from '@inertiajs/react';
 
+import { pageTitle } from '@/lib/title';
+
 import ChallanActions from '@/MiniApps/Mailbox/Components/ChallanActions';
 import ChallanArtifact from '@/MiniApps/Mailbox/Components/ChallanArtifact';
 import type { ChallanPayload } from '@/MiniApps/Mailbox/Components/ChallanCard';
@@ -14,7 +16,12 @@ type Props = {
 export default function ChallansShow({ challan }: Props) {
     return (
         <AppLayout>
-            <Head title={`${challan.ref_no ?? 'Citation'} · Our Mailbox`} />
+            <Head
+                title={pageTitle(
+                    `Challan ${challan.ref_no ?? ''}`.trim(),
+                    'Our Mailbox',
+                )}
+            />
             <MailboxLayout>
                 <Page
                     tier="app"
@@ -24,7 +31,7 @@ export default function ChallansShow({ challan }: Props) {
                 >
                     <div className="mx-auto my-0 max-w-[640px]">
                         <ChallanArtifact challan={challan} />
-                        <div className="mt-5">
+                        <div className="mt-6">
                             <ChallanActions challan={challan} />
                         </div>
                     </div>

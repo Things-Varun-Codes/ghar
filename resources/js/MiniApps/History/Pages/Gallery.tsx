@@ -2,7 +2,6 @@ import { router } from '@inertiajs/react';
 import { Images } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 
-import { Skeleton } from '@/components/ui/skeleton';
 import { captureSilent } from '@/lib/observability';
 import FilterRail from '@/MiniApps/History/Components/FilterRail';
 import FilterSegmented from '@/MiniApps/History/Components/FilterSegmented';
@@ -100,6 +99,9 @@ export default function Gallery({
                         {
                             preserveScroll: true,
                             preserveState: true,
+                            // ?page=N in the address bar would make a hard refresh load only that
+                            // slice.
+                            preserveUrl: true,
                             only: ['media'],
                             onSuccess: (page) => {
                                 const next = page.props.media as PaginatedMedia;
@@ -245,11 +247,16 @@ export default function Gallery({
                             />
 
                             {loadingMore && (
-                                <div className="pt-2 pb-4">
+                                <div
+                                    className="pt-2 pb-4"
+                                    role="status"
+                                    aria-busy="true"
+                                    aria-label="Loading more"
+                                >
                                     {[1, 2, 3].map((i) => (
-                                        <Skeleton
+                                        <div
                                             key={i}
-                                            className="history-skeleton-block"
+                                            className="history-skeleton-block shell-skeleton"
                                         />
                                     ))}
                                 </div>

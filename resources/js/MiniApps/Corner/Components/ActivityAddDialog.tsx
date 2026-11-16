@@ -83,7 +83,7 @@ export default function ActivityAddDialog({ open, onOpenChange, item }: Props) {
                             autoComplete="off"
                             value={data.title}
                             onChange={(e) => setData('title', e.target.value)}
-                            className="text-[16px]"
+                            className="text-(length:--text-body)"
                         />
                     </FormField>
 
@@ -98,7 +98,7 @@ export default function ActivityAddDialog({ open, onOpenChange, item }: Props) {
                             placeholder=""
                             value={data.notes}
                             onChange={(e) => setData('notes', e.target.value)}
-                            className="text-[16px]"
+                            className="text-(length:--text-body)"
                         />
                     </FormField>
                 </>

@@ -1,7 +1,10 @@
-import { router } from '@inertiajs/react';
-import { usePage } from '@inertiajs/react';
+import { Link, usePage } from '@inertiajs/react';
 import { ChevronLeft } from 'lucide-react';
+import type { MouseEvent } from 'react';
+import { goBack } from '@/lib/back-navigation';
 import { dashboard } from '@/routes';
+
+export type BackTarget = { href: string; label: string };
 
 // Mini-app paths are literals on purpose: the shell must build with any mini app disabled.
 const PARENT_LABELS: Record<string, string> = {
@@ -20,7 +23,7 @@ const PARENT_LABELS: Record<string, string> = {
     '/apps/our-mailbox/flowers': 'Flowers',
     '/apps/our-mailbox': 'Our Mailbox',
     '/apps/our-history': 'Our History',
-    [dashboard.url()]: 'Dashboard',
+    [dashboard.url()]: 'Home',
 };
 
 function resolveParent(pathname: string): {
@@ -31,7 +34,7 @@ function resolveParent(pathname: string): {
     const clean = pathname.replace(/\/$/, '') || '/';
 
     if (clean === dashboard.url()) {
-        return { path: dashboard.url(), label: 'Dashboard', matched: false };
+        return { path: dashboard.url(), label: 'Home', matched: false };
     }
 
     if (clean.startsWith('/apps/our-history/')) {
@@ -64,50 +67,76 @@ function resolveParent(pathname: string): {
     return { path: parentPath, label, matched: true };
 }
 
+function isPlainClick(event: MouseEvent<Element>): boolean {
+    return !(
+        event.defaultPrevented ||
+        event.button !== 0 ||
+        event.metaKey ||
+        event.ctrlKey ||
+        event.shiftKey ||
+        event.altKey
+    );
+}
+
 export default function BackChevron({
     inline = false,
     showLabel = true,
+    back,
 }: {
     inline?: boolean;
     showLabel?: boolean;
+    /** An explicit parent, for pages whose URL doesn't name it (an admin edit page). */
+    back?: BackTarget;
 }) {
     const { url } = usePage();
 
     const pathname = url.split('?')[0];
     const clean = pathname.replace(/\/$/, '') || '/';
 
-    if (clean === dashboard.url() || clean === '') {
+    if (!back && (clean === dashboard.url() || clean === '')) {
         return null;
     }
 
-    const { path: parentPath, label: parentLabel } = resolveParent(clean);
+    const { path: parentPath, label: parentLabel } = back
+        ? { path: back.href, label: back.label }
+        : resolveParent(clean);
+
+    const onClick = (event: MouseEvent<Element>) => {
+        if (!isPlainClick(event)) {
+            return;
+        }
+
+        event.preventDefault();
+        goBack(parentPath);
+    };
 
     if (inline) {
         return (
-            <>
-                <button
-                    type="button"
-                    onClick={() => router.visit(parentPath)}
-                    aria-label={`Back to ${parentLabel}`}
-                    className="shell-focus shell-back-inline flex items-center justify-center rounded-md"
-                >
-                    <ChevronLeft size={22} aria-hidden="true" />
-                </button>
+            <Link
+                href={parentPath}
+                onClick={onClick}
+                aria-label={showLabel ? undefined : `Back to ${parentLabel}`}
+                className="shell-focus shell-back-inline"
+            >
+                <ChevronLeft size={22} strokeWidth={1.5} aria-hidden="true" />
                 {showLabel && (
-                    <span className="shell-muted-label">{parentLabel}</span>
+                    <span className="shell-muted-label">
+                        <span className="sr-only">Back to </span>
+                        {parentLabel}
+                    </span>
                 )}
-            </>
+            </Link>
         );
     }
 
     return (
-        <button
-            type="button"
-            onClick={() => router.visit(parentPath)}
+        <Link
+            href={parentPath}
+            onClick={onClick}
             aria-label={`Back to ${parentLabel}`}
             className="shell-focus shell-back-floating flex items-center justify-center rounded-lg"
         >
-            <ChevronLeft size={24} aria-hidden="true" />
-        </button>
+            <ChevronLeft size={24} strokeWidth={1.5} aria-hidden="true" />
+        </Link>
     );
 }

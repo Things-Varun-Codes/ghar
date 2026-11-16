@@ -1,4 +1,5 @@
-import { Head, router } from '@inertiajs/react';
+import { router } from '@inertiajs/react';
+import { ArrowUpRight } from 'lucide-react';
 import { useState } from 'react';
 import DetailPage from '@/MiniApps/Corner/Components/DetailPage';
 import type { MentionedInRef } from '@/MiniApps/Corner/Components/MentionedInList';
@@ -55,7 +56,6 @@ export default function PlacesShow({ place, mentioned_in }: Props) {
 
     return (
         <AppLayout>
-            <Head title={place.title} />
             <CornerLayout>
                 <DetailPage
                     title={place.title}
@@ -98,7 +98,12 @@ export default function PlacesShow({ place, mentioned_in }: Props) {
                             rel="noopener noreferrer"
                             className="corner-detail-cta"
                         >
-                            Open in Google Maps ↗
+                            Open in Google Maps
+                            <ArrowUpRight
+                                aria-hidden="true"
+                                size={16}
+                                strokeWidth={1.5}
+                            />
                         </a>
                     )}
                 />

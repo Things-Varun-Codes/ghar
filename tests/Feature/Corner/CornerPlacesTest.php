@@ -7,6 +7,7 @@ use App\Shell\Models\User;
 use App\Shell\Notifications\GenericPushNotification;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Notification;
+use Inertia\Support\SessionKey;
 use Tests\TestCase;
 
 class CornerPlacesTest extends TestCase
@@ -28,7 +29,8 @@ class CornerPlacesTest extends TestCase
                 'lng' => 151.2153,
                 'address' => 'Bennelong Point, Sydney NSW 2000',
             ])
-            ->assertRedirect('/apps/our-corner/places');
+            ->assertRedirect('/apps/our-corner/places')
+            ->assertSessionHas(SessionKey::FLASH_DATA, ['toast' => ['type' => 'success', 'message' => 'Place added.']]);
 
         $this->assertDatabaseHas('corner_places', [
             'title' => 'Sydney Opera House',
@@ -37,14 +39,17 @@ class CornerPlacesTest extends TestCase
             'added_by_user_id' => $adder->id,
         ]);
 
+        $itemUrl = '/apps/our-corner/places/'.Place::query()->latest('id')->value('id');
+
         Notification::assertSentTo(
             $recipient,
             GenericPushNotification::class,
-            function (GenericPushNotification $n) use ($recipient) {
+            function (GenericPushNotification $n) use ($recipient, $itemUrl) {
                 $webPush = $n->toWebPush($recipient, $n)->toArray();
 
                 return ($webPush['tag'] ?? null) === 'our-corner:places'
-                    && str_contains($webPush['body'] ?? '', 'added a place: Sydney Opera House');
+                    && str_contains($webPush['body'] ?? '', 'added a place: Sydney Opera House')
+                    && ($webPush['data']['url'] ?? null) === $itemUrl;
             }
         );
     }

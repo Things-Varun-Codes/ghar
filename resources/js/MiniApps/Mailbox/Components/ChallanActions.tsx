@@ -12,8 +12,12 @@ import {
     AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { buttonVariants } from '@/components/ui/button';
+import { mutationOptions } from '@/lib/mutation';
 import type { ChallanPayload } from '@/MiniApps/Mailbox/Components/ChallanCard';
 import { destroy, pay } from '@/routes/apps/our-mailbox/challans';
+import SubmitButton from '@/Shell/Components/SubmitButton';
+
+type Pending = 'pay' | 'delete' | null;
 
 export default function ChallanActions({
     challan,
@@ -22,8 +26,9 @@ export default function ChallanActions({
     challan: ChallanPayload;
     variant?: 'row' | 'detail';
 }) {
-    const [busy, setBusy] = useState(false);
+    const [pending, setPending] = useState<Pending>(null);
     const [confirmOpen, setConfirmOpen] = useState(false);
+    const [payOpen, setPayOpen] = useState(false);
 
     const actions = challan.available_actions;
     const canPay = actions.includes('pay');
@@ -33,28 +38,48 @@ export default function ChallanActions({
         return null;
     }
 
+    const busy = pending !== null;
+    const size = variant === 'row' ? 'sm' : 'default';
+
     const handlePay = () => {
-        setBusy(true);
+        if (busy) {
+            return;
+        }
+
         router.patch(
             pay.url(challan.id),
             {},
             {
                 preserveScroll: true,
                 preserveState: false,
-                onFinish: () => setBusy(false),
+                ...mutationOptions({
+                    component: 'Mailbox/ChallanActions',
+                    action: 'challan.pay',
+                    onPendingChange: (p) => setPending(p ? 'pay' : null),
+                }),
             },
         );
     };
 
     const handleDelete = () => {
-        setBusy(true);
+        if (busy) {
+            return;
+        }
+
         router.delete(destroy.url(challan.id), {
             preserveScroll: true,
             preserveState: false,
-            onFinish: () => {
-                setBusy(false);
-                setConfirmOpen(false);
-            },
+            ...mutationOptions({
+                component: 'Mailbox/ChallanActions',
+                action: 'challan.delete',
+                onPendingChange: (p) => {
+                    setPending(p ? 'delete' : null);
+
+                    if (!p) {
+                        setConfirmOpen(false);
+                    }
+                },
+            }),
         });
     };
 
@@ -62,34 +87,65 @@ export default function ChallanActions({
         <>
             <div className="flex flex-wrap gap-2">
                 {canPay && (
-                    <button
+                    <SubmitButton
                         type="button"
+                        size={size}
+                        processing={pending === 'pay'}
                         disabled={busy}
-                        onClick={handlePay}
+                        busyText="Paying…"
+                        onClick={() => setPayOpen(true)}
+                        aria-label={
+                            variant === 'row'
+                                ? `Pay penalty for “${challan.offence}”`
+                                : undefined
+                        }
                         className={
                             variant === 'row'
                                 ? 'mailbox-btn-primary-row'
                                 : 'mailbox-btn-primary'
                         }
-                        style={{
-                            opacity: busy ? 0.6 : 1,
-                        }}
                     >
                         Pay penalty
-                    </button>
+                    </SubmitButton>
                 )}
                 {canDelete && (
-                    <button
+                    <SubmitButton
                         type="button"
+                        variant="outline"
+                        size={size}
+                        processing={pending === 'delete'}
                         disabled={busy}
+                        busyText="Withdrawing…"
                         onClick={() => setConfirmOpen(true)}
-                        className="mailbox-btn-neutral"
-                        style={{ opacity: busy ? 0.6 : 1 }}
+                        aria-label={
+                            variant === 'row'
+                                ? `Withdraw “${challan.offence}”`
+                                : undefined
+                        }
+                        className="mailbox-btn-neutral mailbox-btn-danger"
                     >
                         Withdraw
-                    </button>
+                    </SubmitButton>
                 )}
             </div>
+
+            <AlertDialog open={payOpen} onOpenChange={setPayOpen}>
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>Pay this penalty?</AlertDialogTitle>
+                        <AlertDialogDescription>
+                            The penalty is “{challan.penalty}”. Once it's paid,
+                            this challan is settled for good.
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel>Not yet</AlertDialogCancel>
+                        <AlertDialogAction disabled={busy} onClick={handlePay}>
+                            Pay penalty
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
 
             <AlertDialog open={confirmOpen} onOpenChange={setConfirmOpen}>
                 <AlertDialogContent data-app="our-mailbox">

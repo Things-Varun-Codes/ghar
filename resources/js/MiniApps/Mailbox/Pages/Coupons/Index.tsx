@@ -45,7 +45,6 @@ export default function CouponsIndex({
         <AppLayout>
             <MailboxLayout>
                 <MailboxListPage
-                    headTitle="Coupons · Our Mailbox"
                     pageTitle="Coupons"
                     paginator={coupons}
                     countAll={coupons.counts?.all ?? coupons.data.length}
@@ -66,7 +65,7 @@ export default function CouponsIndex({
                     emptyIcon={Ticket}
                     emptyTitle={emptyCopy.title}
                     emptyBody={emptyCopy.body}
-                    itemGap={12}
+                    itemGap={16}
                     renderItem={(coupon) => (
                         <CouponCard key={coupon.id} coupon={coupon} />
                     )}

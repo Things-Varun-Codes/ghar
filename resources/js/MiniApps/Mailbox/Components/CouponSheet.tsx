@@ -1,31 +1,23 @@
 import { useForm } from '@inertiajs/react';
-import { useState } from 'react';
-import {
-    AlertDialog,
-    AlertDialogAction,
-    AlertDialogCancel,
-    AlertDialogContent,
-    AlertDialogDescription,
-    AlertDialogFooter,
-    AlertDialogHeader,
-    AlertDialogTitle,
-} from '@/components/ui/alert-dialog';
-import { buttonVariants } from '@/components/ui/button';
-import {
-    Sheet,
-    SheetContent,
-    SheetHeader,
-    SheetTitle,
-} from '@/components/ui/sheet';
-import { useBodyScrollLock } from '@/hooks/use-body-scroll-lock';
+import { Minus, Plus } from 'lucide-react';
+import type { FormEvent } from 'react';
+import { useId } from 'react';
 import { useDirtyFormGate } from '@/hooks/use-dirty-form-gate';
-import { useMediaQuery } from '@/hooks/use-media-query';
-import { useSwipeDismiss } from '@/hooks/use-swipe-dismiss';
+import CharCount from '@/MiniApps/Mailbox/Components/CharCount';
+import ComposeSheet from '@/MiniApps/Mailbox/Components/ComposeSheet';
 import type { HouseholdMember } from '@/MiniApps/Mailbox/Components/RecipientPicker';
 import RecipientPicker, {
     defaultRecipientIds,
 } from '@/MiniApps/Mailbox/Components/RecipientPicker';
+import {
+    reportRejected,
+    SEND_FAILED_MESSAGE,
+    toastUnshownErrors,
+    transportFailure,
+} from '@/MiniApps/Mailbox/lib/visitFailure';
 import { store } from '@/routes/apps/our-mailbox/coupons';
+import FormField from '@/Shell/Components/FormField';
+import SubmitButton from '@/Shell/Components/SubmitButton';
 
 type Props = {
     open: boolean;
@@ -41,17 +33,18 @@ type CouponFormShape = {
     expires_at: string;
 };
 
+const TITLE_MAX = 80;
 const DESCRIPTION_MAX = 500;
 const QTY_MIN = 1;
 const QTY_MAX = 20;
 
-export default function CouponSheet({ open, onOpenChange, members }: Props) {
-    const isWide = useMediaQuery('(min-width: 720px)');
-    const side = isWide ? 'right' : 'bottom';
-    useBodyScrollLock(open);
+const SHOWN_FIELDS = ['title', 'description', 'quantity', 'expires_at'];
+const isShownField = (key: string) =>
+    SHOWN_FIELDS.includes(key) || key.startsWith('recipient_ids');
 
-    const [discardOpen, setDiscardOpen] = useState(false);
-    const [saveError, setSaveError] = useState<string | null>(null);
+export default function CouponSheet({ open, onOpenChange, members }: Props) {
+    const hintId = useId();
+    const quantityLabelId = useId();
 
     const form = useForm<CouponFormShape>({
         recipient_ids: defaultRecipientIds(members),
@@ -66,34 +59,30 @@ export default function CouponSheet({ open, onOpenChange, members }: Props) {
         fields: ['title', 'description', 'quantity', 'expires_at'],
     });
 
-    const handleOpenChange = (next: boolean) => {
-        if (next) {
-            setSaveError(null);
-        }
-
-        if (!next && isDirty) {
-            setDiscardOpen(true);
-
-            return;
-        }
-
-        onOpenChange(next);
-    };
-
-    const swipeHandlers = useSwipeDismiss({
-        enabled: side === 'bottom',
-        onDismiss: () => handleOpenChange(false),
-    });
-
     const handleReset = () => {
         reset();
         gateReset();
-        setSaveError(null);
-        setDiscardOpen(false);
     };
 
-    const handleSubmit = () => {
-        setSaveError(null);
+    const setQuantity = (n: number) => {
+        setData('quantity', Math.max(QTY_MIN, Math.min(QTY_MAX, n)));
+    };
+
+    const hint =
+        data.recipient_ids.length === 0
+            ? 'Choose who it’s for.'
+            : data.title.trim() === ''
+              ? 'Say what it’s good for.'
+              : null;
+    const disabled = processing || hint !== null || data.quantity < QTY_MIN;
+
+    const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+        event.preventDefault();
+
+        if (disabled) {
+            return;
+        }
+
         post(store.url(), {
             preserveScroll: true,
             preserveState: 'errors',
@@ -102,238 +91,149 @@ export default function CouponSheet({ open, onOpenChange, members }: Props) {
                 onOpenChange(false);
             },
             onError: (errs) => {
-                const first = Object.values(errs)[0] ?? null;
-                setSaveError(first ?? 'Could not send the coupon. Try again.');
+                toastUnshownErrors(errs, isShownField, SEND_FAILED_MESSAGE);
+                reportRejected('Mailbox/CouponSheet', 'coupon.create', errs);
             },
+            ...transportFailure({
+                component: 'Mailbox/CouponSheet',
+                action: 'coupon.create',
+                message: SEND_FAILED_MESSAGE,
+            }),
         });
     };
 
-    const setQuantity = (n: number) => {
-        setData('quantity', Math.max(QTY_MIN, Math.min(QTY_MAX, n)));
-    };
-
-    const submitDisabled =
-        processing ||
-        data.title.trim() === '' ||
-        data.quantity < QTY_MIN ||
-        data.recipient_ids.length === 0;
-
     return (
-        <>
-            <Sheet open={open} onOpenChange={handleOpenChange}>
-                <SheetContent
-                    side={side}
-                    data-app="our-mailbox"
-                    className="mailbox-sheet-content [&_button.absolute]:!opacity-100"
-                    style={{
-                        maxWidth: side === 'right' ? '640px' : undefined,
-                        width: side === 'right' ? '90vw' : '100%',
-                        height: side === 'bottom' ? '90dvh' : '100dvh',
-                    }}
+        <ComposeSheet
+            open={open}
+            onOpenChange={onOpenChange}
+            title="Write a coupon"
+            description="Write what the coupon is good for and choose who it is for."
+            isDirty={isDirty}
+            discardTitle="Discard this coupon?"
+            discardBody="The details you entered will be lost."
+            onDiscard={handleReset}
+            onSubmit={handleSubmit}
+            hint={processing ? null : hint}
+            hintId={hintId}
+            actions={
+                <SubmitButton
+                    processing={processing}
+                    disabled={disabled}
+                    busyText="Sending…"
+                    aria-describedby={hint ? hintId : undefined}
                 >
-                    <SheetHeader>
-                        <SheetTitle>Write a coupon</SheetTitle>
-                    </SheetHeader>
+                    Send coupon
+                </SubmitButton>
+            }
+        >
+            <RecipientPicker
+                legend="For"
+                members={members}
+                value={data.recipient_ids}
+                onChange={(ids) => setData('recipient_ids', ids)}
+                errors={errors}
+            />
 
-                    <div {...swipeHandlers} className="mailbox-sheet-scroll">
-                        <div className="flex flex-col gap-4.5 p-4">
-                            <RecipientPicker
-                                legend="For"
-                                members={members}
-                                value={data.recipient_ids}
-                                onChange={(ids) =>
-                                    setData('recipient_ids', ids)
-                                }
-                                errors={errors}
-                            />
+            <div>
+                <FormField
+                    label="Good for…"
+                    name="coupon-title"
+                    error={errors.title}
+                    required
+                    className="mailbox-form-field"
+                >
+                    <input
+                        id="coupon-title"
+                        type="text"
+                        maxLength={TITLE_MAX}
+                        value={data.title}
+                        onChange={(e) => setData('title', e.target.value)}
+                        aria-required="true"
+                        placeholder="e.g. One free car wash"
+                        className="mailbox-field"
+                    />
+                </FormField>
+                <CharCount length={data.title.length} max={TITLE_MAX} />
+            </div>
 
-                            <div>
-                                <label
-                                    htmlFor="coupon-title"
-                                    className="mailbox-field-label"
-                                >
-                                    Good for…
-                                </label>
-                                <input
-                                    id="coupon-title"
-                                    type="text"
-                                    maxLength={80}
-                                    value={data.title}
-                                    onChange={(e) =>
-                                        setData('title', e.target.value)
-                                    }
-                                    placeholder="e.g. One free car wash"
-                                    className="mailbox-field"
-                                />
-                                {errors.title && (
-                                    <p
-                                        role="alert"
-                                        className="mailbox-field-error"
-                                    >
-                                        {errors.title}
-                                    </p>
-                                )}
-                            </div>
+            <div role="group" aria-labelledby={quantityLabelId}>
+                <p id={quantityLabelId} className="mailbox-field-label">
+                    How many?
+                </p>
+                <div className="flex items-center gap-3">
+                    <button
+                        type="button"
+                        aria-label="Fewer"
+                        onClick={() => setQuantity(data.quantity - 1)}
+                        disabled={data.quantity <= QTY_MIN}
+                        className="mailbox-coupon-step"
+                    >
+                        <Minus size={20} strokeWidth={1.5} aria-hidden="true" />
+                    </button>
+                    <span
+                        aria-live="polite"
+                        className="mailbox-coupon-quantity"
+                    >
+                        {data.quantity}
+                    </span>
+                    <button
+                        type="button"
+                        aria-label="More"
+                        onClick={() => setQuantity(data.quantity + 1)}
+                        disabled={data.quantity >= QTY_MAX}
+                        className="mailbox-coupon-step"
+                    >
+                        <Plus size={20} strokeWidth={1.5} aria-hidden="true" />
+                    </button>
+                    <span className="text-(length:--mailbox-type-scale-eyebrow) text-(--mailbox-ink-soft)">
+                        redemption
+                        {data.quantity === 1 ? '' : 's'}
+                    </span>
+                </div>
+                {errors.quantity && (
+                    <p role="alert" className="mailbox-field-error">
+                        {errors.quantity}
+                    </p>
+                )}
+            </div>
 
-                            <div>
-                                <label className="mailbox-field-label">
-                                    How many?
-                                </label>
-                                <div className="flex items-center gap-3">
-                                    <button
-                                        type="button"
-                                        aria-label="Fewer"
-                                        onClick={() =>
-                                            setQuantity(data.quantity - 1)
-                                        }
-                                        disabled={data.quantity <= QTY_MIN}
-                                        className="mailbox-coupon-step"
-                                        style={{
-                                            opacity:
-                                                data.quantity <= QTY_MIN
-                                                    ? 0.5
-                                                    : 1,
-                                        }}
-                                    >
-                                        −
-                                    </button>
-                                    <span
-                                        aria-live="polite"
-                                        className="mailbox-coupon-quantity"
-                                    >
-                                        {data.quantity}
-                                    </span>
-                                    <button
-                                        type="button"
-                                        aria-label="More"
-                                        onClick={() =>
-                                            setQuantity(data.quantity + 1)
-                                        }
-                                        disabled={data.quantity >= QTY_MAX}
-                                        className="mailbox-coupon-step"
-                                        style={{
-                                            opacity:
-                                                data.quantity >= QTY_MAX
-                                                    ? 0.5
-                                                    : 1,
-                                        }}
-                                    >
-                                        +
-                                    </button>
-                                    <span className="text-(length:--mailbox-type-scale-eyebrow) text-(--mailbox-ink-soft)">
-                                        redemption
-                                        {data.quantity === 1 ? '' : 's'}
-                                    </span>
-                                </div>
-                                {errors.quantity && (
-                                    <p
-                                        role="alert"
-                                        className="mailbox-field-error"
-                                    >
-                                        {errors.quantity}
-                                    </p>
-                                )}
-                            </div>
+            <FormField
+                label="Valid until (optional)"
+                name="coupon-expiry"
+                error={errors.expires_at}
+                className="mailbox-form-field"
+            >
+                <input
+                    id="coupon-expiry"
+                    type="date"
+                    value={data.expires_at}
+                    onChange={(e) => setData('expires_at', e.target.value)}
+                    className="mailbox-field"
+                />
+            </FormField>
 
-                            <div>
-                                <label
-                                    htmlFor="coupon-expiry"
-                                    className="mailbox-field-label"
-                                >
-                                    Valid until (optional)
-                                </label>
-                                <input
-                                    id="coupon-expiry"
-                                    type="date"
-                                    value={data.expires_at}
-                                    onChange={(e) =>
-                                        setData('expires_at', e.target.value)
-                                    }
-                                    className="mailbox-field"
-                                />
-                                {errors.expires_at && (
-                                    <p
-                                        role="alert"
-                                        className="mailbox-field-error"
-                                    >
-                                        {errors.expires_at}
-                                    </p>
-                                )}
-                            </div>
-
-                            <div>
-                                <label
-                                    htmlFor="coupon-description"
-                                    className="mailbox-field-label"
-                                >
-                                    Fine print (optional)
-                                </label>
-                                <textarea
-                                    id="coupon-description"
-                                    className="mailbox-hand mailbox-hand-textarea mailbox-field"
-                                    value={data.description}
-                                    onChange={(e) =>
-                                        setData('description', e.target.value)
-                                    }
-                                    rows={3}
-                                    maxLength={DESCRIPTION_MAX}
-                                    placeholder="e.g. Not valid during exams"
-                                />
-                            </div>
-
-                            {saveError && (
-                                <p role="alert" className="mailbox-field-error">
-                                    {saveError}
-                                </p>
-                            )}
-
-                            <div className="mt-2 flex justify-end">
-                                <button
-                                    type="button"
-                                    onClick={handleSubmit}
-                                    disabled={submitDisabled}
-                                    className="mailbox-btn-submit"
-                                    style={{
-                                        cursor: submitDisabled
-                                            ? 'not-allowed'
-                                            : 'pointer',
-                                        opacity: submitDisabled ? 0.6 : 1,
-                                    }}
-                                >
-                                    {processing ? 'Sending…' : 'Send coupon'}
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                </SheetContent>
-            </Sheet>
-
-            <AlertDialog open={discardOpen} onOpenChange={setDiscardOpen}>
-                <AlertDialogContent data-app="our-mailbox">
-                    <AlertDialogHeader>
-                        <AlertDialogTitle>
-                            Discard this coupon?
-                        </AlertDialogTitle>
-                        <AlertDialogDescription>
-                            The details you entered will be lost.
-                        </AlertDialogDescription>
-                    </AlertDialogHeader>
-                    <AlertDialogFooter>
-                        <AlertDialogCancel>Keep editing</AlertDialogCancel>
-                        <AlertDialogAction
-                            className={buttonVariants({
-                                variant: 'destructive',
-                            })}
-                            onClick={() => {
-                                handleReset();
-                                onOpenChange(false);
-                            }}
-                        >
-                            Discard
-                        </AlertDialogAction>
-                    </AlertDialogFooter>
-                </AlertDialogContent>
-            </AlertDialog>
-        </>
+            <div>
+                <FormField
+                    label="Fine print (optional)"
+                    name="coupon-description"
+                    error={errors.description}
+                    className="mailbox-form-field"
+                >
+                    <textarea
+                        id="coupon-description"
+                        className="mailbox-field"
+                        value={data.description}
+                        onChange={(e) => setData('description', e.target.value)}
+                        rows={3}
+                        maxLength={DESCRIPTION_MAX}
+                        placeholder="e.g. Not valid during exams"
+                    />
+                </FormField>
+                <CharCount
+                    length={data.description.length}
+                    max={DESCRIPTION_MAX}
+                />
+            </div>
+        </ComposeSheet>
     );
 }

@@ -1,4 +1,4 @@
-import { Head, router } from '@inertiajs/react';
+import { router } from '@inertiajs/react';
 import { useState } from 'react';
 import ActivityAddDialog from '@/MiniApps/Corner/Components/ActivityAddDialog';
 import DetailPage from '@/MiniApps/Corner/Components/DetailPage';
@@ -38,7 +38,6 @@ export default function ActivitiesShow({ activity, mentioned_in }: Props) {
 
     return (
         <AppLayout>
-            <Head title={activity.title} />
             <CornerLayout>
                 <DetailPage
                     title={activity.title}

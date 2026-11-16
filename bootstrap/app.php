@@ -2,9 +2,9 @@
 
 use App\Http\Middleware\AddSecurityHeaders;
 use App\Http\Middleware\BlockUnwantedFortifyRoutes;
+use App\Http\Middleware\CacheSignedMedia;
 use App\Http\Middleware\HandleAppearance;
 use App\Http\Middleware\HandleInertiaRequests;
-use App\Http\Middleware\SmokeThemeOverrideMiddleware;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
@@ -28,13 +28,13 @@ return Application::configure(basePath: dirname(__DIR__))
         // first-registered-wins, so this must run before the router.
         $middleware->prepend(BlockUnwantedFortifyRoutes::class);
 
-        // Written in plain text by Playwright, so EncryptCookies would strip it.
-        $middleware->encryptCookies(except: ['appearance', 'sidebar_state', 'smoke_theme']);
+        $middleware->append(CacheSignedMedia::class);
+
+        $middleware->encryptCookies(except: ['appearance', 'sidebar_state']);
 
         // AddSecurityHeaders must come after HandleInertiaRequests, so the CSP nonce exists
         // before Vite renders tags.
         $middleware->web(append: [
-            SmokeThemeOverrideMiddleware::class,
             HandleAppearance::class,
             HandleInertiaRequests::class,
             AddSecurityHeaders::class,

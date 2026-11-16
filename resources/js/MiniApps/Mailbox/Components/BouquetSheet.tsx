@@ -1,34 +1,24 @@
 import { useForm } from '@inertiajs/react';
-import { useEffect, useState } from 'react';
-import {
-    AlertDialog,
-    AlertDialogAction,
-    AlertDialogCancel,
-    AlertDialogContent,
-    AlertDialogDescription,
-    AlertDialogFooter,
-    AlertDialogHeader,
-    AlertDialogTitle,
-} from '@/components/ui/alert-dialog';
-import { buttonVariants } from '@/components/ui/button';
-import {
-    Sheet,
-    SheetContent,
-    SheetHeader,
-    SheetTitle,
-} from '@/components/ui/sheet';
-import { useBodyScrollLock } from '@/hooks/use-body-scroll-lock';
+import type { FormEvent } from 'react';
+import { useEffect, useId, useState } from 'react';
 import { useDirtyFormGate } from '@/hooks/use-dirty-form-gate';
-import { useMediaQuery } from '@/hooks/use-media-query';
-import { useSwipeDismiss } from '@/hooks/use-swipe-dismiss';
 import { readXsrfToken } from '@/lib/csrf';
 import { captureSilent } from '@/lib/observability';
+import CharCount from '@/MiniApps/Mailbox/Components/CharCount';
+import ComposeSheet from '@/MiniApps/Mailbox/Components/ComposeSheet';
 import type { FlowerEntry } from '@/MiniApps/Mailbox/Components/NoteCard';
 import type { HouseholdMember } from '@/MiniApps/Mailbox/Components/RecipientPicker';
 import RecipientPicker, {
     defaultRecipientIds,
 } from '@/MiniApps/Mailbox/Components/RecipientPicker';
+import {
+    reportRejected,
+    SEND_FAILED_MESSAGE,
+    toastUnshownErrors,
+    transportFailure,
+} from '@/MiniApps/Mailbox/lib/visitFailure';
 import { generate, store } from '@/routes/apps/our-mailbox/bouquets';
+import FormField from '@/Shell/Components/FormField';
 import SubmitButton from '@/Shell/Components/SubmitButton';
 
 type BouquetFormShape = {
@@ -48,6 +38,11 @@ type Props = {
 
 const MAX_FLOWERS = 5;
 const NOTE_MAX = 600;
+
+const isShownField = (key: string) =>
+    key === 'note' ||
+    key.startsWith('flowers') ||
+    key.startsWith('recipient_ids');
 
 /* An object URL, not a data: URI: ~1.4 MB of base64 in the DOM freezes iOS Safari scrolling. */
 function base64ToObjectUrl(base64: string, mime: string): string | null {
@@ -72,14 +67,10 @@ export default function BouquetSheet({
     flowers,
     members,
 }: Props) {
-    const isWide = useMediaQuery('(min-width: 720px)');
-    const side = isWide ? 'right' : 'bottom';
-    useBodyScrollLock(open);
-
-    const [discardOpen, setDiscardOpen] = useState(false);
+    const hintId = useId();
+    const flowersNoteId = useId();
     const [generating, setGenerating] = useState(false);
     const [genError, setGenError] = useState<string | null>(null);
-    const [saveError, setSaveError] = useState<string | null>(null);
     const [refine, setRefine] = useState('');
     const [previewUrl, setPreviewUrl] = useState<string | null>(null);
 
@@ -108,34 +99,12 @@ export default function BouquetSheet({
     });
     const isDirty = noteIsDirty || data.image !== null;
 
-    const handleOpenChange = (next: boolean) => {
-        if (next) {
-            setSaveError(null);
-            setGenError(null);
-        }
-
-        if (!next && isDirty) {
-            setDiscardOpen(true);
-
-            return;
-        }
-
-        onOpenChange(next);
-    };
-
-    const swipeHandlers = useSwipeDismiss({
-        enabled: side === 'bottom',
-        onDismiss: () => handleOpenChange(false),
-    });
-
     const handleReset = () => {
         reset();
         gateReset();
         setRefine('');
         setGenerating(false);
         setGenError(null);
-        setSaveError(null);
-        setDiscardOpen(false);
         setPreviewUrl(null); // effect cleanup revokes the prior blob URL
     };
 
@@ -149,7 +118,14 @@ export default function BouquetSheet({
         setData('flowers', next);
     };
 
+    const generateDisabled =
+        data.flowers.length === 0 || generating || processing;
+
     const handleGenerate = async () => {
+        if (generateDisabled) {
+            return;
+        }
+
         setGenerating(true);
         setGenError(null);
 
@@ -206,8 +182,25 @@ export default function BouquetSheet({
         }
     };
 
-    const handleSend = () => {
-        setSaveError(null);
+    const hint =
+        data.recipient_ids.length === 0
+            ? 'Choose who they’re for.'
+            : data.flowers.length === 0
+              ? 'Pick at least one flower.'
+              : generating
+                ? null
+                : data.image === null || genError !== null
+                  ? 'Arrange the bouquet first.'
+                  : null;
+    const sendDisabled = processing || generating || hint !== null;
+
+    const handleSend = (event: FormEvent<HTMLFormElement>) => {
+        event.preventDefault();
+
+        if (sendDisabled) {
+            return;
+        }
+
         post(store.url(), {
             preserveScroll: true,
             preserveState: 'errors',
@@ -216,260 +209,194 @@ export default function BouquetSheet({
                 onOpenChange(false);
             },
             onError: (errs) => {
-                const first = Object.values(errs)[0] ?? null;
-                setSaveError(
-                    first ?? 'Could not send bouquet. Please try again.',
-                );
+                toastUnshownErrors(errs, isShownField, SEND_FAILED_MESSAGE);
+                reportRejected('Mailbox/BouquetSheet', 'bouquet.create', errs);
             },
+            ...transportFailure({
+                component: 'Mailbox/BouquetSheet',
+                action: 'bouquet.create',
+                message: SEND_FAILED_MESSAGE,
+            }),
         });
     };
 
-    const generateDisabled =
-        data.flowers.length === 0 || generating || processing;
-    const sendDisabled =
-        data.image === null ||
-        processing ||
-        generating ||
-        genError !== null ||
-        data.recipient_ids.length === 0;
+    const flowersError = Object.entries(errors).find(([key]) =>
+        key.startsWith('flowers'),
+    )?.[1];
 
     return (
-        <>
-            <Sheet open={open} onOpenChange={handleOpenChange}>
-                <SheetContent
-                    side={side}
-                    data-app="our-mailbox"
-                    className="mailbox-sheet-content [&_button.absolute]:!opacity-100"
-                    style={{
-                        maxWidth: side === 'right' ? '640px' : undefined,
-                        width: side === 'right' ? '90vw' : '100%',
-                        height: side === 'bottom' ? '90dvh' : '100dvh',
-                    }}
+        <ComposeSheet
+            open={open}
+            onOpenChange={(next) => {
+                if (!next) {
+                    setGenError(null);
+                }
+
+                onOpenChange(next);
+            }}
+            title="Arrange a bouquet"
+            description="Pick flowers, arrange a bouquet and choose who it goes to."
+            isDirty={isDirty}
+            discardTitle="Discard this bouquet?"
+            discardBody="Your flower selection and preview will be lost."
+            onDiscard={handleReset}
+            onSubmit={handleSend}
+            hint={processing ? null : hint}
+            hintId={hintId}
+            actions={
+                <SubmitButton
+                    processing={processing}
+                    disabled={sendDisabled}
+                    busyText="Sending…"
+                    aria-describedby={hint ? hintId : undefined}
                 >
-                    <SheetHeader>
-                        <SheetTitle>Arrange a bouquet</SheetTitle>
-                    </SheetHeader>
+                    Send bouquet
+                </SubmitButton>
+            }
+        >
+            <RecipientPicker
+                members={members}
+                value={data.recipient_ids}
+                onChange={(ids) => setData('recipient_ids', ids)}
+                errors={errors}
+            />
 
-                    <div {...swipeHandlers} className="mailbox-sheet-scroll">
-                        <div className="flex flex-col gap-5 p-4">
-                            <RecipientPicker
-                                members={members}
-                                value={data.recipient_ids}
-                                onChange={(ids) =>
-                                    setData('recipient_ids', ids)
-                                }
-                                errors={errors}
-                            />
+            <fieldset
+                className="mailbox-recipients"
+                aria-describedby={flowersError ? flowersNoteId : undefined}
+            >
+                <legend className="mailbox-recipients-legend">
+                    Pick up to {MAX_FLOWERS} flowers
+                    <span aria-hidden="true" className="mailbox-required">
+                        *
+                    </span>
+                </legend>
+                <div className="flex flex-wrap gap-2">
+                    {flowers.map((flower) => {
+                        const selected = data.flowers.includes(flower.key);
+                        const atMax =
+                            data.flowers.length >= MAX_FLOWERS && !selected;
 
-                            <section aria-label="Choose flowers">
-                                <p className="mb-2.5 text-(length:--mailbox-type-scale-eyebrow) text-(--mailbox-ink-soft)">
-                                    Pick up to {MAX_FLOWERS} flowers
-                                </p>
-                                <div className="flex flex-wrap gap-2">
-                                    {flowers.map((flower) => {
-                                        const selected = data.flowers.includes(
-                                            flower.key,
-                                        );
-                                        const atMax =
-                                            data.flowers.length >=
-                                                MAX_FLOWERS && !selected;
+                        return (
+                            <button
+                                key={flower.key}
+                                type="button"
+                                disabled={atMax || generating || processing}
+                                aria-pressed={selected}
+                                title={flower.meaning}
+                                onClick={() => toggleFlower(flower.key)}
+                                className="mailbox-flower-chip"
+                            >
+                                {flower.name}
+                            </button>
+                        );
+                    })}
+                </div>
+                {flowersError && (
+                    <p
+                        id={flowersNoteId}
+                        role="alert"
+                        className="mailbox-field-error"
+                    >
+                        {flowersError}
+                    </p>
+                )}
+            </fieldset>
 
-                                        return (
-                                            <button
-                                                key={flower.key}
-                                                type="button"
-                                                disabled={
-                                                    atMax ||
-                                                    generating ||
-                                                    processing
-                                                }
-                                                aria-pressed={selected}
-                                                title={flower.meaning}
-                                                onClick={() =>
-                                                    toggleFlower(flower.key)
-                                                }
-                                                className="mailbox-flower-chip"
-                                                style={{
-                                                    border: `1.5px solid ${
-                                                        selected
-                                                            ? 'var(--mailbox-accent)'
-                                                            : 'var(--mailbox-border)'
-                                                    }`,
-                                                    background: selected
-                                                        ? 'var(--mailbox-accent)'
-                                                        : 'transparent',
-                                                    color: selected
-                                                        ? 'var(--mailbox-accent-fg)'
-                                                        : atMax
-                                                          ? 'var(--mailbox-ink-soft)'
-                                                          : 'var(--mailbox-ink)',
-                                                    cursor:
-                                                        atMax ||
-                                                        generating ||
-                                                        processing
-                                                            ? 'not-allowed'
-                                                            : 'pointer',
-                                                    opacity: atMax ? 0.45 : 1,
-                                                }}
-                                            >
-                                                {flower.name}
-                                            </button>
-                                        );
-                                    })}
-                                </div>
-                            </section>
+            <FormField
+                label="Style or mood (optional)"
+                name="bouquet-refine"
+                className="mailbox-form-field"
+            >
+                <input
+                    id="bouquet-refine"
+                    type="text"
+                    value={refine}
+                    onChange={(e) => setRefine(e.target.value)}
+                    onKeyDown={(e) => {
+                        // Enter here arranges the bouquet rather than sending the form.
+                        if (e.key === 'Enter') {
+                            e.preventDefault();
+                            void handleGenerate();
+                        }
+                    }}
+                    disabled={generating || processing}
+                    placeholder="e.g. wild meadow, bright and cheerful…"
+                    className="mailbox-bouquet-mood-input"
+                />
+            </FormField>
 
-                            <div>
-                                <label
-                                    htmlFor="bouquet-refine"
-                                    className="mailbox-field-label"
-                                >
-                                    Style or mood (optional)
-                                </label>
-                                <input
-                                    id="bouquet-refine"
-                                    type="text"
-                                    value={refine}
-                                    onChange={(e) => setRefine(e.target.value)}
-                                    disabled={generating || processing}
-                                    placeholder="e.g. wild meadow, bright and cheerful…"
-                                    className="mailbox-bouquet-mood-input"
-                                />
-                            </div>
+            <div>
+                <SubmitButton
+                    type="button"
+                    processing={generating}
+                    disabled={generateDisabled}
+                    busyText="Arranging your bouquet…"
+                    onClick={handleGenerate}
+                    variant="outline"
+                >
+                    Arrange my bouquet
+                </SubmitButton>
+            </div>
 
-                            <div>
-                                <SubmitButton
-                                    type="button"
-                                    processing={generating}
-                                    disabled={generateDisabled}
-                                    busyText="Arranging your bouquet…"
-                                    onClick={handleGenerate}
-                                    className="mailbox-btn-arrange"
-                                >
-                                    Arrange my bouquet
-                                </SubmitButton>
-                            </div>
-
-                            {(generating || data.image || genError) && (
-                                <div className="mailbox-bouquet-stage">
-                                    {generating && (
-                                        <div
-                                            aria-busy="true"
-                                            aria-label="Arranging your bouquet…"
-                                            className="mailbox-bouquet-shimmer"
-                                        />
-                                    )}
-                                    {!generating && !genError && data.image && (
-                                        <img
-                                            src={
-                                                previewUrl ??
-                                                `data:${data.mime};base64,${data.image}`
-                                            }
-                                            alt="Preview of your flower bouquet"
-                                            decoding="async"
-                                            className="block h-full w-full rounded-[8px] object-cover"
-                                        />
-                                    )}
-                                    {!generating && genError && (
-                                        <div
-                                            role="alert"
-                                            className="p-4 text-center"
-                                        >
-                                            <p className="mx-0 mt-0 mb-2.5 text-(length:--mailbox-type-scale-eyebrow) text-(--mailbox-destructive)">
-                                                {genError}
-                                            </p>
-                                            <button
-                                                type="button"
-                                                onClick={handleGenerate}
-                                                disabled={generateDisabled}
-                                                className="mailbox-link-retry"
-                                            >
-                                                Try again
-                                            </button>
-                                        </div>
-                                    )}
-                                </div>
-                            )}
-
-                            <div>
-                                <label
-                                    htmlFor="bouquet-note"
-                                    className="mailbox-field-label"
-                                >
-                                    Add a note (optional)
-                                </label>
-                                <textarea
-                                    id="bouquet-note"
-                                    className="mailbox-hand mailbox-bouquet-note-input"
-                                    value={data.note}
-                                    onChange={(e) =>
-                                        setData('note', e.target.value)
-                                    }
-                                    rows={4}
-                                    maxLength={NOTE_MAX}
-                                    placeholder="Say something nice…"
-                                />
-                                {errors.note && (
-                                    <p
-                                        role="alert"
-                                        className="mx-0 mt-1 mb-0 text-[13px] text-(--mailbox-destructive)"
-                                    >
-                                        {errors.note}
-                                    </p>
-                                )}
-                            </div>
-
-                            {saveError && (
-                                <p
-                                    role="alert"
-                                    className="m-0 text-(length:--mailbox-type-scale-eyebrow) text-(--mailbox-destructive)"
-                                >
-                                    {saveError}
-                                </p>
-                            )}
-
-                            <div className="mt-2 flex justify-end">
-                                <SubmitButton
-                                    type="button"
-                                    processing={processing}
-                                    disabled={sendDisabled}
-                                    busyText="Sending…"
-                                    onClick={handleSend}
-                                >
-                                    Send bouquet
-                                </SubmitButton>
-                            </div>
+            {(generating || data.image || genError) && (
+                <div className="mailbox-bouquet-stage">
+                    {generating && (
+                        <div
+                            role="status"
+                            aria-busy="true"
+                            aria-label="Arranging your bouquet…"
+                            className="shell-skeleton h-full w-full"
+                        />
+                    )}
+                    {!generating && !genError && data.image && (
+                        <img
+                            src={
+                                previewUrl ??
+                                `data:${data.mime};base64,${data.image}`
+                            }
+                            alt="Preview of your flower bouquet"
+                            decoding="async"
+                            className="block h-full w-full object-cover"
+                        />
+                    )}
+                    {!generating && genError && (
+                        <div role="alert" className="p-4 text-center">
+                            <p className="mx-0 mt-0 mb-2 text-(length:--text-small) text-(--mailbox-destructive)">
+                                {genError}
+                            </p>
+                            <button
+                                type="button"
+                                onClick={handleGenerate}
+                                disabled={generateDisabled}
+                                className="mailbox-link-retry"
+                            >
+                                Try again
+                            </button>
                         </div>
-                    </div>
-                </SheetContent>
-            </Sheet>
+                    )}
+                </div>
+            )}
 
-            <AlertDialog open={discardOpen} onOpenChange={setDiscardOpen}>
-                <AlertDialogContent data-app="our-mailbox">
-                    <AlertDialogHeader>
-                        <AlertDialogTitle>
-                            Discard this bouquet?
-                        </AlertDialogTitle>
-                        <AlertDialogDescription>
-                            Your flower selection and preview will be lost.
-                        </AlertDialogDescription>
-                    </AlertDialogHeader>
-                    <AlertDialogFooter>
-                        <AlertDialogCancel>Keep editing</AlertDialogCancel>
-                        <AlertDialogAction
-                            className={buttonVariants({
-                                variant: 'destructive',
-                            })}
-                            onClick={() => {
-                                handleReset();
-                                onOpenChange(false);
-                            }}
-                        >
-                            Discard
-                        </AlertDialogAction>
-                    </AlertDialogFooter>
-                </AlertDialogContent>
-            </AlertDialog>
-        </>
+            <div>
+                <FormField
+                    label="Add a note (optional)"
+                    name="bouquet-note"
+                    error={errors.note}
+                    className="mailbox-form-field"
+                >
+                    <textarea
+                        id="bouquet-note"
+                        className="mailbox-hand mailbox-bouquet-note-input"
+                        value={data.note}
+                        onChange={(e) => setData('note', e.target.value)}
+                        rows={4}
+                        maxLength={NOTE_MAX}
+                        placeholder="Say something nice…"
+                    />
+                </FormField>
+                <CharCount length={data.note.length} max={NOTE_MAX} />
+            </div>
+        </ComposeSheet>
     );
 }

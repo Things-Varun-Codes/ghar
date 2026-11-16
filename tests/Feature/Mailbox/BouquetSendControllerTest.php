@@ -47,8 +47,9 @@ class BouquetSendControllerTest extends TestCase
             'mime' => 'image/jpeg',
         ]);
 
-        // store() redirects to the Flowers page.
-        $response->assertRedirect('/apps/our-mailbox/flowers');
+        // store() lands the sender on their Sent flowers, with a toast.
+        $response->assertRedirect('/apps/our-mailbox/flowers?tab=sent');
+        $this->assertSuccessToast($response, 'Flowers sent.');
 
         // Exactly 1 bouquet row, and it lives in mailbox_bouquets (not mailbox_messages).
         $this->assertDatabaseCount('mailbox_bouquets', 1);

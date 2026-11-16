@@ -9,6 +9,7 @@ use App\MiniApps\History\Http\Requests\StoreEventRequest;
 use App\MiniApps\History\Http\Requests\UpdateEventRequest;
 use App\MiniApps\History\Http\Resources\EventResource;
 use App\MiniApps\History\Models\Event;
+use App\MiniApps\History\Support\RequestedMoment;
 use App\Shell\Services\PushDispatcher;
 use App\Shell\Support\CursorPayload;
 use Illuminate\Http\RedirectResponse;
@@ -47,6 +48,8 @@ class EventsController
                 ->pluck('occurred_on')
                 ->groupBy(fn (string $date) => (int) substr($date, 0, 4))
                 ->map->count(),
+            // A closure, so the load-more and polling partial reloads skip it.
+            'moment' => fn () => RequestedMoment::from($request),
         ]);
     }
 
@@ -61,7 +64,7 @@ class EventsController
             'our-history',
             'our-history',
             "{$firstName} added a moment: ".($event->title ?? 'untitled'),
-            "/apps/our-history#event-{$event->id}",
+            RequestedMoment::url($event->id),
         );
 
         // The client needs the new id to drain uploads staged before the save.

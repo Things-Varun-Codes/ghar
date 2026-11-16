@@ -1,5 +1,5 @@
-import { Head } from '@inertiajs/react';
 import { useState } from 'react';
+import { Button } from '@/components/ui/button';
 import ActivityAddDialog from '@/MiniApps/Corner/Components/ActivityAddDialog';
 import ListItemCard from '@/MiniApps/Corner/Components/ListItemCard';
 import ListPage from '@/MiniApps/Corner/Components/ListPage';
@@ -58,7 +58,6 @@ export default function ActivitiesIndex({
 
     return (
         <AppLayout>
-            <Head title="Activities" />
             <CornerLayout>
                 <ListPage<ActivityItem>
                     title="Activities"
@@ -112,7 +111,7 @@ export default function ActivitiesIndex({
                                                     {preview}
                                                 </p>
                                             )}
-                                            <p className="mx-0 mt-1 mb-0 text-[12px] text-[var(--corner-ink-soft,var(--corner-ink))]">
+                                            <p className="corner-row-meta">
                                                 Added by {activity.addedBy.name}
                                             </p>
                                         </a>
@@ -126,6 +125,15 @@ export default function ActivitiesIndex({
                             <EmptyState
                                 title="No activities yet."
                                 body="Add something to do."
+                                action={
+                                    <Button
+                                        type="button"
+                                        className="shell-press"
+                                        onClick={() => setAddOpen(true)}
+                                    >
+                                        Add an activity
+                                    </Button>
+                                }
                             />
                         ),
                         active: (

@@ -3,7 +3,9 @@ import { Plus } from 'lucide-react';
 import type { ComponentProps, ReactNode } from 'react';
 import { useEffect, useMemo } from 'react';
 
-import EmptyState from '@/Shell/Components/EmptyState';
+import { scrollBehavior } from '@/lib/motion';
+import { pageTitle as headTitleFor } from '@/lib/title';
+import EmptyState, { noMatchesTitle } from '@/Shell/Components/EmptyState';
 import Fab from '@/Shell/Components/Fab';
 import ListLoadMoreState from '@/Shell/Components/ListLoadMoreState';
 import ListNavBand from '@/Shell/Components/ListNavBand';
@@ -20,8 +22,9 @@ const DEFAULT_SORT_ITEMS: SortItem[] = [
     { key: 'oldest', label: 'Oldest first' },
 ];
 
+const ROOM = 'Our Mailbox';
+
 type MailboxListPageProps<TItem extends ItemConstraint, TTab extends string> = {
-    headTitle: string;
     pageTitle: string;
     paginator: Paginated<TItem>;
     propName: string;
@@ -50,7 +53,6 @@ export default function MailboxListPage<
     TItem extends ItemConstraint,
     TTab extends string,
 >({
-    headTitle,
     pageTitle,
     paginator,
     propName,
@@ -112,7 +114,11 @@ export default function MailboxListPage<
             const el = document.getElementById(`mailbox-note-${focusedId}`);
 
             if (el) {
-                el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                el.scrollIntoView({
+                    behavior: scrollBehavior(),
+                    block: 'center',
+                });
+                el.focus({ preventScroll: true });
             }
         }, 100);
 
@@ -120,10 +126,12 @@ export default function MailboxListPage<
     }, [focusedId]);
 
     const isEmpty = items.length === 0;
+    const searching = Boolean(query && query.trim() !== '');
+    const noun = countAll === 1 ? countNoun.one : countNoun.other;
 
     return (
         <>
-            <Head title={headTitle} />
+            <Head title={headTitleFor(pageTitle, ROOM)} />
 
             <Page
                 tier="index"
@@ -147,8 +155,9 @@ export default function MailboxListPage<
                     navigating={navigating}
                     count={
                         <span className="text-(length:--text-eyebrow) text-(--mailbox-ink-soft)">
-                            {countAll}{' '}
-                            {countAll === 1 ? countNoun.one : countNoun.other}
+                            {countAll} {noun}
+                            {searching &&
+                                (countAll === 1 ? ' matches' : ' match')}
                         </span>
                     }
                     sort={sort}
@@ -172,7 +181,14 @@ export default function MailboxListPage<
                     className={navigating ? 'shell-list-pending' : undefined}
                     aria-busy={navigating}
                 >
-                    {isEmpty ? (
+                    {isEmpty && searching ? (
+                        <EmptyState
+                            title={noMatchesTitle(countNoun.other, query ?? '')}
+                            body="Try another word, or clear the search to see everything."
+                            query={query}
+                            onClearSearch={() => navigate({ q: undefined })}
+                        />
+                    ) : isEmpty ? (
                         <EmptyState
                             icon={emptyIcon}
                             title={emptyTitle}

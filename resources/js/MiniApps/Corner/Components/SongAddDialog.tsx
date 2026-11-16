@@ -143,7 +143,7 @@ export default function SongAddDialog({ open, onOpenChange, item }: Props) {
                                     triggerPreview(pasted);
                                 }
                             }}
-                            className="text-[16px]"
+                            className="text-(length:--text-body)"
                         />
                     </FormField>
 
@@ -175,7 +175,7 @@ export default function SongAddDialog({ open, onOpenChange, item }: Props) {
                                         size={32}
                                         strokeWidth={1.5}
                                         aria-hidden="true"
-                                        className="text-(--corner-accent)"
+                                        className="text-(--corner-accent-text)"
                                     />
                                 </div>
                             )}
@@ -184,7 +184,7 @@ export default function SongAddDialog({ open, onOpenChange, item }: Props) {
                                     {preview.title}
                                 </p>
                                 {preview.author && (
-                                    <p className="mx-0 mt-1 mb-0 text-[13px] text-(--corner-ink-soft)">
+                                    <p className="corner-preview-meta">
                                         {preview.author}
                                     </p>
                                 )}
@@ -198,7 +198,7 @@ export default function SongAddDialog({ open, onOpenChange, item }: Props) {
                     {preview.kind === 'error' && (
                         <p
                             role="alert"
-                            className="m-0 text-[13px] text-(--corner-ink-soft)"
+                            className="m-0 text-(length:--text-small) text-(--corner-ink-soft)"
                         >
                             {preview.message}
                         </p>

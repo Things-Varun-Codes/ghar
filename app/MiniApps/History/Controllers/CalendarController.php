@@ -4,6 +4,7 @@ namespace App\MiniApps\History\Controllers;
 
 use App\MiniApps\History\Http\Resources\EventResource;
 use App\MiniApps\History\Models\Event;
+use App\MiniApps\History\Support\RequestedMoment;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -53,6 +54,7 @@ class CalendarController
             'year' => $year,
             'availableYears' => $availableYears,
             'eventsCount' => count($events),
+            'moment' => fn () => RequestedMoment::from($request),
         ]);
     }
 }

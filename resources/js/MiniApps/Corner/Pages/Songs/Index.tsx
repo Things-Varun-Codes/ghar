@@ -1,5 +1,5 @@
-import { Head } from '@inertiajs/react';
 import { useState } from 'react';
+import { Button } from '@/components/ui/button';
 import ListPage from '@/MiniApps/Corner/Components/ListPage';
 import SongAddDialog from '@/MiniApps/Corner/Components/SongAddDialog';
 import SongTile from '@/MiniApps/Corner/Components/SongTile';
@@ -40,7 +40,6 @@ export default function SongsIndex({ songs, filter, sort, q }: Props) {
 
     return (
         <AppLayout>
-            <Head title="Songs" />
             <CornerLayout>
                 <ListPage<SongItem>
                     title="Songs"
@@ -77,6 +76,15 @@ export default function SongsIndex({ songs, filter, sort, q }: Props) {
                             <EmptyState
                                 title="No songs yet."
                                 body="Paste a YouTube or Spotify link to add your first."
+                                action={
+                                    <Button
+                                        type="button"
+                                        className="shell-press"
+                                        onClick={() => setAddOpen(true)}
+                                    >
+                                        Add a song
+                                    </Button>
+                                }
                             />
                         ),
                         active: (

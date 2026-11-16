@@ -1,4 +1,4 @@
-import { Head, router, usePage } from '@inertiajs/react';
+import { router, usePage } from '@inertiajs/react';
 import * as Sentry from '@sentry/react';
 import { Info } from 'lucide-react';
 import { useEffect, useState } from 'react';
@@ -11,7 +11,6 @@ import * as notifications from '@/routes/settings/notifications';
 import ErrorState from '@/Shell/Components/ErrorState';
 import LoadingState from '@/Shell/Components/LoadingState';
 import Page from '@/Shell/Components/Page';
-import AppLayout from '@/Shell/Layouts/AppLayout';
 import type { Auth } from '@/types/auth';
 
 function urlBase64ToUint8Array(base64String: string): Uint8Array<ArrayBuffer> {
@@ -354,11 +353,14 @@ export default function NotificationsSettings({ subscriptions }: Props) {
     ].includes(state);
 
     return (
-        <AppLayout>
-            <Head title="Notifications — Settings" />
-
-            <Page tier="prose" title="Notifications" backChevron>
-                <div className="os-settings-card rounded-xl p-6">
+        <>
+            <Page
+                tier="prose"
+                title="Notifications"
+                room="Settings"
+                backChevron
+            >
+                <div className="os-settings-card p-6">
                     {isStandalone && state === 'checking' ? (
                         <LoadingState rows={1} variant="form" />
                     ) : isStandalone && state === 'worker-unavailable' ? (
@@ -415,6 +417,6 @@ export default function NotificationsSettings({ subscriptions }: Props) {
                     )}
                 </div>
             </Page>
-        </AppLayout>
+        </>
     );
 }

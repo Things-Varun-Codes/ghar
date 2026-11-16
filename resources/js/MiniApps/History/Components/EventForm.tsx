@@ -283,7 +283,7 @@ const EventForm = forwardRef<EventFormHandle, EventFormProps>(
                         {errors.occurred_on && (
                             <p
                                 role="alert"
-                                className="mt-1 text-(length:--text-meta) text-(--history-destructive)"
+                                className="mt-2 text-(length:--text-small) text-(--history-destructive)"
                             >
                                 {errors.occurred_on}
                             </p>
@@ -373,7 +373,7 @@ const EventForm = forwardRef<EventFormHandle, EventFormProps>(
                         {errors.body_html && (
                             <p
                                 role="alert"
-                                className="mt-1 text-(length:--text-meta) text-(--history-destructive)"
+                                className="mt-2 text-(length:--text-small) text-(--history-destructive)"
                             >
                                 {errors.body_html}
                             </p>

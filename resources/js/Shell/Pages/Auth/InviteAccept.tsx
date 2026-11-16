@@ -30,7 +30,10 @@ export default function InviteAccept({ email, token }: Props) {
             title="Make yourself at home"
             subtitle={
                 <>
-                    Joining as <strong>{email}</strong>
+                    Joining as{' '}
+                    <span className="font-medium text-(--foreground)">
+                        {email}
+                    </span>
                 </>
             }
             tagline="Pick a name and a password and you're in."
@@ -46,12 +49,7 @@ export default function InviteAccept({ email, token }: Props) {
                         autoComplete="name"
                         value={data.name}
                         onChange={(e) => setData('name', e.target.value)}
-                        className="shell-auth-field block w-full rounded-lg border px-3 py-2.5 outline-none focus:ring-2 focus:ring-offset-1"
-                        style={{
-                            borderColor: errors.name
-                                ? 'var(--destructive)'
-                                : 'var(--border)',
-                        }}
+                        className="shell-auth-field shell-field block w-full border px-3 py-2.5 outline-none"
                         placeholder="Your name"
                         required
                     />
@@ -68,13 +66,7 @@ export default function InviteAccept({ email, token }: Props) {
                         autoComplete="new-password"
                         value={data.password}
                         onChange={(e) => setData('password', e.target.value)}
-                        className="shell-auth-field block w-full rounded-lg border px-3 py-2.5 outline-none focus:ring-2 focus:ring-offset-1"
-                        style={{
-                            borderColor: errors.password
-                                ? 'var(--destructive)'
-                                : 'var(--border)',
-                        }}
-                        placeholder="••••••••"
+                        className="shell-auth-field shell-field block w-full border px-3 py-2.5 outline-none"
                         required
                     />
                 </FormField>
@@ -91,8 +83,7 @@ export default function InviteAccept({ email, token }: Props) {
                         onChange={(e) =>
                             setData('password_confirmation', e.target.value)
                         }
-                        className="shell-auth-password block w-full rounded-lg border px-3 py-2.5 outline-none focus:ring-2 focus:ring-offset-1"
-                        placeholder="••••••••"
+                        className="shell-auth-password shell-field block w-full border px-3 py-2.5 outline-none"
                         required
                     />
                 </FormField>
@@ -100,7 +91,7 @@ export default function InviteAccept({ email, token }: Props) {
                 <SubmitButton
                     processing={processing}
                     busyText="Accepting…"
-                    className="shell-auth-submit w-full rounded-lg font-semibold"
+                    className="shell-auth-submit shell-press w-full font-medium"
                 >
                     Create account
                 </SubmitButton>

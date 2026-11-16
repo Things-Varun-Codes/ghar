@@ -43,7 +43,7 @@ If your scenario isn't covered, extend `database/seeders/DevDataSeeder.php`.
 | `npm test`               | Hooks and utilities (Vitest). Inertia is mocked, so it shows the right call was made.          |
 | `npm run test:rules`     | The custom ESLint rules.                                                                       |
 | `php artisan test`       | HTTP, payload shape, database state, policies (PHPUnit on Postgres, database `ghar_test`).     |
-| `npm run smoke`          | Every page mounts without a console error, in both themes (headless Chromium).                 |
+| `npm run smoke`          | Every page mounts without a console error (headless Chromium).                                    |
 | `npm run smoke-loadmore` | The load-more retry recovers from network and server failures. Run it if you touch pagination. |
 | `npm run smoke-mcp`      | Serves the seeded data on `127.0.0.1:8000` for testing in a real browser.                      |
 
@@ -111,7 +111,7 @@ is by hand:
 
 ## Theme layers
 
-- **Layer 1, `--shell-*`:** the colours of the whole app, set per theme in `resources/css/app.css`.
+- **Layer 1, `--shell-*`:** the colours of the whole app, set once in `resources/css/app.css`.
   Mini apps use these and never define them.
 - **Layer 2, `--<app>-*`:** an app's identity: fonts, radii, easing, textures. Colours here only
   alias or mix `--shell-*`.

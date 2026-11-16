@@ -2,7 +2,8 @@ import { Plus } from 'lucide-react';
 import type { ReactNode } from 'react';
 
 import { cn } from '@/lib/utils';
-import EmptyState from '@/Shell/Components/EmptyState';
+import { CORNER_ROOM } from '@/MiniApps/Corner/Layouts/CornerLayout';
+import EmptyState, { noMatchesTitle } from '@/Shell/Components/EmptyState';
 import Fab from '@/Shell/Components/Fab';
 import ListLoadMoreState from '@/Shell/Components/ListLoadMoreState';
 import ListNavBand from '@/Shell/Components/ListNavBand';
@@ -68,10 +69,13 @@ export default function ListPage<TItem extends ItemConstraint>({
     sortItems,
     singularNoun,
 }: ListPageProps<TItem>) {
+    const noun = title.toLowerCase();
+    const searching = (query ?? '').trim() !== '';
+
     const defaultEmpty = (
         <EmptyState
-            title={`No ${title.toLowerCase()} yet`}
-            body={`Add your first ${title.toLowerCase().replace(/s$/, '')}.`}
+            title={`No ${noun} yet`}
+            body={`Add your first ${noun.replace(/s$/, '')}.`}
         />
     );
 
@@ -110,6 +114,7 @@ export default function ListPage<TItem extends ItemConstraint>({
         <Page
             tier="index"
             title={title}
+            room={CORNER_ROOM}
             backChevron
             fab={
                 <Fab
@@ -124,15 +129,17 @@ export default function ListPage<TItem extends ItemConstraint>({
             <ListNavBand
                 navigating={navigating}
                 count={
-                    <span className="text-(length:--text-eyebrow) text-(--corner-ink-soft)">
+                    // Search narrows the counts too, so while searching they read as matches.
+                    <span className="text-(length:--text-meta) font-medium text-(--corner-ink-soft) tabular-nums">
                         {counts.all}{' '}
-                        {counts.all === 1
-                            ? (singularNoun ??
-                              title
-                                  .toLowerCase()
-                                  .replace(/ies$/, 'y')
-                                  .replace(/s$/, ''))
-                            : title.toLowerCase()}
+                        {searching
+                            ? counts.all === 1
+                                ? 'match'
+                                : 'matches'
+                            : counts.all === 1
+                              ? (singularNoun ??
+                                noun.replace(/ies$/, 'y').replace(/s$/, ''))
+                              : noun}
                     </span>
                 }
                 sort={sort}
@@ -144,7 +151,7 @@ export default function ListPage<TItem extends ItemConstraint>({
                 tabs={
                     <SegmentedTabs
                         mode="tablist-client"
-                        ariaLabel={`Filter ${title.toLowerCase()}`}
+                        ariaLabel={`Filter ${noun}`}
                         active={filter}
                         panelId="corner-list-panel"
                         items={tabs.map((t) => ({
@@ -163,7 +170,7 @@ export default function ListPage<TItem extends ItemConstraint>({
                 className={cn(
                     navigating && 'shell-list-pending',
                     layout === 'tiles' && 'corner-tile-grid',
-                    'grid [align-items:start] gap-3',
+                    'grid [align-items:start] gap-4',
                 )}
                 aria-busy={navigating}
                 style={{
@@ -177,7 +184,15 @@ export default function ListPage<TItem extends ItemConstraint>({
             >
                 {items.length === 0 ? (
                     <div className="[grid-column:1_/_-1]">
-                        {emptyState?.[filter] ?? defaultEmpty}
+                        {searching ? (
+                            <EmptyState
+                                title={noMatchesTitle(noun, query!.trim())}
+                                query={query}
+                                onClearSearch={() => navigate({ q: undefined })}
+                            />
+                        ) : (
+                            (emptyState?.[filter] ?? defaultEmpty)
+                        )}
                     </div>
                 ) : (
                     items.map((item) => (

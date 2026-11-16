@@ -45,7 +45,6 @@ export default function ChallansIndex({
         <AppLayout>
             <MailboxLayout>
                 <MailboxListPage
-                    headTitle="Challans · Our Mailbox"
                     pageTitle="Challans"
                     paginator={challans}
                     countAll={challans.counts?.all ?? challans.data.length}
@@ -66,7 +65,7 @@ export default function ChallansIndex({
                     emptyIcon={Gavel}
                     emptyTitle={emptyCopy.title}
                     emptyBody={emptyCopy.body}
-                    itemGap={12}
+                    itemGap={16}
                     renderItem={(challan) => (
                         <ChallanCard key={challan.id} challan={challan} />
                     )}

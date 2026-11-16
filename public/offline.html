@@ -1,0 +1,204 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8" />
+        <meta
+            name="viewport"
+            content="width=device-width, initial-scale=1, viewport-fit=cover"
+        />
+        <meta name="robots" content="noindex, nofollow" />
+        <meta name="theme-color" content="#fbfaf6" />
+        <title>Offline</title>
+        <!--
+            Served by the service worker in place of a page that couldn't load for lack of
+            network. Self-contained on purpose: no stylesheet, font or script from the build, and
+            nothing private. The colours are the shell palette in hex (resources/css/app.css).
+        -->
+        <style>
+            :root {
+                --bg: #fcfaf6;
+                --surface: #ffffff;
+                --border: #e6e2dd;
+                --action: #4f6d3e;
+                --action-hover: #435d35;
+                --text: #1a1511;
+                --muted: #6e6862;
+                --display:
+                    'Newsreader', 'Iowan Old Style', 'Palatino Linotype',
+                    Georgia, serif;
+                --sans:
+                    'Hanken Grotesk', ui-sans-serif, system-ui, -apple-system,
+                    'Segoe UI', Roboto, sans-serif;
+            }
+
+            * {
+                box-sizing: border-box;
+            }
+
+            html,
+            body {
+                margin: 0;
+                min-height: 100%;
+                background-color: var(--bg);
+                color: var(--text);
+                font-family: var(--sans);
+                -webkit-font-smoothing: antialiased;
+            }
+
+            main {
+                min-height: 100vh;
+                min-height: 100dvh;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                gap: 24px;
+                padding: max(24px, env(safe-area-inset-top))
+                    max(24px, env(safe-area-inset-right))
+                    max(24px, env(safe-area-inset-bottom))
+                    max(24px, env(safe-area-inset-left));
+                text-align: center;
+            }
+
+            .wordmark {
+                display: inline-flex;
+                align-items: center;
+                gap: 8px;
+                font-family: var(--display);
+                font-size: 40px;
+                font-weight: 400;
+                line-height: 1;
+                letter-spacing: -0.01em;
+                color: var(--action);
+            }
+
+            .card {
+                width: 100%;
+                max-width: 420px;
+                padding: 32px 24px;
+                background-color: var(--surface);
+                border: 1px solid var(--border);
+                border-radius: 22px;
+            }
+
+            h1 {
+                margin: 0 0 8px;
+                font-family: var(--display);
+                font-size: 26px;
+                font-weight: 400;
+                letter-spacing: -0.018em;
+                line-height: 1.2;
+            }
+
+            p {
+                margin: 0 0 24px;
+                font-size: 16px;
+                line-height: 1.5;
+                color: var(--muted);
+            }
+
+            .retry {
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                min-height: 44px;
+                padding: 0 24px;
+                border: none;
+                border-radius: 999px;
+                background-color: var(--action);
+                color: var(--surface);
+                font: 500 14px/1 var(--sans);
+                text-decoration: none;
+                cursor: pointer;
+                transition:
+                    background-color 120ms cubic-bezier(0.2, 0.8, 0.2, 1),
+                    transform 90ms cubic-bezier(0.2, 0.8, 0.2, 1);
+            }
+
+            .retry:hover {
+                background-color: var(--action-hover);
+                transform: translateY(-1px);
+            }
+
+            .retry:active {
+                transform: translateY(0);
+            }
+
+            .retry:focus-visible {
+                outline: none;
+                box-shadow:
+                    0 0 0 2px var(--surface),
+                    0 0 0 4px var(--action);
+            }
+
+            @media (prefers-reduced-motion: reduce) {
+                .retry {
+                    transition: none;
+                }
+
+                .retry:hover {
+                    transform: none;
+                }
+            }
+        </style>
+    </head>
+    <body>
+        <main>
+            <div class="wordmark" aria-hidden="true">
+                <span id="app-name">Ghar</span>
+                <svg
+                    width="20"
+                    height="20"
+                    viewBox="0 0 24 24"
+                    fill="currentColor"
+                    stroke="currentColor"
+                    stroke-width="1.2"
+                    stroke-linejoin="round"
+                    aria-hidden="true"
+                >
+                    <path
+                        d="M12.2 20.3C8.6 17.6 3.3 13.9 3 9.1 2.8 6 5 3.9 7.6 4c2 .1 3.5 1.3 4.5 3.2C13 5.2 14.7 3.8 16.8 3.9c2.6.1 4.4 2.3 4.2 5.1-.3 4.7-5.2 8.5-8.8 11.3Z"
+                    />
+                </svg>
+            </div>
+
+            <div class="card">
+                <h1>You're offline</h1>
+                <p>
+                    This page needs the internet. Everything is still here; it
+                    will open once you're connected again.
+                </p>
+                <!-- A plain link back to this same address, so it works without the script. -->
+                <a class="retry" href="" id="retry">Try again</a>
+            </div>
+        </main>
+
+        <script>
+            (function () {
+                var name = null;
+
+                try {
+                    name = localStorage.getItem('ghar.appName');
+                } catch (e) {
+                    name = null;
+                }
+
+                if (name) {
+                    document.getElementById('app-name').textContent = name;
+                    document.title = 'Offline — ' + name;
+                }
+
+                document
+                    .getElementById('retry')
+                    .addEventListener('click', function (event) {
+                        event.preventDefault();
+                        window.location.reload();
+                    });
+
+                window.addEventListener('online', function () {
+                    window.location.reload();
+                });
+            })();
+        </script>
+    </body>
+</html>

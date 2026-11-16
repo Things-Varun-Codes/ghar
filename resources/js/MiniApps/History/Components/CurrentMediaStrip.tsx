@@ -1,8 +1,10 @@
 import { router, usePage } from '@inertiajs/react';
 import * as AlertDialogPrimitive from '@radix-ui/react-alert-dialog';
+import { Play, X } from 'lucide-react';
 import { useState } from 'react';
 import { toast } from 'sonner';
-import { useThemeAttrs } from '@/hooks/use-theme-attrs';
+import { useAppAttrs } from '@/hooks/use-app-attrs';
+import { mutationOptions } from '@/lib/mutation';
 import { captureSilent } from '@/lib/observability';
 import media from '@/routes/apps/our-history/media';
 import type { Auth } from '@/types/auth';
@@ -19,7 +21,7 @@ export default function CurrentMediaStrip({
     media: mediaItems,
     onDeleted,
 }: CurrentMediaStripProps) {
-    const themeAttrs = useThemeAttrs();
+    const appAttrs = useAppAttrs();
     const { auth } = usePage<{ auth: Auth }>().props;
     const userRole: 'admin' | 'user' | 'guest' = auth.user
         ? auth.user.roles?.[0] === 'admin'
@@ -45,6 +47,12 @@ export default function CurrentMediaStrip({
             media.destroy({ event: eventId, media: idToDelete }).url,
             {
                 preserveScroll: true,
+                // Transport and 5xx failures; the validation case is handled below.
+                ...mutationOptions({
+                    component: 'History/CurrentMediaStrip',
+                    action: 'media.delete',
+                    message: "Couldn't remove that. Give it another go.",
+                }),
                 onSuccess: () => {
                     onDeleted(idToDelete);
                 },
@@ -75,7 +83,7 @@ export default function CurrentMediaStrip({
             </label>
 
             <div className="grid grid-cols-[repeat(3,1fr)] gap-2">
-                {mediaItems.map((item) => (
+                {mediaItems.map((item, idx) => (
                     <div key={item.id} className="history-media-thumb">
                         {item.thumb ? (
                             <img
@@ -100,21 +108,25 @@ export default function CurrentMediaStrip({
                                 aria-hidden="true"
                                 className="history-play-badge"
                             >
-                                ▶
+                                <Play
+                                    size={16}
+                                    strokeWidth={1.5}
+                                    fill="currentColor"
+                                />
                             </span>
                         )}
 
                         <button
                             type="button"
                             onClick={() => setDeletingId(item.id)}
-                            aria-label={`Remove this ${item.kind === 'video' ? 'video' : 'photo'}`}
+                            aria-label={`Remove ${item.kind === 'video' ? 'video' : 'photo'} ${idx + 1} of ${mediaItems.length}`}
                             className="history-media-remove-hit"
                         >
                             <span
                                 aria-hidden="true"
                                 className="history-media-remove-dot"
                             >
-                                ×
+                                <X size={16} strokeWidth={1.5} />
                             </span>
                         </button>
                     </div>
@@ -132,10 +144,10 @@ export default function CurrentMediaStrip({
                 <AlertDialogPrimitive.Portal>
                     <AlertDialogPrimitive.Overlay
                         className="history-alert-overlay"
-                        {...themeAttrs}
+                        {...appAttrs}
                     />
                     <AlertDialogPrimitive.Content
-                        {...themeAttrs}
+                        {...appAttrs}
                         className="history-alert-dialog"
                     >
                         <AlertDialogPrimitive.Title className="history-alert-title">

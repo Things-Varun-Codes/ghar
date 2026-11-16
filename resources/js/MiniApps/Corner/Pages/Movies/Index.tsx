@@ -1,5 +1,5 @@
-import { Head } from '@inertiajs/react';
 import { useState } from 'react';
+import { Button } from '@/components/ui/button';
 import ListPage from '@/MiniApps/Corner/Components/ListPage';
 import MovieAddDialog from '@/MiniApps/Corner/Components/MovieAddDialog';
 import MovieTile from '@/MiniApps/Corner/Components/MovieTile';
@@ -37,7 +37,6 @@ export default function MoviesIndex({ movies, filter, sort, q }: Props) {
 
     return (
         <AppLayout>
-            <Head title="Movies" />
             <CornerLayout>
                 <ListPage<MovieItem>
                     title="Movies"
@@ -76,6 +75,15 @@ export default function MoviesIndex({ movies, filter, sort, q }: Props) {
                             <EmptyState
                                 title="No movies yet."
                                 body="Add something worth watching."
+                                action={
+                                    <Button
+                                        type="button"
+                                        className="shell-press"
+                                        onClick={() => setAddOpen(true)}
+                                    >
+                                        Add a movie
+                                    </Button>
+                                }
                             />
                         ),
                         active: (

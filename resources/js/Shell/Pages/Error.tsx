@@ -1,8 +1,8 @@
-import { Head, Link } from '@inertiajs/react';
+import { Link, usePage } from '@inertiajs/react';
 
 import { dashboard } from '@/routes';
 import Page from '@/Shell/Components/Page';
-import AppLayout from '@/Shell/Layouts/AppLayout';
+import type { MiniApp } from '@/types/miniapp';
 
 type Props = {
     status: number;
@@ -21,22 +21,39 @@ const COPY: Record<number, { title: string; body: string }> = {
 
 export default function ErrorPage({ status }: Props) {
     const copy = COPY[status] ?? COPY[404];
+    const { url, props } = usePage<{ miniApps?: MiniApp[] }>();
+    const path = url.split('?')[0];
+
+    // Inside a room, its landing page is the nearer way back.
+    const room = (props.miniApps ?? []).find(
+        (app) => path !== app.route && path.startsWith(`${app.route}/`),
+    );
 
     return (
-        <AppLayout>
-            <Head title={copy.title} />
-
-            <Page tier="prose" title={copy.title}>
+        <>
+            <Page tier="prose" title={copy.title} documentTitle={copy.title}>
                 <p className="shell-error-body">{copy.body}</p>
-                <p className="mt-6">
+                <p className="mt-6 flex flex-wrap gap-3">
+                    {room && (
+                        <Link
+                            href={room.route}
+                            className="shell-focus shell-press shell-error-action"
+                        >
+                            Go to {room.name}
+                        </Link>
+                    )}
                     <Link
                         href={dashboard().url}
-                        className="shell-focus shell-error-action"
+                        className={
+                            room
+                                ? 'shell-focus shell-press shell-btn-outline inline-flex min-h-11 items-center rounded-full border border-(--shell-border-input) bg-(--card) px-6 text-(length:--text-small) font-medium'
+                                : 'shell-focus shell-press shell-error-action'
+                        }
                     >
-                        Back to home
+                        Back to Home
                     </Link>
                 </p>
             </Page>
-        </AppLayout>
+        </>
     );
 }

@@ -12,6 +12,7 @@ import {
     AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { buttonVariants } from '@/components/ui/button';
+import { mutationOptions } from '@/lib/mutation';
 import type { CouponPayload } from '@/MiniApps/Mailbox/Components/CouponCard';
 import {
     cancel,
@@ -19,6 +20,9 @@ import {
     fulfill,
     request,
 } from '@/routes/apps/our-mailbox/coupons';
+import SubmitButton from '@/Shell/Components/SubmitButton';
+
+type Pending = 'request' | 'fulfill' | 'cancel' | 'delete' | null;
 
 export default function CouponActions({
     coupon,
@@ -27,9 +31,7 @@ export default function CouponActions({
     coupon: CouponPayload;
     variant?: 'row' | 'detail';
 }) {
-    const primary =
-        variant === 'row' ? 'mailbox-btn-primary-row' : 'mailbox-btn-primary';
-    const [busy, setBusy] = useState(false);
+    const [pending, setPending] = useState<Pending>(null);
     const [confirmOpen, setConfirmOpen] = useState(false);
 
     const actions = coupon.available_actions;
@@ -42,28 +44,53 @@ export default function CouponActions({
         return null;
     }
 
-    const patch = (url: string) => {
-        setBusy(true);
+    const isRow = variant === 'row';
+    const primary = isRow ? 'mailbox-btn-primary-row' : 'mailbox-btn-primary';
+    const size = isRow ? 'sm' : 'default';
+    const busy = pending !== null;
+    // Rows repeat down the list, so each button names its coupon.
+    const named = (verb: string) =>
+        isRow ? `${verb} “${coupon.title}”` : undefined;
+
+    const patch = (url: string, kind: Exclude<Pending, 'delete' | null>) => {
+        if (busy) {
+            return;
+        }
+
         router.patch(
             url,
             {},
             {
                 preserveScroll: true,
                 preserveState: false,
-                onFinish: () => setBusy(false),
+                ...mutationOptions({
+                    component: 'Mailbox/CouponActions',
+                    action: `coupon.${kind}`,
+                    onPendingChange: (p) => setPending(p ? kind : null),
+                }),
             },
         );
     };
 
     const handleDelete = () => {
-        setBusy(true);
+        if (busy) {
+            return;
+        }
+
         router.delete(destroy.url(coupon.id), {
             preserveScroll: true,
             preserveState: false,
-            onFinish: () => {
-                setBusy(false);
-                setConfirmOpen(false);
-            },
+            ...mutationOptions({
+                component: 'Mailbox/CouponActions',
+                action: 'coupon.delete',
+                onPendingChange: (p) => {
+                    setPending(p ? 'delete' : null);
+
+                    if (!p) {
+                        setConfirmOpen(false);
+                    }
+                },
+            }),
         });
     };
 
@@ -71,48 +98,62 @@ export default function CouponActions({
         <>
             <div className="flex flex-wrap gap-2">
                 {canRequest && (
-                    <button
+                    <SubmitButton
                         type="button"
+                        size={size}
+                        processing={pending === 'request'}
                         disabled={busy}
-                        onClick={() => patch(request.url(coupon.id))}
+                        busyText="Requesting…"
+                        onClick={() => patch(request.url(coupon.id), 'request')}
+                        aria-label={named('Request')}
                         className={primary}
-                        style={{ opacity: busy ? 0.6 : 1 }}
                     >
                         Request this
-                    </button>
+                    </SubmitButton>
                 )}
                 {canFulfill && (
-                    <button
+                    <SubmitButton
                         type="button"
+                        size={size}
+                        processing={pending === 'fulfill'}
                         disabled={busy}
-                        onClick={() => patch(fulfill.url(coupon.id))}
+                        busyText="Fulfilling…"
+                        onClick={() => patch(fulfill.url(coupon.id), 'fulfill')}
+                        aria-label={named('Fulfil')}
                         className={primary}
-                        style={{ opacity: busy ? 0.6 : 1 }}
                     >
                         Fulfil it
-                    </button>
+                    </SubmitButton>
                 )}
                 {canCancel && (
-                    <button
+                    <SubmitButton
                         type="button"
+                        variant="outline"
+                        size={size}
+                        processing={pending === 'cancel'}
                         disabled={busy}
-                        onClick={() => patch(cancel.url(coupon.id))}
+                        busyText="Cancelling…"
+                        onClick={() => patch(cancel.url(coupon.id), 'cancel')}
+                        aria-label={named('Cancel request for')}
                         className="mailbox-btn-neutral"
-                        style={{ opacity: busy ? 0.6 : 1 }}
                     >
                         Cancel request
-                    </button>
+                    </SubmitButton>
                 )}
                 {canDelete && (
-                    <button
+                    <SubmitButton
                         type="button"
+                        variant="outline"
+                        size={size}
+                        processing={pending === 'delete'}
                         disabled={busy}
+                        busyText="Withdrawing…"
                         onClick={() => setConfirmOpen(true)}
-                        className="mailbox-btn-neutral"
-                        style={{ opacity: busy ? 0.6 : 1 }}
+                        aria-label={named('Withdraw')}
+                        className="mailbox-btn-neutral mailbox-btn-danger"
                     >
                         Withdraw
-                    </button>
+                    </SubmitButton>
                 )}
             </div>
 

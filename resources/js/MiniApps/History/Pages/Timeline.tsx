@@ -1,7 +1,6 @@
 import { router, usePage } from '@inertiajs/react';
 import { Plus } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { Skeleton } from '@/components/ui/skeleton';
 import { captureSilent } from '@/lib/observability';
 import type { EventPermissions } from '@/MiniApps/History/Components/CalendarMonth';
 import EventCard from '@/MiniApps/History/Components/EventCard';
@@ -11,6 +10,7 @@ import SortDropdown from '@/MiniApps/History/Components/SortDropdown';
 import YearBanner from '@/MiniApps/History/Components/YearBanner';
 import YearJumpRail from '@/MiniApps/History/Components/YearJumpRail';
 import { useConversionPolling } from '@/MiniApps/History/Hooks/useConversionPolling';
+import { useMomentFromUrl } from '@/MiniApps/History/Hooks/useMomentFromUrl';
 import HistoryLayout from '@/MiniApps/History/Layouts/HistoryLayout';
 import { timeline } from '@/routes/apps/our-history';
 import EmptyState from '@/Shell/Components/EmptyState';
@@ -62,6 +62,7 @@ type Props = {
     eventsCount: number;
     lastEventOccurredOn: string | null;
     yearCounts: Record<number, number>;
+    moment?: HistoryEvent | null;
 };
 
 const NUMBER_WORDS: Record<number, string> = {
@@ -143,6 +144,7 @@ export default function Timeline({
     eventsCount,
     lastEventOccurredOn,
     yearCounts,
+    moment,
 }: Props) {
     const daysSinceLast = lastEventOccurredOn
         ? daysSinceDate(lastEventOccurredOn, new Date())
@@ -165,6 +167,12 @@ export default function Timeline({
     const [editingEvent, setEditingEvent] = useState<HistoryEvent | null>(null);
 
     const lastTriggerRef = useRef<HTMLElement | null>(null);
+
+    useMomentFromUrl(moment, initialEvents.data, (event) => {
+        setEditingEvent(event);
+        setSheetMode('read');
+        setSheetOpen(true);
+    });
 
     const [accumulatedEvents, setAccumulatedEvents] = useState<HistoryEvent[]>(
         initialEvents.data,
@@ -383,11 +391,16 @@ export default function Timeline({
                         ))}
 
                         {loadingMore && (
-                            <div className="pb-4">
+                            <div
+                                className="pb-4"
+                                role="status"
+                                aria-busy="true"
+                                aria-label="Loading more"
+                            >
                                 {[1, 2, 3].map((i) => (
-                                    <Skeleton
+                                    <div
                                         key={i}
-                                        className="history-skeleton-block"
+                                        className="history-skeleton-block shell-skeleton"
                                     />
                                 ))}
                             </div>

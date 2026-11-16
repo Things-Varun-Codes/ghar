@@ -1,9 +1,11 @@
 import { router } from '@inertiajs/react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { useMediaQuery } from '@/hooks/use-media-query';
 import CalendarMonth from '@/MiniApps/History/Components/CalendarMonth';
 import type { CalendarEvent } from '@/MiniApps/History/Components/CalendarMonth';
 import EventSheet from '@/MiniApps/History/Components/EventSheet';
+import { useMomentFromUrl } from '@/MiniApps/History/Hooks/useMomentFromUrl';
 import HistoryLayout from '@/MiniApps/History/Layouts/HistoryLayout';
 import { calendar } from '@/routes/apps/our-history';
 import EmptyState from '@/Shell/Components/EmptyState';
@@ -30,6 +32,7 @@ type Props = {
     year: number;
     availableYears: number[];
     eventsCount: number;
+    moment?: CalendarEvent | null;
 };
 
 /** Bucket events into month → day → events[], parsing the 'YYYY-MM-DD' string
@@ -67,16 +70,9 @@ export default function Calendar({
     onThisDay,
     year,
     availableYears,
+    moment,
 }: Props) {
-    const [isMobile, setIsMobile] = useState(false);
-    useEffect(() => {
-        const mql = window.matchMedia('(max-width: 719px)');
-        const apply = () => setIsMobile(mql.matches);
-        apply();
-        mql.addEventListener('change', apply);
-
-        return () => mql.removeEventListener('change', apply);
-    }, []);
+    const isMobile = useMediaQuery('(max-width: 767.98px)');
 
     const lastTriggerRef = useRef<HTMLElement | null>(null);
     const [sheetOpen, setSheetOpen] = useState(false);
@@ -96,6 +92,11 @@ export default function Calendar({
         setSelectedEvent(event);
         setSheetOpen(true);
     };
+
+    useMomentFromUrl(moment, [...events, ...onThisDay], (event) => {
+        setSelectedEvent(event);
+        setSheetOpen(true);
+    });
 
     const byMonth = useMemo(() => buildMonthMaps(events), [events]);
 
@@ -168,7 +169,11 @@ export default function Calendar({
                             disabled={prevDisabled}
                             aria-label="Previous year"
                         >
-                            <ChevronLeft size={18} aria-hidden="true" />
+                            <ChevronLeft
+                                size={18}
+                                strokeWidth={1.5}
+                                aria-hidden="true"
+                            />
                         </button>
                         <span className="history-cal-year-label">{year}</span>
                         <button
@@ -178,21 +183,25 @@ export default function Calendar({
                             disabled={nextDisabled}
                             aria-label="Next year"
                         >
-                            <ChevronRight size={18} aria-hidden="true" />
+                            <ChevronRight
+                                size={18}
+                                strokeWidth={1.5}
+                                aria-hidden="true"
+                            />
                         </button>
                     </div>
                 }
             >
                 {onThisDay.length > 0 && (
                     <div className="history-cal-otd">
-                        <div className="history-cal-otd-head">
+                        <h2 className="history-cal-otd-head">
                             <span
                                 className="history-cal-otd-dot"
                                 aria-hidden="true"
                             />
-                            On this day · {MONTH_ABBR[now.getMonth()]}{' '}
-                            {now.getDate()}
-                        </div>
+                            On this day · {now.getDate()}{' '}
+                            {MONTH_ABBR[now.getMonth()]}
+                        </h2>
                         <div className="history-cal-otd-row">
                             {onThisDay.map((e) => {
                                 const ago = todayYear - e.year;
@@ -290,10 +299,16 @@ export default function Calendar({
                                     >
                                         {abbr}
                                         {hasEvents && (
-                                            <span
-                                                className="history-cal-chip-dot"
-                                                aria-hidden="true"
-                                            />
+                                            <>
+                                                <span
+                                                    className="history-cal-chip-dot"
+                                                    aria-hidden="true"
+                                                />
+                                                <span className="sr-only">
+                                                    {' '}
+                                                    (has moments)
+                                                </span>
+                                            </>
                                         )}
                                     </button>
                                 );

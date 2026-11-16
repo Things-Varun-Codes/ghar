@@ -1,6 +1,8 @@
+import { Head } from '@inertiajs/react';
 import type { ReactNode } from 'react';
 
-import { ThemeAttrsProvider } from '@/hooks/use-theme-attrs';
+import { AppAttrsProvider } from '@/hooks/use-app-attrs';
+import { pageTitle } from '@/lib/title';
 import { calendar, gallery, timeline } from '@/routes/apps/our-history';
 import Page from '@/Shell/Components/Page';
 import SegmentedTabs from '@/Shell/Components/SegmentedTabs';
@@ -44,8 +46,12 @@ export default function HistoryLayout({
         />
     );
 
+    const tabLabel =
+        HISTORY_VIEW_TABS.find((t) => t.key === activeTab)?.label ?? 'Timeline';
+
     return (
-        <ThemeAttrsProvider value={{ app: 'our-history' }}>
+        <AppAttrsProvider app="our-history">
+            <Head title={pageTitle(tabLabel, 'Our History')} />
             <div
                 data-app="our-history"
                 className="history-bleed bg-(--history-bg) text-(--history-ink)"
@@ -69,6 +75,6 @@ export default function HistoryLayout({
                     {children}
                 </Page>
             </div>
-        </ThemeAttrsProvider>
+        </AppAttrsProvider>
     );
 }

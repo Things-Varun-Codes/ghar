@@ -1,5 +1,7 @@
 import { Head } from '@inertiajs/react';
 
+import { pageTitle } from '@/lib/title';
+
 import CouponActions from '@/MiniApps/Mailbox/Components/CouponActions';
 import CouponArtifact from '@/MiniApps/Mailbox/Components/CouponArtifact';
 import type { CouponPayload } from '@/MiniApps/Mailbox/Components/CouponCard';
@@ -14,7 +16,12 @@ type Props = {
 export default function CouponsShow({ coupon }: Props) {
     return (
         <AppLayout>
-            <Head title={`${coupon.code ?? 'Coupon'} · Our Mailbox`} />
+            <Head
+                title={pageTitle(
+                    `Coupon ${coupon.code ?? ''}`.trim(),
+                    'Our Mailbox',
+                )}
+            />
             <MailboxLayout>
                 <Page
                     tier="app"
@@ -24,7 +31,7 @@ export default function CouponsShow({ coupon }: Props) {
                 >
                     <div>
                         <CouponArtifact coupon={coupon} />
-                        <div className="mt-5">
+                        <div className="mt-6">
                             <CouponActions coupon={coupon} />
                         </div>
                     </div>

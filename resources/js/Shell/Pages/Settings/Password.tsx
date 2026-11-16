@@ -1,4 +1,5 @@
-import { Head, useForm, usePage } from '@inertiajs/react';
+import { Link, useForm, usePage } from '@inertiajs/react';
+import { ArrowLeft } from 'lucide-react';
 import type { FormEventHandler } from 'react';
 import PasswordInput from '@/components/password-input';
 import * as passwordRoute from '@/routes/settings/password';
@@ -6,7 +7,6 @@ import * as profile from '@/routes/settings/profile';
 import FormField from '@/Shell/Components/FormField';
 import Page from '@/Shell/Components/Page';
 import SubmitButton from '@/Shell/Components/SubmitButton';
-import AppLayout from '@/Shell/Layouts/AppLayout';
 
 export default function Password() {
     const { auth } = usePage<{ auth: { user: { email: string } } }>().props;
@@ -24,11 +24,9 @@ export default function Password() {
     };
 
     return (
-        <AppLayout>
-            <Head title="Password — Settings" />
-
-            <Page tier="prose" title="Password" backChevron>
-                <div className="os-settings-card rounded-xl p-6">
+        <>
+            <Page tier="prose" title="Password" room="Settings" backChevron>
+                <div className="os-settings-card p-6">
                     <form onSubmit={submit} className="space-y-5">
                         {/* sr-only, not display:none: password managers ignore hidden inputs. */}
                         <input
@@ -53,7 +51,7 @@ export default function Password() {
                                 onChange={(e) =>
                                     setData('current_password', e.target.value)
                                 }
-                                className="os-settings-input block w-full rounded-lg px-3 py-2.5 outline-none focus:ring-2 focus:ring-offset-1"
+                                className="os-settings-input shell-field block w-full px-3 py-2.5 outline-none"
                                 autoComplete="current-password"
                                 required
                             />
@@ -71,7 +69,7 @@ export default function Password() {
                                 onChange={(e) =>
                                     setData('password', e.target.value)
                                 }
-                                className="os-settings-input block w-full rounded-lg px-3 py-2.5 outline-none focus:ring-2 focus:ring-offset-1"
+                                className="os-settings-input shell-field block w-full px-3 py-2.5 outline-none"
                                 autoComplete="new-password"
                                 required
                             />
@@ -91,7 +89,7 @@ export default function Password() {
                                         e.target.value,
                                     )
                                 }
-                                className="os-settings-input block w-full rounded-lg px-3 py-2.5 outline-none focus:ring-2 focus:ring-offset-1"
+                                className="os-settings-input shell-field block w-full px-3 py-2.5 outline-none"
                                 autoComplete="new-password"
                                 required
                             />
@@ -101,7 +99,7 @@ export default function Password() {
                             <SubmitButton
                                 processing={processing}
                                 busyText="Updating…"
-                                className="os-settings-submit rounded-lg px-5"
+                                className="os-settings-submit shell-press px-5"
                             >
                                 Save
                             </SubmitButton>
@@ -110,11 +108,19 @@ export default function Password() {
                 </div>
 
                 <div className="mt-4 text-right">
-                    <a href={profile.show.url()} className="os-settings-link">
-                        ← Back to profile
-                    </a>
+                    <Link
+                        href={profile.show.url()}
+                        className="os-settings-link shell-focus"
+                    >
+                        <ArrowLeft
+                            size={16}
+                            strokeWidth={1.5}
+                            aria-hidden="true"
+                        />
+                        Back to profile
+                    </Link>
                 </div>
             </Page>
-        </AppLayout>
+        </>
     );
 }
