@@ -400,7 +400,10 @@ async function main() {
         await page.fill('input[name="email"]', DEV_ACCOUNTS.admin);
         await page.fill('input[name="password"]', DEV_PASSWORD);
         await page.click('button[type="submit"]');
-        await page.waitForLoadState('networkidle');
+        // Login is an XHR: 'networkidle' can already be true and return before it lands.
+        await page.waitForURL((url) => url.pathname !== '/login', {
+            timeout: 30_000,
+        });
         pass('login');
 
         await page.goto(`${BASE_URL}/apps/our-corner/songs`, {
