@@ -1,3 +1,4 @@
+import { Link } from '@inertiajs/react';
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import ListItemCard from '@/MiniApps/Corner/Components/ListItemCard';
@@ -75,7 +76,7 @@ export default function PlacesIndex({ places, filter, sort, q }: Props) {
                             const detailHref = show.url(place.id);
 
                             return (
-                                <a
+                                <Link
                                     href={detailHref}
                                     className="shell-card-link flex items-start gap-3 text-inherit no-underline"
                                 >
@@ -104,7 +105,7 @@ export default function PlacesIndex({ places, filter, sort, q }: Props) {
                                             Added by {place.addedBy.name}
                                         </p>
                                     </div>
-                                </a>
+                                </Link>
                             );
                         }}
                     />

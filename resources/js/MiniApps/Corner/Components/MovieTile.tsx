@@ -1,3 +1,4 @@
+import { Link } from '@inertiajs/react';
 import { CheckCircle2, Circle, MoreHorizontal } from 'lucide-react';
 import { useState } from 'react';
 
@@ -68,7 +69,7 @@ export default function MovieTile({ movie, listType, onEdit }: Props) {
             data-app="our-corner"
             className="shell-card-stretch shell-lift"
         >
-            <a
+            <Link
                 href={detailHref}
                 className="shell-card-link block text-inherit no-underline"
             >
@@ -100,7 +101,7 @@ export default function MovieTile({ movie, listType, onEdit }: Props) {
                 <span className="corner-tile-meta">
                     Added by {movie.addedBy.name}
                 </span>
-            </a>
+            </Link>
 
             <div className="mt-2 flex items-center justify-between">
                 {movie.plex_url ? (

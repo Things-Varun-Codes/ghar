@@ -2,7 +2,7 @@ import { router } from '@inertiajs/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { goBack } from '@/lib/back-navigation';
 import {
-    previousUrl,
+    previousPath,
     recordNavigation,
     resetNavigationForTests,
 } from '@/lib/navigation';
@@ -14,6 +14,7 @@ vi.mock('@inertiajs/react', () => ({
 describe('goBack', () => {
     beforeEach(() => {
         resetNavigationForTests();
+        vi.clearAllMocks();
     });
 
     it('steps back through history when the parent is the previous page', () => {
@@ -56,8 +57,23 @@ describe('goBack', () => {
     it('keeps the previous page across same-path visits', () => {
         recordNavigation('/dashboard');
         recordNavigation('/apps/our-corner/songs');
-        recordNavigation('/apps/our-corner/songs?q=rain');
+        recordNavigation('/apps/our-corner/songs?q=rain', 'replace');
 
-        expect(previousUrl()).toBe('/dashboard');
+        expect(previousPath()).toBe('/dashboard');
+    });
+
+    it('steps back again from a page it reached by stepping back', () => {
+        const back = vi
+            .spyOn(window.history, 'back')
+            .mockImplementation(() => {});
+
+        recordNavigation('/apps/our-corner');
+        recordNavigation('/apps/our-corner/songs');
+        recordNavigation('/apps/our-corner/songs/4');
+        recordNavigation('/apps/our-corner/songs', 'history');
+        goBack('/apps/our-corner');
+
+        expect(back).toHaveBeenCalledTimes(1);
+        expect(router.visit).not.toHaveBeenCalled();
     });
 });

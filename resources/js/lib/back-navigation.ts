@@ -1,5 +1,5 @@
 import { router } from '@inertiajs/react';
-import { previousUrl } from '@/lib/navigation';
+import { previousPath } from '@/lib/navigation';
 import { pathOf } from '@/lib/url';
 
 /**
@@ -8,9 +8,7 @@ import { pathOf } from '@/lib/url';
  * bounce between the two.
  */
 export function goBack(parent: string): void {
-    const previous = previousUrl();
-
-    if (previous !== null && pathOf(previous) === pathOf(parent)) {
+    if (previousPath() === pathOf(parent)) {
         window.history.back();
 
         return;
