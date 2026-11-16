@@ -42,7 +42,9 @@ docker compose -f docker-compose.selfhost.yml logs app | grep -A1 "Admin account
 ```
 
 The log shows the admin's password once. Log in at <http://localhost:8080> (change the port with
-`GHAR_PORT`), change the password under Settings, and invite your family from Admin, Invites.
+`GHAR_PORT`), change the password under Settings, turn on the rooms you want under Admin, Rooms
+(a new install has none on, so Home is empty until you do), and invite your family from Admin,
+Invites.
 
 ### What the first start does
 
@@ -384,7 +386,7 @@ Start with `docker compose -f docker-compose.selfhost.yml logs app`.
 - **`BOUQUET_IMAGE_PROVIDER must be set (cloudflare|fake) in production`**: set it to `fake`, or to
   `cloudflare` with both Cloudflare values.
 - **`CLOUDFLARE_ACCOUNT_ID and CLOUDFLARE_WORKERS_AI_TOKEN are required when
-  BOUQUET_IMAGE_PROVIDER=cloudflare`**: fill in both, or switch back to `fake`.
+BOUQUET_IMAGE_PROVIDER=cloudflare`**: fill in both, or switch back to `fake`.
 - **`grep "Admin account created"` prints nothing**: the password is printed only on the start that
   creates the admin. If `GHAR_ADMIN_EMAIL` was empty, set it and run `up -d` again. If you lost the
   password, use "Forgot password" on the login page; with `MAIL_MAILER=log` the reset link is in

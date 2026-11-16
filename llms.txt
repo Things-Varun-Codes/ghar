@@ -12,7 +12,7 @@ install is private and is not meant to be crawled or indexed.
 Facts that seldom change:
 
 - One household per install. No sign-up, no hosted version, not multi-tenant.
-- Three mini apps: Our History (timeline, gallery, calendar), Our Corner (shared lists) and Our
+- Three mini apps, which the admin turns on and off at Admin → Rooms (a new install starts with none on): Our History (timeline, gallery, calendar), Our Corner (shared lists) and Our
   Mailbox (notes, flowers, coupons, citations). A citation is a joke traffic ticket.
 - Runs as one app container plus PostgreSQL 17 and a small Valkey cache. Images for amd64 and arm64
   are published at `ghcr.io/things-varun-codes/ghar`.

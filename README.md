@@ -29,7 +29,7 @@ it are a few small apps for the things families keep track of together:
 - **Our Corner**: shared lists of songs, movies, places and things to do, and a way to mark what
   you've loved, watched or visited.
 - **Our Mailbox**: notes and bouquets of flowers to one or more people, coupons someone can redeem,
-  and citations. A citation is what a traffic ticket is called in India; here it is a joke one, a mock
+  and citations. A citation is a joke traffic ticket, a mock
   official form for an offence such as leaving wet towels on the bed, with a penalty the recipient
   can mark as paid.
 

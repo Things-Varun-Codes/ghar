@@ -80,9 +80,11 @@ contributor wait for a maintainer to start them.
 ## Adding a mini app
 
 A mini app is a self-contained module: no imports from another app, and no database foreign keys to
-another app's tables. For each `enabled` entry in `config/miniapps.php`, the shell registers its
-service provider and loads `routes/miniapps/{slug}.php` and `database/migrations/{slug}/`. The rest
-is by hand:
+another app's tables. For each entry in `config/miniapps.php`, the shell registers its service provider and loads
+`routes/miniapps/{slug}.php` (behind a `room:{slug}` check) and `database/migrations/{slug}/`. Every
+entry is installed; the admin turns rooms on and off at Admin → Rooms, and a room with no setting is
+off. A room can offer options of its own (Our Mailbox's entry types) with `Rooms::registerOption()`
+in its provider's `boot()`. The rest is by hand:
 
 1. Add the entry to `config/miniapps.php`:
 
@@ -92,7 +94,6 @@ is by hand:
         'slug' => 'our-recipes',
         'route' => '/apps/our-recipes',
         'description' => 'Recipes, including the ones nobody wrote down.',
-        'enabled' => true,
         'provider' => RecipesServiceProvider::class,
         'admin_only' => false,
         'component_prefix' => 'MiniApps/Recipes/',

@@ -2,8 +2,9 @@
 
 **Ghar** is a private, auth-gated, self-hosted web platform for a family or household. A secure
 shell (dashboard + OS chrome) hosts self-contained mini apps.
-Enabled today: **Our History** (timeline, gallery, calendar), **Our Corner** (shared lists — songs,
-movies, activities, places) and **Our Mailbox** (messages, flowers, citations, coupons).
+Installed today: **Our History** (timeline, gallery, calendar), **Our Corner** (shared lists — songs,
+movies, activities, places) and **Our Mailbox** (messages, flowers, citations, coupons). **The admin
+chooses which rooms a home has** at Admin → Rooms (`/admin/rooms`); a fresh install starts with none on.
 
 **Core value:** new mini apps can be added — and existing ones updated — without touching the
 shell or other mini apps.
@@ -146,7 +147,7 @@ PHP/TS identifiers say `ShortLink`.
 - **OS-vs-app split.** The sidebar (from 1024px) is static OS chrome (Home, Settings, Admin). The
   dashboard is the mini-app launcher. **Mini apps are never added to the sidebar.** Below 1024px
   there is no sidebar: a contextual top bar (wordmark on Home; back + page title elsewhere, fed by
-  `Page`) and a bottom bar (`BottomBar`) listing Home plus each enabled room from the registry's
+  `Page`) and a bottom bar (`BottomBar`) listing Home plus each room that is on, from the registry's
   `nav_label` and its own `nav-icon.tsx`. Settings and Admin live in the account menu there.
 - **`AppLayout` is the persistent default layout** (`app.tsx`); pages don't wrap themselves in it.
   Use `Page` for the header: it sets the document title (`room`, `documentTitle`), the back target
@@ -334,10 +335,16 @@ the code:
 
 ## Adding a new mini app
 
-For every `enabled` entry in `config/miniapps.php`, `MiniAppServiceProvider` registers its
-`provider` and loads `routes/miniapps/{slug}.php` (inside `web` + `auth`) and
-`database/migrations/{slug}/`. A disabled app is fully off, so anything it contributes must go
-through its provider. Everything else is a hand edit:
+Every entry in `config/miniapps.php` is _installed_: `MiniAppServiceProvider` always registers its
+`provider` and loads `routes/miniapps/{slug}.php` (inside `web`, `auth` and `room:{slug}`) and
+`database/migrations/{slug}/`. Whether a room is _on_ is the admin's runtime choice, stored in
+`room_settings` and read through `App\Shell\Services\Rooms` (once per request; no cache). A room
+with no row is off. When it is off its routes 404 (middleware `room:{slug}`), it leaves the
+registry props, the manifest shortcuts, Home's summaries and previews, and `PushDispatcher` sends
+nothing for it; its data stays. A provider's `boot()` runs either way, so a resolver or command it
+registers must cope with its room being off (summaries and previews are only asked for rooms that
+are on). The admin page lists rooms from the registry, so a new room needs no edit there.
+Everything else is a hand edit:
 
 1. `config/miniapps.php` entry — include `component_prefix` or `AppLayout`'s chrome-hide breaks,
    and `nav_label` for the phone bottom bar. Ship `resources/js/MiniApps/{App}/nav-icon.tsx` whose
@@ -349,13 +356,16 @@ through its provider. Everything else is a hand edit:
 4. `resources/css/themes/{slug}.css` + its `@import` in `resources/css/app.css` (see below).
 5. `vite.config.ts` `fonts:` — only if the app registers a font.
 6. `resources/js/MiniApps/{App}/` under the registry's `component_prefix`.
-7. `scripts/smoke.mjs` routes for every new authenticated page.
+7. `scripts/smoke.mjs` routes for every new authenticated page. Tests start with every room on
+   (`tests/TestCase`); `DevDataSeeder` turns them all on with `Rooms::turnOnAll()`.
 8. Optional door content on Home, from the provider's `boot()`: a live line with
    `DashboardSummaries::register('{slug}', fn (User $u): ?string => …)` and a glimpse with
    `registerPreview('{slug}', fn (User $u): ?array => …)` (`images`, or `note` + `note_from`). Must
    return only rows the viewer may see; a throwing resolver just shows nothing.
-9. If a table's foreign key to `users` restricts deletes, `UserOwnedContent::register()` it from the
-   provider's `boot()`, so the admin delete can say what blocks it.
+9. If other rooms can link to yours, pass `room: '{slug}'` to `LinkableEntities::register()`: while
+   your room is off its type is not searchable and links to it drop out of other rooms' pages.
+10. If a table's foreign key to `users` restricts deletes, `UserOwnedContent::register()` it from the
+    provider's `boot()`, so the admin delete can say what blocks it.
 
 ## Mini-app theme architecture
 
@@ -404,6 +414,14 @@ Every invited user is a household member (`App\Shell\Services\Household`: `membe
 Slug `our-mailbox`; `App\MiniApps\Mailbox\`; `resources/js/MiniApps/Mailbox/`; routes
 `apps.our-mailbox.*` at `/apps/our-mailbox/*`. Holds the directional, non-linkable comms surfaces;
 Our Corner keeps the four lists.
+
+- **Entry types switch individually.** `App\MiniApps\Mailbox\Support\EntryTypes` registers notes
+  (`messages`), `flowers`, `citations` and `coupons` as options of the room through
+  `Rooms::registerOption()` from `MailboxServiceProvider::boot()`; an option with no row is on.
+  Routes sit behind `room:our-mailbox,{type}`, so an off type 404s and its writes (and so its push)
+  cannot happen; the landing gets a `types` prop and `MailboxSummary` / `MailboxPeeks` skip it. Rows
+  are kept. The old `/apps/our-mailbox/challans/{id?}` addresses 301 to `citations`, because
+  delivered push notifications and bookmarks hold them.
 
 - Messages, Flowers, Citations and Coupons all resolve through `App\Shell\Support\CursorList` with
   free-text `?q` and whitelisted `?sort` (`recent`/`oldest`, server-authoritative). No status

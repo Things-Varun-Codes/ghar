@@ -6,10 +6,11 @@ detail.
 ## What is Ghar?
 
 Ghar is a private web app that one family or household runs for itself. Everyone signs in to the
-same place and finds three small apps: Our History (a timeline, gallery and calendar of moments,
+same place and finds the small apps the admin has turned on, out of three: Our History (a timeline, gallery and calendar of moments,
 with photos and videos), Our Corner (shared lists of songs, movies, places and things to do) and Our
 Mailbox (notes, bouquets of flowers, coupons and joke traffic tickets, sent to one or more people).
-Ghar is open source under the MIT licence. There is no hosted version: you run it yourself with
+The admin chooses which of the three apps a home has, and which kinds of mail the Mailbox offers,
+at Admin → Rooms. A new install starts with none on. Ghar is open source under the MIT licence. There is no hosted version: you run it yourself with
 Docker.
 
 ## What do "Ghar" and "citation" mean?
@@ -18,7 +19,7 @@ Docker.
 to find as "Ghar, the self-hosted household app", or by its image name,
 `ghcr.io/things-varun-codes/ghar`.
 
-A citation is what a traffic ticket is called in India. In Ghar it is a joke one: a mock official
+A citation in Ghar is a joke traffic ticket: a mock official
 form that one person issues to another for an offence such as leaving wet towels on the bed, with a
 penalty the recipient can mark as paid.
 

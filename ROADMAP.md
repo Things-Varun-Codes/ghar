@@ -13,6 +13,9 @@ when work lands, delete lines when they stop being true.
 - **Our Corner** — Songs / Movies / Activities / Places lists, detail pages, deferred-delete
   Undo, metadata lookup.
 - **Our Mailbox** — messages, AI bouquets (Cloudflare Workers AI), citations, coupons.
+- **Rooms the admin chooses** — Admin → Rooms turns History, Corner and Mailbox on or off at runtime
+  (data kept), and Mailbox's four entry types individually. A fresh install starts with none on; an
+  upgrade keeps what it had.
 - **Quality gates** — Eloquent strict mode, GitHub Actions CI, lefthook hooks, route-drift check,
   Vitest unit tier, headless and fault-injection smoke, restrictive user-FK offboarding.
 - **Development** — one-command seeded environment on PostgreSQL with a sample household.
