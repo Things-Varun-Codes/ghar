@@ -33,7 +33,7 @@ final class RequestedMoment
             return null;
         }
 
-        return app(EventResource::class)($event, $viewer);
+        return app(EventResource::class)($event, $viewer, LinkedThings::forEvents([$event])[$event->id] ?? []);
     }
 
     public static function url(int $eventId): string

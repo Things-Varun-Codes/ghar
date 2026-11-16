@@ -5,8 +5,18 @@ import { internalHref, thumbnailSrc } from '@/MiniApps/History/lib/pillUrls';
 import { entityIcon } from '@/Shell/linkables/entityIcon';
 import LinkableIcon from '@/Shell/linkables/LinkableIcon';
 
+/* A linked thing as it is now (LinkedThings on the server), keyed "type:id". */
+export type LinkedThing = {
+    thumbnail_url?: string | null;
+    icon?: string | null;
+};
+
+export type LinkedThings = Record<string, LinkedThing>;
+
 type BodyHtmlProps = {
     html: string | null;
+    /* What the story's links point at now; a link missing here draws what was written. */
+    links?: LinkedThings;
     /** The level of the heading the story sits under; its own headings rank below it. */
     headingBase?: number;
 };
@@ -35,22 +45,28 @@ function CornerLinkRead({
     thumbnail,
     href,
     icon,
+    current,
 }: {
     type: string | null;
     title: string;
     thumbnail: string;
     href: string;
     icon: string | null;
+    current: LinkedThing | undefined;
 }) {
     const label = title || 'Corner link';
     const cornerOn = useRoomOn('our-corner');
     const safeHref = cornerOn ? internalHref(href) : null;
     const [thumbnailBroken, setThumbnailBroken] = useState(false);
     // Corner's pictures are served by Corner, so they go with it when the room is off.
+    // The thing's picture now, not the one written into the story, which may since have
+    // changed, gone, or come from a site the page may no longer load from.
+    const picture = current ? (current.thumbnail_url ?? '') : thumbnail;
+    const mark = current?.icon ?? icon;
     const safeThumbnail =
-        cornerOn && !thumbnailBroken ? thumbnailSrc(thumbnail) : null;
-    const iconEl = icon ? (
-        <LinkableIcon name={icon} size={14} />
+        cornerOn && !thumbnailBroken ? thumbnailSrc(picture) : null;
+    const iconEl = mark ? (
+        <LinkableIcon name={mark} size={14} />
     ) : (
         React.createElement(entityIcon(type), { size: 14, 'aria-hidden': true })
     );
@@ -91,6 +107,7 @@ function renderNode(
     node: Node,
     key: string,
     headingBase: number,
+    links: LinkedThings,
 ): React.ReactNode {
     if (node.nodeType === Node.TEXT_NODE) {
         return node.textContent;
@@ -112,6 +129,11 @@ function renderNode(
                 thumbnail={el.getAttribute('data-corner-thumbnail') ?? ''}
                 href={el.getAttribute('data-corner-href') ?? ''}
                 icon={el.getAttribute('data-corner-icon')}
+                current={
+                    links[
+                        `${el.getAttribute('data-corner-type')}:${el.getAttribute('data-corner-id')}`
+                    ]
+                }
             />
         );
     }
@@ -145,7 +167,7 @@ function renderNode(
     }
 
     const children = Array.from(el.childNodes).map((child, i) =>
-        renderNode(child, `${key}-${i}`, headingBase),
+        renderNode(child, `${key}-${i}`, headingBase, links),
     );
 
     if (HEADING_TAGS.has(tag)) {
@@ -163,7 +185,11 @@ function renderNode(
     return React.createElement(tag, props, ...children);
 }
 
-export default function BodyHtml({ html, headingBase = 1 }: BodyHtmlProps) {
+export default function BodyHtml({
+    html,
+    headingBase = 1,
+    links = {},
+}: BodyHtmlProps) {
     if (!html) {
         return null;
     }
@@ -174,7 +200,7 @@ export default function BodyHtml({ html, headingBase = 1 }: BodyHtmlProps) {
 
     const doc = new DOMParser().parseFromString(html, 'text/html');
     const children = Array.from(doc.body.childNodes).map((child, i) =>
-        renderNode(child, `n-${i}`, headingBase),
+        renderNode(child, `n-${i}`, headingBase, links),
     );
 
     return <div className="history-prose">{children}</div>;

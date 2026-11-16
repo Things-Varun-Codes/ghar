@@ -16,6 +16,7 @@ class EventResource
     ) {}
 
     /**
+     * @param  array<string, array<string, mixed>>  $links  what the story's links point at now (LinkedThings)
      * @return array{
      *     id: int,
      *     date: string,
@@ -29,6 +30,7 @@ class EventResource
      *     location_lat: float|null,
      *     location_lng: float|null,
      *     body_html: string|null,
+     *     links: object,
      *     created_at: string|null,
      *     updated_at: string|null,
      *     media: array,
@@ -36,7 +38,7 @@ class EventResource
      *     can: array{update: bool, delete: bool},
      * }
      */
-    public function __invoke(Event $event, ?User $viewer = null): array
+    public function __invoke(Event $event, ?User $viewer = null, array $links = []): array
     {
         $videoPosters = $event->getMedia('video-posters');
 
@@ -81,6 +83,8 @@ class EventResource
             'location_lat' => $event->location_lat !== null ? (float) $event->location_lat : null,
             'location_lng' => $event->location_lng !== null ? (float) $event->location_lng : null,
             'body_html' => $event->body_html,
+            // An object even when empty, so the page can look links up by key.
+            'links' => (object) $links,
             'created_at' => $event->created_at->toIso8601String(),
             'updated_at' => $event->updated_at->toIso8601String(),
             'media' => $media,

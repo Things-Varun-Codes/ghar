@@ -163,6 +163,35 @@ class LinkableEntities
         return $room !== null && ! $this->rooms->isOn($room);
     }
 
+    /**
+     * What a page needs to draw many links at once: each "type:id" resolved to the thing as it
+     * is now, one resolveMany per type, however many links there are. A type whose room is off,
+     * or that isn't registered, resolves to nothing, as does a thing that no longer exists.
+     *
+     * @param  iterable<array{0: string, 1: int}>  $refs
+     * @return array<string, array<string, mixed>>
+     */
+    public function snapshotsFor(iterable $refs): array
+    {
+        $idsByType = [];
+        foreach ($refs as [$type, $id]) {
+            if ($this->available($type)) {
+                $idsByType[$type][$id] = $id;
+            }
+        }
+
+        $snapshots = [];
+        foreach ($idsByType as $type => $ids) {
+            foreach ($this->resolveMany($type, array_values($ids)) as $id => $snapshot) {
+                if ($snapshot !== null) {
+                    $snapshots["{$type}:{$id}"] = $snapshot;
+                }
+            }
+        }
+
+        return $snapshots;
+    }
+
     /** @return list<string> */
     public function registeredTypes(): array
     {

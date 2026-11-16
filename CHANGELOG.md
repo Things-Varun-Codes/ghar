@@ -43,9 +43,8 @@ on start; back up first, as always.
 The upgrade also moves your songs, movies, activities and places into four lists of the same names,
 with everything kept: who added each one, who marked it done and when, pictures, links, addresses
 and coordinates. Old links, notifications and the links inside History moments keep working. No
-setting was removed. The page's image policy no longer lets the browser load pictures from video,
-music or media sites directly, so a History link saved before this shows its list's icon instead
-of the old thumbnail.
+setting was removed. A link in a History moment now shows the linked thing's current picture,
+so it follows a picture that changes or goes.
 
 ## [1.1.0] - 2026-11-14
 
