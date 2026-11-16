@@ -1,4 +1,4 @@
-import { Head, Link, router, useForm } from '@inertiajs/react';
+import { Link, router, useForm } from '@inertiajs/react';
 import { MailPlus } from 'lucide-react';
 import { useState } from 'react';
 import type { FormEventHandler } from 'react';
@@ -11,7 +11,9 @@ import {
     TableHeader,
     TableRow,
 } from '@/components/ui/table';
-import { cn, formatDate } from '@/lib/utils';
+import { formatDate } from '@/lib/dates';
+import { roleLabel } from '@/lib/roles';
+import { cn } from '@/lib/utils';
 import * as invitesRoutes from '@/routes/admin/invites';
 import * as users from '@/routes/admin/users';
 import ConfirmDialog from '@/Shell/Components/ConfirmDialog';
@@ -20,7 +22,6 @@ import Page from '@/Shell/Components/Page';
 import Pagination from '@/Shell/Components/Pagination';
 import type { PaginationLink } from '@/Shell/Components/Pagination';
 import SubmitButton from '@/Shell/Components/SubmitButton';
-import AppLayout from '@/Shell/Layouts/AppLayout';
 
 interface Inviter {
     id: number;
@@ -49,21 +50,21 @@ interface Props {
 
 function inviteStatus(invite: Invitation): {
     label: string;
-    variant: 'default' | 'secondary' | 'destructive' | 'outline';
+    variant: 'default' | 'secondary' | 'outline';
 } {
     if (invite.accepted_at) {
-        return { label: 'accepted', variant: 'default' };
+        return { label: 'Accepted', variant: 'default' };
     }
 
     if (invite.revoked_at) {
-        return { label: 'revoked', variant: 'destructive' };
+        return { label: 'Revoked', variant: 'outline' };
     }
 
     if (new Date(invite.expires_at) <= new Date()) {
-        return { label: 'expired', variant: 'outline' };
+        return { label: 'Expired', variant: 'outline' };
     }
 
-    return { label: 'pending', variant: 'secondary' };
+    return { label: 'Pending', variant: 'secondary' };
 }
 
 export default function InvitesIndex({ invites }: Props) {
@@ -115,25 +116,50 @@ export default function InvitesIndex({ invites }: Props) {
         router.post(invitesRoutes.resend.url({ invite: invite.id }));
     };
 
-    return (
-        <AppLayout>
-            <Head title="Invitations — Admin" />
+    const renderActions = (invite: Invitation, inCard = false) =>
+        inviteStatus(invite).label === 'Pending' ? (
+            <div
+                className={cn(
+                    'flex items-center gap-2',
+                    inCard ? 'justify-start' : 'justify-end',
+                )}
+            >
+                <button
+                    type="button"
+                    onClick={() => handleResend(invite)}
+                    aria-label={`Resend the invite to ${invite.email}`}
+                    className="os-admin-row-action os-admin-fill-accent shell-press inline-flex items-center justify-center"
+                >
+                    Resend
+                </button>
+                <button
+                    type="button"
+                    onClick={() => handleRevoke(invite)}
+                    aria-label={`Revoke the invite for ${invite.email}`}
+                    className="os-admin-row-action os-admin-outline-destructive shell-press inline-flex items-center justify-center"
+                >
+                    Revoke
+                </button>
+            </div>
+        ) : null;
 
+    return (
+        <>
             <Page
-                tier="index"
                 title="Invites"
+                room="Admin"
                 backChevron
                 actions={
                     <>
                         <Link
                             href={users.index.url()}
-                            className="os-admin-tap os-admin-tap-center os-admin-fill-accent rounded-lg px-4 py-2 text-sm font-semibold transition-colors"
+                            className="os-admin-tap os-admin-tap-center os-admin-fill-accent shell-press px-4 py-2 text-sm font-medium"
                         >
-                            View Users
+                            View users
                         </Link>
                         <button
                             onClick={() => setShowForm((v) => !v)}
-                            className={`os-admin-tap ${showForm ? 'os-admin-fill-accent' : 'os-admin-fill-primary'} rounded-lg px-4 py-2 text-sm font-semibold transition-colors`}
+                            className={`os-admin-tap ${showForm ? 'os-admin-fill-accent' : 'os-admin-fill-primary'} shell-press px-4 py-2 text-sm font-medium`}
                         >
                             {showForm ? 'Cancel' : 'Send invite'}
                         </button>
@@ -141,7 +167,7 @@ export default function InvitesIndex({ invites }: Props) {
                 }
             >
                 {showForm && (
-                    <div className="os-admin-surface mb-6 rounded-xl border p-6">
+                    <div className="os-admin-surface mb-6 border p-6">
                         <h2 className="os-admin-section-title mb-4">
                             Send invitation
                         </h2>
@@ -164,7 +190,7 @@ export default function InvitesIndex({ invites }: Props) {
                                     }
                                     placeholder="invitee@example.com"
                                     className={cn(
-                                        'os-admin-control block w-full rounded-lg border px-3 py-2.5 outline-none focus:ring-2 focus:ring-offset-1',
+                                        'os-admin-control shell-field block w-full border px-3 py-2.5 outline-none',
                                         errors.email &&
                                             'os-admin-control--invalid',
                                     )}
@@ -183,19 +209,23 @@ export default function InvitesIndex({ invites }: Props) {
                                         setData('role', e.target.value)
                                     }
                                     className={cn(
-                                        'os-admin-control block rounded-lg border px-3 py-2.5 outline-none focus:ring-2 focus:ring-offset-1',
+                                        'os-admin-control shell-field block border px-3 py-2.5 outline-none',
                                         errors.role &&
                                             'os-admin-control--invalid',
                                     )}
                                 >
-                                    <option value="user">user</option>
-                                    <option value="admin">admin</option>
+                                    <option value="user">
+                                        {roleLabel('user')}
+                                    </option>
+                                    <option value="admin">
+                                        {roleLabel('admin')}
+                                    </option>
                                 </select>
                             </FormField>
                             <SubmitButton
                                 processing={processing}
                                 busyText="Sending invite…"
-                                className="os-admin-tap os-admin-fill-primary os-admin-submit rounded-lg px-5 font-semibold"
+                                className="os-admin-tap os-admin-fill-primary os-admin-submit shell-press px-5 font-medium"
                             >
                                 Send invite
                             </SubmitButton>
@@ -203,100 +233,118 @@ export default function InvitesIndex({ invites }: Props) {
                     </div>
                 )}
 
-                <div className="os-admin-surface overflow-x-auto rounded-xl border">
-                    <Table className="min-w-[720px]">
-                        <TableHeader>
-                            <TableRow>
-                                <TableHead>Email</TableHead>
-                                <TableHead>Role</TableHead>
-                                <TableHead>Status</TableHead>
-                                <TableHead>Expires</TableHead>
-                                <TableHead>Invited by</TableHead>
-                                <TableHead className="text-right">
-                                    Actions
-                                </TableHead>
-                            </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                            {invites.data.length === 0 && (
-                                <TableRow>
-                                    <TableCell colSpan={6} className="py-10">
-                                        <div className="flex flex-col items-center gap-3 text-center">
-                                            <MailPlus
-                                                size={32}
-                                                strokeWidth={1.5}
-                                                aria-hidden="true"
-                                                className="os-admin-muted"
-                                            />
-                                            <p className="os-admin-muted">
-                                                No invitations yet.
-                                            </p>
-                                            <button
-                                                type="button"
-                                                onClick={() =>
-                                                    setShowForm(true)
-                                                }
-                                                className="os-admin-tap os-admin-tap-center os-admin-fill-primary rounded-lg px-4 font-semibold transition-colors hover:opacity-90"
-                                            >
-                                                Send your first invite
-                                            </button>
-                                        </div>
-                                    </TableCell>
-                                </TableRow>
-                            )}
+                {invites.data.length === 0 ? (
+                    <div className="os-admin-surface flex flex-col items-center gap-3 border px-6 py-10 text-center">
+                        <MailPlus
+                            size={32}
+                            strokeWidth={1.5}
+                            aria-hidden="true"
+                            className="os-admin-muted"
+                        />
+                        <p className="os-admin-muted">No invitations yet.</p>
+                        <button
+                            type="button"
+                            onClick={() => setShowForm(true)}
+                            className="os-admin-tap os-admin-tap-center os-admin-fill-primary shell-press px-4 font-medium"
+                        >
+                            Send your first invite
+                        </button>
+                    </div>
+                ) : (
+                    <div className="@container">
+                        <div className="os-admin-surface hidden overflow-x-auto border @min-[760px]:block">
+                            <Table className="min-w-[720px]">
+                                <TableHeader>
+                                    <TableRow>
+                                        <TableHead>Email</TableHead>
+                                        <TableHead>Role</TableHead>
+                                        <TableHead>Status</TableHead>
+                                        <TableHead>Expires</TableHead>
+                                        <TableHead>Invited by</TableHead>
+                                        <TableHead className="os-admin-sticky-actions text-right">
+                                            Actions
+                                        </TableHead>
+                                    </TableRow>
+                                </TableHeader>
+                                <TableBody>
+                                    {invites.data.map((invite) => {
+                                        const status = inviteStatus(invite);
+
+                                        return (
+                                            <TableRow key={invite.id}>
+                                                <TableCell className="os-admin-strong">
+                                                    {invite.email}
+                                                </TableCell>
+                                                <TableCell>
+                                                    <Badge variant="outline">
+                                                        {roleLabel(
+                                                            invite.role_name,
+                                                        )}
+                                                    </Badge>
+                                                </TableCell>
+                                                <TableCell>
+                                                    <Badge
+                                                        variant={status.variant}
+                                                    >
+                                                        {status.label}
+                                                    </Badge>
+                                                </TableCell>
+                                                <TableCell className="os-admin-meta">
+                                                    {formatDate(
+                                                        invite.expires_at,
+                                                    )}
+                                                </TableCell>
+                                                <TableCell className="os-admin-meta">
+                                                    {invite.invited_by?.name ??
+                                                        'Someone since removed'}
+                                                </TableCell>
+                                                <TableCell className="os-admin-sticky-actions text-right">
+                                                    {renderActions(invite)}
+                                                </TableCell>
+                                            </TableRow>
+                                        );
+                                    })}
+                                </TableBody>
+                            </Table>
+                        </div>
+
+                        <ul className="flex flex-col gap-3 @min-[760px]:hidden">
                             {invites.data.map((invite) => {
                                 const status = inviteStatus(invite);
-                                const isPending = status.label === 'pending';
 
                                 return (
-                                    <TableRow key={invite.id}>
-                                        <TableCell className="os-admin-strong">
+                                    <li
+                                        key={invite.id}
+                                        className="os-admin-surface border p-4"
+                                    >
+                                        <p className="os-admin-strong break-all">
                                             {invite.email}
-                                        </TableCell>
-                                        <TableCell>
+                                        </p>
+                                        <div className="mt-2 flex flex-wrap items-center gap-2">
                                             <Badge variant="outline">
-                                                {invite.role_name}
+                                                {roleLabel(invite.role_name)}
                                             </Badge>
-                                        </TableCell>
-                                        <TableCell>
                                             <Badge variant={status.variant}>
                                                 {status.label}
                                             </Badge>
-                                        </TableCell>
-                                        <TableCell className="os-admin-meta">
+                                        </div>
+                                        <p className="os-admin-meta mt-2">
+                                            Expires{' '}
                                             {formatDate(invite.expires_at)}
-                                        </TableCell>
-                                        <TableCell className="os-admin-meta">
-                                            {invite.invited_by?.name ?? '—'}
-                                        </TableCell>
-                                        <TableCell className="text-right">
-                                            {isPending && (
-                                                <div className="flex items-center justify-end gap-2">
-                                                    <button
-                                                        onClick={() =>
-                                                            handleResend(invite)
-                                                        }
-                                                        className="os-admin-row-action os-admin-fill-accent inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors hover:opacity-80"
-                                                    >
-                                                        Resend
-                                                    </button>
-                                                    <button
-                                                        onClick={() =>
-                                                            handleRevoke(invite)
-                                                        }
-                                                        className="os-admin-row-action os-admin-outline-destructive inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors hover:opacity-80"
-                                                    >
-                                                        Revoke
-                                                    </button>
-                                                </div>
-                                            )}
-                                        </TableCell>
-                                    </TableRow>
+                                            {invite.invited_by &&
+                                                ` · invited by ${invite.invited_by.name}`}
+                                        </p>
+                                        {status.label === 'Pending' && (
+                                            <div className="mt-3">
+                                                {renderActions(invite, true)}
+                                            </div>
+                                        )}
+                                    </li>
                                 );
                             })}
-                        </TableBody>
-                    </Table>
-                </div>
+                        </ul>
+                    </div>
+                )}
 
                 <ConfirmDialog
                     open={pendingRevoke !== null}
@@ -327,6 +375,6 @@ export default function InvitesIndex({ invites }: Props) {
 
                 <Pagination links={invites.links} />
             </Page>
-        </AppLayout>
+        </>
     );
 }

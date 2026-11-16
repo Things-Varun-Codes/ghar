@@ -1,11 +1,11 @@
-import { Head, useForm, usePage } from '@inertiajs/react';
+import { Link, useForm, usePage } from '@inertiajs/react';
+import { ArrowRight } from 'lucide-react';
 import type { FormEventHandler } from 'react';
 import * as password from '@/routes/settings/password';
 import * as profile from '@/routes/settings/profile';
 import FormField from '@/Shell/Components/FormField';
 import Page from '@/Shell/Components/Page';
 import SubmitButton from '@/Shell/Components/SubmitButton';
-import AppLayout from '@/Shell/Layouts/AppLayout';
 
 interface Props {
     user: {
@@ -34,17 +34,15 @@ export default function Profile({ user }: Props) {
     };
 
     return (
-        <AppLayout>
-            <Head title="Profile — Settings" />
-
-            <Page tier="prose" title="Profile" backChevron>
+        <>
+            <Page tier="prose" title="Profile" room="Settings" backChevron>
                 {flash?.status === EMAIL_PENDING_STATUS && (
                     <p className="os-settings-notice mb-6" role="status">
                         Saved. Check the new email for a verification link.
                     </p>
                 )}
 
-                <div className="os-settings-card rounded-xl p-6">
+                <div className="os-settings-card p-6">
                     <form onSubmit={submit} className="space-y-5">
                         <FormField
                             label="Name"
@@ -59,7 +57,7 @@ export default function Profile({ user }: Props) {
                                 onChange={(e) =>
                                     setData('name', e.target.value)
                                 }
-                                className="os-settings-input block w-full rounded-lg px-3 py-2.5 outline-none focus:ring-2 focus:ring-offset-1"
+                                className="os-settings-input shell-field block w-full px-3 py-2.5 outline-none"
                                 autoComplete="name"
                                 required
                             />
@@ -79,7 +77,7 @@ export default function Profile({ user }: Props) {
                                 onChange={(e) =>
                                     setData('email', e.target.value)
                                 }
-                                className="os-settings-input block w-full rounded-lg px-3 py-2.5 outline-none focus:ring-2 focus:ring-offset-1"
+                                className="os-settings-input shell-field block w-full px-3 py-2.5 outline-none"
                                 autoComplete="email"
                                 required
                             />
@@ -89,7 +87,7 @@ export default function Profile({ user }: Props) {
                             <SubmitButton
                                 processing={processing}
                                 busyText="Saving…"
-                                className="os-settings-submit rounded-lg px-5"
+                                className="os-settings-submit shell-press px-5"
                             >
                                 Save
                             </SubmitButton>
@@ -98,11 +96,19 @@ export default function Profile({ user }: Props) {
                 </div>
 
                 <div className="mt-4 text-right">
-                    <a href={password.show.url()} className="os-settings-link">
-                        Change password →
-                    </a>
+                    <Link
+                        href={password.show.url()}
+                        className="os-settings-link shell-focus"
+                    >
+                        Change password
+                        <ArrowRight
+                            size={16}
+                            strokeWidth={1.5}
+                            aria-hidden="true"
+                        />
+                    </Link>
                 </div>
             </Page>
-        </AppLayout>
+        </>
     );
 }

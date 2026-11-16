@@ -1,17 +1,17 @@
 import { describe, expect, it } from 'vitest';
+import { formatDate } from '@/lib/dates';
 import { formatInstantDay, formatPlainDay } from './formatDay';
 
 describe('formatPlainDay', () => {
-    it('formats a plain date as "22 Oct 2026"', () => {
+    it('uses the house date format', () => {
         expect(formatPlainDay('2026-10-22')).toBe('22 Oct 2026');
+        expect(formatPlainDay('2026-03-05')).toBe('5 Mar 2026');
     });
 
-    it('zero-pads the day', () => {
-        expect(formatPlainDay('2026-03-05')).toBe('05 Mar 2026');
-    });
-
-    it('renders September as "Sep" (never "Sept")', () => {
-        expect(formatPlainDay('2026-09-01')).toBe('01 Sep 2026');
+    it('keeps the calendar day of a plain date', () => {
+        expect(formatPlainDay('2026-09-01')).toBe(
+            formatDate(new Date(2026, 8, 1)),
+        );
     });
 
     it('falls back for empty, nullish and invalid values', () => {

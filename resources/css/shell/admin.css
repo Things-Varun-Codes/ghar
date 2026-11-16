@@ -16,6 +16,8 @@
     min-height: 44px;
     min-width: 44px;
     padding: 0 16px;
+    font-size: var(--text-small);
+    font-weight: 500;
 }
 
 .os-admin-fill-primary {
@@ -23,9 +25,28 @@
     color: var(--primary-foreground);
 }
 
+.os-admin-fill-primary:hover {
+    background-color: color-mix(
+        in oklab,
+        var(--shell-action) 86%,
+        var(--shell-text)
+    );
+}
+
+/* The one secondary: an outlined pill. */
 .os-admin-fill-accent {
-    background-color: var(--accent);
+    background-color: var(--card);
     color: var(--foreground);
+    border: 1px solid var(--shell-border-input);
+}
+
+.os-admin-fill-accent:hover {
+    background-color: color-mix(
+        in oklab,
+        var(--shell-text) 5%,
+        var(--shell-surface)
+    );
+    border-color: color-mix(in oklab, var(--shell-text) 32%, transparent);
 }
 
 .os-admin-fill-destructive {
@@ -44,21 +65,21 @@
 }
 
 .os-admin-submit {
-    font-size: 14px;
-    font-weight: 600;
+    font-size: var(--text-body);
+    font-weight: 500;
 }
 
 .os-admin-cancel-link {
-    font-size: 14px;
+    font-size: var(--text-small);
     color: var(--muted-foreground);
 }
 
 .os-admin-control {
     min-height: 44px;
-    font-size: 16px;
-    background-color: var(--background);
+    font-size: var(--text-body);
+    background-color: var(--card);
     color: var(--foreground);
-    border-color: var(--border);
+    border-color: var(--shell-border-input);
 }
 
 /* Source order matters: must be authored after .os-admin-control so the
@@ -69,21 +90,32 @@
 
 .os-admin-input {
     min-height: 44px;
-    font-size: 16px;
+    font-size: var(--text-body);
 }
 
 .os-admin-textarea {
-    font-size: 16px;
+    font-size: var(--text-body);
 }
 
 .os-admin-section-title {
-    font-size: 16px;
-    font-weight: 600;
+    font-family: var(--font-display);
+    font-size: var(--text-title);
+    letter-spacing: var(--tracking-display);
+    line-height: 1.2;
+    font-weight: 400;
     color: var(--foreground);
 }
 
+/* Where a table must scroll sideways, its actions stay in view. */
+.os-admin-sticky-actions {
+    position: sticky;
+    right: 0;
+    background-color: var(--card);
+    box-shadow: -1px 0 0 var(--border);
+}
+
 .os-admin-strong {
-    font-weight: 600;
+    font-weight: 500;
 }
 
 .os-admin-muted {
@@ -92,11 +124,11 @@
 
 .os-admin-meta {
     color: var(--muted-foreground);
-    font-size: 13px;
+    font-size: var(--text-meta);
 }
 
 .os-admin-flash {
-    font-size: 14px;
+    font-size: var(--text-small);
     background-color: var(--accent);
     color: var(--foreground);
 }
@@ -113,13 +145,13 @@
 }
 
 .os-admin-group-label {
-    font-size: 14px;
-    font-weight: 600;
+    font-size: var(--text-small);
+    font-weight: 500;
     color: var(--foreground);
 }
 
 .os-admin-group-help {
-    font-size: 14px;
+    font-size: var(--text-small);
     color: var(--muted-foreground);
 }
 
@@ -133,81 +165,17 @@
 }
 
 .os-admin-option-name {
-    font-size: 14px;
+    font-size: var(--text-small);
     font-weight: 500;
     color: var(--foreground);
 }
 
 .os-admin-option-desc {
-    font-size: 14px;
+    font-size: var(--text-small);
     color: var(--muted-foreground);
 }
 
 .os-admin-field-error {
-    font-size: 14px;
+    font-size: var(--text-small);
     color: var(--destructive);
-}
-
-.os-admin-theme-card {
-    background-color: var(--card);
-    border: 1px solid var(--border);
-    border-radius: var(--radius-lg);
-    padding: 20px;
-    min-height: 96px;
-    min-width: 240px;
-    overflow: visible;
-}
-
-.os-admin-theme-preview {
-    margin-top: 12px;
-    width: 160px;
-    height: 80px;
-    border-radius: 6px;
-    border: 1px solid var(--border);
-    padding: 8px;
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-    position: relative;
-}
-
-.os-admin-theme-preview-row {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 6px;
-}
-
-.os-admin-theme-wordmark {
-    font-family: var(--font-wordmark);
-    font-size: 14px;
-    font-weight: 400;
-    letter-spacing: -0.01em;
-    line-height: 1;
-}
-
-.os-admin-theme-pill {
-    display: inline-block;
-    height: 14px;
-    width: 52px;
-    border-radius: 999px;
-}
-
-.os-admin-theme-cta {
-    display: inline-block;
-    height: 14px;
-    width: 40px;
-    border-radius: 4px;
-}
-
-.os-admin-theme-active {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    background-color: transparent;
-    color: var(--shell-accent-text);
-    font-size: 13px;
-    font-weight: 600;
-    line-height: 1;
-    padding: 0;
 }

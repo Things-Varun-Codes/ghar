@@ -37,7 +37,7 @@ class BouquetRecipientsTest extends TestCase
             'flowers' => ['red_rose'],
             'image' => base64_encode(file_get_contents(public_path('img/placeholder-bouquet.jpg'))),
             'mime' => 'image/jpeg',
-        ])->assertRedirect('/apps/our-mailbox/flowers');
+        ])->assertRedirect('/apps/our-mailbox/flowers?tab=sent');
 
         $bouquet = Bouquet::firstOrFail();
 

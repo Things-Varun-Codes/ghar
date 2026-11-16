@@ -1,7 +1,6 @@
 import { router, usePage } from '@inertiajs/react';
 import { Plus } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { Skeleton } from '@/components/ui/skeleton';
 import { captureSilent } from '@/lib/observability';
 import type { EventPermissions } from '@/MiniApps/History/Components/CalendarMonth';
 import EventCard from '@/MiniApps/History/Components/EventCard';
@@ -11,11 +10,11 @@ import SortDropdown from '@/MiniApps/History/Components/SortDropdown';
 import YearBanner from '@/MiniApps/History/Components/YearBanner';
 import YearJumpRail from '@/MiniApps/History/Components/YearJumpRail';
 import { useConversionPolling } from '@/MiniApps/History/Hooks/useConversionPolling';
+import { useMomentFromUrl } from '@/MiniApps/History/Hooks/useMomentFromUrl';
 import HistoryLayout from '@/MiniApps/History/Layouts/HistoryLayout';
 import { timeline } from '@/routes/apps/our-history';
 import EmptyState from '@/Shell/Components/EmptyState';
 import Fab from '@/Shell/Components/Fab';
-import AppLayout from '@/Shell/Layouts/AppLayout';
 import type { Auth } from '@/types/auth';
 
 type Change = {
@@ -62,6 +61,7 @@ type Props = {
     eventsCount: number;
     lastEventOccurredOn: string | null;
     yearCounts: Record<number, number>;
+    moment?: HistoryEvent | null;
 };
 
 const NUMBER_WORDS: Record<number, string> = {
@@ -143,6 +143,7 @@ export default function Timeline({
     eventsCount,
     lastEventOccurredOn,
     yearCounts,
+    moment,
 }: Props) {
     const daysSinceLast = lastEventOccurredOn
         ? daysSinceDate(lastEventOccurredOn, new Date())
@@ -164,7 +165,11 @@ export default function Timeline({
     const [sheetMode, setSheetMode] = useState<'add' | 'edit' | 'read'>('add');
     const [editingEvent, setEditingEvent] = useState<HistoryEvent | null>(null);
 
-    const lastTriggerRef = useRef<HTMLElement | null>(null);
+    useMomentFromUrl(moment, initialEvents.data, (event) => {
+        setEditingEvent(event);
+        setSheetMode('read');
+        setSheetOpen(true);
+    });
 
     const [accumulatedEvents, setAccumulatedEvents] = useState<HistoryEvent[]>(
         initialEvents.data,
@@ -284,127 +289,119 @@ export default function Timeline({
     const isEmpty = accumulatedEvents.length === 0;
 
     return (
-        <AppLayout>
-            <HistoryLayout
-                activeTab="timeline"
-                count={
-                    <span className="font-sans text-(length:--text-eyebrow) text-(--history-ink-soft)">
-                        {countLine}
-                    </span>
-                }
-                controls={
-                    <div className="history-sort-toolbar">
+        <HistoryLayout
+            activeTab="timeline"
+            count={
+                <span className="font-sans text-(length:--text-eyebrow) text-(--history-ink-soft)">
+                    {countLine}
+                </span>
+            }
+            controls={
+                <div className="history-sort-toolbar">
+                    <SortDropdown
+                        currentOrder={order}
+                        basePath={timeline.url()}
+                    />
+                </div>
+            }
+        >
+            <YearJumpRail years={distinctYears} />
+
+            <Fab
+                ariaLabel="Add moment"
+                icon={<Plus aria-hidden="true" size={24} strokeWidth={2.5} />}
+                onClick={() => {
+                    setEditingEvent(null);
+                    setSheetMode('add');
+                    setSheetOpen(true);
+                }}
+            />
+
+            {isEmpty && (
+                <EmptyState
+                    title="The family album is empty."
+                    body="Add your first moment. Any date will do, and you can always go back further."
+                    action={
+                        <button
+                            type="button"
+                            onClick={() => {
+                                setEditingEvent(null);
+                                setSheetMode('add');
+                                setSheetOpen(true);
+                            }}
+                            className="history-btn-add-first shell-press"
+                        >
+                            Add your first moment
+                        </button>
+                    }
+                />
+            )}
+
+            {!isEmpty && (
+                <div className="timeline history-timeline-wrapper history-timeline-body relative m-0">
+                    <div className="history-sort-sticky">
                         <SortDropdown
                             currentOrder={order}
                             basePath={timeline.url()}
                         />
                     </div>
-                }
-            >
-                <YearJumpRail years={distinctYears} />
 
-                <Fab
-                    ariaLabel="Add moment"
-                    icon={
-                        <Plus aria-hidden="true" size={24} strokeWidth={2.5} />
-                    }
-                    onClick={() => {
-                        lastTriggerRef.current =
-                            document.activeElement as HTMLElement | null;
-                        setEditingEvent(null);
-                        setSheetMode('add');
-                        setSheetOpen(true);
-                    }}
-                />
-
-                {isEmpty && (
-                    <EmptyState
-                        title="The family album is empty."
-                        body="Add your first moment. Any date will do, and you can always go back further."
-                        action={
-                            <button
-                                type="button"
-                                onClick={() => {
-                                    lastTriggerRef.current =
-                                        document.activeElement as HTMLElement | null;
-                                    setEditingEvent(null);
-                                    setSheetMode('add');
-                                    setSheetOpen(true);
-                                }}
-                                className="history-btn-add-first"
-                            >
-                                Add your first moment
-                            </button>
-                        }
+                    <div
+                        aria-hidden="true"
+                        className="history-timeline-rail history-rail-line"
                     />
-                )}
 
-                {!isEmpty && (
-                    <div className="timeline history-timeline-wrapper history-timeline-body relative m-0">
-                        <div className="history-sort-sticky">
-                            <SortDropdown
-                                currentOrder={order}
-                                basePath={timeline.url()}
+                    {yearGroups.map(({ year, events: yearEvents }) => (
+                        <div key={year}>
+                            <YearBanner
+                                year={year}
+                                count={yearCounts[year] ?? yearEvents.length}
                             />
-                        </div>
-
-                        <div
-                            aria-hidden="true"
-                            className="history-timeline-rail history-rail-line"
-                        />
-
-                        {yearGroups.map(({ year, events: yearEvents }) => (
-                            <div key={year}>
-                                <YearBanner
-                                    year={year}
-                                    count={
-                                        yearCounts[year] ?? yearEvents.length
-                                    }
-                                />
-                                {yearEvents.map((event) => (
-                                    <div key={event.id} className="relative">
-                                        <EventCard
-                                            event={event}
-                                            onRead={(id) => {
-                                                lastTriggerRef.current =
-                                                    document.activeElement as HTMLElement | null;
-                                                const target =
-                                                    accumulatedEvents.find(
-                                                        (e) => e.id === id,
-                                                    ) ?? null;
-                                                setEditingEvent(target);
-                                                setSheetMode('read');
-                                                setSheetOpen(true);
-                                            }}
-                                        />
-                                    </div>
-                                ))}
-                            </div>
-                        ))}
-
-                        {loadingMore && (
-                            <div className="pb-4">
-                                {[1, 2, 3].map((i) => (
-                                    <Skeleton
-                                        key={i}
-                                        className="history-skeleton-block"
+                            {yearEvents.map((event) => (
+                                <div key={event.id} className="relative">
+                                    <EventCard
+                                        event={event}
+                                        onRead={(id) => {
+                                            const target =
+                                                accumulatedEvents.find(
+                                                    (e) => e.id === id,
+                                                ) ?? null;
+                                            setEditingEvent(target);
+                                            setSheetMode('read');
+                                            setSheetOpen(true);
+                                        }}
                                     />
-                                ))}
-                            </div>
-                        )}
+                                </div>
+                            ))}
+                        </div>
+                    ))}
 
-                        <div ref={sentinelRef} className="h-[1px]" />
-                    </div>
-                )}
+                    {loadingMore && (
+                        <div
+                            className="pb-4"
+                            role="status"
+                            aria-busy="true"
+                            aria-label="Loading more"
+                        >
+                            {[1, 2, 3].map((i) => (
+                                <div
+                                    key={i}
+                                    className="history-skeleton-block shell-skeleton"
+                                />
+                            ))}
+                        </div>
+                    )}
 
-                <EventSheet
-                    open={sheetOpen}
-                    onOpenChange={setSheetOpen}
-                    mode={sheetMode}
-                    editingEvent={editingEvent}
-                    triggerRef={lastTriggerRef}
-                />
-            </HistoryLayout>
-        </AppLayout>
+                    <div ref={sentinelRef} className="h-[1px]" />
+                </div>
+            )}
+
+            <EventSheet
+                open={sheetOpen}
+                onOpenChange={setSheetOpen}
+                mode={sheetMode}
+                editingEvent={editingEvent}
+            />
+        </HistoryLayout>
     );
 }

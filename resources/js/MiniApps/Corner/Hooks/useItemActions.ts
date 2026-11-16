@@ -1,6 +1,12 @@
 import { router } from '@inertiajs/react';
+import * as Sentry from '@sentry/react';
 import { useRef, useState } from 'react';
 import { toast } from 'sonner';
+
+import {
+    MUTATION_FAILED_MESSAGE,
+    transportFailureOptions,
+} from '@/lib/mutation';
 
 import {
     destroy as activitiesDestroy,
@@ -40,6 +46,8 @@ export type UseItemActionsOptions = {
 
 export type UseItemActionsReturn = {
     isPendingDelete: boolean;
+    /* A toggle is in flight; the control ignores taps until it settles. */
+    isTogglePending: boolean;
     handleEdit: () => void;
     handleToggleDone: () => void;
     handleDelete: () => void;
@@ -71,6 +79,8 @@ const ROUTE_HELPERS: Record<
     },
 };
 
+const COMPONENT = 'Corner/useItemActions';
+
 type PendingDelete = {
     timerId: ReturnType<typeof setTimeout>;
     toastId: string | number;
@@ -84,6 +94,8 @@ export function useItemActions({
     onDeleted,
 }: UseItemActionsOptions): UseItemActionsReturn {
     const [isPendingDelete, setIsPendingDelete] = useState(false);
+    const [isTogglePending, setIsTogglePending] = useState(false);
+    const toggleInFlightRef = useRef(false);
 
     const pendingRef = useRef<PendingDelete | null>(null);
 
@@ -92,10 +104,36 @@ export function useItemActions({
     };
 
     const handleToggleDone = () => {
+        // A ref, not the state: a double tap lands before the re-render that would disable it.
+        if (toggleInFlightRef.current) {
+            return;
+        }
+
+        toggleInFlightRef.current = true;
+        setIsTogglePending(true);
+
         router.patch(
             ROUTE_HELPERS[type].toggleDoneUrl(id),
             {},
-            { preserveScroll: true },
+            {
+                preserveScroll: true,
+                // Nothing to fill in, so a rejection is unexpected: reported, like the delete's.
+                onError: (errors) => {
+                    Sentry.captureException(new Error('toggle-done rejected'), {
+                        tags: { component: COMPONENT, action: 'toggle-done' },
+                        extra: { errors },
+                    });
+                    toast.error(MUTATION_FAILED_MESSAGE);
+                },
+                ...transportFailureOptions({
+                    component: COMPONENT,
+                    action: 'toggle-done',
+                }),
+                onFinish: () => {
+                    toggleInFlightRef.current = false;
+                    setIsTogglePending(false);
+                },
+            },
         );
     };
 
@@ -116,8 +154,27 @@ export function useItemActions({
         setIsPendingDelete(true);
 
         const timerId = setTimeout(() => {
+            pendingRef.current = null;
+            const message = `Couldn't remove ${title ?? 'that'}. Try again.`;
+            // Still on the list, the row comes back; a detail page has already left.
+            const restore = () => setIsPendingDelete(false);
+
             router.delete(ROUTE_HELPERS[type].destroyUrl(id), {
                 preserveScroll: true,
+                onError: (errors) => {
+                    Sentry.captureException(new Error('delete rejected'), {
+                        tags: { component: COMPONENT, action: 'delete' },
+                        extra: { errors },
+                    });
+                    restore();
+                    toast.error(message);
+                },
+                ...transportFailureOptions({
+                    component: COMPONENT,
+                    action: 'delete',
+                    message,
+                    onFailed: restore,
+                }),
             });
         }, DELETE_GRACE_PERIOD_MS);
 
@@ -131,13 +188,13 @@ export function useItemActions({
 
         pendingRef.current = { timerId, toastId };
 
-        // 4. LAST — after the toast exists. On a detail page this navigates
-        // away; the toast must already be raised so it survives.
+        // After the toast exists: on a detail page this navigates away, and the toast must survive it.
         onDeleted?.();
     };
 
     return {
         isPendingDelete,
+        isTogglePending,
         handleEdit,
         handleToggleDone,
         handleDelete,

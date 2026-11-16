@@ -8,6 +8,7 @@ use App\Shell\Notifications\GenericPushNotification;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Notification;
+use Inertia\Support\SessionKey;
 use Tests\TestCase;
 
 class CornerMoviesTest extends TestCase
@@ -23,21 +24,25 @@ class CornerMoviesTest extends TestCase
 
         $this->actingAs($adder)
             ->post('/apps/our-corner/movies', ['title' => 'Inception'])
-            ->assertRedirect('/apps/our-corner/movies');
+            ->assertRedirect('/apps/our-corner/movies')
+            ->assertSessionHas(SessionKey::FLASH_DATA, ['toast' => ['type' => 'success', 'message' => 'Movie added.']]);
 
         $this->assertDatabaseHas('corner_movies', [
             'title' => 'Inception',
             'added_by_user_id' => $adder->id,
         ]);
 
+        $itemUrl = '/apps/our-corner/movies/'.Movie::query()->latest('id')->value('id');
+
         Notification::assertSentTo(
             $recipient,
             GenericPushNotification::class,
-            function (GenericPushNotification $n) use ($recipient) {
+            function (GenericPushNotification $n) use ($recipient, $itemUrl) {
                 $webPush = $n->toWebPush($recipient, $n)->toArray();
 
                 return ($webPush['tag'] ?? null) === 'our-corner:movies'
-                    && str_contains($webPush['body'] ?? '', 'added a movie: Inception');
+                    && str_contains($webPush['body'] ?? '', 'added a movie: Inception')
+                    && ($webPush['data']['url'] ?? null) === $itemUrl;
             }
         );
     }

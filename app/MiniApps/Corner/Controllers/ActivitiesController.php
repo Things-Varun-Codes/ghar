@@ -11,6 +11,7 @@ use App\MiniApps\Corner\Http\Resources\ActivityResource;
 use App\MiniApps\Corner\Models\Activity;
 use App\Shell\Services\LinkableEntities;
 use App\Shell\Support\CursorList;
+use App\Shell\Support\FlashToast;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -67,6 +68,9 @@ class ActivitiesController
 
         $action($request->validated(), $adder);
 
+        FlashToast::success('Activity added.');
+
+        // No query string: a new item must show even if a search or filter was active.
         return redirect('/apps/our-corner/activities');
     }
 

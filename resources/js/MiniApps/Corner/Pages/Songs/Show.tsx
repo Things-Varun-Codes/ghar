@@ -1,4 +1,5 @@
-import { Head, router } from '@inertiajs/react';
+import { router } from '@inertiajs/react';
+import { ArrowUpRight } from 'lucide-react';
 import { useState } from 'react';
 import DetailPage from '@/MiniApps/Corner/Components/DetailPage';
 import type { MentionedInRef } from '@/MiniApps/Corner/Components/MentionedInList';
@@ -7,7 +8,6 @@ import type { ItemPermissions } from '@/MiniApps/Corner/Hooks/useItemActions';
 import { useItemActions } from '@/MiniApps/Corner/Hooks/useItemActions';
 import CornerLayout from '@/MiniApps/Corner/Layouts/CornerLayout';
 import { index as songsIndex } from '@/routes/apps/our-corner/songs';
-import AppLayout from '@/Shell/Layouts/AppLayout';
 import { entityIcon } from '@/Shell/linkables/entityIcon';
 
 const SongIcon = entityIcon('corner.song');
@@ -56,74 +56,76 @@ export default function SongsShow({ song, mentioned_in }: Props) {
     });
 
     return (
-        <AppLayout>
-            <Head title={song.title} />
-            <CornerLayout>
-                <DetailPage
-                    title={song.title}
-                    can={song.can}
-                    addedByName={song.addedBy.name}
-                    metaSuffix={providerLabel(song.provider).replace(
-                        /^Open in /,
-                        '',
-                    )}
-                    mentionedIn={mentioned_in}
-                    isDone={song.is_loved}
-                    doneIcon="heart"
-                    doneLabel={{ active: 'Love', done: 'Loved' }}
-                    itemActions={itemActions}
-                    hero={() => (
-                        <div className="corner-cd corner-cd--lg corner-detail-hero-media">
-                            {song.thumbnail_url && !thumbnailBroken ? (
-                                <img
-                                    src={song.thumbnail_url}
-                                    alt=""
-                                    className="corner-cd-cover"
-                                    onError={() => setThumbnailBroken(true)}
-                                />
-                            ) : (
-                                <div
-                                    className="corner-cd-fallback"
-                                    aria-hidden="true"
-                                >
-                                    <SongIcon
-                                        size={48}
-                                        strokeWidth={1.5}
-                                        className="corner-detail-fallback-icon"
-                                    />
-                                </div>
-                            )}
-                        </div>
-                    )}
-                    body={() =>
-                        song.author && (
-                            <p className="corner-detail-lede">{song.author}</p>
-                        )
-                    }
-                    externalCta={() => (
-                        <a
-                            href={song.url}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="corner-detail-cta"
-                        >
-                            {providerLabel(song.provider)} ↗
-                        </a>
-                    )}
-                />
-
-                {song.can.update && editOpen && (
-                    <SongAddDialog
-                        item={{ id: song.id, url: song.url }}
-                        open
-                        onOpenChange={(next) => {
-                            if (!next) {
-                                setEditOpen(false);
-                            }
-                        }}
-                    />
+        <CornerLayout>
+            <DetailPage
+                title={song.title}
+                can={song.can}
+                addedByName={song.addedBy.name}
+                metaSuffix={providerLabel(song.provider).replace(
+                    /^Open in /,
+                    '',
                 )}
-            </CornerLayout>
-        </AppLayout>
+                mentionedIn={mentioned_in}
+                isDone={song.is_loved}
+                doneIcon="heart"
+                doneLabel={{ active: 'Love', done: 'Loved' }}
+                itemActions={itemActions}
+                hero={() => (
+                    <div className="corner-cd corner-cd--lg corner-detail-hero-media">
+                        {song.thumbnail_url && !thumbnailBroken ? (
+                            <img
+                                src={song.thumbnail_url}
+                                alt=""
+                                className="corner-cd-cover"
+                                onError={() => setThumbnailBroken(true)}
+                            />
+                        ) : (
+                            <div
+                                className="corner-cd-fallback"
+                                aria-hidden="true"
+                            >
+                                <SongIcon
+                                    size={48}
+                                    strokeWidth={1.5}
+                                    className="corner-detail-fallback-icon"
+                                />
+                            </div>
+                        )}
+                    </div>
+                )}
+                body={() =>
+                    song.author && (
+                        <p className="corner-detail-lede">{song.author}</p>
+                    )
+                }
+                externalCta={() => (
+                    <a
+                        href={song.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="corner-detail-cta shell-press"
+                    >
+                        {providerLabel(song.provider)}
+                        <ArrowUpRight
+                            aria-hidden="true"
+                            size={16}
+                            strokeWidth={1.5}
+                        />
+                    </a>
+                )}
+            />
+
+            {song.can.update && editOpen && (
+                <SongAddDialog
+                    item={{ id: song.id, url: song.url }}
+                    open
+                    onOpenChange={(next) => {
+                        if (!next) {
+                            setEditOpen(false);
+                        }
+                    }}
+                />
+            )}
+        </CornerLayout>
     );
 }

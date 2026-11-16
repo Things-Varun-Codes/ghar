@@ -13,6 +13,7 @@ use App\MiniApps\Mailbox\Models\Bouquet;
 use App\MiniApps\Mailbox\Support\BouquetPromptBuilder;
 use App\Shell\Services\Household;
 use App\Shell\Support\CursorList;
+use App\Shell\Support\FlashToast;
 use App\Shell\Support\ResolvesListSort;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
@@ -108,7 +109,9 @@ class BouquetsController
     {
         $action($request, $request->user());
 
-        return redirect('/apps/our-mailbox/flowers');
+        FlashToast::success('Flowers sent.');
+
+        return redirect('/apps/our-mailbox/flowers?tab=sent');
     }
 
     public function destroy(Request $request, Bouquet $bouquet): RedirectResponse
@@ -116,6 +119,8 @@ class BouquetsController
         Gate::authorize('delete', $bouquet);
 
         $bouquet->delete();
+
+        FlashToast::success('Flowers deleted.');
 
         return redirect()->back();
     }

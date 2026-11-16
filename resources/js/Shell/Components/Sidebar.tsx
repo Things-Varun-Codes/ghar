@@ -1,32 +1,32 @@
 import { Link, usePage } from '@inertiajs/react';
-import { ChevronDown, ChevronRight, Home } from 'lucide-react';
+import {
+    ChevronDown,
+    ChevronRight,
+    Home,
+    Settings,
+    Shield,
+} from 'lucide-react';
+import type { ReactNode } from 'react';
 import { useId, useState } from 'react';
 import { dashboard } from '@/routes';
-import * as invites from '@/routes/admin/invites';
-import * as adminNotifications from '@/routes/admin/notifications';
-import * as shortlinks from '@/routes/admin/shortlinks';
-import * as theme from '@/routes/admin/theme';
-import * as users from '@/routes/admin/users';
-import * as notifications from '@/routes/settings/notifications';
-import * as password from '@/routes/settings/password';
-import * as profile from '@/routes/settings/profile';
 import HeartMark from '@/Shell/Components/HeartMark';
+import type { ShellNavItem } from '@/Shell/Components/shell-nav';
+import {
+    ADMIN_ITEMS,
+    SETTINGS_ITEMS,
+    isRouteActive,
+} from '@/Shell/Components/shell-nav';
 
 type SharedProps = {
     auth: { user: { name: string; email: string; roles: string[] } | null };
 };
 
-export default function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
+export default function Sidebar() {
     const { props, url } = usePage<SharedProps>();
     const user = props.auth.user;
     const isAdmin = user?.roles?.includes('admin') ?? false;
 
-    const settingsItems: GroupItem[] = [
-        { href: profile.show.url(), label: 'Profile' },
-        { href: password.show.url(), label: 'Password' },
-        { href: notifications.show.url(), label: 'Notifications' },
-    ];
-    const settingsHasActive = settingsItems.some((i) =>
+    const settingsHasActive = SETTINGS_ITEMS.some((i) =>
         isRouteActive(url, i.href),
     );
     const adminHasActive = ADMIN_ITEMS.some((i) => isRouteActive(url, i.href));
@@ -40,8 +40,8 @@ export default function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
                 <div className="flex items-center gap-1">
                     <Link
                         href={dashboard().url}
-                        aria-label="Go to dashboard"
-                        className="block cursor-pointer transition-opacity hover:opacity-85"
+                        aria-label={`${props.name}, go to Home`}
+                        className="shell-focus inline-flex min-h-11 items-center rounded-full"
                     >
                         <div className="shell-wordmark-sidebar">
                             {props.name}
@@ -54,17 +54,18 @@ export default function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
             <ul className="flex-1 space-y-0.5 px-3">
                 <NavItem
                     href={dashboard.url()}
-                    icon={<Home size={18} />}
+                    icon={<Home size={18} strokeWidth={1.5} />}
                     label="Home"
-                    active={url === dashboard.url() || url === '/'}
-                    onNavigate={onNavigate}
+                    active={isRouteActive(url, dashboard.url())}
                 />
 
                 <li role="presentation" className="h-[12px]" />
 
-                <li role="presentation">
-                    <div className="shell-nav-section-label">Manage</div>
-                </li>
+                {isAdmin && (
+                    <li role="presentation">
+                        <div className="shell-nav-section-label">Manage</div>
+                    </li>
+                )}
 
                 {/*
                  * No heading role: a level-3 heading with no h1/h2 ancestor is an invalid jump for
@@ -72,17 +73,17 @@ export default function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
                  */}
                 <NavGroup
                     label="Settings"
+                    icon={<Settings size={18} strokeWidth={1.5} />}
                     open={settingsHasActive}
-                    onNavigate={onNavigate}
-                    items={settingsItems}
+                    items={SETTINGS_ITEMS}
                     url={url}
                 />
 
                 {isAdmin && (
                     <NavGroup
                         label="Admin"
+                        icon={<Shield size={18} strokeWidth={1.5} />}
                         open={adminHasActive}
-                        onNavigate={onNavigate}
                         items={ADMIN_ITEMS}
                         url={url}
                     />
@@ -111,39 +112,18 @@ export default function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
     );
 }
 
-type GroupItem = { href: string; label: string };
-
-const ADMIN_ITEMS: GroupItem[] = [
-    { href: invites.index.url(), label: 'Invites' },
-    { href: users.index.url(), label: 'Users' },
-    { href: theme.index.url(), label: 'Theme' },
-    { href: adminNotifications.show.url(), label: 'Send notification' },
-    { href: shortlinks.index.url(), label: 'Shortlinks' },
-];
-
-function isRouteActive(url: string, route: string): boolean {
-    const u = url.replace(/\/$/, '');
-    const r = route.replace(/\/$/, '');
-
-    if (r === '') {
-        return u === '';
-    }
-
-    return u === r || u.startsWith(r + '/');
-}
-
 function NavGroup({
     label,
+    icon,
     open: hasActiveChild,
     items,
     url,
-    onNavigate,
 }: {
     label: string;
+    icon: ReactNode;
     open: boolean;
-    items: GroupItem[];
+    items: ShellNavItem[];
     url: string;
-    onNavigate?: () => void;
 }) {
     const [open, setOpen] = useState(hasActiveChild);
     const listId = useId();
@@ -164,13 +144,14 @@ function NavGroup({
         <li>
             <button
                 type="button"
-                className="shell-focus shell-nav-group-toggle flex w-full items-center justify-between rounded-lg transition-colors"
+                className="shell-focus shell-nav-item shell-nav-group-toggle flex w-full items-center gap-3 px-3"
                 aria-expanded={open}
                 aria-controls={listId}
                 onClick={() => setOpen((prev) => !prev)}
             >
-                <span>{label}</span>
-                <Chevron size={14} aria-hidden="true" />
+                <span aria-hidden="true">{icon}</span>
+                <span className="flex-1 text-left">{label}</span>
+                <Chevron size={16} strokeWidth={1.5} aria-hidden="true" />
             </button>
             <ul id={listId} hidden={!open} className="space-y-0.5">
                 {items.map((item) => (
@@ -179,7 +160,6 @@ function NavGroup({
                         href={item.href}
                         label={item.label}
                         active={isRouteActive(url, item.href)}
-                        onNavigate={onNavigate}
                     />
                 ))}
             </ul>
@@ -192,30 +172,20 @@ function NavItem({
     icon,
     label,
     active,
-    onNavigate,
 }: {
     href: string;
-    icon: React.ReactNode;
+    icon: ReactNode;
     label: string;
     active: boolean;
-    onNavigate?: () => void;
 }) {
     return (
         <li>
             <Link
                 href={href}
-                onClick={onNavigate}
-                className="shell-focus shell-nav-item flex items-center gap-3 px-3 transition-colors"
-                style={{
-                    color: active
-                        ? 'var(--sidebar-primary-foreground)'
-                        : 'color-mix(in oklab, var(--foreground) 74%, transparent)',
-                    backgroundColor: active
-                        ? 'var(--sidebar-primary)'
-                        : 'transparent',
-                }}
+                aria-current={active ? 'page' : undefined}
+                className="shell-focus shell-nav-item flex items-center gap-3 px-3"
             >
-                <span className="text-inherit">{icon}</span>
+                <span aria-hidden="true">{icon}</span>
                 <span>{label}</span>
             </Link>
         </li>
@@ -226,28 +196,17 @@ function SubNavItem({
     href,
     label,
     active,
-    onNavigate,
 }: {
     href: string;
     label: string;
     active: boolean;
-    onNavigate?: () => void;
 }) {
     return (
         <li>
             <Link
                 href={href}
-                onClick={onNavigate}
-                className="shell-focus shell-nav-subitem flex items-center transition-colors"
-                style={{
-                    fontWeight: active ? 500 : 400,
-                    color: active
-                        ? 'var(--sidebar-primary-foreground)'
-                        : 'color-mix(in oklab, var(--foreground) 74%, transparent)',
-                    backgroundColor: active
-                        ? 'var(--sidebar-primary)'
-                        : 'transparent',
-                }}
+                aria-current={active ? 'page' : undefined}
+                className="shell-focus shell-nav-subitem flex items-center"
             >
                 {label}
             </Link>

@@ -6,9 +6,9 @@
 .os-settings-input {
     min-height: 44px;
     font-size: var(--text-body);
-    background-color: var(--background);
+    background-color: var(--card);
     color: var(--foreground);
-    border: 1px solid var(--border);
+    border: 1px solid var(--shell-border-input);
 }
 
 /* Source order matters: must be authored after .os-settings-input so the
@@ -20,20 +20,39 @@
 
 .os-settings-submit {
     min-height: 44px;
-    font-size: var(--text-small);
-    font-weight: 600;
+    padding-inline: 24px;
+    font-size: var(--text-body);
+    font-weight: 500;
     color: var(--primary-foreground);
     background-color: var(--primary);
 }
 
+.os-settings-submit:hover {
+    background-color: color-mix(
+        in oklab,
+        var(--shell-action) 86%,
+        var(--shell-text)
+    );
+}
+
 .os-settings-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    min-height: 44px;
+    padding: 0 4px;
+    border-radius: var(--radius-pill);
     font-size: var(--text-small);
     color: var(--muted-foreground);
 }
 
+.os-settings-link:hover {
+    color: var(--foreground);
+}
+
 .os-settings-row-label {
     font-size: var(--text-small);
-    font-weight: 600;
+    font-weight: 500;
     color: var(--foreground);
 }
 
@@ -51,6 +70,6 @@
 
 .os-settings-notice {
     font-size: var(--text-small);
-    font-weight: 600;
+    font-weight: 500;
     color: var(--foreground);
 }

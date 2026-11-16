@@ -1,4 +1,4 @@
-import { Head, router, useForm } from '@inertiajs/react';
+import { router, useForm } from '@inertiajs/react';
 import { Link2 } from 'lucide-react';
 import { useState } from 'react';
 import type { FormEventHandler } from 'react';
@@ -29,13 +29,13 @@ import {
     TableHeader,
     TableRow,
 } from '@/components/ui/table';
+import { mutationOptions } from '@/lib/mutation';
 import { cn } from '@/lib/utils';
 import * as shortlinksRoutes from '@/routes/admin/shortlinks';
 import EmptyState from '@/Shell/Components/EmptyState';
 import FormField from '@/Shell/Components/FormField';
 import Page from '@/Shell/Components/Page';
 import SubmitButton from '@/Shell/Components/SubmitButton';
-import AppLayout from '@/Shell/Layouts/AppLayout';
 
 interface ShortLink {
     id: number;
@@ -90,7 +90,7 @@ function EditShortLinkForm({
                     value={data.label}
                     onChange={(e) => setData('label', e.target.value)}
                     className={cn(
-                        'os-admin-control block w-full rounded-lg border px-3 py-2.5 outline-none focus:ring-2 focus:ring-offset-1',
+                        'os-admin-control shell-field block w-full border px-3 py-2.5 outline-none',
                         errors.label && 'os-admin-control--invalid',
                     )}
                     required
@@ -107,7 +107,7 @@ function EditShortLinkForm({
                     value={data.destination}
                     onChange={(e) => setData('destination', e.target.value)}
                     className={cn(
-                        'os-admin-control block w-full rounded-lg border px-3 py-2.5 outline-none focus:ring-2 focus:ring-offset-1',
+                        'os-admin-control shell-field block w-full border px-3 py-2.5 outline-none',
                         errors.destination && 'os-admin-control--invalid',
                     )}
                     required
@@ -117,14 +117,14 @@ function EditShortLinkForm({
                 <SubmitButton
                     processing={processing}
                     busyText="Saving…"
-                    className="os-admin-tap os-admin-fill-primary os-admin-submit rounded-lg px-5 font-semibold"
+                    className="os-admin-tap os-admin-fill-primary os-admin-submit shell-press px-5 font-medium"
                 >
                     Save
                 </SubmitButton>
                 <button
                     type="button"
                     onClick={onDone}
-                    className="os-admin-tap os-admin-tap-center os-admin-cancel-link rounded-lg px-5 font-medium transition-colors"
+                    className="os-admin-tap os-admin-tap-center os-admin-cancel-link shell-press px-5 font-medium"
                 >
                     Cancel
                 </button>
@@ -166,13 +166,46 @@ export default function ShortLinks({ shortlinks }: Props) {
         );
     };
 
+    const [toggling, setToggling] = useState<Set<number>>(new Set());
+
     const toggleEnabled = (shortlink: ShortLink) => {
+        if (toggling.has(shortlink.id)) {
+            return;
+        }
+
         router.patch(
             shortlinksRoutes.update.url({ shortlink: shortlink.id }),
             { enabled: !shortlink.enabled },
-            { preserveScroll: true },
+            {
+                preserveScroll: true,
+                ...mutationOptions({
+                    component: 'Admin/ShortLinks',
+                    action: 'toggleEnabled',
+                    onPendingChange: (pending) =>
+                        setToggling((current) => {
+                            const next = new Set(current);
+
+                            if (pending) {
+                                next.add(shortlink.id);
+                            } else {
+                                next.delete(shortlink.id);
+                            }
+
+                            return next;
+                        }),
+                }),
+            },
         );
     };
+
+    const renderSwitch = (shortlink: ShortLink) => (
+        <Switch
+            checked={shortlink.enabled}
+            disabled={toggling.has(shortlink.id)}
+            onCheckedChange={() => toggleEnabled(shortlink)}
+            aria-label={`${shortlink.label} enabled`}
+        />
+    );
 
     const copyUrl = async (url: string) => {
         if (!navigator.clipboard) {
@@ -200,7 +233,8 @@ export default function ShortLinks({ shortlinks }: Props) {
             <button
                 type="button"
                 onClick={() => copyUrl(shortlink.url)}
-                className="os-admin-row-action os-admin-fill-accent inline-flex shrink-0 items-center justify-center rounded-md text-sm font-medium transition-colors hover:opacity-80"
+                aria-label={`Copy the ${shortlink.label} link`}
+                className="os-admin-row-action os-admin-fill-accent shell-press inline-flex shrink-0 items-center justify-center"
             >
                 Copy
             </button>
@@ -208,18 +242,20 @@ export default function ShortLinks({ shortlinks }: Props) {
     );
 
     const renderActions = (shortlink: ShortLink) => (
-        <div className="flex items-center justify-end gap-2">
+        <div className="flex items-center gap-2">
             <button
                 type="button"
                 onClick={() => setEditing(shortlink)}
-                className="os-admin-row-action os-admin-fill-accent inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors hover:opacity-80"
+                aria-label={`Edit ${shortlink.label}`}
+                className="os-admin-row-action os-admin-fill-accent shell-press inline-flex items-center justify-center"
             >
                 Edit
             </button>
             <button
                 type="button"
                 onClick={() => handleDelete(shortlink)}
-                className="os-admin-row-action os-admin-outline-destructive inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors hover:opacity-80"
+                aria-label={`Delete ${shortlink.label}`}
+                className="os-admin-row-action os-admin-outline-destructive shell-press inline-flex items-center justify-center"
             >
                 Delete
             </button>
@@ -227,11 +263,9 @@ export default function ShortLinks({ shortlinks }: Props) {
     );
 
     return (
-        <AppLayout>
-            <Head title="Shortlinks — Admin" />
-
-            <Page tier="index" title="Shortlinks" backChevron>
-                <div className="os-admin-surface mb-6 rounded-xl border p-6">
+        <>
+            <Page title="Shortlinks" room="Admin" backChevron>
+                <div className="os-admin-surface mb-6 border p-6">
                     <h2 className="os-admin-section-title mb-4">
                         Create shortlink
                     </h2>
@@ -254,7 +288,7 @@ export default function ShortLinks({ shortlinks }: Props) {
                                 }
                                 placeholder="e.g. Keychain NFC tag"
                                 className={cn(
-                                    'os-admin-control block w-full rounded-lg border px-3 py-2.5 outline-none focus:ring-2 focus:ring-offset-1',
+                                    'os-admin-control shell-field block w-full border px-3 py-2.5 outline-none',
                                     errors.label && 'os-admin-control--invalid',
                                 )}
                                 required
@@ -273,9 +307,9 @@ export default function ShortLinks({ shortlinks }: Props) {
                                 onChange={(e) =>
                                     setData('destination', e.target.value)
                                 }
-                                placeholder="https://…"
+                                placeholder="https://example.com/page"
                                 className={cn(
-                                    'os-admin-control block w-full rounded-lg border px-3 py-2.5 outline-none focus:ring-2 focus:ring-offset-1',
+                                    'os-admin-control shell-field block w-full border px-3 py-2.5 outline-none',
                                     errors.destination &&
                                         'os-admin-control--invalid',
                                 )}
@@ -285,7 +319,7 @@ export default function ShortLinks({ shortlinks }: Props) {
                         <SubmitButton
                             processing={processing}
                             busyText="Creating…"
-                            className="os-admin-tap os-admin-fill-primary os-admin-submit rounded-lg px-5 font-semibold"
+                            className="os-admin-tap os-admin-fill-primary os-admin-submit shell-press px-5 font-medium"
                         >
                             Create shortlink
                         </SubmitButton>
@@ -299,8 +333,8 @@ export default function ShortLinks({ shortlinks }: Props) {
                         body="Create a shortlink above to point an NFC tag somewhere private."
                     />
                 ) : (
-                    <>
-                        <div className="os-admin-surface hidden overflow-x-auto rounded-xl border sm:block">
+                    <div className="@container">
+                        <div className="os-admin-surface hidden overflow-x-auto border @min-[760px]:block">
                             <Table className="min-w-[760px]">
                                 <TableHeader>
                                     <TableRow>
@@ -308,7 +342,7 @@ export default function ShortLinks({ shortlinks }: Props) {
                                         <TableHead>Short URL</TableHead>
                                         <TableHead>Destination</TableHead>
                                         <TableHead>Enabled</TableHead>
-                                        <TableHead className="text-right">
+                                        <TableHead className="os-admin-sticky-actions text-right">
                                             Actions
                                         </TableHead>
                                     </TableRow>
@@ -329,16 +363,12 @@ export default function ShortLinks({ shortlinks }: Props) {
                                                 {shortlink.destination}
                                             </TableCell>
                                             <TableCell>
-                                                <Switch
-                                                    checked={shortlink.enabled}
-                                                    onCheckedChange={() =>
-                                                        toggleEnabled(shortlink)
-                                                    }
-                                                    aria-label={`Toggle ${shortlink.label} enabled`}
-                                                />
+                                                {renderSwitch(shortlink)}
                                             </TableCell>
-                                            <TableCell className="text-right">
-                                                {renderActions(shortlink)}
+                                            <TableCell className="os-admin-sticky-actions">
+                                                <div className="flex justify-end">
+                                                    {renderActions(shortlink)}
+                                                </div>
                                             </TableCell>
                                         </TableRow>
                                     ))}
@@ -346,11 +376,11 @@ export default function ShortLinks({ shortlinks }: Props) {
                             </Table>
                         </div>
 
-                        <div className="flex flex-col gap-3 sm:hidden">
+                        <div className="flex flex-col gap-3 @min-[760px]:hidden">
                             {shortlinks.map((shortlink) => (
                                 <div
                                     key={shortlink.id}
-                                    className="os-admin-surface rounded-xl border p-4"
+                                    className="os-admin-surface border p-4"
                                 >
                                     <div className="mb-3">
                                         <p className="os-admin-strong">
@@ -366,23 +396,17 @@ export default function ShortLinks({ shortlinks }: Props) {
                                     <div className="mb-3">
                                         {renderUrlCell(shortlink)}
                                     </div>
-                                    <div className="mb-3 flex items-center justify-between">
+                                    <div className="mb-3 flex min-h-11 items-center justify-between">
                                         <span className="os-admin-meta">
                                             Enabled
                                         </span>
-                                        <Switch
-                                            checked={shortlink.enabled}
-                                            onCheckedChange={() =>
-                                                toggleEnabled(shortlink)
-                                            }
-                                            aria-label={`Toggle ${shortlink.label} enabled`}
-                                        />
+                                        {renderSwitch(shortlink)}
                                     </div>
                                     {renderActions(shortlink)}
                                 </div>
                             ))}
                         </div>
-                    </>
+                    </div>
                 )}
 
                 <AlertDialog
@@ -420,7 +444,7 @@ export default function ShortLinks({ shortlinks }: Props) {
                     seeds from props on mount only, so without the key,
                     opening a second row's dialog would show the first
                     row's stale values. DialogContent already spreads
-                    useThemeAttrs() internally — do not hand-spread it here. */}
+                    useAppAttrs() internally — do not hand-spread it here. */}
                 <Dialog
                     open={editing !== null}
                     onOpenChange={(open) => {
@@ -447,6 +471,6 @@ export default function ShortLinks({ shortlinks }: Props) {
                     </DialogContent>
                 </Dialog>
             </Page>
-        </AppLayout>
+        </>
     );
 }

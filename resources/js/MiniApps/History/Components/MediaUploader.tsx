@@ -1,5 +1,5 @@
 import { router, usePage } from '@inertiajs/react';
-import { AlertCircle } from 'lucide-react';
+import { AlertCircle, Check, Play, X } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { readXsrfToken } from '@/lib/csrf';
@@ -481,12 +481,7 @@ export default function MediaUploader({ eventId, onStagedCountChange }: Props) {
                         : 'Drop photos and videos here, or press Enter to browse'
                 }
                 className="history-drop-zone"
-                style={{
-                    border: `2px dashed ${dragOver ? 'var(--history-accent)' : 'var(--history-rule)'}`,
-                    backgroundColor: dragOver
-                        ? 'var(--history-accent-soft)'
-                        : 'transparent',
-                }}
+                data-drag-over={dragOver ? 'true' : undefined}
                 onClick={() => {
                     inputRef.current?.click();
                 }}
@@ -528,7 +523,7 @@ export default function MediaUploader({ eventId, onStagedCountChange }: Props) {
             />
 
             {files.length > 0 && (
-                <div className="mt-3 grid grid-cols-[repeat(auto-fill,minmax(96px,1fr))] gap-2">
+                <div className="mt-3 grid grid-cols-[repeat(auto-fill,minmax(112px,1fr))] gap-2">
                     {files.map((entry) => (
                         <UploadTile
                             key={entry.id}
@@ -584,10 +579,12 @@ function UploadTile({
                     />
                 )}
                 {file.type.startsWith('video/') && (
-                    <span className="history-upload-play">▶</span>
+                    <span className="history-upload-play" aria-hidden="true">
+                        <Play size={16} strokeWidth={1.5} fill="currentColor" />
+                    </span>
                 )}
                 <span className="history-upload-check" aria-hidden="true">
-                    ✓
+                    <Check size={16} strokeWidth={1.5} />
                 </span>
             </div>
         );
@@ -609,7 +606,7 @@ function UploadTile({
                     </span>
                     <div className="history-upload-progress-track">
                         <div
-                            className="h-full bg-white [transition:width_0.1s_linear]"
+                            className="h-full bg-(--history-on-photo) [transition:width_0.1s_linear]"
                             style={{ width: `${progress}%` }}
                         />
                     </div>
@@ -635,7 +632,7 @@ function UploadTile({
                     type="button"
                     variant="outline"
                     onClick={onRetry}
-                    className="history-upload-retry h-auto w-auto shadow-none"
+                    className="history-upload-retry shell-hit-44 h-auto w-auto shadow-none"
                 >
                     Retry
                 </Button>
@@ -650,7 +647,7 @@ function UploadTile({
             <div
                 className="history-upload-tile bg-(--history-accent-soft)"
                 style={{
-                    padding: hasThumb ? 0 : '8px 6px',
+                    padding: hasThumb ? 0 : 8,
                     justifyContent: hasThumb ? 'flex-end' : 'center',
                 }}
             >
@@ -691,7 +688,7 @@ function UploadTile({
                         aria-hidden="true"
                         className="history-media-remove-dot"
                     >
-                        ×
+                        <X size={16} strokeWidth={1.5} />
                     </span>
                 </Button>
             </div>

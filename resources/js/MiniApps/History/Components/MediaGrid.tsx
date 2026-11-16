@@ -1,3 +1,5 @@
+import { Play } from 'lucide-react';
+
 export type MediaItem = {
     id: number;
     kind: 'photo' | 'video';
@@ -16,9 +18,11 @@ export type MediaItem = {
 type Props = {
     media: MediaItem[];
     onClickItem?: (item: MediaItem, index: number) => void;
+    /** The moment the photos belong to, so each button is named after it. */
+    contextLabel?: string;
 };
 
-export default function MediaGrid({ media, onClickItem }: Props) {
+export default function MediaGrid({ media, onClickItem, contextLabel }: Props) {
     if (media.length === 0) {
         return null;
     }
@@ -29,7 +33,7 @@ export default function MediaGrid({ media, onClickItem }: Props) {
                 <button
                     key={item.id}
                     type="button"
-                    aria-label={item.kind === 'video' ? 'Video' : 'Photo'}
+                    aria-label={`${item.kind === 'video' ? 'Video' : 'Photo'} ${idx + 1} of ${media.length}${contextLabel ? ` from ${contextLabel}` : ''}`}
                     onClick={() => onClickItem?.(item, idx)}
                     className="history-media-thumb-button"
                     style={{ cursor: onClickItem ? 'zoom-in' : 'default' }}
@@ -52,14 +56,18 @@ export default function MediaGrid({ media, onClickItem }: Props) {
                         />
                     ) : item.pending ? (
                         <div
-                            className="history-pending-tile [aspect-ratio:1]"
+                            className="history-pending-tile shell-skeleton [aspect-ratio:1]"
                             aria-hidden="true"
                         />
                     ) : null}
 
                     {item.kind === 'video' && (
                         <span aria-hidden="true" className="history-play-badge">
-                            ▶
+                            <Play
+                                size={16}
+                                strokeWidth={1.5}
+                                fill="currentColor"
+                            />
                         </span>
                     )}
                 </button>

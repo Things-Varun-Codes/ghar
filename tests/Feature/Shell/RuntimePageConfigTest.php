@@ -30,6 +30,22 @@ class RuntimePageConfigTest extends TestCase
             ->assertJsonCount(3, 'icons');
     }
 
+    public function test_the_manifest_offers_a_shortcut_per_enabled_room(): void
+    {
+        config(['miniapps' => [
+            ['name' => 'Open Room', 'slug' => 'open', 'route' => '/apps/open', 'description' => 'Open.', 'enabled' => true],
+            ['name' => 'Off Room', 'slug' => 'off', 'route' => '/apps/off', 'description' => 'Off.', 'enabled' => false],
+            ['name' => 'Admin Room', 'slug' => 'admin', 'route' => '/apps/admin', 'description' => 'Admin.', 'enabled' => true, 'admin_only' => true],
+        ]]);
+
+        $this->get('/manifest.webmanifest')
+            ->assertOk()
+            ->assertJson(['id' => '/', 'scope' => '/'])
+            ->assertJsonCount(1, 'shortcuts')
+            ->assertJsonPath('shortcuts.0.name', 'Open Room')
+            ->assertJsonPath('shortcuts.0.url', '/apps/open');
+    }
+
     public function test_no_dsn_means_no_sentry_meta(): void
     {
         config(['services.sentry_browser.dsn' => null]);

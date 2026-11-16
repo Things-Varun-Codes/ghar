@@ -23,7 +23,7 @@ export default function DesktopIcon({
             prefetch="mount"
             aria-label={`Open ${app.name}`}
             aria-describedby={summary ? liveId : undefined}
-            className={`os-door os-door--${app.slug} shell-focus`}
+            className={`os-door os-door--${app.slug} shell-lift shell-focus`}
         >
             <span className="os-door-glimpse" aria-hidden="true">
                 {preview?.note ? (
@@ -49,15 +49,15 @@ export default function DesktopIcon({
                     </span>
                 )}
             </span>
-            <span className="os-door-text">
-                <span className="os-door-name">{app.name}</span>
-                <span className="os-door-desc">{app.description}</span>
+            <div className="os-door-text">
+                <h2 className="os-door-name">{app.name}</h2>
+                <p className="os-door-desc">{app.description}</p>
                 {summary && (
-                    <span id={liveId} className="os-door-live">
+                    <p id={liveId} className="os-door-live">
                         {summary}
-                    </span>
+                    </p>
                 )}
-            </span>
+            </div>
         </Link>
     );
 }

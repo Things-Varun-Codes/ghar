@@ -2,6 +2,7 @@ import { router } from '@inertiajs/react';
 import { Heart } from 'lucide-react';
 import { useState } from 'react';
 
+import { mutationOptions } from '@/lib/mutation';
 import ComposerSheet from '@/MiniApps/Mailbox/Components/ComposerSheet';
 import MailboxListPage from '@/MiniApps/Mailbox/Components/MailboxListPage';
 import NoteCard from '@/MiniApps/Mailbox/Components/NoteCard';
@@ -9,7 +10,6 @@ import type { MessageItem } from '@/MiniApps/Mailbox/Components/NoteCard';
 import type { HouseholdMember } from '@/MiniApps/Mailbox/Components/RecipientPicker';
 import MailboxLayout from '@/MiniApps/Mailbox/Layouts/MailboxLayout';
 import { destroy, index } from '@/routes/apps/our-mailbox/messages';
-import AppLayout from '@/Shell/Layouts/AppLayout';
 import type { Paginated } from '@/types/paginated';
 
 type Tab = 'received' | 'sent';
@@ -29,6 +29,10 @@ export default function Messages({ messages, tab, sort, q, members }: Props) {
         router.delete(destroy.url(id), {
             preserveScroll: true,
             preserveState: false,
+            ...mutationOptions({
+                component: 'Mailbox/Messages',
+                action: 'message.delete',
+            }),
         });
     };
 
@@ -44,49 +48,45 @@ export default function Messages({ messages, tab, sort, q, members }: Props) {
               };
 
     return (
-        <AppLayout>
-            <MailboxLayout>
-                <MailboxListPage
-                    headTitle="Messages"
-                    pageTitle="Notes"
-                    paginator={messages}
-                    countAll={messages.counts?.all ?? messages.data.length}
-                    countNoun={{ one: 'note', other: 'notes' }}
-                    propName="messages"
-                    tab={tab}
-                    tabsAriaLabel="Message tabs"
-                    tabItems={[
-                        { key: 'received', label: 'Received' },
-                        { key: 'sent', label: 'Sent' },
-                    ]}
-                    tabHrefFor={(k) => index.url({ query: { tab: k } })}
-                    sort={sort}
-                    query={q}
-                    searchPlaceholder="Search notes"
-                    fabAriaLabel="Write a note"
-                    onFabClick={() => setComposerOpen(true)}
-                    emptyIcon={Heart}
-                    emptyTitle={emptyCopy.title}
-                    emptyBody={emptyCopy.body}
-                    itemGap={16}
-                    renderItem={(m, focusedId) => (
-                        <NoteCard
-                            key={m.id}
-                            message={m}
-                            onDelete={
-                                m.is_mine ? () => handleDelete(m.id) : undefined
-                            }
-                            isFocused={focusedId === m.id}
-                        />
-                    )}
-                >
-                    <ComposerSheet
-                        open={composerOpen}
-                        onOpenChange={setComposerOpen}
-                        members={members}
+        <MailboxLayout>
+            <MailboxListPage
+                pageTitle="Notes"
+                paginator={messages}
+                countAll={messages.counts?.all ?? messages.data.length}
+                countNoun={{ one: 'note', other: 'notes' }}
+                propName="messages"
+                tab={tab}
+                tabsAriaLabel="Message tabs"
+                tabItems={[
+                    { key: 'received', label: 'Received' },
+                    { key: 'sent', label: 'Sent' },
+                ]}
+                tabHrefFor={(k) => index.url({ query: { tab: k } })}
+                sort={sort}
+                query={q}
+                searchPlaceholder="Search notes"
+                fabAriaLabel="Write a note"
+                onFabClick={() => setComposerOpen(true)}
+                emptyIcon={Heart}
+                emptyTitle={emptyCopy.title}
+                emptyBody={emptyCopy.body}
+                renderItem={(m, focusedId) => (
+                    <NoteCard
+                        key={m.id}
+                        message={m}
+                        onDelete={
+                            m.is_mine ? () => handleDelete(m.id) : undefined
+                        }
+                        isFocused={focusedId === m.id}
                     />
-                </MailboxListPage>
-            </MailboxLayout>
-        </AppLayout>
+                )}
+            >
+                <ComposerSheet
+                    open={composerOpen}
+                    onOpenChange={setComposerOpen}
+                    members={members}
+                />
+            </MailboxListPage>
+        </MailboxLayout>
     );
 }

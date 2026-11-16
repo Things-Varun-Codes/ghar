@@ -1,5 +1,5 @@
 import { Head, Link, useForm } from '@inertiajs/react';
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import type { FormEventHandler } from 'react';
 import PasswordInput from '@/components/password-input';
 import { store } from '@/routes/login';
@@ -15,6 +15,7 @@ export default function Login({ status }: { status?: string }) {
         remember: false as boolean,
     });
     const [showInvalid, setShowInvalid] = useState(false);
+    const emailInput = useRef<HTMLInputElement>(null);
 
     const throttleMessage = (errors as Record<string, string>).throttle;
     const isThrottled = Boolean(throttleMessage);
@@ -26,7 +27,10 @@ export default function Login({ status }: { status?: string }) {
         post(store.url(), {
             // Bad credentials are expected input and show on the page, so they are not worth an
             // error report.
-            onError: () => setShowInvalid(true),
+            onError: () => {
+                setShowInvalid(true);
+                emailInput.current?.focus();
+            },
         });
     };
 
@@ -46,15 +50,16 @@ export default function Login({ status }: { status?: string }) {
                 </p>
             )}
 
-            <form
-                onSubmit={submit}
-                noValidate
-                className="os-fade-up os-delay-fields mt-6 space-y-4"
-            >
+            <form onSubmit={submit} noValidate className="mt-6 space-y-4">
                 <FormField label="Email" name="email">
                     <input
+                        ref={emailInput}
                         id="email"
                         name="email"
+                        aria-invalid={showInvalidNow || undefined}
+                        aria-describedby={
+                            showInvalidNow ? 'login-error' : undefined
+                        }
                         type="email"
                         autoComplete="username"
                         value={data.email}
@@ -63,7 +68,7 @@ export default function Login({ status }: { status?: string }) {
                             clearInvalid();
                         }}
                         disabled={isThrottled}
-                        className="shell-auth-email block w-full rounded-lg border px-3 py-2.5 outline-none focus:ring-2 focus:ring-offset-1"
+                        className="shell-auth-email shell-field block w-full border px-3 py-2.5 outline-none"
                         placeholder="you@example.com"
                         required
                     />
@@ -73,6 +78,10 @@ export default function Login({ status }: { status?: string }) {
                     <PasswordInput
                         id="password"
                         name="password"
+                        aria-invalid={showInvalidNow || undefined}
+                        aria-describedby={
+                            showInvalidNow ? 'login-error' : undefined
+                        }
                         autoComplete="current-password"
                         value={data.password}
                         onChange={(e) => {
@@ -80,19 +89,18 @@ export default function Login({ status }: { status?: string }) {
                             clearInvalid();
                         }}
                         disabled={isThrottled}
-                        className="shell-auth-password block w-full rounded-lg border px-3 py-2.5 outline-none focus:ring-2 focus:ring-offset-1"
-                        placeholder="••••••••"
+                        className="shell-auth-password shell-field block w-full border px-3 py-2.5 outline-none"
                         required
                     />
-                    <div className="mt-1.5 flex justify-end">
-                        <Link
-                            href={password.request.url()}
-                            className="inline-flex min-h-[44px] items-center py-2.5 text-[13px] text-(--muted-foreground)"
-                        >
-                            Forgot password?
-                        </Link>
-                    </div>
                 </FormField>
+                <div className="-mt-2 flex justify-end">
+                    <Link
+                        href={password.request.url()}
+                        className="shell-focus inline-flex min-h-[44px] items-center rounded-full px-1 text-[14px] text-(--muted-foreground) hover:text-(--foreground)"
+                    >
+                        Forgot password?
+                    </Link>
+                </div>
 
                 <label className="flex min-h-[44px] items-center gap-2 pt-1 text-[16px]">
                     <input
@@ -112,14 +120,17 @@ export default function Login({ status }: { status?: string }) {
                     processing={processing}
                     disabled={isThrottled}
                     busyText="Signing in…"
-                    className="shell-auth-submit w-full rounded-lg font-semibold"
+                    className="shell-auth-submit shell-press w-full font-medium"
                 >
                     Sign in
                 </SubmitButton>
 
                 <div className="min-h-[20px]" aria-live="polite">
                     {showInvalidNow && (
-                        <p className="text-[14px] font-semibold text-(--destructive)">
+                        <p
+                            id="login-error"
+                            className="text-[14px] font-medium text-(--destructive)"
+                        >
                             That email and password don&apos;t match. Have
                             another go.
                         </p>

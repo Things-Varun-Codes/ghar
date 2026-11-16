@@ -20,24 +20,22 @@ export default function PullToRefresh({ children }: { children: ReactNode }) {
                 style={{
                     transform: `translate(-50%, ${pullDistance - 40}px)`,
                     opacity: indicatorOpacity,
-                    transition: settled
-                        ? 'opacity 180ms ease-out, transform 180ms ease-out'
-                        : 'none',
                 }}
+                data-settled={settled ? '' : undefined}
             >
                 <div
                     className="shell-pull-spinner"
+                    data-spinning={refreshing ? '' : undefined}
                     style={{
                         width: `${SPINNER_SIZE}px`,
                         height: `${SPINNER_SIZE}px`,
-                        animation: refreshing
-                            ? 'ptr-spin 0.8s linear infinite'
-                            : 'none',
                     }}
                 />
             </div>
 
             <div
+                className="shell-pull-content"
+                data-settled={settled ? '' : undefined}
                 style={{
                     // Must be `none` at rest: any transform makes this the containing block for the
                     // fixed Fab.
@@ -45,7 +43,6 @@ export default function PullToRefresh({ children }: { children: ReactNode }) {
                         pullDistance > 0
                             ? `translateY(${pullDistance}px)`
                             : 'none',
-                    transition: settled ? 'transform 180ms ease-out' : 'none',
                     willChange: pullDistance > 0 ? 'transform' : 'auto',
                 }}
             >

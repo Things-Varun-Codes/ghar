@@ -356,7 +356,9 @@ export default function EntityLinkPickerDialog({
             </div>
 
             <div className="shell-picker-footer">
-                <span>↑↓ navigate · ↵ select · esc close</span>
+                <span aria-hidden="true">
+                    ↑↓ to move, Enter to choose, Esc to close
+                </span>
                 <span>{matchesLabel}</span>
             </div>
         </div>
@@ -373,7 +375,7 @@ export default function EntityLinkPickerDialog({
                     <SheetHeader>
                         <SheetTitle>Link a Corner thing</SheetTitle>
                         <SheetDescription>
-                            Search songs, movies, places, activities…
+                            Search songs, movies, places and activities.
                         </SheetDescription>
                     </SheetHeader>
                     {pickerBody}

@@ -2,7 +2,12 @@ import { createInertiaApp, router } from '@inertiajs/react';
 import * as Sentry from '@sentry/react';
 import { createRoot } from 'react-dom/client';
 import { Toaster } from '@/components/ui/sonner';
+import { installOverlayHistory } from '@/hooks/use-overlay-history';
+import { watchConnection } from '@/lib/connection';
+import { installNavigation } from '@/lib/navigation';
 import { captureSilent } from '@/lib/observability';
+import { installRouteFocus } from '@/lib/route-focus';
+import AppLayout from '@/Shell/Layouts/AppLayout';
 
 // Server-rendered in app.blade.php, so these come from the runtime environment.
 const meta = (name: string): string | undefined =>
@@ -11,6 +16,16 @@ const meta = (name: string): string | undefined =>
 
 const appName = meta('application-name') ?? 'Ghar';
 const sentryDsn = meta('sentry-dsn');
+
+// offline.html is static and can't ask the server for the install's name.
+try {
+    if (localStorage.getItem('ghar.appName') !== appName) {
+        localStorage.setItem('ghar.appName', appName);
+    }
+    // eslint-disable-next-line local/no-silent-error -- storage blocked (private mode): the offline page shows its default name.
+} catch {
+    // Nothing to do.
+}
 
 const pages = import.meta.glob('./**/Pages/**/*.tsx') as Record<
     string,
@@ -34,6 +49,9 @@ if (import.meta.env.PROD && sentryDsn) {
     });
 }
 
+// Before createInertiaApp: its popstate listener must run after this one.
+installOverlayHistory();
+
 createInertiaApp({
     title: (title) => (title ? `${title} — ${appName}` : appName),
 
@@ -55,6 +73,10 @@ createInertiaApp({
 
         return module.default as React.ComponentType;
     },
+
+    // Every signed-in page shares one AppLayout, so the chrome stays mounted between visits.
+    layout: (name) =>
+        name.startsWith('Shell/Pages/Auth/') ? undefined : AppLayout,
 
     setup({ el, App, props }) {
         const root = createRoot(el);
@@ -93,10 +115,15 @@ createInertiaApp({
     },
 
     progress: {
-        // Read before any [data-theme] exists, so a literal that works on both themes.
-        color: '#3A2A1A',
+        // A CSS colour, so the bar follows --shell-action.
+        color: 'var(--shell-action)',
     },
 });
+
+installNavigation(router);
+installRouteFocus();
+
+watchConnection(appName);
 
 // Prefetched pages are kept for a few seconds. Anything that writes may have changed
 // what they show, so a write drops them all rather than risk a stale list.

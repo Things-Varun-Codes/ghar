@@ -1,16 +1,4 @@
-import { useState } from 'react';
 import type { ReactNode } from 'react';
-import {
-    AlertDialog,
-    AlertDialogAction,
-    AlertDialogCancel,
-    AlertDialogContent,
-    AlertDialogDescription,
-    AlertDialogFooter,
-    AlertDialogHeader,
-    AlertDialogTitle,
-} from '@/components/ui/alert-dialog';
-import { buttonVariants } from '@/components/ui/button';
 import {
     Dialog,
     DialogContent,
@@ -18,6 +6,8 @@ import {
     DialogHeader,
     DialogTitle,
 } from '@/components/ui/dialog';
+import { useDraftCloseGate } from '@/hooks/use-draft-close-gate';
+import DiscardDraftDialog from '@/Shell/Components/DiscardDraftDialog';
 import SubmitButton from '@/Shell/Components/SubmitButton';
 
 type ListAddDialogProps = {
@@ -29,13 +19,7 @@ type ListAddDialogProps = {
     busyText?: string;
     renderFields: () => ReactNode;
     onSubmit: (event: React.FormEvent<HTMLFormElement>) => void;
-    isDirty: () => boolean;
-    discardConfirm?: {
-        title: string;
-        description: string;
-        confirmLabel: string;
-        cancelLabel: string;
-    };
+    isDirty: boolean;
 };
 
 export default function ListAddDialog({
@@ -48,31 +32,17 @@ export default function ListAddDialog({
     renderFields,
     onSubmit,
     isDirty,
-    discardConfirm,
 }: ListAddDialogProps) {
-    const [confirmOpen, setConfirmOpen] = useState(false);
-
-    const confirm = discardConfirm ?? {
-        title: 'Discard your draft?',
-        description: "Your draft will be lost. This can't be undone.",
-        confirmLabel: 'Discard',
-        cancelLabel: 'Keep editing',
-    };
-
-    const handleOpenChange = (next: boolean) => {
-        if (!next && isDirty()) {
-            setConfirmOpen(true);
-
-            return;
-        }
-
-        onOpenChange(next);
-    };
+    const gate = useDraftCloseGate({
+        open,
+        isDirty,
+        onClose: () => onOpenChange(false),
+    });
 
     return (
         <>
-            <Dialog open={open} onOpenChange={handleOpenChange}>
-                <DialogContent data-app="our-corner">
+            <Dialog open={open} onOpenChange={gate.onOpenChange}>
+                <DialogContent>
                     <DialogHeader>
                         <DialogTitle>{title}</DialogTitle>
                     </DialogHeader>
@@ -92,32 +62,11 @@ export default function ListAddDialog({
                 </DialogContent>
             </Dialog>
 
-            <AlertDialog open={confirmOpen} onOpenChange={setConfirmOpen}>
-                <AlertDialogContent data-app="our-corner">
-                    <AlertDialogHeader>
-                        <AlertDialogTitle>{confirm.title}</AlertDialogTitle>
-                        <AlertDialogDescription>
-                            {confirm.description}
-                        </AlertDialogDescription>
-                    </AlertDialogHeader>
-                    <AlertDialogFooter>
-                        <AlertDialogCancel>
-                            {confirm.cancelLabel}
-                        </AlertDialogCancel>
-                        <AlertDialogAction
-                            className={buttonVariants({
-                                variant: 'destructive',
-                            })}
-                            onClick={() => {
-                                setConfirmOpen(false);
-                                onOpenChange(false);
-                            }}
-                        >
-                            {confirm.confirmLabel}
-                        </AlertDialogAction>
-                    </AlertDialogFooter>
-                </AlertDialogContent>
-            </AlertDialog>
+            <DiscardDraftDialog
+                {...gate.prompt}
+                title="Discard your draft?"
+                description="Your draft will be lost. This can't be undone."
+            />
         </>
     );
 }

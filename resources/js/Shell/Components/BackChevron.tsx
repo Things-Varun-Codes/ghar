@@ -1,7 +1,11 @@
-import { router } from '@inertiajs/react';
-import { usePage } from '@inertiajs/react';
+import { Link, usePage } from '@inertiajs/react';
 import { ChevronLeft } from 'lucide-react';
+import type { MouseEvent } from 'react';
+import { goBack } from '@/lib/back-navigation';
+import { pathOf } from '@/lib/url';
 import { dashboard } from '@/routes';
+
+export type BackTarget = { href: string; label: string };
 
 // Mini-app paths are literals on purpose: the shell must build with any mini app disabled.
 const PARENT_LABELS: Record<string, string> = {
@@ -10,32 +14,23 @@ const PARENT_LABELS: Record<string, string> = {
     '/apps/our-corner/places': 'Places',
     '/apps/our-corner/activities': 'Activities',
     '/apps/our-corner': 'Our Corner',
-    // Mailbox comms sub-surface — resolved before the app root so a challan
-    // show page (/apps/our-mailbox/challans/{id}) finds the "Challans" label,
-    // not "Our Mailbox". Without a matching entry every mailbox
-    // sub-page's back button would go to /dashboard via the bestMatchLen===0 fallback.
+    // A parent with no entry here falls back to Home, so every Mailbox list needs one.
     '/apps/our-mailbox/challans': 'Challans',
     '/apps/our-mailbox/coupons': 'Coupons',
     '/apps/our-mailbox/messages': 'Notes',
     '/apps/our-mailbox/flowers': 'Flowers',
     '/apps/our-mailbox': 'Our Mailbox',
     '/apps/our-history': 'Our History',
-    [dashboard.url()]: 'Dashboard',
+    [dashboard.url()]: 'Home',
 };
 
-function resolveParent(pathname: string): {
-    path: string;
-    label: string;
-    matched: boolean;
-} {
-    const clean = pathname.replace(/\/$/, '') || '/';
-
+function resolveParent(clean: string): { path: string; label: string } {
     if (clean === dashboard.url()) {
-        return { path: dashboard.url(), label: 'Dashboard', matched: false };
+        return { path: dashboard.url(), label: 'Home' };
     }
 
     if (clean.startsWith('/apps/our-history/')) {
-        return { path: dashboard.url(), label: 'Home', matched: false };
+        return { path: dashboard.url(), label: 'Home' };
     }
 
     const segments = clean.split('/').filter(Boolean);
@@ -58,56 +53,76 @@ function resolveParent(pathname: string): {
     // index route (the latter two are sidebar section headers), so their sub-pages
     // land back on Home.
     if (bestMatchLen === 0) {
-        return { path: dashboard.url(), label: 'Home', matched: false };
+        return { path: dashboard.url(), label: 'Home' };
     }
 
-    return { path: parentPath, label, matched: true };
+    return { path: parentPath, label };
+}
+
+function isPlainClick(event: MouseEvent<Element>): boolean {
+    return !(
+        event.defaultPrevented ||
+        event.button !== 0 ||
+        event.metaKey ||
+        event.ctrlKey ||
+        event.shiftKey ||
+        event.altKey
+    );
 }
 
 export default function BackChevron({
     inline = false,
-    showLabel = true,
+    back,
 }: {
     inline?: boolean;
-    showLabel?: boolean;
+    /** An explicit parent, for pages whose URL doesn't name it (an admin edit page). */
+    back?: BackTarget;
 }) {
     const { url } = usePage();
 
-    const pathname = url.split('?')[0];
-    const clean = pathname.replace(/\/$/, '') || '/';
+    const clean = pathOf(url);
 
-    if (clean === dashboard.url() || clean === '') {
+    if (!back && clean === dashboard.url()) {
         return null;
     }
 
-    const { path: parentPath, label: parentLabel } = resolveParent(clean);
+    const { path: parentPath, label: parentLabel } = back
+        ? { path: back.href, label: back.label }
+        : resolveParent(clean);
+
+    const onClick = (event: MouseEvent<Element>) => {
+        if (!isPlainClick(event)) {
+            return;
+        }
+
+        event.preventDefault();
+        goBack(parentPath);
+    };
 
     if (inline) {
         return (
-            <>
-                <button
-                    type="button"
-                    onClick={() => router.visit(parentPath)}
-                    aria-label={`Back to ${parentLabel}`}
-                    className="shell-focus shell-back-inline flex items-center justify-center rounded-md"
-                >
-                    <ChevronLeft size={22} aria-hidden="true" />
-                </button>
-                {showLabel && (
-                    <span className="shell-muted-label">{parentLabel}</span>
-                )}
-            </>
+            <Link
+                href={parentPath}
+                onClick={onClick}
+                className="shell-focus shell-back-inline"
+            >
+                <ChevronLeft size={22} strokeWidth={1.5} aria-hidden="true" />
+                <span className="shell-muted-label">
+                    <span className="sr-only">Back to </span>
+                    {parentLabel}
+                </span>
+            </Link>
         );
     }
 
     return (
-        <button
-            type="button"
-            onClick={() => router.visit(parentPath)}
+        <Link
+            href={parentPath}
+            onClick={onClick}
             aria-label={`Back to ${parentLabel}`}
             className="shell-focus shell-back-floating flex items-center justify-center rounded-lg"
         >
-            <ChevronLeft size={24} aria-hidden="true" />
-        </button>
+            <ChevronLeft size={24} strokeWidth={1.5} aria-hidden="true" />
+        </Link>
     );
 }

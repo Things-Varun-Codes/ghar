@@ -8,6 +8,7 @@ use App\MiniApps\History\Observers\MediaDimensionsObserver;
 use App\MiniApps\History\Policies\EventPolicy;
 use App\MiniApps\History\Support\DashboardLine;
 use App\MiniApps\History\Support\DashboardPreview;
+use App\MiniApps\History\Support\RequestedMoment;
 use App\Shell\Models\User;
 use App\Shell\Services\DashboardSummaries;
 use App\Shell\Services\LinkableEntities;
@@ -83,7 +84,7 @@ class HistoryServiceProvider extends ServiceProvider
         return [
             'title' => $event->title ?: $event->occurred_on->toDateString(),
             'thumbnail_url' => null,
-            'deep_link_url' => "/apps/our-history#event-{$event->id}",
+            'deep_link_url' => RequestedMoment::url($event->id),
         ];
     }
 }

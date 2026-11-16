@@ -2,7 +2,6 @@ import { router } from '@inertiajs/react';
 import { Images } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 
-import { Skeleton } from '@/components/ui/skeleton';
 import { captureSilent } from '@/lib/observability';
 import FilterRail from '@/MiniApps/History/Components/FilterRail';
 import FilterSegmented from '@/MiniApps/History/Components/FilterSegmented';
@@ -15,7 +14,6 @@ import { useConversionPolling } from '@/MiniApps/History/Hooks/useConversionPoll
 import HistoryLayout from '@/MiniApps/History/Layouts/HistoryLayout';
 import { gallery } from '@/routes/apps/our-history';
 import EmptyState from '@/Shell/Components/EmptyState';
-import AppLayout from '@/Shell/Layouts/AppLayout';
 
 type PaginatedMedia = {
     data: GalleryMediaItem[];
@@ -100,6 +98,9 @@ export default function Gallery({
                         {
                             preserveScroll: true,
                             preserveState: true,
+                            // ?page=N in the address bar would make a hard refresh load only that
+                            // slice.
+                            preserveUrl: true,
                             only: ['media'],
                             onSuccess: (page) => {
                                 const next = page.props.media as PaginatedMedia;
@@ -173,95 +174,98 @@ export default function Gallery({
     const galleryCountLine = `${counts.photos} photo${counts.photos !== 1 ? 's' : ''} · ${counts.videos} video${counts.videos !== 1 ? 's' : ''} across ${counts.events} moment${counts.events !== 1 ? 's' : ''}`;
 
     return (
-        <AppLayout>
-            <HistoryLayout
-                activeTab="gallery"
-                count={
-                    <span className="font-sans text-(length:--text-eyebrow) text-(--history-ink-soft)">
-                        {galleryCountLine}
-                    </span>
-                }
-                controls={
-                    <div className="history-gallery-controls flex items-center gap-3">
-                        <FilterRail
-                            filters={filters}
-                            availableYears={available_years}
-                            counts={counts}
-                            order={order}
-                        />
-                        <FilterSegmented
-                            filters={filters}
-                            availableYears={available_years}
-                            counts={counts}
-                            order={order}
-                        />
-                        <SortDropdown
-                            currentOrder={order}
-                            basePath={gallery.url()}
-                            extraParams={extraParams}
-                        />
-                    </div>
-                }
-            >
-                <div className="history-gallery-wide min-w-0 flex-1">
-                    {accumulatedMedia.length === 0 && !hasFilters && (
-                        <EmptyState
-                            icon={Images}
-                            title="Nothing here yet."
-                            body="Add photos or videos to a moment and they'll show up here."
-                        />
-                    )}
+        <HistoryLayout
+            activeTab="gallery"
+            count={
+                <span className="font-sans text-(length:--text-eyebrow) text-(--history-ink-soft)">
+                    {galleryCountLine}
+                </span>
+            }
+            controls={
+                <div className="history-gallery-controls flex items-center gap-3">
+                    <FilterRail
+                        filters={filters}
+                        availableYears={available_years}
+                        counts={counts}
+                        order={order}
+                    />
+                    <FilterSegmented
+                        filters={filters}
+                        availableYears={available_years}
+                        counts={counts}
+                        order={order}
+                    />
+                    <SortDropdown
+                        currentOrder={order}
+                        basePath={gallery.url()}
+                        extraParams={extraParams}
+                    />
+                </div>
+            }
+        >
+            <div className="history-gallery-wide min-w-0 flex-1">
+                {accumulatedMedia.length === 0 && !hasFilters && (
+                    <EmptyState
+                        icon={Images}
+                        title="Nothing here yet."
+                        body="Add photos or videos to a moment and they'll show up here."
+                    />
+                )}
 
-                    {accumulatedMedia.length === 0 && hasFilters && (
-                        <EmptyState
-                            icon={Images}
-                            title={`No ${filters.type !== 'all' ? filters.type : 'media'}${filters.year ? ` in ${filters.year}` : ''}.`}
-                            body="Clear the filter to see everything."
-                            action={
-                                <button
-                                    type="button"
-                                    onClick={() =>
-                                        router.get(window.location.pathname)
-                                    }
-                                    className="history-clear-filters"
-                                >
-                                    Clear filters
-                                </button>
+                {accumulatedMedia.length === 0 && hasFilters && (
+                    <EmptyState
+                        icon={Images}
+                        title={`No ${filters.type !== 'all' ? filters.type : 'media'}${filters.year ? ` in ${filters.year}` : ''}.`}
+                        body="Clear the filter to see everything."
+                        action={
+                            <button
+                                type="button"
+                                onClick={() =>
+                                    router.get(window.location.pathname)
+                                }
+                                className="history-clear-filters shell-press"
+                            >
+                                Clear filters
+                            </button>
+                        }
+                    />
+                )}
+
+                {accumulatedMedia.length > 0 && (
+                    <>
+                        {/* CRITICAL: pass the flat accumulatedMedia array to BOTH MasonryGrid
+                                and PhotoSwipeGallery — the SAME array reference — so the
+                                round-robin tile index stays 1:1 with the lightbox index across
+                                appended pages. Never pass the paginator object to either child. */}
+                        <MasonryGrid
+                            media={accumulatedMedia}
+                            onTileClick={(index) =>
+                                lightboxRef.current?.open(index)
                             }
                         />
-                    )}
 
-                    {accumulatedMedia.length > 0 && (
-                        <>
-                            {/* CRITICAL: pass the flat accumulatedMedia array to BOTH MasonryGrid
-                                    and PhotoSwipeGallery — the SAME array reference — so the
-                                    round-robin tile index stays 1:1 with the lightbox index across
-                                    appended pages. Never pass the paginator object to either child. */}
-                            <MasonryGrid
-                                media={accumulatedMedia}
-                                onTileClick={(index) =>
-                                    lightboxRef.current?.open(index)
-                                }
-                            />
+                        {loadingMore && (
+                            <div
+                                className="pt-2 pb-4"
+                                role="status"
+                                aria-busy="true"
+                                aria-label="Loading more"
+                            >
+                                {[1, 2, 3].map((i) => (
+                                    <div
+                                        key={i}
+                                        className="history-skeleton-block shell-skeleton"
+                                    />
+                                ))}
+                            </div>
+                        )}
 
-                            {loadingMore && (
-                                <div className="pt-2 pb-4">
-                                    {[1, 2, 3].map((i) => (
-                                        <Skeleton
-                                            key={i}
-                                            className="history-skeleton-block"
-                                        />
-                                    ))}
-                                </div>
-                            )}
+                        <div ref={sentinelRef} className="h-[1px]" />
+                    </>
+                )}
+            </div>
 
-                            <div ref={sentinelRef} className="h-[1px]" />
-                        </>
-                    )}
-                </div>
-
-                <PhotoSwipeGallery ref={lightboxRef} media={accumulatedMedia} />
-            </HistoryLayout>
-        </AppLayout>
+            <PhotoSwipeGallery ref={lightboxRef} media={accumulatedMedia} />
+        </HistoryLayout>
     );
 }

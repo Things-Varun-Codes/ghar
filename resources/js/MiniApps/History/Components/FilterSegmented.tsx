@@ -62,10 +62,8 @@ export default function FilterSegmented({
                 aria-label="Filter by media type"
                 className="history-segmented"
             >
-                {typeOptions.map((opt, idx) => {
+                {typeOptions.map((opt) => {
                     const isActive = filters.type === opt.key;
-                    const isFirst = idx === 0;
-                    const isLast = idx === typeOptions.length - 1;
 
                     return (
                         <button
@@ -74,23 +72,6 @@ export default function FilterSegmented({
                             onClick={() => navigate(opt.key, filters.year)}
                             aria-pressed={isActive}
                             className="history-segment"
-                            style={{
-                                borderLeft: isFirst
-                                    ? 'none'
-                                    : '1px solid var(--history-rule)',
-                                borderRadius: isFirst
-                                    ? '8px 0 0 8px'
-                                    : isLast
-                                      ? '0 8px 8px 0'
-                                      : 0,
-                                fontWeight: isActive ? 600 : 400,
-                                backgroundColor: isActive
-                                    ? 'var(--history-accent)'
-                                    : 'var(--history-card)',
-                                color: isActive
-                                    ? 'var(--history-on-accent)'
-                                    : 'var(--history-ink)',
-                            }}
                         >
                             {opt.label}
                         </button>
@@ -135,12 +116,15 @@ function YearDropdown({
     return (
         <DropdownMenu>
             <DropdownMenuTrigger asChild>
-                <button type="button" className="history-year-trigger">
+                <button
+                    type="button"
+                    className="history-year-trigger shell-press"
+                >
                     <span>Year: {activeLabel}</span>
                     <ChevronDown
                         aria-hidden="true"
                         size={14}
-                        strokeWidth={2}
+                        strokeWidth={1.5}
                         className="shrink-0 opacity-[0.6]"
                     />
                 </button>
@@ -161,7 +145,7 @@ function YearDropdown({
                                 <Check
                                     aria-hidden="true"
                                     size={14}
-                                    strokeWidth={2.5}
+                                    strokeWidth={1.5}
                                     className="shrink-0 text-(--history-accent-ink-strong)"
                                 />
                             )}

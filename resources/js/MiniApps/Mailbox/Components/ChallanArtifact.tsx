@@ -4,6 +4,7 @@ import {
     formatPlainDay,
 } from '@/MiniApps/Mailbox/lib/formatDay';
 import { monogram } from '@/MiniApps/Mailbox/lib/monogram';
+import HeartMark from '@/Shell/Components/HeartMark';
 
 const STAMP_LABEL: Record<ChallanPayload['status'], string> = {
     issued: 'Issued',
@@ -21,7 +22,7 @@ export default function ChallanArtifact({
                 <span>OC</span>
             </div>
 
-            <div className="mailbox-challan-confidential">CONFIDENTIAL</div>
+            <div className="mailbox-challan-confidential">Confidential</div>
             <div
                 className={`mailbox-challan-stamp mailbox-challan-stamp--${challan.status}`}
                 aria-hidden="true"
@@ -37,10 +38,10 @@ export default function ChallanArtifact({
                 </div>
                 <div>
                     <div className="mailbox-challan-title">
-                        DEPARTMENT OF THE HOUSEHOLD
+                        Department of the Household
                     </div>
                     <div className="mailbox-challan-sub">
-                        OUR MAILBOX · CITATIONS REGISTRY
+                        Our Mailbox · Citations registry
                     </div>
                 </div>
             </div>
@@ -48,17 +49,17 @@ export default function ChallanArtifact({
             <div className="mailbox-challan-body">
                 <div className="mailbox-challan-refrow">
                     <span>
-                        <strong>REF NO:</strong> {challan.ref_no ?? '—'}
+                        <strong>Ref no.</strong> {challan.ref_no ?? '—'}
                     </span>
                     <span>
-                        <strong>DATE:</strong>{' '}
+                        <strong>Date</strong>{' '}
                         {formatInstantDay(challan.issued_at)}
                     </span>
                 </div>
 
                 <fieldset className="mailbox-challan-fieldset">
                     <legend className="mailbox-challan-legend">
-                        I · PARTICULARS
+                        I · Particulars
                     </legend>
                     <div className="mailbox-challan-grid2">
                         <div>
@@ -82,7 +83,7 @@ export default function ChallanArtifact({
 
                 <fieldset className="mailbox-challan-fieldset">
                     <legend className="mailbox-challan-legend">
-                        II · INCIDENT
+                        II · Incident
                     </legend>
                     <div className="mailbox-challan-grid2 mb-2">
                         <div>
@@ -109,12 +110,12 @@ export default function ChallanArtifact({
                         {challan.offence}
                     </div>
                     {challan.is_repeat && (
-                        <div className="mt-1.5">
+                        <div className="mt-2">
                             <span className="mailbox-challan-field-label inline">
                                 Repeat offender:
                             </span>{' '}
-                            <span className="mailbox-challan-field-value font-(family-name:--mailbox-challan-font)">
-                                YES
+                            <span className="mailbox-challan-field-value">
+                                Yes
                             </span>
                         </div>
                     )}
@@ -122,10 +123,10 @@ export default function ChallanArtifact({
 
                 <fieldset className="mailbox-challan-fieldset">
                     <legend className="mailbox-challan-legend">
-                        III · PENALTY
+                        III · Penalty
                     </legend>
                     <div className="mailbox-challan-penalty">
-                        {challan.penalty.toUpperCase()} · payable on demand
+                        {challan.penalty} · payable on demand
                     </div>
                     {challan.remarks && (
                         <div className="mt-2">
@@ -142,9 +143,7 @@ export default function ChallanArtifact({
 
             <div className="mailbox-challan-footer">
                 Issued with{' '}
-                <span className="mailbox-challan-heart" aria-hidden="true">
-                    ♥
-                </span>{' '}
+                <HeartMark size={13} filled className="mailbox-challan-heart" />{' '}
                 · for entertainment only · settle out of court, preferably over
                 tea
             </div>

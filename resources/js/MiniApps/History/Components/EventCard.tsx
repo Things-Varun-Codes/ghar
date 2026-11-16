@@ -1,7 +1,7 @@
-import { MapPin } from 'lucide-react';
-import * as React from 'react';
+import { ArrowRight, MapPin } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Button } from '@/components/ui/button';
+import { cn } from '@/lib/utils';
 import BodyHtml from './BodyHtml';
 import MediaGrid from './MediaGrid';
 import type { MediaItem } from './MediaGrid';
@@ -22,7 +22,7 @@ type Change = {
 type HistoryEvent = {
     id: number;
     date: string; // 'Y-m-d' format — EventResource
-    date_label: string; // 'M j, Y' format — e.g. "Jun 4, 2024"
+    date_label: string; // e.g. "4 Jun 2024"
     year: number;
     title: string | null;
     location_freetext: string | null;
@@ -97,43 +97,28 @@ export default function EventCard({ event, onRead }: EventCardProps) {
         [renderableMedia, event.title, event.date_label],
     );
 
+    // The whole card opens the moment through one real button, stretched over the card, so the
+    // story's links and the photos inside keep their own clicks and keys.
+    const openButton = (label: string) =>
+        isTappable ? (
+            <button
+                type="button"
+                className="shell-card-link history-card-open"
+                onClick={() => onRead?.(event.id)}
+            >
+                {label}
+            </button>
+        ) : (
+            label
+        );
+
     return (
         <article
             id={`event-${event.id}`}
-            role={isTappable ? 'button' : undefined}
-            tabIndex={isTappable ? 0 : undefined}
-            aria-label={
-                isTappable
-                    ? `Read "${event.title || event.date_label}"`
-                    : undefined
-            }
-            onClick={
-                isTappable
-                    ? (e: React.MouseEvent<HTMLElement>) => {
-                          // Guard: don't fire card-level handler when user clicks
-                          // an embedded <a> or <button> (e.g. Continue reading,
-                          // markdown links). Defense-in-depth alongside the button's
-                          // stopPropagation below.
-                          if ((e.target as HTMLElement).closest('a, button')) {
-                              return;
-                          }
-
-                          onRead?.(event.id);
-                      }
-                    : undefined
-            }
-            onKeyDown={
-                isTappable
-                    ? (e: React.KeyboardEvent<HTMLElement>) => {
-                          if (e.key === 'Enter' || e.key === ' ') {
-                              e.preventDefault();
-                              onRead?.(event.id);
-                          }
-                      }
-                    : undefined
-            }
-            className="history-event-card"
-            style={{ ...(isTappable ? { cursor: 'pointer' } : {}) }}
+            className={cn(
+                'history-event-card',
+                isTappable && 'shell-card-stretch shell-lift',
+            )}
         >
             <span
                 aria-hidden="true"
@@ -142,10 +127,16 @@ export default function EventCard({ event, onRead }: EventCardProps) {
 
             <header className="mb-3">
                 {event.date_label && (
-                    <p className="history-card-date">{event.date_label}</p>
+                    <p className="history-card-date">
+                        {event.title
+                            ? event.date_label
+                            : openButton(event.date_label)}
+                    </p>
                 )}
                 {event.title && (
-                    <h3 className="history-card-title">{event.title}</h3>
+                    <h3 className="history-card-title">
+                        {openButton(event.title)}
+                    </h3>
                 )}
             </header>
 
@@ -154,7 +145,6 @@ export default function EventCard({ event, onRead }: EventCardProps) {
                     event;
 
                 let displayLocation: string | null = null;
-                let isLegacy = false;
 
                 if (
                     location_name &&
@@ -168,7 +158,6 @@ export default function EventCard({ event, onRead }: EventCardProps) {
                     displayLocation = location_address;
                 } else if (location_freetext) {
                     displayLocation = location_freetext;
-                    isLegacy = true;
                 }
 
                 if (!displayLocation) {
@@ -176,13 +165,10 @@ export default function EventCard({ event, onRead }: EventCardProps) {
                 }
 
                 return (
-                    <p
-                        className="history-card-location"
-                        style={{ fontStyle: isLegacy ? 'italic' : 'normal' }}
-                    >
+                    <p className="history-card-location">
                         <MapPin
                             aria-hidden="true"
-                            size={12}
+                            size={14}
                             strokeWidth={1.5}
                             color="var(--history-ink-soft)"
                             className="shrink-0"
@@ -198,7 +184,7 @@ export default function EventCard({ event, onRead }: EventCardProps) {
                         ref={bodyClampRef}
                         className="history-event-body-clamp"
                     >
-                        <BodyHtml html={event.body_html} />
+                        <BodyHtml html={event.body_html} headingBase={3} />
                     </div>
                     {isOverflowing && onRead && (
                         <div className="mt-2 flex justify-end">
@@ -206,13 +192,15 @@ export default function EventCard({ event, onRead }: EventCardProps) {
                                 type="button"
                                 variant="link"
                                 className="history-continue-link h-auto w-auto no-underline shadow-none hover:no-underline"
-                                onClick={(e) => {
-                                    e.stopPropagation();
-                                    onRead?.(event.id);
-                                }}
-                                aria-label={`Continue reading "${event.title || event.date_label}"`}
+                                onClick={() => onRead?.(event.id)}
+                                aria-label={`Continue reading “${event.title || event.date_label}”`}
                             >
-                                Continue reading →
+                                Continue reading
+                                <ArrowRight
+                                    aria-hidden="true"
+                                    size={16}
+                                    strokeWidth={1.5}
+                                />
                             </Button>
                         </div>
                     )}
@@ -223,6 +211,7 @@ export default function EventCard({ event, onRead }: EventCardProps) {
                 <div className="mb-4">
                     <MediaGrid
                         media={renderableMedia}
+                        contextLabel={event.title || event.date_label}
                         onClickItem={(_item, index) =>
                             lightboxRef.current?.open(index)
                         }

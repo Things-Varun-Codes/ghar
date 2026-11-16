@@ -1,13 +1,14 @@
 import { router } from '@inertiajs/react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { useIsPhone } from '@/hooks/use-breakpoint';
 import CalendarMonth from '@/MiniApps/History/Components/CalendarMonth';
 import type { CalendarEvent } from '@/MiniApps/History/Components/CalendarMonth';
 import EventSheet from '@/MiniApps/History/Components/EventSheet';
+import { useMomentFromUrl } from '@/MiniApps/History/Hooks/useMomentFromUrl';
 import HistoryLayout from '@/MiniApps/History/Layouts/HistoryLayout';
 import { calendar } from '@/routes/apps/our-history';
 import EmptyState from '@/Shell/Components/EmptyState';
-import AppLayout from '@/Shell/Layouts/AppLayout';
 
 const MONTH_ABBR = [
     'Jan',
@@ -30,6 +31,7 @@ type Props = {
     year: number;
     availableYears: number[];
     eventsCount: number;
+    moment?: CalendarEvent | null;
 };
 
 /** Bucket events into month → day → events[], parsing the 'YYYY-MM-DD' string
@@ -67,16 +69,9 @@ export default function Calendar({
     onThisDay,
     year,
     availableYears,
+    moment,
 }: Props) {
-    const [isMobile, setIsMobile] = useState(false);
-    useEffect(() => {
-        const mql = window.matchMedia('(max-width: 719px)');
-        const apply = () => setIsMobile(mql.matches);
-        apply();
-        mql.addEventListener('change', apply);
-
-        return () => mql.removeEventListener('change', apply);
-    }, []);
+    const isMobile = useIsPhone();
 
     const lastTriggerRef = useRef<HTMLElement | null>(null);
     const [sheetOpen, setSheetOpen] = useState(false);
@@ -96,6 +91,11 @@ export default function Calendar({
         setSelectedEvent(event);
         setSheetOpen(true);
     };
+
+    useMomentFromUrl(moment, [...events, ...onThisDay], (event) => {
+        setSelectedEvent(event);
+        setSheetOpen(true);
+    });
 
     const byMonth = useMemo(() => buildMonthMaps(events), [events]);
 
@@ -151,193 +151,201 @@ export default function Calendar({
             : '';
 
     return (
-        <AppLayout>
-            <HistoryLayout
-                activeTab="calendar"
-                count={
-                    <span className="font-sans text-(length:--text-eyebrow) text-(--history-ink-soft)">
-                        {momentCount}
-                    </span>
-                }
-                controls={
-                    <div className="history-cal-yearnav">
-                        <button
-                            type="button"
-                            className="history-cal-navbtn"
-                            onClick={() => goYear(year - 1)}
-                            disabled={prevDisabled}
-                            aria-label="Previous year"
-                        >
-                            <ChevronLeft size={18} aria-hidden="true" />
-                        </button>
-                        <span className="history-cal-year-label">{year}</span>
-                        <button
-                            type="button"
-                            className="history-cal-navbtn"
-                            onClick={() => goYear(year + 1)}
-                            disabled={nextDisabled}
-                            aria-label="Next year"
-                        >
-                            <ChevronRight size={18} aria-hidden="true" />
-                        </button>
-                    </div>
-                }
-            >
-                {onThisDay.length > 0 && (
-                    <div className="history-cal-otd">
-                        <div className="history-cal-otd-head">
-                            <span
-                                className="history-cal-otd-dot"
-                                aria-hidden="true"
-                            />
-                            On this day · {MONTH_ABBR[now.getMonth()]}{' '}
-                            {now.getDate()}
-                        </div>
-                        <div className="history-cal-otd-row">
-                            {onThisDay.map((e) => {
-                                const ago = todayYear - e.year;
-                                const agoText =
-                                    ago <= 0
-                                        ? 'today'
-                                        : ago === 1
-                                          ? '1 year ago'
-                                          : `${ago} years ago`;
-                                const thumb =
-                                    e.media.find((m) => m.thumb || m.poster)
-                                        ?.thumb ?? null;
+        <HistoryLayout
+            activeTab="calendar"
+            count={
+                <span className="font-sans text-(length:--text-eyebrow) text-(--history-ink-soft)">
+                    {momentCount}
+                </span>
+            }
+            controls={
+                <div className="history-cal-yearnav">
+                    <button
+                        type="button"
+                        className="history-cal-navbtn shell-press"
+                        onClick={() => goYear(year - 1)}
+                        disabled={prevDisabled}
+                        aria-label="Previous year"
+                    >
+                        <ChevronLeft
+                            size={18}
+                            strokeWidth={1.5}
+                            aria-hidden="true"
+                        />
+                    </button>
+                    <span className="history-cal-year-label">{year}</span>
+                    <button
+                        type="button"
+                        className="history-cal-navbtn shell-press"
+                        onClick={() => goYear(year + 1)}
+                        disabled={nextDisabled}
+                        aria-label="Next year"
+                    >
+                        <ChevronRight
+                            size={18}
+                            strokeWidth={1.5}
+                            aria-hidden="true"
+                        />
+                    </button>
+                </div>
+            }
+        >
+            {onThisDay.length > 0 && (
+                <div className="history-cal-otd">
+                    <h2 className="history-cal-otd-head">
+                        <span
+                            className="history-cal-otd-dot"
+                            aria-hidden="true"
+                        />
+                        On this day · {now.getDate()}{' '}
+                        {MONTH_ABBR[now.getMonth()]}
+                    </h2>
+                    <div className="history-cal-otd-row">
+                        {onThisDay.map((e) => {
+                            const ago = todayYear - e.year;
+                            const agoText =
+                                ago <= 0
+                                    ? 'today'
+                                    : ago === 1
+                                      ? '1 year ago'
+                                      : `${ago} years ago`;
+                            const thumb =
+                                e.media.find((m) => m.thumb || m.poster)
+                                    ?.thumb ?? null;
 
-                                return (
-                                    <button
-                                        key={e.id}
-                                        type="button"
-                                        className="history-cal-otd-card"
-                                        onClick={() => openEvent(e)}
-                                    >
-                                        <span
-                                            className="history-cal-otd-thumb"
-                                            style={
-                                                thumb
-                                                    ? {
-                                                          backgroundImage: `url("${thumb}")`,
-                                                      }
-                                                    : undefined
-                                            }
-                                            aria-hidden="true"
-                                        />
-                                        <span className="history-cal-otd-text">
-                                            <span className="history-cal-otd-year">
-                                                {e.year}
-                                            </span>
-                                            <span className="history-cal-otd-title">
-                                                {e.title ?? e.date_label}
-                                            </span>
-                                            <span className="history-cal-otd-sub">
-                                                {agoText}
-                                                {e.location_name
-                                                    ? ` · ${e.location_name}`
-                                                    : ''}
-                                            </span>
+                            return (
+                                <button
+                                    key={e.id}
+                                    type="button"
+                                    className="history-cal-otd-card shell-press"
+                                    onClick={() => openEvent(e)}
+                                >
+                                    <span
+                                        className="history-cal-otd-thumb"
+                                        style={
+                                            thumb
+                                                ? {
+                                                      backgroundImage: `url("${thumb}")`,
+                                                  }
+                                                : undefined
+                                        }
+                                        aria-hidden="true"
+                                    />
+                                    <span className="history-cal-otd-text">
+                                        <span className="history-cal-otd-year">
+                                            {e.year}
                                         </span>
-                                    </button>
-                                );
-                            })}
-                        </div>
+                                        <span className="history-cal-otd-title">
+                                            {e.title ?? e.date_label}
+                                        </span>
+                                        <span className="history-cal-otd-sub">
+                                            {agoText}
+                                            {e.location_name
+                                                ? ` · ${e.location_name}`
+                                                : ''}
+                                        </span>
+                                    </span>
+                                </button>
+                            );
+                        })}
                     </div>
-                )}
+                </div>
+            )}
 
-                {yearIsEmpty ? (
-                    <EmptyState
-                        title={
-                            hasAnyEvents
-                                ? `Nothing from ${year} yet`
-                                : 'No moments yet'
-                        }
-                        body={
-                            hasAnyEvents
-                                ? 'Use the year arrows to find a year with moments.'
-                                : 'Add moments from the Timeline and they’ll appear here on the calendar.'
-                        }
-                    />
-                ) : isMobile ? (
-                    <>
-                        <div
-                            className="history-cal-picker"
-                            role="tablist"
-                            aria-label="Pick a month"
-                        >
-                            {MONTH_ABBR.map((abbr, i) => {
-                                const m = i + 1;
-                                const hasEvents =
-                                    (byMonth.get(m)?.size ?? 0) > 0;
-                                const selected = m === selMonth;
+            {yearIsEmpty ? (
+                <EmptyState
+                    title={
+                        hasAnyEvents
+                            ? `Nothing from ${year} yet`
+                            : 'No moments yet'
+                    }
+                    body={
+                        hasAnyEvents
+                            ? 'Use the year arrows to find a year with moments.'
+                            : 'Add moments from the Timeline and they’ll appear here on the calendar.'
+                    }
+                />
+            ) : isMobile ? (
+                <>
+                    <div
+                        className="history-cal-picker"
+                        role="tablist"
+                        aria-label="Pick a month"
+                    >
+                        {MONTH_ABBR.map((abbr, i) => {
+                            const m = i + 1;
+                            const hasEvents = (byMonth.get(m)?.size ?? 0) > 0;
+                            const selected = m === selMonth;
 
-                                return (
-                                    <button
-                                        key={m}
-                                        ref={selected ? selChipRef : undefined}
-                                        type="button"
-                                        role="tab"
-                                        aria-selected={selected}
-                                        className={[
-                                            'history-cal-chip',
-                                            selected && 'history-cal-chip--sel',
-                                            !hasEvents &&
-                                                'history-cal-chip--none',
-                                        ]
-                                            .filter(Boolean)
-                                            .join(' ')}
-                                        onClick={() => setSelMonth(m)}
-                                    >
-                                        {abbr}
-                                        {hasEvents && (
+                            return (
+                                <button
+                                    key={m}
+                                    ref={selected ? selChipRef : undefined}
+                                    type="button"
+                                    role="tab"
+                                    aria-selected={selected}
+                                    className={[
+                                        'history-cal-chip shell-press',
+                                        selected && 'history-cal-chip--sel',
+                                        !hasEvents && 'history-cal-chip--none',
+                                    ]
+                                        .filter(Boolean)
+                                        .join(' ')}
+                                    onClick={() => setSelMonth(m)}
+                                >
+                                    {abbr}
+                                    {hasEvents && (
+                                        <>
                                             <span
                                                 className="history-cal-chip-dot"
                                                 aria-hidden="true"
                                             />
-                                        )}
-                                    </button>
-                                );
-                            })}
-                        </div>
-                        <CalendarMonth
-                            year={year}
-                            month={selMonth}
-                            eventsByDay={byMonth.get(selMonth) ?? EMPTY_DAY_MAP}
-                            size="large"
-                            todayMonthDay={todayMonthDay}
-                            onOpen={openEvent}
-                        />
-                    </>
-                ) : (
-                    <div className="history-cal-year">
-                        {MONTH_ABBR.map((_, i) => {
-                            const m = i + 1;
-
-                            return (
-                                <CalendarMonth
-                                    key={m}
-                                    year={year}
-                                    month={m}
-                                    eventsByDay={
-                                        byMonth.get(m) ?? EMPTY_DAY_MAP
-                                    }
-                                    size="compact"
-                                    todayMonthDay={todayMonthDay}
-                                    onOpen={openEvent}
-                                />
+                                            <span className="sr-only">
+                                                {' '}
+                                                (has moments)
+                                            </span>
+                                        </>
+                                    )}
+                                </button>
                             );
                         })}
                     </div>
-                )}
+                    <CalendarMonth
+                        year={year}
+                        month={selMonth}
+                        eventsByDay={byMonth.get(selMonth) ?? EMPTY_DAY_MAP}
+                        size="large"
+                        todayMonthDay={todayMonthDay}
+                        onOpen={openEvent}
+                    />
+                </>
+            ) : (
+                <div className="history-cal-year">
+                    {MONTH_ABBR.map((_, i) => {
+                        const m = i + 1;
 
-                <EventSheet
-                    open={sheetOpen}
-                    onOpenChange={setSheetOpen}
-                    mode="read"
-                    editingEvent={selectedEvent}
-                    triggerRef={lastTriggerRef}
-                />
-            </HistoryLayout>
-        </AppLayout>
+                        return (
+                            <CalendarMonth
+                                key={m}
+                                year={year}
+                                month={m}
+                                eventsByDay={byMonth.get(m) ?? EMPTY_DAY_MAP}
+                                size="compact"
+                                todayMonthDay={todayMonthDay}
+                                onOpen={openEvent}
+                            />
+                        );
+                    })}
+                </div>
+            )}
+
+            <EventSheet
+                open={sheetOpen}
+                onOpenChange={setSheetOpen}
+                mode="read"
+                editingEvent={selectedEvent}
+                triggerRef={lastTriggerRef}
+            />
+        </HistoryLayout>
     );
 }

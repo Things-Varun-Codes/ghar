@@ -5,8 +5,7 @@ when work lands, delete lines when they stop being true.
 
 ## Shipped
 
-- **Shell** — Fortify auth, invite-only onboarding, Spatie roles, admin UI, settings, theme
-  switcher (pastel / warm), PWA, Web Push + email notifications (`Notify::send()`), household
+- **Shell** — Fortify auth, invite-only onboarding, Spatie roles, admin UI, settings, PWA, Web Push + email notifications (`Notify::send()`), household
   membership and per-app permissions, auth-gated `/go/{code}` short links (for NFC tags), `/healthz`,
   Sentry-compatible error reporting.
 - **Our History** — timeline, gallery (PhotoSwipe), calendar view, TipTap editor with Corner
@@ -59,8 +58,6 @@ ceiling.
 
 ### Ideas
 
-- **Seasonal themes** — a named `--shell-*` variable set plus a theme row, switched on from
-  `/admin/theme`.
 - **Treasure Hunt → Our History** — a completed hunt creates a History event, through a shell-level
   contract (event/listener or service), never a cross-app import.
 - **Notification preferences** — per-channel opt-out UI.

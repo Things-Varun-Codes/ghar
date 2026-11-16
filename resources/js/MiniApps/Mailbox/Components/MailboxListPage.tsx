@@ -1,9 +1,10 @@
-import { Head, usePage } from '@inertiajs/react';
+import { usePage } from '@inertiajs/react';
 import { Plus } from 'lucide-react';
 import type { ComponentProps, ReactNode } from 'react';
 import { useEffect, useMemo } from 'react';
 
-import EmptyState from '@/Shell/Components/EmptyState';
+import { scrollBehavior } from '@/lib/motion';
+import EmptyState, { noMatchesTitle } from '@/Shell/Components/EmptyState';
 import Fab from '@/Shell/Components/Fab';
 import ListLoadMoreState from '@/Shell/Components/ListLoadMoreState';
 import ListNavBand from '@/Shell/Components/ListNavBand';
@@ -21,7 +22,6 @@ const DEFAULT_SORT_ITEMS: SortItem[] = [
 ];
 
 type MailboxListPageProps<TItem extends ItemConstraint, TTab extends string> = {
-    headTitle: string;
     pageTitle: string;
     paginator: Paginated<TItem>;
     propName: string;
@@ -40,7 +40,6 @@ type MailboxListPageProps<TItem extends ItemConstraint, TTab extends string> = {
     emptyIcon: ComponentProps<typeof EmptyState>['icon'];
     emptyTitle: string;
     emptyBody: string;
-    itemGap?: number;
     /* The returned element must carry key={item.id}. */
     renderItem: (item: TItem, focusedId: number | null) => ReactNode;
     children?: ReactNode;
@@ -50,7 +49,6 @@ export default function MailboxListPage<
     TItem extends ItemConstraint,
     TTab extends string,
 >({
-    headTitle,
     pageTitle,
     paginator,
     propName,
@@ -69,7 +67,6 @@ export default function MailboxListPage<
     emptyIcon,
     emptyTitle,
     emptyBody,
-    itemGap = 16,
     renderItem,
     children,
 }: MailboxListPageProps<TItem, TTab>) {
@@ -91,8 +88,9 @@ export default function MailboxListPage<
     });
 
     const focusedId = useMemo(() => {
-        const qs = url.includes('?') ? url.split('?')[1] : '';
-        const raw = new URLSearchParams(qs).get('focus');
+        const raw = new URL(url, 'http://ghar.invalid').searchParams.get(
+            'focus',
+        );
 
         if (!raw) {
             return null;
@@ -112,7 +110,11 @@ export default function MailboxListPage<
             const el = document.getElementById(`mailbox-note-${focusedId}`);
 
             if (el) {
-                el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                el.scrollIntoView({
+                    behavior: scrollBehavior(),
+                    block: 'center',
+                });
+                el.focus({ preventScroll: true });
             }
         }, 100);
 
@@ -120,14 +122,14 @@ export default function MailboxListPage<
     }, [focusedId]);
 
     const isEmpty = items.length === 0;
+    const searching = Boolean(query && query.trim() !== '');
+    const noun = countAll === 1 ? countNoun.one : countNoun.other;
 
     return (
         <>
-            <Head title={headTitle} />
-
             <Page
-                tier="index"
                 title={pageTitle}
+                room="Our Mailbox"
                 backChevron
                 fab={
                     <Fab
@@ -147,8 +149,9 @@ export default function MailboxListPage<
                     navigating={navigating}
                     count={
                         <span className="text-(length:--text-eyebrow) text-(--mailbox-ink-soft)">
-                            {countAll}{' '}
-                            {countAll === 1 ? countNoun.one : countNoun.other}
+                            {countAll} {noun}
+                            {searching &&
+                                (countAll === 1 ? ' matches' : ' match')}
                         </span>
                     }
                     sort={sort}
@@ -159,7 +162,8 @@ export default function MailboxListPage<
                     onSearch={(v) => navigate({ q: v })}
                     tabs={
                         <SegmentedTabs
-                            mode="tablist-url"
+                            mode="nav"
+                            keepScroll
                             ariaLabel={tabsAriaLabel}
                             active={tab}
                             items={tabItems}
@@ -172,21 +176,21 @@ export default function MailboxListPage<
                     className={navigating ? 'shell-list-pending' : undefined}
                     aria-busy={navigating}
                 >
-                    {isEmpty ? (
+                    {isEmpty && searching ? (
+                        <EmptyState
+                            title={noMatchesTitle(countNoun.other, query ?? '')}
+                            body="Try another word, or clear the search to see everything."
+                            query={query}
+                            onClearSearch={() => navigate({ q: undefined })}
+                        />
+                    ) : isEmpty ? (
                         <EmptyState
                             icon={emptyIcon}
                             title={emptyTitle}
                             body={emptyBody}
                         />
                     ) : (
-                        <div
-                            className="mailbox-feed"
-                            style={
-                                {
-                                    '--mailbox-feed-gap': `${itemGap}px`,
-                                } as React.CSSProperties
-                            }
-                        >
+                        <div className="mailbox-feed">
                             {items.map((item) => renderItem(item, focusedId))}
                             <ListLoadMoreState
                                 loadingMore={loadingMore}

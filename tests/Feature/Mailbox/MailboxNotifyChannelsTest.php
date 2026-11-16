@@ -49,7 +49,7 @@ class MailboxNotifyChannelsTest extends TestCase
             'body' => 'no subscriptions on the recipient',
         ]);
 
-        $response->assertRedirect('/apps/our-mailbox/messages');
+        $response->assertRedirect('/apps/our-mailbox/messages?tab=sent');
         $this->assertDatabaseHas('mailbox_messages', [
             'sender_id' => $sender->id,
             'body' => 'no subscriptions on the recipient',

@@ -5,9 +5,6 @@ namespace App\Http\Middleware;
 use App\Shell\Support\AppVersion;
 use App\Shell\Support\MiniAppRegistry;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\View;
 use Inertia\Middleware;
 
 class HandleInertiaRequests extends Middleware
@@ -30,35 +27,6 @@ class HandleInertiaRequests extends Middleware
 
         $miniApps = MiniAppRegistry::visibleFor($user, $isAdmin);
 
-        // Falls back when the settings row or table is missing, which happens mid-deploy
-        // before migrations run.
-        $activeTheme = $request->attributes->get('smoke_active_theme');
-        if ($activeTheme === null) {
-            try {
-                $activeTheme = DB::table('settings')
-                    ->where('key', 'active_theme')
-                    ->value('value');
-            } catch (\Throwable $e) {
-                // share() runs on every request; without this cache gate a deploy
-                // mid-migration floods error tracking with identical events.
-                Cache::remember(
-                    'settings-table-missing-warned',
-                    3600,
-                    function () use ($e): string {
-                        report($e);
-
-                        return now()->toIso8601String();
-                    }
-                );
-            }
-        }
-        $activeTheme ??= config('themes.default', 'pastel');
-
-        // The root Blade view doesn't receive Inertia's shared props.
-        View::share('activeTheme', $activeTheme);
-
-        $themes = config('themes.themes', []);
-
         return [
             ...parent::share($request),
             'name' => config('app.name'),
@@ -73,8 +41,6 @@ class HandleInertiaRequests extends Middleware
                 ] : null,
             ],
             'miniApps' => $miniApps,
-            'activeTheme' => $activeTheme,
-            'themes' => $themes,
             'today' => now()->toDateString(),
             // EventForm reads this to drain staged uploads once the moment exists.
             'flash' => [

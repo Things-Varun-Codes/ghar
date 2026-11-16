@@ -1,6 +1,8 @@
 import type { ReactNode } from 'react';
 
-import { ThemeAttrsProvider } from '@/hooks/use-theme-attrs';
+import { AppAttrsProvider } from '@/hooks/use-app-attrs';
+
+export const CORNER_ROOM = 'Our Corner';
 
 type CornerLayoutProps = {
     children: ReactNode;
@@ -8,13 +10,13 @@ type CornerLayoutProps = {
 
 export default function CornerLayout({ children }: CornerLayoutProps) {
     return (
-        <ThemeAttrsProvider value={{ app: 'our-corner' }}>
+        <AppAttrsProvider app="our-corner">
             <div
                 data-app="our-corner"
                 className="corner-page min-h-full bg-(--corner-bg) text-(--corner-ink)"
             >
                 {children}
             </div>
-        </ThemeAttrsProvider>
+        </AppAttrsProvider>
     );
 }

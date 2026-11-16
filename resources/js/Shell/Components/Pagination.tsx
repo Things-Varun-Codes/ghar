@@ -24,10 +24,22 @@ export default function Pagination({ links }: { links: PaginationLink[] }) {
                 const ariaProps: Record<string, string | undefined> = {};
 
                 if (isPrev) {
-                    child = <ChevronLeft size={16} aria-hidden="true" />;
+                    child = (
+                        <ChevronLeft
+                            size={16}
+                            strokeWidth={1.5}
+                            aria-hidden="true"
+                        />
+                    );
                     ariaProps['aria-label'] = 'Previous page';
                 } else if (isNext) {
-                    child = <ChevronRight size={16} aria-hidden="true" />;
+                    child = (
+                        <ChevronRight
+                            size={16}
+                            strokeWidth={1.5}
+                            aria-hidden="true"
+                        />
+                    );
                     ariaProps['aria-label'] = 'Next page';
                 } else if (isEllipsis) {
                     ariaProps['aria-hidden'] = 'true';

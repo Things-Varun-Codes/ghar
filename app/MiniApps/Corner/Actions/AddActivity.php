@@ -28,13 +28,15 @@ class AddActivity
                 $firstName = $adder->firstName();
                 $body = "{$firstName} added an activity: {$activity->title}";
 
-                DB::afterCommit(function () use ($adder, $body): void {
+                $url = route('apps.our-corner.activities.show', $activity, absolute: false);
+
+                DB::afterCommit(function () use ($adder, $body, $url): void {
                     $this->dispatcher->toHousehold(
                         $adder,
                         'our-corner',
                         'our-corner:activities',
                         $body,
-                        '/apps/our-corner/activities',
+                        $url,
                     );
                 });
             }

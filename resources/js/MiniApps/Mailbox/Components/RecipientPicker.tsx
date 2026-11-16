@@ -1,3 +1,5 @@
+import { useId } from 'react';
+
 import EmptyState from '@/Shell/Components/EmptyState';
 
 export type HouseholdMember = { id: number; name: string };
@@ -21,6 +23,7 @@ export default function RecipientPicker({
     errors = {},
     legend = 'Send to',
 }: Props) {
+    const noteId = useId();
     const error = Object.entries(errors).find(([key]) =>
         key.startsWith('recipient_ids'),
     )?.[1];
@@ -42,9 +45,19 @@ export default function RecipientPicker({
         );
     };
 
+    const showHelper = !error && members.length > 1 && value.length === 0;
+
     return (
-        <fieldset className="mailbox-recipients">
-            <legend className="mailbox-recipients-legend">{legend}</legend>
+        <fieldset
+            className="mailbox-recipients"
+            aria-describedby={error || showHelper ? noteId : undefined}
+        >
+            <legend className="mailbox-recipients-legend">
+                {legend}
+                <span aria-hidden="true" className="mailbox-required">
+                    *
+                </span>
+            </legend>
 
             {members.length === 1 ? (
                 <p className="mailbox-recipient-solo">{members[0].name}</p>
@@ -53,7 +66,7 @@ export default function RecipientPicker({
                     {members.map((member) => (
                         <label
                             key={member.id}
-                            className="mailbox-recipient-chip"
+                            className="mailbox-recipient-chip shell-press"
                         >
                             <input
                                 type="checkbox"
@@ -67,10 +80,20 @@ export default function RecipientPicker({
                 </div>
             )}
 
-            {error && (
-                <p role="alert" className="mailbox-recipients-error">
+            {error ? (
+                <p
+                    id={noteId}
+                    role="alert"
+                    className="mailbox-recipients-error"
+                >
                     {error}
                 </p>
+            ) : (
+                showHelper && (
+                    <p id={noteId} className="mailbox-field-helper">
+                        Choose at least one person.
+                    </p>
+                )
             )}
         </fieldset>
     );

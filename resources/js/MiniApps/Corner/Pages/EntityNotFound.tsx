@@ -1,7 +1,10 @@
 import { Head, Link } from '@inertiajs/react';
-import CornerLayout from '@/MiniApps/Corner/Layouts/CornerLayout';
+import { ChevronLeft } from 'lucide-react';
+import { pageTitle } from '@/lib/title';
+import CornerLayout, {
+    CORNER_ROOM,
+} from '@/MiniApps/Corner/Layouts/CornerLayout';
 import { landing } from '@/routes/apps/our-corner';
-import AppLayout from '@/Shell/Layouts/AppLayout';
 
 interface Props {
     kind: 'song' | 'movie' | 'activity' | 'place';
@@ -18,27 +21,32 @@ export default function EntityNotFound({ kind }: Props) {
     const label = KIND_LABEL[kind] ?? 'thing';
 
     return (
-        <AppLayout>
-            <Head title="No longer here" />
+        <>
+            <Head title={pageTitle('No longer here', CORNER_ROOM)} />
             <CornerLayout>
                 <div className="corner-not-found">
                     <article className="corner-not-found-card">
                         <h1 className="corner-not-found-title">
                             This {label} isn't here anymore.
                         </h1>
-                        <p className="mb-6 text-[15px] opacity-[0.75]">
+                        <p className="corner-not-found-body">
                             Someone may have removed it. The link still has the
                             title, but the item itself is gone.
                         </p>
                         <Link
                             href={landing.url()}
-                            className="corner-not-found-back"
+                            className="corner-not-found-back shell-press"
                         >
-                            ← Back to Our Corner
+                            <ChevronLeft
+                                aria-hidden="true"
+                                size={16}
+                                strokeWidth={1.5}
+                            />
+                            Back to {CORNER_ROOM}
                         </Link>
                     </article>
                 </div>
             </CornerLayout>
-        </AppLayout>
+        </>
     );
 }

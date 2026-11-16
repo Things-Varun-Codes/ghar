@@ -17,7 +17,6 @@ class MailboxSummary
      *     unread_flowers: int,
      *     challans_action_needed: int,
      *     coupons_action_needed: int,
-     *     latest_unread_preview: ?array{id: int, body: string, posted_at: string, sender_id: int},
      * }
      */
     public static function forUser(User $user): array
@@ -40,22 +39,6 @@ class MailboxSummary
             ->where('status', Coupon::STATUS_REQUESTED)
             ->count();
 
-        $latestUnread = MailboxMessage::query()
-            ->unreadBy($user)
-            ->orderByDesc('posted_at')
-            ->orderByDesc('id')
-            ->first();
-
-        $preview = null;
-        if ($latestUnread !== null) {
-            $preview = [
-                'id' => $latestUnread->id,
-                'body' => mb_substr($latestUnread->body, 0, 140),
-                'posted_at' => $latestUnread->posted_at->toIso8601String(),
-                'sender_id' => $latestUnread->sender_id,
-            ];
-        }
-
         return [
             'counts' => [
                 'messages' => $messagesCount,
@@ -67,7 +50,6 @@ class MailboxSummary
             'unread_flowers' => $unreadFlowers,
             'challans_action_needed' => $challansActionNeeded,
             'coupons_action_needed' => $couponsActionNeeded,
-            'latest_unread_preview' => $preview,
         ];
     }
 }

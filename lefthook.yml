@@ -73,7 +73,7 @@ pre-push:
     phpunit:
       run: php artisan test
     smoke:
-      # Rebuilds the Vite bundle before walking every route in both themes.
+      # Rebuilds the Vite bundle before walking every route.
       run: npm run smoke
     smoke-loadmore:
       # Fault-injection smoke for the Mode-A load-more retry path. Runs only

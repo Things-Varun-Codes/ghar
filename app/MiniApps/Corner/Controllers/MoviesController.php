@@ -12,6 +12,7 @@ use App\MiniApps\Corner\Models\Movie;
 use App\MiniApps\Corner\Services\MoviePosterResolver;
 use App\Shell\Services\LinkableEntities;
 use App\Shell\Support\CursorList;
+use App\Shell\Support\FlashToast;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
@@ -66,6 +67,9 @@ class MoviesController
 
         $action($request->validated(), $adder);
 
+        FlashToast::success('Movie added.');
+
+        // No query string: a new item must show even if a search or filter was active.
         return redirect('/apps/our-corner/movies');
     }
 

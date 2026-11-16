@@ -1,4 +1,4 @@
-import { Head, useForm, usePage } from '@inertiajs/react';
+import { useForm, usePage } from '@inertiajs/react';
 import type { FormEventHandler } from 'react';
 import { useMemo, useState } from 'react';
 
@@ -18,7 +18,6 @@ import * as adminNotifications from '@/routes/admin/notifications';
 import FormField from '@/Shell/Components/FormField';
 import Page from '@/Shell/Components/Page';
 import SubmitButton from '@/Shell/Components/SubmitButton';
-import AppLayout from '@/Shell/Layouts/AppLayout';
 
 interface User {
     id: number;
@@ -92,12 +91,11 @@ export default function NotificationsSend() {
         data.channels.length === 0 || processing || isOnlyUser;
 
     return (
-        <AppLayout>
-            <Head title="Send notification — Admin" />
-
+        <>
             <Page
                 tier="prose"
                 title="Send notification"
+                room="Admin"
                 backChevron
                 subtitle="Send one person a ping. Save it for things worth interrupting them for."
             >
@@ -115,7 +113,7 @@ export default function NotificationsSend() {
                     </div>
                 )}
 
-                <div className="os-admin-surface rounded-xl border p-6">
+                <div className="os-admin-surface border p-6">
                     <form onSubmit={submit} className="space-y-5">
                         <FormField
                             label="Recipient"
@@ -138,7 +136,7 @@ export default function NotificationsSend() {
                                     className="os-admin-tap w-full"
                                     data-testid="admin-notifications-recipient-select"
                                 >
-                                    <SelectValue placeholder="Select a person…" />
+                                    <SelectValue placeholder="Choose a person" />
                                 </SelectTrigger>
                                 <SelectContent>
                                     <SelectGroup>
@@ -151,7 +149,7 @@ export default function NotificationsSend() {
                                                     <span className="os-admin-strong">
                                                         {u.name}
                                                     </span>
-                                                    <span className="os-admin-muted text-xs">
+                                                    <span className="os-admin-muted text-[13px]">
                                                         {u.email}
                                                     </span>
                                                 </div>
@@ -295,6 +293,6 @@ export default function NotificationsSend() {
                     </form>
                 </div>
             </Page>
-        </AppLayout>
+        </>
     );
 }

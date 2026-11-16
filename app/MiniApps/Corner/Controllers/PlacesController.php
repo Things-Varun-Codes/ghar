@@ -11,6 +11,7 @@ use App\MiniApps\Corner\Http\Resources\PlaceResource;
 use App\MiniApps\Corner\Models\Place;
 use App\Shell\Services\LinkableEntities;
 use App\Shell\Support\CursorList;
+use App\Shell\Support\FlashToast;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -64,6 +65,9 @@ class PlacesController
 
         $action($request->validated(), $adder);
 
+        FlashToast::success('Place added.');
+
+        // No query string: a new item must show even if a search or filter was active.
         return redirect('/apps/our-corner/places');
     }
 

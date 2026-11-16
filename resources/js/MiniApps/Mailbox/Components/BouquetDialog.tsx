@@ -9,10 +9,7 @@ type Props = {
 export default function BouquetDialog({ open, onOpenChange, imageUrl }: Props) {
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
-            <DialogContent
-                data-app="our-mailbox"
-                className="mailbox-bouquet-lightbox"
-            >
+            <DialogContent className="mailbox-bouquet-lightbox">
                 <DialogTitle className="sr-only">Bouquet image</DialogTitle>
                 <img
                     src={imageUrl}

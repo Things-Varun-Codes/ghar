@@ -1,40 +1,51 @@
 import { Link, usePage } from '@inertiajs/react';
-import { Menu } from 'lucide-react';
 import { dashboard } from '@/routes';
 import AccountMenu from '@/Shell/Components/AccountMenu';
+import BackChevron from '@/Shell/Components/BackChevron';
 import HeartMark from '@/Shell/Components/HeartMark';
+import { useShellPageInfo } from '@/Shell/Layouts/shell-chrome';
+import type { MiniApp } from '@/types/miniapp';
 
+/*
+ * Below `lg`: the wordmark on Home; elsewhere back on the left and the page's title, so where
+ * you are and the way back stay on screen while the page scrolls.
+ */
 export default function MobileTopBar({
-    onMenuClick,
+    activeRoom,
 }: {
-    onMenuClick: () => void;
+    activeRoom: MiniApp | undefined;
 }) {
-    const appName = usePage().props.name;
+    const { props, component } = usePage();
+    const info = useShellPageInfo();
+    const appName = props.name;
+    const onHome = component === 'Shell/Pages/Dashboard';
+
+    const title = info?.title ?? activeRoom?.name ?? appName;
 
     return (
-        <header className="fixed top-0 right-0 left-0 z-50 flex h-14 items-center justify-between bg-(--sidebar) px-2">
-            <button
-                type="button"
-                onClick={onMenuClick}
-                aria-label="Open navigation"
-                className="flex h-[44px] w-[44px] items-center justify-center rounded-lg text-(--foreground)"
-            >
-                <Menu size={24} aria-hidden="true" />
-            </button>
-            <div className="inline-flex items-center gap-1">
-                <Link
-                    href={dashboard().url}
-                    aria-label="Go to dashboard"
-                    className="cursor-pointer transition-opacity hover:opacity-85"
-                >
-                    <div className="shell-wordmark-topbar">
-                        {appName}
-                        <HeartMark size={13} filled />
-                    </div>
-                </Link>
+        <header className="shell-topbar fixed top-0 right-0 left-0 z-(--z-topbar) grid grid-cols-[44px_minmax(0,1fr)_44px] items-center gap-2 bg-(--sidebar)">
+            <div className="flex">
+                {!onHome && <BackChevron back={info?.back} />}
             </div>
 
-            <AccountMenu />
+            {onHome ? (
+                <Link
+                    href={dashboard().url}
+                    aria-label={`${appName}, go to Home`}
+                    className="shell-focus inline-flex min-h-11 items-center justify-self-center rounded-full px-2"
+                >
+                    <span className="shell-wordmark-topbar">
+                        {appName}
+                        <HeartMark size={13} filled />
+                    </span>
+                </Link>
+            ) : (
+                <p className="shell-topbar-title" title={title}>
+                    {title}
+                </p>
+            )}
+
+            <AccountMenu withNav />
         </header>
     );
 }

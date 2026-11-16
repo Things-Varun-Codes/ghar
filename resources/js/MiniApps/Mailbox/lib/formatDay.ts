@@ -1,25 +1,6 @@
-/* One hard-coded month list: Intl en-GB renders September as Sept on newer ICU builds. */
+import { formatDate } from '@/lib/dates';
 
-const MONTHS = [
-    'Jan',
-    'Feb',
-    'Mar',
-    'Apr',
-    'May',
-    'Jun',
-    'Jul',
-    'Aug',
-    'Sep',
-    'Oct',
-    'Nov',
-    'Dec',
-];
-
-function render(year: number, month: number, day: number): string {
-    return `${String(day).padStart(2, '0')} ${MONTHS[month - 1]} ${year}`;
-}
-
-/* Parsed as numeric parts so the day never shifts across timezones. */
+/* Parsed as numeric parts so a plain date never shifts a day across timezones. */
 export function formatPlainDay(
     iso: string | null | undefined,
     fallback = '—',
@@ -34,22 +15,12 @@ export function formatPlainDay(
         return fallback;
     }
 
-    return render(y, m, d);
+    return formatDate(new Date(y, m - 1, d), { fallback });
 }
 
 export function formatInstantDay(
     iso: string | null | undefined,
     fallback = '—',
 ): string {
-    if (!iso) {
-        return fallback;
-    }
-
-    const date = new Date(iso);
-
-    if (Number.isNaN(date.getTime())) {
-        return fallback;
-    }
-
-    return render(date.getFullYear(), date.getMonth() + 1, date.getDate());
+    return formatDate(iso, { fallback });
 }

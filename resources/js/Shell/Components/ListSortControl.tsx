@@ -39,7 +39,7 @@ export default function ListSortControl({ sort, items, onSelect }: Props) {
                     <ChevronDown
                         aria-hidden="true"
                         size={14}
-                        strokeWidth={2}
+                        strokeWidth={1.5}
                         className="shrink-0 opacity-[0.6]"
                     />
                 </button>
@@ -71,7 +71,7 @@ export default function ListSortControl({ sort, items, onSelect }: Props) {
                                 <Check
                                     aria-hidden="true"
                                     size={14}
-                                    strokeWidth={2.5}
+                                    strokeWidth={1.5}
                                     className="shrink-0 text-(--shell-accent-text)"
                                 />
                             )}

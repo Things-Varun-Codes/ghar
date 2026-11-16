@@ -1,4 +1,4 @@
-import { Head, Link, router, usePage } from '@inertiajs/react';
+import { Link, router, usePage } from '@inertiajs/react';
 import { useState } from 'react';
 import {
     AlertDialog,
@@ -19,13 +19,13 @@ import {
     TableHeader,
     TableRow,
 } from '@/components/ui/table';
-import { formatDate } from '@/lib/utils';
+import { formatDate } from '@/lib/dates';
+import { roleLabel } from '@/lib/roles';
 import * as invites from '@/routes/admin/invites';
 import * as usersRoutes from '@/routes/admin/users';
 import Page from '@/Shell/Components/Page';
 import Pagination from '@/Shell/Components/Pagination';
 import type { PaginationLink } from '@/Shell/Components/Pagination';
-import AppLayout from '@/Shell/Layouts/AppLayout';
 
 interface Role {
     name: string;
@@ -82,24 +82,31 @@ export default function UsersIndex({ users }: Props) {
                     key={role.name}
                     variant={role.name === 'admin' ? 'default' : 'secondary'}
                 >
-                    {role.name}
+                    {roleLabel(role.name)}
                 </Badge>
             ))}
         </div>
     );
 
     const renderActions = (user: User) => (
-        <div className="flex items-center justify-end gap-2">
+        <div className="flex items-center gap-2">
             <Link
                 href={usersRoutes.edit.url({ user: user.id })}
-                className="os-admin-row-action os-admin-fill-accent inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors hover:opacity-80"
+                aria-label={`Edit ${user.name}`}
+                className="os-admin-row-action os-admin-fill-accent shell-press inline-flex items-center justify-center"
             >
                 Edit
             </Link>
             <button
+                type="button"
                 onClick={() => handleDelete(user)}
                 disabled={user.id === currentUserId}
-                className="os-admin-row-action os-admin-outline-destructive inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors hover:opacity-80 disabled:cursor-not-allowed disabled:opacity-40"
+                aria-label={
+                    user.id === currentUserId
+                        ? `Delete ${user.name} (you can't delete yourself)`
+                        : `Delete ${user.name}`
+                }
+                className="os-admin-row-action os-admin-outline-destructive shell-press inline-flex items-center justify-center disabled:cursor-not-allowed disabled:opacity-40"
             >
                 Delete
             </button>
@@ -107,81 +114,89 @@ export default function UsersIndex({ users }: Props) {
     );
 
     return (
-        <AppLayout>
-            <Head title="Users — Admin" />
-
+        <>
             <Page
-                tier="index"
                 title="Users"
+                room="Admin"
                 backChevron
                 actions={
                     <Link
                         href={invites.index.url()}
-                        className="os-admin-tap os-admin-tap-center os-admin-fill-primary rounded-lg px-4 py-2 text-sm font-semibold transition-colors"
+                        className="os-admin-tap os-admin-tap-center os-admin-fill-primary shell-press px-4 py-2 text-sm font-medium"
                     >
-                        Manage Invites
+                        Manage invites
                     </Link>
                 }
             >
-                <div className="os-admin-surface hidden overflow-x-auto rounded-xl border sm:block">
-                    <Table className="min-w-[640px]">
-                        <TableHeader>
-                            <TableRow>
-                                <TableHead>Name</TableHead>
-                                <TableHead>Email</TableHead>
-                                <TableHead>Role</TableHead>
-                                <TableHead>Last login</TableHead>
-                                <TableHead className="text-right">
-                                    Actions
-                                </TableHead>
-                            </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                            {users.data.map((user) => (
-                                <TableRow key={user.id}>
-                                    <TableCell className="os-admin-strong">
-                                        {user.name}
-                                    </TableCell>
-                                    <TableCell className="os-admin-muted">
-                                        {user.email}
-                                    </TableCell>
-                                    <TableCell>
-                                        {renderRoleBadges(user)}
-                                    </TableCell>
-                                    <TableCell className="os-admin-meta">
-                                        {formatDate(user.last_login_at, {
-                                            fallback: 'Never',
-                                        })}
-                                    </TableCell>
-                                    <TableCell className="text-right">
-                                        {renderActions(user)}
-                                    </TableCell>
+                <div className="@container">
+                    <div className="os-admin-surface hidden overflow-x-auto border @min-[760px]:block">
+                        <Table className="min-w-[640px]">
+                            <TableHeader>
+                                <TableRow>
+                                    <TableHead>Name</TableHead>
+                                    <TableHead>Email</TableHead>
+                                    <TableHead>Role</TableHead>
+                                    <TableHead>Last login</TableHead>
+                                    <TableHead className="os-admin-sticky-actions text-right">
+                                        Actions
+                                    </TableHead>
                                 </TableRow>
-                            ))}
-                        </TableBody>
-                    </Table>
-                </div>
+                            </TableHeader>
+                            <TableBody>
+                                {users.data.map((user) => (
+                                    <TableRow key={user.id}>
+                                        <TableCell className="os-admin-strong">
+                                            {user.name}
+                                        </TableCell>
+                                        <TableCell className="os-admin-muted">
+                                            {user.email}
+                                        </TableCell>
+                                        <TableCell>
+                                            {renderRoleBadges(user)}
+                                        </TableCell>
+                                        <TableCell className="os-admin-meta">
+                                            {formatDate(user.last_login_at, {
+                                                fallback: 'Never',
+                                            })}
+                                        </TableCell>
+                                        <TableCell className="os-admin-sticky-actions">
+                                            <div className="flex justify-end">
+                                                {renderActions(user)}
+                                            </div>
+                                        </TableCell>
+                                    </TableRow>
+                                ))}
+                            </TableBody>
+                        </Table>
+                    </div>
 
-                <div className="flex flex-col gap-3 sm:hidden">
-                    {users.data.map((user) => (
-                        <div
-                            key={user.id}
-                            className="os-admin-surface rounded-xl border p-4"
-                        >
-                            <div className="mb-3">
-                                <p className="os-admin-strong">{user.name}</p>
-                                <p className="os-admin-meta">{user.email}</p>
+                    <div className="flex flex-col gap-3 @min-[760px]:hidden">
+                        {users.data.map((user) => (
+                            <div
+                                key={user.id}
+                                className="os-admin-surface border p-4"
+                            >
+                                <div className="mb-3">
+                                    <p className="os-admin-strong">
+                                        {user.name}
+                                    </p>
+                                    <p className="os-admin-meta">
+                                        {user.email}
+                                    </p>
+                                </div>
+                                <div className="mb-3">
+                                    {renderRoleBadges(user)}
+                                </div>
+                                <p className="os-admin-meta mb-3">
+                                    Last login:{' '}
+                                    {formatDate(user.last_login_at, {
+                                        fallback: 'Never',
+                                    })}
+                                </p>
+                                {renderActions(user)}
                             </div>
-                            <div className="mb-3">{renderRoleBadges(user)}</div>
-                            <p className="os-admin-meta mb-3">
-                                Last login:{' '}
-                                {formatDate(user.last_login_at, {
-                                    fallback: 'Never',
-                                })}
-                            </p>
-                            {renderActions(user)}
-                        </div>
-                    ))}
+                        ))}
+                    </div>
                 </div>
 
                 <AlertDialog
@@ -215,6 +230,6 @@ export default function UsersIndex({ users }: Props) {
 
                 <Pagination links={users.meta.links} />
             </Page>
-        </AppLayout>
+        </>
     );
 }

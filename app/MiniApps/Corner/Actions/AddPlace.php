@@ -34,13 +34,15 @@ class AddPlace
                 $firstName = $adder->firstName();
                 $body = "{$firstName} added a place: {$place->title}";
 
-                DB::afterCommit(function () use ($adder, $body): void {
+                $url = route('apps.our-corner.places.show', $place, absolute: false);
+
+                DB::afterCommit(function () use ($adder, $body, $url): void {
                     $this->dispatcher->toHousehold(
                         $adder,
                         'our-corner',
                         'our-corner:places',
                         $body,
-                        '/apps/our-corner/places',
+                        $url,
                     );
                 });
             }

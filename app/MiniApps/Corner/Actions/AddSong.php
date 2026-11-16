@@ -47,13 +47,15 @@ class AddSong
                 $firstName = $adder->firstName();
                 $body = "{$firstName} added a song: {$song->title}";
 
-                DB::afterCommit(function () use ($adder, $body): void {
+                $url = route('apps.our-corner.songs.show', $song, absolute: false);
+
+                DB::afterCommit(function () use ($adder, $body, $url): void {
                     $this->dispatcher->toHousehold(
                         $adder,
                         'our-corner',
                         'our-corner:songs',
                         $body,
-                        '/apps/our-corner/songs',
+                        $url,
                     );
                 });
             }

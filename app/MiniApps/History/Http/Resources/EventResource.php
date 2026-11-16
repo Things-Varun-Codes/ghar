@@ -70,7 +70,8 @@ class EventResource
         return [
             'id' => $event->id,
             'date' => $event->occurred_on->format('Y-m-d'),
-            'date_label' => $event->occurred_on->format('M j, Y'),
+            // "4 Jun 2024": the same shape formatDate() in resources/js/lib/dates.ts gives.
+            'date_label' => $event->occurred_on->format('j M Y'),
             'year' => (int) $event->occurred_on->format('Y'),
             'title' => $event->title,
             'location_freetext' => $event->location_freetext,

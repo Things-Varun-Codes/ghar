@@ -1,3 +1,5 @@
+import { Check, Hourglass } from 'lucide-react';
+
 import { cn } from '@/lib/utils';
 import type { CouponPayload } from '@/MiniApps/Mailbox/Components/CouponCard';
 import { formatPlainDay } from '@/MiniApps/Mailbox/lib/formatDay';
@@ -33,7 +35,7 @@ export default function CouponArtifact({ coupon }: { coupon: CouponPayload }) {
                         {monogram(coupon.issuer.name, coupon.recipient.name)}
                     </div>
                     <div className="mailbox-coupon-eyebrow">
-                        ◆ Department of the Household
+                        Department of the Household
                     </div>
                     <div className="mailbox-coupon-title">{coupon.title}</div>
                     {coupon.description && (
@@ -65,11 +67,15 @@ export default function CouponArtifact({ coupon }: { coupon: CouponPayload }) {
                                         className="mailbox-coupon-check"
                                         aria-hidden="true"
                                     >
-                                        ✓
+                                        <Check size={24} strokeWidth={2} />
                                     </span>
                                 )}
                                 {kind === 'next' && (
-                                    <span aria-hidden="true">⏳</span>
+                                    <Hourglass
+                                        size={20}
+                                        strokeWidth={1.5}
+                                        aria-hidden="true"
+                                    />
                                 )}
                             </div>
                         ))}
@@ -125,7 +131,10 @@ export default function CouponArtifact({ coupon }: { coupon: CouponPayload }) {
             </div>
 
             {isRequested && (
-                <div className="mailbox-coupon-await">⏳ {awaitText}</div>
+                <div className="mailbox-coupon-await">
+                    <Hourglass size={16} strokeWidth={1.5} aria-hidden="true" />
+                    {awaitText}
+                </div>
             )}
         </>
     );

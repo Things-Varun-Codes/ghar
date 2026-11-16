@@ -33,7 +33,7 @@ export default function AuthLayout({
                     </p>
                 </div>
 
-                <div className="w-full max-w-sm rounded-[24px] border border-(--border) bg-(--card) p-8">
+                <div className="w-full max-w-sm rounded-(--radius-card) border border-(--border) bg-(--card) p-8">
                     <h1 className="shell-auth-title leading-tight">{title}</h1>
                     {subtitle && (
                         <p className="mt-1 text-[14px] text-(--muted-foreground)">

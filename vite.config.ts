@@ -23,20 +23,16 @@ export default defineConfig({
             input: ['resources/css/app.css', 'resources/js/app.tsx'],
             refresh: true,
             fonts: [
-                google('Instrument Sans', {
-                    weights: [400, 500, 600],
+                google('Hanken Grotesk', {
+                    weights: [400, 500],
                 }),
-                google('Instrument Serif', {
+                google('Newsreader', {
                     weights: [400],
+                    styles: ['normal', 'italic'],
                 }),
+                // Only for what someone wrote by hand: note bodies and coupon titles.
                 google('Patrick Hand', {
                     weights: [400],
-                }),
-                google('Special Elite', {
-                    weights: [400],
-                }),
-                google('Fredoka', {
-                    weights: [400, 500, 600],
                 }),
             ],
         }),

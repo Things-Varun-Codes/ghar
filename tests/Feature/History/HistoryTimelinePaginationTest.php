@@ -42,6 +42,7 @@ class HistoryTimelinePaginationTest extends TestCase
 
         // First event must have the latest date.
         $this->assertEquals('2024-12-31', $eventsData[0]['date']);
+        $this->assertSame('31 Dec 2024', $eventsData[0]['date_label']);
     }
 
     public function test_oldest_first_query_param_reverses_order(): void

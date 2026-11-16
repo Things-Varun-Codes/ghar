@@ -1,4 +1,6 @@
+import { SearchX } from 'lucide-react';
 import type { ComponentType, ReactNode } from 'react';
+import { Button } from '@/components/ui/button';
 import HeartMark from '@/Shell/Components/HeartMark';
 
 type IconComponent = ComponentType<{
@@ -13,14 +15,41 @@ type Props = {
     title: string;
     body?: string;
     action?: ReactNode;
+    /**
+     * The active search. When non-empty the state reads as "no matches": a search icon and,
+     * unless `action` is given, a "Clear search" button that calls `onClearSearch`.
+     */
+    query?: string | null;
+    onClearSearch?: () => void;
 };
 
+export function noMatchesTitle(noun: string, query: string): string {
+    return `No ${noun} match “${query}”`;
+}
+
 export default function EmptyState({
-    icon: Icon = HeartMark,
+    icon,
     title,
     body,
     action,
+    query,
+    onClearSearch,
 }: Props) {
+    const searching = Boolean(query && query.trim() !== '');
+    const Icon = icon ?? (searching ? SearchX : HeartMark);
+    const resolvedAction =
+        action ??
+        (searching && onClearSearch ? (
+            <Button
+                type="button"
+                variant="outline"
+                className="shell-press"
+                onClick={onClearSearch}
+            >
+                Clear search
+            </Button>
+        ) : null);
+
     return (
         <div className="mx-auto mt-16 mb-0 flex max-w-[360px] flex-col items-center text-center">
             <Icon
@@ -35,7 +64,7 @@ export default function EmptyState({
                     {body}
                 </p>
             )}
-            {action && <div className="mt-4">{action}</div>}
+            {resolvedAction && <div className="mt-4">{resolvedAction}</div>}
         </div>
     );
 }

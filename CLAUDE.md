@@ -113,8 +113,14 @@ Fortify (login, remember-me, logout, password reset) + `spatie/laravel-permissio
 - Manifest `/manifest.webmanifest` comes from `ManifestController` (not a static file), so the
   installed name follows `APP_NAME`; icons `public/icon-192.png`, `icon-512.png`,
   `icon-maskable-512.png`, `apple-touch-icon.png` (180×180).
-- `public/sw.js` handles the install/activate lifecycle, Web Push display and notification clicks,
-  with no fetch listener. Registered from `resources/js/app.tsx` in production only.
+- `public/sw.js` handles the install/activate lifecycle, Web Push display and notification clicks.
+  Registered from `resources/js/app.tsx` in production only. Its one `fetch` listener answers
+  same-origin page navigations only: it passes them to the network (through navigation preload
+  where the browser has it) and serves the precached `public/offline.html` when the network is
+  unreachable. Navigations to `/go/*`, `/healthz`, `/up`, `/sw.js` and the manifest are passed
+  through unchanged and never get the offline page. It never caches an app page; XHR, assets and
+  media skip the worker (static routes on `requestMode`, where supported). Bump `OFFLINE_CACHE` in
+  `sw.js` whenever `offline.html` changes.
 - iOS standalone + theme-color meta tags live in `resources/views/app.blade.php`.
 - **Cloudflare must not cache** `/manifest.webmanifest`, `/sw.js`, `/healthz` or `/go/*` (Cache Rule
   bypass — see DEPLOY.md). A cached `/go/{code}` 302 silently defeats the short-link kill switch.
@@ -137,11 +143,26 @@ PHP/TS identifiers say `ShortLink`.
 
 ## Conventions
 
-- **OS-vs-app split.** The sidebar is static OS chrome (Home, Settings, Admin). The dashboard is the
-  mini-app launcher. **Mini apps are never added to the sidebar.**
-- **Portal `data-theme` propagation.** Radix Dialog / Sheet / AlertDialog / Popover / Select
-  portals render outside `#shell-chrome` and lose `[data-theme]`. Spread
-  `{...useThemeAttrs()}` (`resources/js/hooks/use-theme-attrs.tsx`) onto every portaled root.
+- **OS-vs-app split.** The sidebar (from 1024px) is static OS chrome (Home, Settings, Admin). The
+  dashboard is the mini-app launcher. **Mini apps are never added to the sidebar.** Below 1024px
+  there is no sidebar: a contextual top bar (wordmark on Home; back + page title elsewhere, fed by
+  `Page`) and a bottom bar (`BottomBar`) listing Home plus each enabled room from the registry's
+  `nav_label` and its own `nav-icon.tsx`. Settings and Admin live in the account menu there.
+- **`AppLayout` is the persistent default layout** (`app.tsx`); pages don't wrap themselves in it.
+  Use `Page` for the header: it sets the document title (`room`, `documentTitle`), the back target
+  (`back`) and the phone top bar's title. On a route change focus moves to the page's `h1`
+  (`lib/route-focus.ts`), except for same-path visits such as filter, sort and search.
+- **Back goes back.** `BackChevron` steps through history when the parent is the page you came
+  from, and replaces the entry otherwise. Every sheet and dialog that composes or shows an item
+  goes through `useOverlayHistory` (`resources/js/hooks/use-overlay-history.ts`), so the back
+  gesture closes it instead of leaving the page. One with a draft uses `useDraftCloseGate` +
+  `DiscardDraftDialog`, which own the "Discard?" prompt for every way of closing. `app.tsx` calls
+  `installOverlayHistory()` before `createInertiaApp`: `popstate` listeners run in the order they
+  were added, and Inertia's would otherwise reload the page and drop the draft first. A History moment is addressable at
+  `/apps/our-history?moment={id}`.
+- **Portal `data-app` propagation.** Radix Dialog / Sheet / AlertDialog / Popover / Select
+  portals render at `<body>`, outside the mini app's `[data-app]` scope. Spread
+  `{...useAppAttrs()}` (`resources/js/hooks/use-app-attrs.tsx`) onto every portaled root.
 - **History EventForm is the stacked 5-row layout** in
   `resources/js/MiniApps/History/Components/EventForm.tsx` (the old 240px sidebar form is gone).
 - **Routing: Wayfinder only.** Import typed helpers from `resources/js/routes/**`
@@ -190,7 +211,11 @@ hand-rolled pending string, an ad-hoc empty paragraph or an invisible failure.
 6. **Form submit** — `SubmitButton` `processing`; field errors via `FormField`; non-field failures
    via toast. Conditions that outlive the request (pending email change) stay inline. `ErrorState`
    is never used inside a form.
-7. **Empty result** — `EmptyState`; `title` is a required prop (missing copy fails `tsc`).
+7. **Empty result** — `EmptyState`; `title` is a required prop (missing copy fails `tsc`). A search
+   that finds nothing passes `query` + `onClearSearch` and titles itself with `noMatchesTitle()`.
+8. **One-tap mutation** (toggle, pay, request, delete) — spread `mutationOptions()`
+   (`lib/mutation.ts`) into the visit and disable the control while pending; it toasts and reports
+   transport and 5xx failures.
 
 - The Notifications device-status sub-label stays inline (a standing condition, not a request
   result); the subscribe/unsubscribe confirmation is a toast.
@@ -215,7 +240,7 @@ Five tiers; none replaces another. Start with [How to test locally](#how-to-test
   transaction, so sequences keep counting — never assume an id is 1.
 - **Headless smoke — `npm run smoke`.** Playwright Chromium against `artisan serve` with its own env
   block and its own `ghar_smoke` database, seeded by `DevDataSeeder` (`scripts/smoke.mjs`). Every
-  listed route × 2 themes; fails on `pageerror`/`console.error`, non-200, or no visible
+  listed route; fails on `pageerror`/`console.error`, non-200, or no visible
   `<h1>`/`<h2>`. Catches page-mount regressions only. Add every new authenticated page, admin page
   and auth route — `scripts/check-smoke-routes.mjs` fails if a GET route is neither listed nor on
   its skip-list.
@@ -248,8 +273,22 @@ For a household, so it should feel thoughtful, cute, soft and warm without costi
 lives on the things themselves.
 
 - **Always the same:** the tinted frame and page sheet (`.shell-frame` / `.shell-sheet`), page titles
-  (`.page-h1`, Instrument Serif), pill buttons, 14px-radius fields, 22px-radius cards, list order
-  (tabs, then count + search + sort), add surfaces and vocabulary (a _moment_, a _note_, a _challan_).
+  (`.page-h1`), pill buttons, 14px-radius fields, 22px-radius cards, list order (tabs, then count +
+  search + sort), add surfaces and vocabulary (a _moment_, a _note_, a _challan_).
+- **Two faces with fixed jobs, in every room.** Newsreader (`--font-display`, weight 400) sets page
+  titles, section and sheet titles, dates and the title of a moment; its italic is for what was
+  filled in or attributed. Hanken Grotesk (`--font-sans`, 400 and 500 only) sets everything else.
+  Patrick Hand (`--font-hand`) is the one exception: the body of a note and a coupon's title, and
+  nowhere else. Never add a face, a 600+ weight, tracked capitals or text under 13px; sizes come
+  from the `--text-*` scale in `app.css`.
+- **One radius family and one motion vocabulary**, as tokens in `app.css`: `--radius-pill`,
+  `--radius-field`, `--radius-pop`, `--radius-card`, `--radius-inner`; `--ease-ui` with `--dur-in`,
+  `--dur-out`, `--dur-press`, `--dur-card`. A button steps up 1px on hover and presses on click
+  (`.shell-press`); a field takes `.shell-field`; a card that opens something lifts 2px
+  (`.shell-lift`); a small control gets its 44px tap area from `.shell-hit-44`; a fill darkens
+  toward the ink, never lightens. Use these classes instead of re-declaring the recipe in a room's
+  stylesheet. Write the two layout thresholds as `@variant md` / `@variant lg` in CSS and
+  `useIsPhone()` / `useHasSidebar()` in TSX, and stacking layers as the `--z-*` tokens. Nothing bounces, and nothing fades in as a list loads. Cards carry no resting shadow.
 - **Two jobs for colour.** `--shell-action` is the only action colour. `--shell-accent` only marks
   what is selected or tints a surface; it never fills a button. Destructive stays outlined until the
   final confirm.
@@ -266,8 +305,8 @@ lives on the things themselves.
 The shipped theme CSS and components are the design source of truth. Rules that aren't obvious from
 the code:
 
-- **Our History** — tender journal feel: Instrument Serif for dates, titles and year banners,
-  Instrument Sans for body. Timeline cards are quiet reading surfaces (no Edit/Delete on the card;
+- **Our History** — tender journal feel: the display face for dates, titles and year banners, the
+  sans for the story. Timeline cards are quiet reading surfaces (no Edit/Delete on the card;
   the whole card opens the EventSheet, where management lives).
 - **History accessibility contract:** text on accent fills uses `--history-on-accent` (ink, never
   white); body links and accent text ≤14px use `--history-accent-ink-strong` — plain
@@ -278,14 +317,16 @@ the code:
 - **PhotoSwipe inside the EventSheet:** the Sheet's `onPointerDownOutside` / `onInteractOutside`
   must `preventDefault()` when `e.target.closest('.pswp')` (`EventSheet.tsx`), or the next-arrow
   click and mobile swipes close the Sheet.
-- **Our Corner** — "playful collection shelf": Fredoka (registered in `vite.config.ts`, not shell-
-  loaded), toy radius, bounce ease, `.corner-sticker` done flags, accent washes via
-  `color-mix(in oklab, var(--shell-accent) N%, var(--shell-surface))` — never hex. Identity changes
+- **Our Corner** — a shelf of loved things. Its character is in its objects, not its type or
+  motion: `.corner-sticker` done flags (a fixed tilt, never animated), the CD frame, the poster, the
+  pin, and accent washes via `color-mix(in oklab, var(--shell-accent) N%, var(--shell-surface))` —
+  never hex. Identity changes
   are CSS-only in `corner.css` over the shared components; don't fork Corner-specific React.
-- **Our Mailbox** owns paper: ruled sheets with a red margin and Patrick Hand, on the notes
-  themselves rather than on navigation. Whatever one of you _wrote_ is in Patrick Hand (notes, offences,
-  coupon titles, filled-in form values); the forms around it are printed in Special Elite. Never apply
-  this to Corner.
+- **Our Mailbox** owns paper: ruled sheets with a red margin, the challan as an official form, the
+  coupon as a voucher. A note's body and a coupon's title are in Patrick Hand; what was filled in on
+  a form (names, offence, penalty, remarks) is Newsreader italic; the printed parts are the sans at
+  13px/500. The form reads as a form through its rules, boxes, seal and stamp, and the stamp is the
+  only thing set in capitals.
 
 ## Adding a new mini app
 
@@ -294,7 +335,10 @@ For every `enabled` entry in `config/miniapps.php`, `MiniAppServiceProvider` reg
 `database/migrations/{slug}/`. A disabled app is fully off, so anything it contributes must go
 through its provider. Everything else is a hand edit:
 
-1. `config/miniapps.php` entry — include `component_prefix` or `AppLayout`'s chrome-hide breaks.
+1. `config/miniapps.php` entry — include `component_prefix` or `AppLayout`'s chrome-hide breaks,
+   and `nav_label` for the phone bottom bar. Ship `resources/js/MiniApps/{App}/nav-icon.tsx` whose
+   default export is the room's lucide icon (`export { Map as default } from 'lucide-react';`); the
+   shell finds it by glob, and a room without one shows a generic grid icon.
 2. `provider` in that entry; registry order is boot order.
 3. Console commands and scheduled tasks go in the provider's `boot()` (`$this->commands([...])`,
    `callAfterResolving(Schedule::class, …)`), never `bootstrap/app.php` or `routes/console.php`.
@@ -311,9 +355,8 @@ through its provider. Everything else is a hand edit:
 
 ## Mini-app theme architecture
 
-Three layers. **Layer 1** `--shell-*` OS tokens — theme-driven, defined only in
-`resources/css/app.css` under `[data-theme='pastel']` / `[data-theme='warm']`; mini apps never
-define them. **Layer 2** `--<app>-*` motif tokens — identity (fonts, radii, easing, textures); colours
+Three layers. **Layer 1** `--shell-*` OS tokens — one palette (sage on white), defined only in
+`resources/css/app.css` on `:root`; mini apps never define them. **Layer 2** `--<app>-*` motif tokens — identity (fonts, radii, easing, textures); colours
 here only alias or mix `--shell-*`, never a literal. **Layer 3** `.<app>-*` composition classes scoped under `[data-app='<slug>']`; a class on a portaled root that carries `data-app` itself needs the compound form `[data-app='<slug>'].<class>`. Static styles belong here or in Tailwind; keep `style={{…}}` for values computed at runtime.
 
 > Mini apps consume `--shell-*` for colour, define `--<app>-*` for identity, and never reference
@@ -321,8 +364,7 @@ here only alias or mix `--shell-*`, never a literal. **Layer 3** `.<app>-*` comp
 
 - Register fonts through the Vite plugin `fonts:` array, not `@import url(…)`.
 - Exemplars: `themes/history.css` (full three-layer), `themes/mailbox.css` (notebook + challan
-  motif), `themes/corner.css` ("playful collection shelf").
-- Warm `--shell-accent-text` passes AA (~7.6:1) — trust the live token, still QA new warm surfaces.
+  motif), `themes/corner.css` (objects on shared chrome).
 - Shared list band (`ListNavBand` / `ListSortControl`, used by Corner and Mailbox) takes app
   identity via `--list-nav-font` and `--list-nav-radius` declared in the app's `[data-app]` scope —
   never by editing the shared component.
@@ -368,8 +410,8 @@ Our Corner keeps the four lists.
   `ref_no` = `OC/{year}/{padded id}` (`OC` frozen). `ref_no`/`status`/`issuer_id` guarded;
   `offence` (≤120) and `penalty` (≤80) fillable. Lifecycle `issued → paid` only: recipient-only
   `pay`, issuer-only hard `delete` of an `issued` row; paid is locked. Push tag
-  `our-mailbox:challans`; bodies never leak offence/penalty/remarks. Theme "Official form" (Special
-  Elite font, `--mailbox-challan-*` / `.mailbox-challan-*`, colours alias `--shell-*`).
+  `our-mailbox:challans`; bodies never leak offence/penalty/remarks. Drawn as an "official form"
+  (`--mailbox-challan-*` / `.mailbox-challan-*`, colours alias `--shell-*`).
 
 ## Our Corner item-actions contract
 

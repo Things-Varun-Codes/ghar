@@ -1,4 +1,4 @@
-import { Head, useForm } from '@inertiajs/react';
+import { Link, useForm } from '@inertiajs/react';
 import type { FormEventHandler } from 'react';
 import {
     Select,
@@ -7,12 +7,12 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/components/ui/select';
+import { roleLabel } from '@/lib/roles';
 import { cn } from '@/lib/utils';
 import * as users from '@/routes/admin/users';
 import FormField from '@/Shell/Components/FormField';
 import Page from '@/Shell/Components/Page';
 import SubmitButton from '@/Shell/Components/SubmitButton';
-import AppLayout from '@/Shell/Layouts/AppLayout';
 
 interface Props {
     user: {
@@ -36,16 +36,16 @@ export default function UsersEdit({ user }: Props) {
     };
 
     return (
-        <AppLayout>
-            <Head title={`Edit ${user.name} — Admin`} />
-
+        <>
             <Page
                 tier="prose"
                 title="Edit user"
-                backChevron
-                subtitle={`${user.name} — ${user.email}`}
+                room="Admin"
+                documentTitle={`Edit ${user.name}`}
+                back={{ href: users.index.url(), label: 'Users' }}
+                subtitle={`${user.name} · ${user.email}`}
             >
-                <div className="os-admin-surface rounded-xl border p-6">
+                <div className="os-admin-surface border p-6">
                     <form onSubmit={submit} className="space-y-5">
                         <FormField
                             label="Role"
@@ -63,7 +63,7 @@ export default function UsersEdit({ user }: Props) {
                                     id="role"
                                     aria-label="Role"
                                     className={cn(
-                                        'os-admin-control block w-full rounded-lg',
+                                        'os-admin-control w-full',
                                         errors.role &&
                                             'os-admin-control--invalid',
                                     )}
@@ -71,8 +71,12 @@ export default function UsersEdit({ user }: Props) {
                                     <SelectValue />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    <SelectItem value="user">user</SelectItem>
-                                    <SelectItem value="admin">admin</SelectItem>
+                                    <SelectItem value="user">
+                                        {roleLabel('user')}
+                                    </SelectItem>
+                                    <SelectItem value="admin">
+                                        {roleLabel('admin')}
+                                    </SelectItem>
                                 </SelectContent>
                             </Select>
                         </FormField>
@@ -81,20 +85,20 @@ export default function UsersEdit({ user }: Props) {
                             <SubmitButton
                                 processing={processing}
                                 busyText="Saving…"
-                                className="os-admin-tap os-admin-fill-primary os-admin-submit rounded-lg px-5 font-semibold"
+                                className="os-admin-tap os-admin-fill-primary os-admin-submit shell-press px-5 font-medium"
                             >
                                 Save changes
                             </SubmitButton>
-                            <a
+                            <Link
                                 href={users.index.url()}
-                                className="os-admin-tap os-admin-tap-center os-admin-cancel-link rounded-lg px-5 font-medium transition-colors"
+                                className="os-admin-tap os-admin-tap-center os-admin-cancel-link shell-press shell-focus rounded-full px-5 font-medium"
                             >
                                 Cancel
-                            </a>
+                            </Link>
                         </div>
                     </form>
                 </div>
             </Page>
-        </AppLayout>
+        </>
     );
 }

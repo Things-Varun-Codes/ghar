@@ -9,7 +9,6 @@ use App\Http\Middleware\ThrottleHealthProbe;
 use App\Shell\Controllers\Admin\InvitesController;
 use App\Shell\Controllers\Admin\NotificationsController as AdminNotificationsController;
 use App\Shell\Controllers\Admin\ShortLinksController;
-use App\Shell\Controllers\Admin\ThemeController;
 use App\Shell\Controllers\Admin\UsersController;
 use App\Shell\Controllers\DashboardController;
 use App\Shell\Controllers\InvitationAcceptController;
@@ -84,11 +83,6 @@ Route::middleware(['auth', 'can:admin'])->prefix('admin')->name('admin.')->group
     Route::delete('/invites/{invite}', [InvitesController::class, 'destroy'])
         ->middleware('throttle:admin-mutations')
         ->name('invites.destroy');
-
-    Route::get('/theme', [ThemeController::class, 'index'])->name('theme.index');
-    Route::post('/theme', [ThemeController::class, 'update'])
-        ->middleware('throttle:admin-mutations')
-        ->name('theme.update');
 
     Route::get('/notifications', [AdminNotificationsController::class, 'show'])->name('notifications.show');
     Route::post('/notifications', [AdminNotificationsController::class, 'send'])

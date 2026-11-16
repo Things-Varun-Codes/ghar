@@ -16,6 +16,9 @@ class SignedUrls
      */
     private const BROWSER_CACHE_SECONDS = 3600;
 
+    /** The Cache-Control a file fetched through a signed URL is served with, on any disk. */
+    public const CACHE_CONTROL = 'private, max-age='.self::BROWSER_CACHE_SECONDS.', immutable';
+
     /**
      * @return array{
      *     id: int,
@@ -118,7 +121,7 @@ class SignedUrls
     {
         return [
             'start_time' => $window['starts'],
-            'ResponseCacheControl' => 'private, max-age='.self::BROWSER_CACHE_SECONDS.', immutable',
+            'ResponseCacheControl' => self::CACHE_CONTROL,
         ];
     }
 }

@@ -86,7 +86,6 @@ export default function EventReadView({ event }: Props) {
                     event;
 
                 let displayLocation: string | null = null;
-                let isLegacy = false;
 
                 if (
                     location_name &&
@@ -100,7 +99,6 @@ export default function EventReadView({ event }: Props) {
                     displayLocation = location_address;
                 } else if (location_freetext) {
                     displayLocation = location_freetext;
-                    isLegacy = true;
                 }
 
                 if (!displayLocation) {
@@ -108,13 +106,10 @@ export default function EventReadView({ event }: Props) {
                 }
 
                 return (
-                    <p
-                        className="history-read-location"
-                        style={{ fontStyle: isLegacy ? 'italic' : 'normal' }}
-                    >
+                    <p className="history-read-location">
                         <MapPin
                             aria-hidden="true"
-                            size={12}
+                            size={14}
                             strokeWidth={1.5}
                             color="var(--history-ink-soft)"
                             className="shrink-0"
@@ -125,8 +120,8 @@ export default function EventReadView({ event }: Props) {
             })()}
 
             {event.body_html && (
-                <div className="mt-4">
-                    <BodyHtml html={event.body_html} />
+                <div className="mt-6">
+                    <BodyHtml html={event.body_html} headingBase={2} />
                 </div>
             )}
 
@@ -134,6 +129,7 @@ export default function EventReadView({ event }: Props) {
                 <div className="mt-4">
                     <MediaGrid
                         media={renderableMedia}
+                        contextLabel={event.title || event.date_label}
                         onClickItem={(_item, index) =>
                             lightboxRef.current?.open(index)
                         }

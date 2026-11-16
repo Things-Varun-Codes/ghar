@@ -7,6 +7,12 @@ use App\Shell\Models\User;
 
 class EventPolicy
 {
+    // Every household member sees every moment.
+    public function view(User $user, Event $event): bool
+    {
+        return true;
+    }
+
     public function update(User $user, Event $event): bool
     {
         return $this->manages($user, $event);

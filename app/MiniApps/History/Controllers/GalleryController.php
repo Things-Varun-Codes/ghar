@@ -81,7 +81,7 @@ class GalleryController
             /** @var Event|null $event */
             $event = $m->model;
             $base['event_title'] = $event?->title ?? '';
-            $base['event_date'] = $event?->occurred_on->format('F j, Y') ?? '';
+            $base['event_date'] = $event?->occurred_on->format('j M Y') ?? '';
 
             return $base;
         });

@@ -7,6 +7,7 @@ use App\Shell\Models\User;
 use App\Shell\Notifications\GenericPushNotification;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Notification;
+use Inertia\Support\SessionKey;
 use Tests\TestCase;
 
 class CornerActivitiesTest extends TestCase
@@ -22,21 +23,25 @@ class CornerActivitiesTest extends TestCase
 
         $this->actingAs($adder)
             ->post('/apps/our-corner/activities', ['title' => 'Beach trip'])
-            ->assertRedirect('/apps/our-corner/activities');
+            ->assertRedirect('/apps/our-corner/activities')
+            ->assertSessionHas(SessionKey::FLASH_DATA, ['toast' => ['type' => 'success', 'message' => 'Activity added.']]);
 
         $this->assertDatabaseHas('corner_activities', [
             'title' => 'Beach trip',
             'added_by_user_id' => $adder->id,
         ]);
 
+        $itemUrl = '/apps/our-corner/activities/'.Activity::query()->latest('id')->value('id');
+
         Notification::assertSentTo(
             $recipient,
             GenericPushNotification::class,
-            function (GenericPushNotification $n) use ($recipient) {
+            function (GenericPushNotification $n) use ($recipient, $itemUrl) {
                 $webPush = $n->toWebPush($recipient, $n)->toArray();
 
                 return ($webPush['tag'] ?? null) === 'our-corner:activities'
-                    && str_contains($webPush['body'] ?? '', 'added an activity: Beach trip');
+                    && str_contains($webPush['body'] ?? '', 'added an activity: Beach trip')
+                    && ($webPush['data']['url'] ?? null) === $itemUrl;
             }
         );
     }

@@ -8,6 +8,7 @@ import type {
     ItemPermissions,
     UseItemActionsReturn,
 } from '@/MiniApps/Corner/Hooks/useItemActions';
+import { CORNER_ROOM } from '@/MiniApps/Corner/Layouts/CornerLayout';
 import HeartMark from '@/Shell/Components/HeartMark';
 import Page from '@/Shell/Components/Page';
 
@@ -41,67 +42,74 @@ export default function DetailPage({
     itemActions,
 }: DetailPageProps) {
     return (
-        <Page tier="app" title={title} backChevron>
-            <div className="corner-detail-grid">
-                <div className="corner-detail-main">
-                    <article className="corner-detail-article">
-                        {hero?.()}
-                        {body?.()}
+        <Page tier="app" title={title} room={CORNER_ROOM} backChevron>
+            <div className="corner-detail">
+                <div className="corner-detail-grid">
+                    <div className="corner-detail-main">
+                        <article className="corner-detail-article">
+                            {hero?.()}
+                            {body?.()}
 
-                        <p className="corner-detail-meta">
-                            Added by {addedByName}
-                            {metaSuffix && <> · {metaSuffix}</>}
-                        </p>
+                            <p className="corner-detail-meta">
+                                Added by {addedByName}
+                                {metaSuffix && <> · {metaSuffix}</>}
+                            </p>
 
-                        <div className="corner-detail-actions">
-                            {externalCta?.()}
+                            <div className="corner-detail-actions">
+                                {externalCta?.()}
 
-                            <Toggle
-                                className="corner-done-toggle"
-                                pressed={isDone}
-                                onPressedChange={itemActions.handleToggleDone}
-                            >
-                                {doneIcon === 'heart' ? (
-                                    <HeartMark size={16} filled={isDone} />
-                                ) : isDone ? (
-                                    <CheckCircle2
-                                        aria-hidden="true"
-                                        size={16}
-                                        strokeWidth={2}
-                                    />
-                                ) : (
-                                    <Circle
-                                        aria-hidden="true"
-                                        size={16}
-                                        strokeWidth={2}
-                                    />
+                                <Toggle
+                                    className="corner-done-toggle shell-press"
+                                    pressed={isDone}
+                                    onPressedChange={
+                                        itemActions.handleToggleDone
+                                    }
+                                    aria-disabled={
+                                        itemActions.isTogglePending || undefined
+                                    }
+                                >
+                                    {doneIcon === 'heart' ? (
+                                        <HeartMark size={16} filled={isDone} />
+                                    ) : isDone ? (
+                                        <CheckCircle2
+                                            aria-hidden="true"
+                                            size={16}
+                                            strokeWidth={1.5}
+                                        />
+                                    ) : (
+                                        <Circle
+                                            aria-hidden="true"
+                                            size={16}
+                                            strokeWidth={1.5}
+                                        />
+                                    )}
+                                    {isDone ? doneLabel.done : doneLabel.active}
+                                </Toggle>
+
+                                {can.update && (
+                                    <button
+                                        type="button"
+                                        className="corner-detail-action shell-press"
+                                        onClick={itemActions.handleEdit}
+                                    >
+                                        Edit
+                                    </button>
                                 )}
-                                {isDone ? doneLabel.done : doneLabel.active}
-                            </Toggle>
+                                {can.delete && (
+                                    <button
+                                        type="button"
+                                        className="corner-detail-action corner-detail-action--destructive shell-press"
+                                        onClick={itemActions.handleDelete}
+                                    >
+                                        Remove
+                                    </button>
+                                )}
+                            </div>
+                        </article>
+                    </div>
 
-                            {can.update && (
-                                <button
-                                    type="button"
-                                    className="corner-detail-action"
-                                    onClick={itemActions.handleEdit}
-                                >
-                                    Edit
-                                </button>
-                            )}
-                            {can.delete && (
-                                <button
-                                    type="button"
-                                    className="corner-detail-action"
-                                    onClick={itemActions.handleDelete}
-                                >
-                                    Remove
-                                </button>
-                            )}
-                        </div>
-                    </article>
+                    <MentionedInList mentionedIn={mentionedIn} />
                 </div>
-
-                <MentionedInList mentionedIn={mentionedIn} />
             </div>
         </Page>
     );

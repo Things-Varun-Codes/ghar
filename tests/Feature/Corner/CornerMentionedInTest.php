@@ -51,7 +51,7 @@ class CornerMentionedInTest extends TestCase
                 ->where('mentioned_in.0.from_id', $event->id)
                 ->where('mentioned_in.0.snapshot.title', 'Our Sydney trip')
                 ->where('mentioned_in.0.snapshot.deep_link_url',
-                    '/apps/our-history#event-'.$event->id),
+                    '/apps/our-history?moment='.$event->id),
         );
     }
 

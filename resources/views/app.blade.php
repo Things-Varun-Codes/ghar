@@ -1,14 +1,14 @@
 <!DOCTYPE html>
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}" data-theme="{{ $activeTheme ?? 'pastel' }}">
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
     <head>
         <meta charset="utf-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 
         <meta name="robots" content="noindex, nofollow">
 
         <style>
             html {
-                background-color: oklch(0.975 0.012 80);
+                background-color: #f6f5f1;
             }
             #app-splash {
                 position: fixed;
@@ -17,9 +17,9 @@
                 display: flex;
                 align-items: center;
                 justify-content: center;
-                background-color: #fbf6ee;
+                background-color: #fbfaf6;
                 color: oklch(0.55 0.08 135);
-                font-family: 'Instrument Serif', Georgia, serif;
+                font-family: 'Newsreader', 'Iowan Old Style', Georgia, serif;
                 font-size: 48px;
                 font-weight: 400;
                 line-height: 1;
@@ -49,7 +49,7 @@
         <link rel="apple-touch-icon" href="/apple-touch-icon.png">
 
         <link rel="manifest" href="/manifest.webmanifest">
-        <meta name="theme-color" content="#fbf6ee">
+        <meta name="theme-color" content="#fbfaf6">
         <meta name="apple-mobile-web-app-capable" content="yes">
         <meta name="apple-mobile-web-app-status-bar-style" content="default">
         <meta name="apple-mobile-web-app-title" content="{{ config('app.name') }}">

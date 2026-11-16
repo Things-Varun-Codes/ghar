@@ -5,7 +5,11 @@ import { entityIcon } from '@/Shell/linkables/entityIcon';
 
 type BodyHtmlProps = {
     html: string | null;
+    /** The level of the heading the story sits under; its own headings rank below it. */
+    headingBase?: number;
 };
+
+const HEADING_TAGS = new Set(['h1', 'h2', 'h3']);
 
 // Allowlist of pass-through tags. Mirrors SanitizeBodyHtml's HTMLPurifier
 // HTML.Allowed perimeter; the corner-link span is handled separately.
@@ -73,7 +77,11 @@ function CornerLinkRead({
     return <span className="tt-pill cursor-default">{inner}</span>;
 }
 
-function renderNode(node: Node, key: string): React.ReactNode {
+function renderNode(
+    node: Node,
+    key: string,
+    headingBase: number,
+): React.ReactNode {
     if (node.nodeType === Node.TEXT_NODE) {
         return node.textContent;
     }
@@ -126,13 +134,25 @@ function renderNode(node: Node, key: string): React.ReactNode {
     }
 
     const children = Array.from(el.childNodes).map((child, i) =>
-        renderNode(child, `${key}-${i}`),
+        renderNode(child, `${key}-${i}`, headingBase),
     );
+
+    if (HEADING_TAGS.has(tag)) {
+        // The editor writes h2 and h3 (h1 reads as h2). The look stays with the written rank; the
+        // element moves down so the outline has no jumps under the card or sheet title.
+        const rank = tag === 'h3' ? 2 : 1;
+
+        return React.createElement(
+            `h${Math.min(6, headingBase + rank)}`,
+            { key, className: `history-prose-h${rank + 1}` },
+            ...children,
+        );
+    }
 
     return React.createElement(tag, props, ...children);
 }
 
-export default function BodyHtml({ html }: BodyHtmlProps) {
+export default function BodyHtml({ html, headingBase = 1 }: BodyHtmlProps) {
     if (!html) {
         return null;
     }
@@ -143,7 +163,7 @@ export default function BodyHtml({ html }: BodyHtmlProps) {
 
     const doc = new DOMParser().parseFromString(html, 'text/html');
     const children = Array.from(doc.body.childNodes).map((child, i) =>
-        renderNode(child, `n-${i}`),
+        renderNode(child, `n-${i}`, headingBase),
     );
 
     return <div className="history-prose">{children}</div>;

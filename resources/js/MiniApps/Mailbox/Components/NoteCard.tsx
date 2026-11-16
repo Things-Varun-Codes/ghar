@@ -44,17 +44,18 @@ type Props = {
 export default function NoteCard({ message, onDelete, isFocused }: Props) {
     const [confirmOpen, setConfirmOpen] = useState(false);
     const menu = useMenuAction();
+    const recipientNames = message.recipients.map((r) => r.name).join(', ');
 
     return (
         <AppCard
             variant="note"
             base="mailbox-card"
             className={cn(
-                ['mailbox-note', isFocused ? 'focused' : '']
-                    .filter(Boolean)
-                    .join(' '),
-                'relative mt-2 [border-top:none]',
+                'mailbox-note relative mt-2 [border-top:none]',
+                isFocused && 'focused',
             )}
+            // Focusable only when a link pointed here, so the list scroll can land on it.
+            tabIndex={isFocused ? -1 : undefined}
             id={`mailbox-note-${message.id}`}
             data-id={message.id}
         >
@@ -62,8 +63,11 @@ export default function NoteCard({ message, onDelete, isFocused }: Props) {
 
             <div className="flex min-h-[32px] items-end justify-between gap-2">
                 <p className="mailbox-note-meta">
+                    {message.is_unread && (
+                        <span className="mailbox-unread">New</span>
+                    )}
                     {message.is_mine
-                        ? `you to ${message.recipients.map((r) => r.name).join(', ')}`
+                        ? `you to ${recipientNames}`
                         : message.sender.name}{' '}
                     · {message.posted_at_human}
                 </p>
@@ -73,16 +77,19 @@ export default function NoteCard({ message, onDelete, isFocused }: Props) {
                         <DropdownMenuTrigger asChild>
                             <button
                                 type="button"
-                                aria-label="Note actions"
-                                className="mailbox-card-menu"
+                                aria-label={`Actions for your note to ${recipientNames}, ${message.posted_at_human}`}
+                                className="mailbox-card-menu shell-hit-44"
                             >
-                                <MoreHorizontal size={18} aria-hidden="true" />
+                                <MoreHorizontal
+                                    size={18}
+                                    strokeWidth={1.5}
+                                    aria-hidden="true"
+                                />
                             </button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent
                             onCloseAutoFocus={menu.onCloseAutoFocus}
                             align="end"
-                            data-app="our-mailbox"
                         >
                             <DropdownMenuItem
                                 variant="destructive"
@@ -99,7 +106,7 @@ export default function NoteCard({ message, onDelete, isFocused }: Props) {
 
             {message.is_mine && onDelete && (
                 <AlertDialog open={confirmOpen} onOpenChange={setConfirmOpen}>
-                    <AlertDialogContent data-app="our-mailbox">
+                    <AlertDialogContent>
                         <AlertDialogHeader>
                             <AlertDialogTitle>
                                 Delete this note?

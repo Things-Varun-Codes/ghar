@@ -12,7 +12,6 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\URL;
-use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Validation\Rules\Password;
 use Laravel\Telescope\TelescopeServiceProvider;
@@ -35,9 +34,6 @@ class AppServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
-        // For responses that bypass HandleInertiaRequests, such as early error pages.
-        View::share('activeTheme', config('themes.default', 'pastel'));
-
         $this->configureDefaults();
         $this->configureLimiters();
         $this->forceHttpsInProduction();

@@ -278,12 +278,12 @@ const EventForm = forwardRef<EventFormHandle, EventFormProps>(
                             onChange={(e) =>
                                 setData('occurred_on', e.target.value)
                             }
-                            className="history-date-input"
+                            className="history-date-input shell-field"
                         />
                         {errors.occurred_on && (
                             <p
                                 role="alert"
-                                className="mt-1 text-(length:--text-meta) text-(--history-destructive)"
+                                className="mt-2 text-(length:--text-small) text-(--history-destructive)"
                             >
                                 {errors.occurred_on}
                             </p>
@@ -301,7 +301,7 @@ const EventForm = forwardRef<EventFormHandle, EventFormProps>(
                             value={data.title}
                             onChange={(e) => setData('title', e.target.value)}
                             placeholder="e.g. Grandma's 80th"
-                            className="history-date-input"
+                            className="history-date-input shell-field"
                         />
                     </div>
 
@@ -373,7 +373,7 @@ const EventForm = forwardRef<EventFormHandle, EventFormProps>(
                         {errors.body_html && (
                             <p
                                 role="alert"
-                                className="mt-1 text-(length:--text-meta) text-(--history-destructive)"
+                                className="mt-2 text-(length:--text-small) text-(--history-destructive)"
                             >
                                 {errors.body_html}
                             </p>

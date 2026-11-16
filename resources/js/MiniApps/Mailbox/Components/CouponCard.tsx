@@ -45,9 +45,9 @@ export default function CouponCard({ coupon }: { coupon: CouponPayload }) {
     const pipCount = Math.min(coupon.quantity, MAX_PIPS);
 
     return (
-        <div className="mailbox-card shell-card-stretch grid gap-2">
+        <div className="mailbox-card shell-card-stretch shell-lift grid gap-2">
             <div className="flex items-baseline justify-between gap-3">
-                <span className="font-(family-name:--mailbox-coupon-font-mono) text-[13px] text-(--mailbox-ink-soft)">
+                <span className="font-(family-name:--mailbox-coupon-font-mono) text-(length:--text-meta) text-(--mailbox-ink-soft) tabular-nums">
                     {coupon.code ?? '—'}
                 </span>
                 <span
@@ -68,7 +68,7 @@ export default function CouponCard({ coupon }: { coupon: CouponPayload }) {
                 {coupon.title}
             </Link>
 
-            <div className="flex flex-wrap items-center gap-2.5">
+            <div className="flex flex-wrap items-center gap-3">
                 <span className="mailbox-coupon-pips" aria-hidden="true">
                     {Array.from({ length: pipCount }).map((_, i) => (
                         <span
@@ -80,7 +80,7 @@ export default function CouponCard({ coupon }: { coupon: CouponPayload }) {
                         />
                     ))}
                 </span>
-                <span className="text-(length:--mailbox-type-scale-eyebrow) text-(--mailbox-ink-soft)">
+                <span className="text-(length:--mailbox-type-scale-eyebrow) text-(--mailbox-ink-soft) tabular-nums">
                     {coupon.remaining} of {coupon.quantity} left
                     {coupon.issued_at_human
                         ? ` · ${coupon.issued_at_human}`

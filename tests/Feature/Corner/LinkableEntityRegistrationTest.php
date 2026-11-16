@@ -102,7 +102,7 @@ class LinkableEntityRegistrationTest extends TestCase
         $this->assertIsArray($snapshot);
         $this->assertArrayHasKey('title', $snapshot);
         $this->assertArrayHasKey('deep_link_url', $snapshot);
-        $this->assertSame("/apps/our-history#event-{$event->id}", $snapshot['deep_link_url']);
+        $this->assertSame("/apps/our-history?moment={$event->id}", $snapshot['deep_link_url']);
     }
 
     public function test_resolve_returns_null_for_deleted_entity(): void

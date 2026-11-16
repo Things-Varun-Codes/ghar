@@ -73,27 +73,11 @@ export default function FilterRail({
                             type="button"
                             onClick={() => navigate(opt.key, filters.year)}
                             aria-pressed={isActive}
-                            className="history-chip"
-                            style={{
-                                fontWeight: isActive ? 500 : 400,
-                                backgroundColor: isActive
-                                    ? 'var(--history-accent)'
-                                    : 'transparent',
-                                color: isActive
-                                    ? 'var(--history-on-accent)'
-                                    : 'var(--history-ink)',
-                            }}
+                            className="history-chip shell-press"
                         >
                             {opt.label}
                             {opt.count !== undefined && (
-                                <span
-                                    className="history-filter-count"
-                                    style={{
-                                        color: isActive
-                                            ? 'var(--history-on-accent)'
-                                            : 'var(--history-ink-soft)',
-                                    }}
-                                >
+                                <span className="history-filter-count">
                                     {opt.count}
                                 </span>
                             )}
@@ -113,18 +97,7 @@ export default function FilterRail({
                         type="button"
                         onClick={() => navigate(filters.type, null)}
                         aria-pressed={filters.year === null}
-                        className="history-chip"
-                        style={{
-                            fontWeight: filters.year === null ? 500 : 400,
-                            backgroundColor:
-                                filters.year === null
-                                    ? 'var(--history-accent)'
-                                    : 'transparent',
-                            color:
-                                filters.year === null
-                                    ? 'var(--history-on-accent)'
-                                    : 'var(--history-ink)',
-                        }}
+                        className="history-chip shell-press"
                     >
                         All
                     </button>
@@ -137,16 +110,7 @@ export default function FilterRail({
                                 type="button"
                                 onClick={() => navigate(filters.type, year)}
                                 aria-pressed={isActive}
-                                className="history-chip"
-                                style={{
-                                    fontWeight: isActive ? 500 : 400,
-                                    backgroundColor: isActive
-                                        ? 'var(--history-accent)'
-                                        : 'transparent',
-                                    color: isActive
-                                        ? 'var(--history-on-accent)'
-                                        : 'var(--history-ink)',
-                                }}
+                                className="history-chip shell-press"
                             >
                                 {year}
                             </button>

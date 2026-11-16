@@ -34,13 +34,15 @@ class AddMovie
                 $firstName = $adder->firstName();
                 $body = "{$firstName} added a movie: {$movie->title}";
 
-                DB::afterCommit(function () use ($adder, $body): void {
+                $url = route('apps.our-corner.movies.show', $movie, absolute: false);
+
+                DB::afterCommit(function () use ($adder, $body, $url): void {
                     $this->dispatcher->toHousehold(
                         $adder,
                         'our-corner',
                         'our-corner:movies',
                         $body,
-                        '/apps/our-corner/movies',
+                        $url,
                     );
                 });
             }

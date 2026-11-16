@@ -1,10 +1,11 @@
 import type { ReactNode } from 'react';
 
 import BackChevron from '@/Shell/Components/BackChevron';
+import type { BackTarget } from '@/Shell/Components/BackChevron';
 
 type PageHeaderProps = {
     backChevron?: boolean;
-    eyebrow?: string;
+    back?: BackTarget;
     title: string;
     subtitle?: string;
     actions?: ReactNode;
@@ -12,21 +13,19 @@ type PageHeaderProps = {
 
 export default function PageHeader({
     backChevron,
-    eyebrow,
+    back,
     title,
     subtitle,
     actions,
 }: PageHeaderProps) {
-    const showEyebrowRow = backChevron || eyebrow;
+    const showBack = backChevron || back !== undefined;
 
     return (
         <header className="relative z-[1] pb-6">
-            {showEyebrowRow && (
-                <div className="mb-2 flex items-center gap-1.5">
-                    {backChevron && <BackChevron inline showLabel={!eyebrow} />}
-                    {eyebrow && (
-                        <span className="shell-muted-label">{eyebrow}</span>
-                    )}
+            {/* Below `lg` the shell's top bar carries the back control. */}
+            {showBack && (
+                <div className="mb-2 hidden items-center gap-1.5 lg:flex">
+                    <BackChevron inline back={back} />
                 </div>
             )}
 

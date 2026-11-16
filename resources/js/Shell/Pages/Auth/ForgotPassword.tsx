@@ -45,12 +45,7 @@ export default function ForgotPassword({ status }: Props) {
                         autoComplete="email"
                         value={data.email}
                         onChange={(e) => setData('email', e.target.value)}
-                        className="shell-auth-field block w-full rounded-lg border px-3 py-2.5 outline-none focus:ring-2 focus:ring-offset-1"
-                        style={{
-                            borderColor: errors.email
-                                ? 'var(--destructive)'
-                                : 'var(--border)',
-                        }}
+                        className="shell-auth-field shell-field block w-full border px-3 py-2.5 outline-none"
                         placeholder="you@example.com"
                         required
                     />
@@ -59,7 +54,7 @@ export default function ForgotPassword({ status }: Props) {
                 <SubmitButton
                     processing={processing}
                     busyText="Sending…"
-                    className="shell-auth-submit w-full rounded-lg font-semibold"
+                    className="shell-auth-submit shell-press w-full font-medium"
                 >
                     Send reset link
                 </SubmitButton>

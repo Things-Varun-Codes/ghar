@@ -2,6 +2,7 @@ import { act, renderHook } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { Mock } from 'vitest';
 
+import { MUTATION_FAILED_MESSAGE } from '@/lib/mutation';
 import { DELETE_GRACE_PERIOD_MS, useItemActions } from './useItemActions';
 import type { CornerItemType } from './useItemActions';
 
@@ -17,13 +18,30 @@ vi.mock('@inertiajs/react', () => ({
     },
 }));
 
-const { toastFn, toastDismiss } = vi.hoisted(() => {
+const { toastFn, toastDismiss, toastError } = vi.hoisted(() => {
     const dismiss = vi.fn();
-    const fn = vi.fn(() => 'toast-id-1') as Mock & { dismiss: typeof dismiss };
+    const error = vi.fn();
+    const fn = vi.fn(() => 'toast-id-1') as Mock & {
+        dismiss: typeof dismiss;
+        error: typeof error;
+    };
     fn.dismiss = dismiss;
+    fn.error = error;
 
-    return { toastFn: fn, toastDismiss: dismiss };
+    return { toastFn: fn, toastDismiss: dismiss, toastError: error };
 });
+
+const { captureException } = vi.hoisted(() => ({
+    captureException: vi.fn(),
+}));
+
+vi.mock('@sentry/react', () => ({ captureException }));
+
+type VisitOptions = {
+    onFinish?: () => void;
+    onNetworkError?: (error: Error) => boolean | void;
+    onHttpException?: (response: { status: number }) => boolean | void;
+};
 
 vi.mock('sonner', () => ({
     toast: toastFn,
@@ -62,9 +80,10 @@ describe('useItemActions', () => {
             vi.advanceTimersByTime(1);
         });
         expect(routerDelete).toHaveBeenCalledTimes(1);
-        expect(routerDelete).toHaveBeenCalledWith('/apps/our-corner/songs/7', {
-            preserveScroll: true,
-        });
+        expect(routerDelete).toHaveBeenCalledWith(
+            '/apps/our-corner/songs/7',
+            expect.objectContaining({ preserveScroll: true }),
+        );
     });
 
     it('undo inside the window cancels entirely — no network request ever fires', () => {
@@ -169,9 +188,10 @@ describe('useItemActions', () => {
         });
 
         expect(routerDelete).toHaveBeenCalledTimes(1);
-        expect(routerDelete).toHaveBeenCalledWith('/apps/our-corner/songs/7', {
-            preserveScroll: true,
-        });
+        expect(routerDelete).toHaveBeenCalledWith(
+            '/apps/our-corner/songs/7',
+            expect.objectContaining({ preserveScroll: true }),
+        );
     });
 
     it.each<[CornerItemType, string]>([
@@ -191,7 +211,81 @@ describe('useItemActions', () => {
         expect(routerPatch).toHaveBeenCalledWith(
             expectedUrl,
             {},
-            { preserveScroll: true },
+            expect.objectContaining({ preserveScroll: true }),
         );
+    });
+
+    it('ignores a second tap while the toggle is in flight, and accepts one after it settles', () => {
+        const { result } = renderHook(() =>
+            useItemActions({ type: 'songs', id: 7, title: 'Yellow' }),
+        );
+
+        act(() => {
+            result.current.handleToggleDone();
+            result.current.handleToggleDone();
+        });
+
+        expect(routerPatch).toHaveBeenCalledTimes(1);
+        expect(result.current.isTogglePending).toBe(true);
+
+        const options = routerPatch.mock.calls[0][2] as VisitOptions;
+
+        act(() => {
+            options.onFinish?.();
+        });
+
+        expect(result.current.isTogglePending).toBe(false);
+
+        act(() => {
+            result.current.handleToggleDone();
+        });
+
+        expect(routerPatch).toHaveBeenCalledTimes(2);
+    });
+
+    it('a failed toggle toasts, reports, and suppresses the Inertia error surface', () => {
+        const { result } = renderHook(() =>
+            useItemActions({ type: 'songs', id: 7, title: 'Yellow' }),
+        );
+
+        act(() => {
+            result.current.handleToggleDone();
+        });
+
+        const options = routerPatch.mock.calls[0][2] as VisitOptions;
+        let returned: boolean | void;
+
+        act(() => {
+            returned = options.onNetworkError?.(new Error('offline'));
+        });
+
+        expect(returned!).toBe(false);
+        expect(toastError).toHaveBeenCalledWith(MUTATION_FAILED_MESSAGE);
+        expect(captureException).toHaveBeenCalledTimes(1);
+    });
+
+    it('a failed deferred delete brings the row back and says so', () => {
+        const { result } = renderHook(() =>
+            useItemActions({ type: 'songs', id: 7, title: 'Yellow' }),
+        );
+
+        act(() => {
+            result.current.handleDelete();
+        });
+        act(() => {
+            vi.advanceTimersByTime(DELETE_GRACE_PERIOD_MS);
+        });
+
+        const options = routerDelete.mock.calls[0][1] as VisitOptions;
+
+        act(() => {
+            options.onHttpException?.({ status: 500 });
+        });
+
+        expect(result.current.isPendingDelete).toBe(false);
+        expect(toastError).toHaveBeenCalledWith(
+            "Couldn't remove Yellow. Try again.",
+        );
+        expect(captureException).toHaveBeenCalledTimes(1);
     });
 });

@@ -15,24 +15,5 @@ export function escapeHtml(str: string): string {
         .replace(/'/g, '&#39;');
 }
 
-export function formatDate(
-    value: string | null | undefined,
-    options?: {
-        intl?: Intl.DateTimeFormatOptions;
-        fallback?: string;
-    },
-): string {
-    const fallback = options?.fallback ?? '';
-
-    if (!value) {
-        return fallback;
-    }
-
-    const date = new Date(value);
-
-    if (Number.isNaN(date.getTime())) {
-        return fallback;
-    }
-
-    return date.toLocaleDateString(undefined, options?.intl);
-}
+// Kept for existing imports; new code imports from '@/lib/dates'.
+export { formatDate } from '@/lib/dates';

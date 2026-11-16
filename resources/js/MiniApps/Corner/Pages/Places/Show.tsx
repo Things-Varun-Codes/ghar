@@ -1,4 +1,5 @@
-import { Head, router } from '@inertiajs/react';
+import { router } from '@inertiajs/react';
+import { ArrowUpRight } from 'lucide-react';
 import { useState } from 'react';
 import DetailPage from '@/MiniApps/Corner/Components/DetailPage';
 import type { MentionedInRef } from '@/MiniApps/Corner/Components/MentionedInList';
@@ -7,7 +8,6 @@ import type { ItemPermissions } from '@/MiniApps/Corner/Hooks/useItemActions';
 import { useItemActions } from '@/MiniApps/Corner/Hooks/useItemActions';
 import CornerLayout from '@/MiniApps/Corner/Layouts/CornerLayout';
 import { index as placesIndex } from '@/routes/apps/our-corner/places';
-import AppLayout from '@/Shell/Layouts/AppLayout';
 import { entityIcon } from '@/Shell/linkables/entityIcon';
 
 const PlaceIcon = entityIcon('corner.place');
@@ -54,74 +54,76 @@ export default function PlacesShow({ place, mentioned_in }: Props) {
     });
 
     return (
-        <AppLayout>
-            <Head title={place.title} />
-            <CornerLayout>
-                <DetailPage
-                    title={place.title}
-                    can={place.can}
-                    addedByName={place.addedBy.name}
-                    mentionedIn={mentioned_in}
-                    isDone={place.is_visited}
-                    doneLabel={{
-                        active: 'Mark as visited',
-                        done: 'Visited',
-                    }}
-                    itemActions={itemActions}
-                    hero={() => (
-                        <div className="corner-detail-place">
-                            <PlaceIcon
-                                aria-hidden="true"
-                                size={28}
-                                strokeWidth={1.5}
-                                className="corner-detail-place-icon"
-                            />
-                            <div>
-                                {place.address && (
-                                    <p className="corner-detail-lede">
-                                        {place.address}
-                                    </p>
-                                )}
-                                {place.lat !== null && place.lng !== null && (
-                                    <p className="corner-detail-coords">
-                                        {place.lat.toFixed(5)},{' '}
-                                        {place.lng.toFixed(5)}
-                                    </p>
-                                )}
-                            </div>
+        <CornerLayout>
+            <DetailPage
+                title={place.title}
+                can={place.can}
+                addedByName={place.addedBy.name}
+                mentionedIn={mentioned_in}
+                isDone={place.is_visited}
+                doneLabel={{
+                    active: 'Mark as visited',
+                    done: 'Visited',
+                }}
+                itemActions={itemActions}
+                hero={() => (
+                    <div className="corner-detail-place">
+                        <PlaceIcon
+                            aria-hidden="true"
+                            size={28}
+                            strokeWidth={1.5}
+                            className="corner-detail-place-icon"
+                        />
+                        <div>
+                            {place.address && (
+                                <p className="corner-detail-lede">
+                                    {place.address}
+                                </p>
+                            )}
+                            {place.lat !== null && place.lng !== null && (
+                                <p className="corner-detail-coords">
+                                    {place.lat.toFixed(5)},{' '}
+                                    {place.lng.toFixed(5)}
+                                </p>
+                            )}
                         </div>
-                    )}
-                    externalCta={() => (
-                        <a
-                            href={googleMapsUrl(place)}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="corner-detail-cta"
-                        >
-                            Open in Google Maps ↗
-                        </a>
-                    )}
-                />
-
-                {place.can.update && editOpen && (
-                    <PlaceAddDialog
-                        item={{
-                            id: place.id,
-                            title: place.title,
-                            place_id: place.place_id,
-                            lat: place.lat,
-                            lng: place.lng,
-                            address: place.address,
-                        }}
-                        open
-                        onOpenChange={(next) => {
-                            if (!next) {
-                                setEditOpen(false);
-                            }
-                        }}
-                    />
+                    </div>
                 )}
-            </CornerLayout>
-        </AppLayout>
+                externalCta={() => (
+                    <a
+                        href={googleMapsUrl(place)}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="corner-detail-cta shell-press"
+                    >
+                        Open in Google Maps
+                        <ArrowUpRight
+                            aria-hidden="true"
+                            size={16}
+                            strokeWidth={1.5}
+                        />
+                    </a>
+                )}
+            />
+
+            {place.can.update && editOpen && (
+                <PlaceAddDialog
+                    item={{
+                        id: place.id,
+                        title: place.title,
+                        place_id: place.place_id,
+                        lat: place.lat,
+                        lng: place.lng,
+                        address: place.address,
+                    }}
+                    open
+                    onOpenChange={(next) => {
+                        if (!next) {
+                            setEditOpen(false);
+                        }
+                    }}
+                />
+            )}
+        </CornerLayout>
     );
 }

@@ -31,9 +31,10 @@ class BouquetDeleteTest extends TestCase
 
         Storage::disk('s3')->assertExists($key);
 
-        $this->actingAs($sender)
+        $response = $this->actingAs($sender)
             ->delete("/apps/our-mailbox/flowers/{$bouquet->id}")
             ->assertRedirect();
+        $this->assertSuccessToast($response, 'Flowers deleted.');
 
         // Row gone AND the stored object pruned (no orphan).
         $this->assertDatabaseMissing('mailbox_bouquets', ['id' => $bouquet->id]);

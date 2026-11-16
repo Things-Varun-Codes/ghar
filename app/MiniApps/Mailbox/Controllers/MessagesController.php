@@ -9,6 +9,7 @@ use App\MiniApps\Mailbox\Http\Resources\MessageResource;
 use App\MiniApps\Mailbox\Models\MailboxMessage;
 use App\Shell\Services\Household;
 use App\Shell\Support\CursorList;
+use App\Shell\Support\FlashToast;
 use App\Shell\Support\ResolvesListSort;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -67,7 +68,9 @@ class MessagesController
     {
         $action($request, $request->user());
 
-        return redirect('/apps/our-mailbox/messages');
+        FlashToast::success('Note sent.');
+
+        return redirect('/apps/our-mailbox/messages?tab=sent');
     }
 
     public function destroy(Request $request, MailboxMessage $message): RedirectResponse
@@ -75,6 +78,8 @@ class MessagesController
         Gate::authorize('delete', $message);
 
         $message->delete();
+
+        FlashToast::success('Note deleted.');
 
         return redirect()->back();
     }

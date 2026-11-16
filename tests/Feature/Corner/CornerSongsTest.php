@@ -9,6 +9,7 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Notification;
+use Inertia\Support\SessionKey;
 use Tests\TestCase;
 
 class CornerSongsTest extends TestCase
@@ -48,7 +49,8 @@ class CornerSongsTest extends TestCase
             ->post('/apps/our-corner/songs', [
                 'url' => 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
             ])
-            ->assertRedirect('/apps/our-corner/songs');
+            ->assertRedirect('/apps/our-corner/songs')
+            ->assertSessionHas(SessionKey::FLASH_DATA, ['toast' => ['type' => 'success', 'message' => 'Song added.']]);
 
         $this->assertDatabaseHas('corner_songs', [
             'provider' => 'youtube',
@@ -58,14 +60,17 @@ class CornerSongsTest extends TestCase
             'added_by_user_id' => $adder->id,
         ]);
 
+        $itemUrl = '/apps/our-corner/songs/'.Song::query()->latest('id')->value('id');
+
         Notification::assertSentTo(
             $recipient,
             GenericPushNotification::class,
-            function (GenericPushNotification $n) use ($recipient) {
+            function (GenericPushNotification $n) use ($recipient, $itemUrl) {
                 $webPush = $n->toWebPush($recipient, $n)->toArray();
 
                 return ($webPush['tag'] ?? null) === 'our-corner:songs'
-                    && str_contains($webPush['body'] ?? '', 'added a song');
+                    && str_contains($webPush['body'] ?? '', 'added a song')
+                    && ($webPush['data']['url'] ?? null) === $itemUrl;
             }
         );
     }

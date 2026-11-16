@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { scrollBehavior } from '@/lib/motion';
 
 type Props = {
     years: number[]; // descending (newest first)
@@ -66,7 +67,10 @@ export default function YearJumpRail({ years }: Props) {
         const el = document.getElementById(`year-${year}`);
 
         if (el) {
-            el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            el.scrollIntoView({
+                behavior: scrollBehavior(),
+                block: 'start',
+            });
         }
     }
 
@@ -86,14 +90,6 @@ export default function YearJumpRail({ years }: Props) {
                         aria-label={`Jump to ${year}`}
                         aria-pressed={isActive}
                         className="history-year-rail-button"
-                        style={{
-                            color: isActive
-                                ? 'var(--history-on-accent)'
-                                : 'var(--history-ink-soft)',
-                            backgroundColor: isActive
-                                ? 'var(--history-accent)'
-                                : 'transparent',
-                        }}
                     >
                         {year}
                     </button>

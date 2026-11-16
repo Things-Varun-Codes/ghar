@@ -1,5 +1,6 @@
 import { NodeViewWrapper } from '@tiptap/react';
 import type { NodeViewProps } from '@tiptap/react';
+import { ArrowUpRight, X } from 'lucide-react';
 import React, { useState } from 'react';
 
 import {
@@ -100,7 +101,7 @@ export default function EntityLinkPill({
                     remove();
                 }}
             >
-                ×
+                <X size={14} strokeWidth={1.5} aria-hidden="true" />
             </button>
 
             <Sheet open={touchMenuOpen} onOpenChange={setTouchMenuOpen}>
@@ -116,9 +117,14 @@ export default function EntityLinkPill({
                             href={safeHref}
                             target="_self"
                             onClick={() => setTouchMenuOpen(false)}
-                            className="shell-pill-open"
+                            className="shell-pill-open inline-flex items-center gap-1.5"
                         >
-                            Open in Corner ↗
+                            Open in Corner
+                            <ArrowUpRight
+                                size={16}
+                                strokeWidth={1.5}
+                                aria-hidden="true"
+                            />
                         </a>
                         <button
                             type="button"
