@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Runs on every container start, so every step is idempotent. Seeding is a
-# one-off; see DEPLOY.md "First-run bootstrap".
+# one-off; see DEPLOY.md "What the first start does".
 set -euo pipefail
 
 cd /var/www/html

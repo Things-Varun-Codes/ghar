@@ -1,14 +1,17 @@
 # Ghar
 
+Ghar is a private, self-hosted web app for one family or household: a shared timeline of your photos
+and moments, lists of the songs, movies and places you want to get to, and a mailbox for notes to
+each other. You run it yourself with Docker, nobody joins without an invite, and your photos stay on
+your own disk. It is open source under the MIT licence. "Ghar" is the Hindi and Urdu word for home.
+
 [![CI](https://github.com/Things-Varun-Codes/ghar/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/Things-Varun-Codes/ghar/actions/workflows/ci.yml)
 [![Latest release](https://img.shields.io/github/v/release/Things-Varun-Codes/ghar)](https://github.com/Things-Varun-Codes/ghar/releases)
 [![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/Things-Varun-Codes/ghar/badge)](https://scorecard.dev/viewer/?uri=github.com/Things-Varun-Codes/ghar)
 [![License: MIT](https://img.shields.io/github/license/Things-Varun-Codes/ghar)](./LICENSE)
 
-A private home on the web for your family. "Ghar" is the Hindi and Urdu word for home.
-
 <p>
-  <img src="docs/screenshots/dashboard.webp" alt="Home, with a door for each app showing its latest photos, songs and notes" width="49%">
+  <img src="docs/screenshots/dashboard.webp" alt="Ghar's Home screen, with a door for each app showing its latest photos, songs and notes" width="49%">
   <img src="docs/screenshots/timeline.webp" alt="Our History timeline with a moment, its photos and the songs and places linked to it" width="49%">
   <img src="docs/screenshots/mailbox.webp" alt="Our Mailbox notes, handwritten on ruled paper" width="49%">
   <img src="docs/screenshots/challan.webp" alt="A joke traffic ticket for leaving wet towels on the bed" width="49%">
@@ -25,25 +28,53 @@ it are a few small apps for the things families keep track of together:
   and videos.
 - **Our Corner**: shared lists of songs, movies, places and things to do, and a way to mark what
   you've loved, watched or visited.
-- **Our Mailbox**: notes and bouquets of flowers to one or more people, joke traffic tickets
-  ("challans") and coupons someone can redeem.
+- **Our Mailbox**: notes and bouquets of flowers to one or more people, coupons someone can redeem,
+  and challans. A challan is what a traffic ticket is called in India; here it is a joke one, a mock
+  official form for an offence such as leaving wet towels on the bed, with a penalty the recipient
+  can mark as paid.
 
 It also does Web Push notifications, installs to a phone's home screen as a PWA, and has short links
 you can write to NFC tags.
+
+### At a glance
+
+- **Licence:** MIT. The first public release was 1.0.0, on 13 November 2026; later ones are in
+  [`CHANGELOG.md`](./CHANGELOG.md).
+- **Who it is for:** one family or household per install. Accounts are by invitation only.
+- **How it runs:** one app container plus PostgreSQL 17 and a small Valkey cache, with Docker
+  Compose. Images for amd64 and arm64 are at `ghcr.io/things-varun-codes/ghar`.
+- **What it needs:** about 200 MB of RAM when idle, and three settings: `APP_URL`, `DB_PASSWORD`
+  and `GHAR_ADMIN_EMAIL`.
+- **Where photos go:** your own disk by default, or any S3-compatible bucket. They are private
+  either way, behind signed links that expire within two hours.
+- **Who sees what:** moments and lists are shared by everyone in the household. Notes, flowers,
+  coupons and challans are seen only by the sender and the recipients, not by admins.
+- **Who maintains it:** one person, in spare time.
 
 ## What it isn't
 
 Ghar is built for one household per install. Nobody can sign up: an admin invites each person by
 email. It is not multi-tenant, there is no hosted version, and it isn't trying to be a social
-network. Each mini app is its own self-contained module, so adding another one doesn't mean touching
-the rest.
+network. It is also the wrong tool if you want:
 
-Built with Laravel 13, Inertia 3, React 19, TypeScript, Tailwind 4 and PostgreSQL 17.
+- **Automatic photo backup.** Photos and videos are added by hand to a moment in Our History.
+  Nothing uploads your camera roll; use a self-hosted photo library for that.
+- **Chores, shopping lists or a shared calendar.** The calendar in Our History shows the moments you
+  have recorded, not appointments. Use a family organiser or a home dashboard for those.
+- **End-to-end encryption or two-factor sign-in.** Mail between members is hidden from other
+  members, admins included, but whoever runs the server can read the database. Sign-in is an email
+  address and a password.
+- **An export button.** A backup is a database dump plus the media folder or bucket.
 
-## Self-hosting
+The interface is in English.
 
-You need Docker. Ghar runs on amd64 and arm64 in about 200 MB of RAM, and photos stay on your own
-disk unless you choose a bucket.
+Built with Laravel 13, Inertia 3, React 19, TypeScript, Tailwind 4 and PostgreSQL 17. Each mini app
+is its own self-contained module, so adding another one doesn't mean touching the rest.
+
+## Self-hosting with Docker Compose
+
+You need Docker. Ghar runs on amd64 and arm64, including a Raspberry Pi 4 or 5, uses about 200 MB of
+RAM when idle, and keeps photos on your own disk unless you choose a bucket.
 
 ```sh
 mkdir ghar && cd ghar
@@ -58,12 +89,37 @@ Log in at <http://localhost:8080> with the password from the log and invite your
 Admin, Invites. [`DEPLOY.md`](./DEPLOY.md) covers HTTPS with Caddy, mail, S3-compatible storage,
 backups, upgrades and running behind Cloudflare.
 
-Optional extras: Google Places for location search (without it you type places in), Cloudflare
-Workers AI for the flower pictures, and any Sentry-compatible error tracker.
+Ghar works without any outside accounts. Optional extras: Google Places for location search (without
+it you type places in), Cloudflare Workers AI for the flower pictures, and any Sentry-compatible
+error tracker.
+
+## What leaves your server
+
+Ghar has no analytics and doesn't report back to anyone. A running install contacts the outside only
+for these:
+
+- **Mail**: invites, password resets and email-change links go through the SMTP provider or Resend
+  account you set up.
+- **Web Push**: notifications travel through each browser's own push service, once someone turns
+  them on.
+- **Links in Our Corner**: for a YouTube, Spotify or Plex link, the server asks that site for the
+  title and artwork, and browsers load the artwork from it.
+- **Password check**: when someone sets a password, it is checked against a public list of breached
+  passwords. Only the first five characters of its hash are sent.
+
+Off until you set them up: Google Places, Cloudflare Workers AI, an error tracker and an
+S3-compatible bucket for media. Fonts are downloaded when the image is built and served by Ghar
+itself.
+
+## Questions
+
+[`FAQ.md`](./FAQ.md) has short answers to the things people ask first: whether Ghar runs on a
+Raspberry Pi, whether it needs a domain or email, where photos live, how to back it up, and whether
+there is a phone app.
 
 ## Local development
 
-You need PHP 8.4 or newer, Composer, Node 22 or newer, and Docker. Then:
+You need PHP 8.4 or newer, Composer, Node 22.12 or newer, and Docker. Then:
 
 ```sh
 npm run dev-setup

@@ -39,8 +39,14 @@ what other people made.
 - **Members from each other.** Notes, flowers, coupons and challans are visible only to the sender
   and recipients; admins can't read them either. Editing or deleting a moment or list item takes its creator or
   an admin. All of it is enforced on the server.
-- **Media.** Photos and videos sit in a private bucket and are served through short-lived signed URLs.
+- **Media.** Photos and videos are stored privately, on your own disk by default or in an
+  S3-compatible bucket, and are served only through signed links that expire within two hours.
   Uploads are checked against their actual bytes.
+- **Passwords.** A password must be at least 12 characters with upper and lower case, a number and a
+  symbol, and is refused if it appears in a public list of breached passwords. Sessions last 30 days.
+- **Search engines and AI crawlers.** An install asks not to be indexed: `robots.txt` disallows
+  every crawler, every page carries a `noindex` tag and every response an `X-Robots-Tag` header.
+  The sign-in page has no description or preview image for a link preview to show.
 - **Stored content.** Rich text is sanitised on the server when saved. A strict Content Security Policy
   limits what a successful injection could do.
 - **The container.** It runs as a non-root user. Sourcemaps are never served.
@@ -49,6 +55,11 @@ what other people made.
 
 - **A malicious admin, or anyone with access to the server or database.** Mail and media aren't
   end-to-end encrypted.
+- **A stolen password.** There is no two-factor login yet, so a member's password is all an attacker
+  needs.
+- **The app's name and address.** The sign-in page and the manifest show `APP_NAME` to anyone who
+  has the address, and the robots rules above are requests that a crawler can ignore. Don't put
+  anything in the name that you wouldn't want a stranger to read.
 - **A misconfigured proxy.** `TRUSTED_PROXIES` decides whose forwarded headers are believed. Trust
   too much, or publish the app's port past your proxy, and client IPs can be spoofed, which weakens
   the login rate limit. See "Reverse proxy and client IPs" in [`DEPLOY.md`](./DEPLOY.md).

@@ -64,6 +64,12 @@ Meera have synthetic push subscriptions that can't deliver; test real push by su
   service. `docker-compose.override.yml` is local-dev only (Postgres, Mailpit on `127.0.0.1:1025` /
   `:8025`). `docker-compose.selfhost.yml` stands alone: the published image, Postgres, a Valkey cache, a port, and a
   `.env` from `.env.selfhost.example`. **Never add dev services to either production file.**
+- **Never indexable:** an install is private, so it asks not to be indexed in three places that
+  must stay in step: `public/robots.txt` (one `User-agent: *` group, no named bots), the robots
+  meta tag in `app.blade.php`, and `X-Robots-Tag` from `AddRobotsHeader` (global middleware) and
+  `docker/nginx/default.conf` (an nginx location with its own `add_header` must repeat it). No Open
+  Graph, description or preview-image tags on guest pages. Project discoverability lives in the
+  repo (`README.md`, `FAQ.md`, `llms.txt`), never under `public/`.
 - **First start:** `docker/docker-entrypoint.sh` generates `APP_KEY` and VAPID keys into
   `storage/app/generated-secrets.env` when unset, migrates, seeds roles, and creates the
   `GHAR_ADMIN_EMAIL` admin if none exists. Every step must stay idempotent.

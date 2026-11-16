@@ -93,4 +93,17 @@ class DeployOpsContractTest extends TestCase
             file_get_contents(base_path('docker/nginx/default.conf')),
         );
     }
+
+    public function test_nginx_sends_the_robots_header_from_every_scope_that_sets_headers(): void
+    {
+        $conf = file_get_contents(base_path('docker/nginx/default.conf'));
+        $robots = 'add_header X-Robots-Tag "noindex, nofollow" always;';
+
+        // add_header in a location replaces the inherited ones, so each location that sets
+        // Cache-Control has to repeat it: once for the server, once per such location.
+        $this->assertSame(
+            substr_count($conf, 'add_header Cache-Control') + 1,
+            substr_count($conf, $robots),
+        );
+    }
 }
