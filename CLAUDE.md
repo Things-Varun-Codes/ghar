@@ -165,7 +165,10 @@ PHP/TS identifiers say `ShortLink`.
   `lib/navigation.ts` turns a GET to the path already shown (filter, sort, search, tab, page
   number) into a replace, so back leaves the page instead of undoing the filter. Link to another
   page with Inertia's `Link`: a plain `<a>` reloads the document and the chevron forgets where
-  you came from. Every sheet and dialog that composes or shows an item
+  you came from. Back and forward restore a page from browser history without a request, so once
+  anything has been written in the tab, a restored page asks for its props again
+  (`lib/stale-history.ts`, a replacing visit: `router.reload()` always keeps component state).
+  Every sheet and dialog that composes or shows an item
   goes through `useOverlayHistory` (`resources/js/hooks/use-overlay-history.ts`), so the back
   gesture closes it instead of leaving the page. One with a draft uses `useDraftCloseGate` +
   `DiscardDraftDialog`, which own the "Discard?" prompt for every way of closing. `app.tsx` calls
@@ -470,10 +473,16 @@ its own lists; nothing about Songs or Movies is hard-coded any more.
   add sheet previews through `/api/corner/picture-preview`. `PictureCache` keeps the bytes under
   `storage/framework/cache/data/corner-pictures`, at most 64 MB and safe to delete. The seed
   primes it, so the dev database shows pictures offline.
-- **Icons** are any lucide name, validated against `Support/icon-names.json` (written by
-  `scripts/corner-icon-names.mjs`; a unit test fails when it drifts from lucide-react) and drawn by
-  the shell's `LinkableIcon`, which loads each icon on demand. History pills carry the list's icon
-  in `data-corner-icon`.
+- **Icons** are any lucide name, validated against `Support/icon-names.json`. Every icon is drawn
+  from data by the shell's `LinkableIcon` (lucide's `Icon` + `Shell/linkables/lucide-paths.json`);
+  the picker also loads `lucide-index.json` (categories and tags). `scripts/lucide-icons.mjs` writes
+  all three from the installed lucide-react; a unit test fails when they drift. The picker
+  (`IconPicker`) is a popover (a sheet on a phone) with search, a virtualised grid and keyboard
+  use; it sits inside the list settings sheet and goes through `useOverlayHistory`.
+- **History pills** carry the list's icon in `data-corner-icon`, but draw the item's current picture
+  and icon from each moment's `links` (History's `LinkedThings` + the shell's
+  `LinkableEntities::snapshotsFor`: one query for the references, one per linked type). A pill
+  whose item is gone falls back to what was written into `body_html`.
 - **The slug never changes** after creation: notifications, History pills and NFC short links
   point at it. `lists` and `items` are reserved (`CreateList::RESERVED_SLUGS`) because the
   mutation routes use them at the same depth.
