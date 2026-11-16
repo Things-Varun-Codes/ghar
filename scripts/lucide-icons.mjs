@@ -24,6 +24,7 @@ const names = Object.keys(imports).sort();
 
 const paths = {};
 const aliases = {};
+
 for (const name of names) {
     const module = await imports[name]();
     const { name: canonical, node } = module.__iconData;
@@ -42,6 +43,7 @@ for (const name of names) {
 }
 
 const work = mkdtempSync(path.join(tmpdir(), 'lucide-'));
+
 try {
     const archive = path.join(work, 'lucide.tgz');
     execFileSync('curl', [
@@ -57,13 +59,16 @@ try {
 
     const tags = {};
     const members = {};
+
     for (const file of readdirSync(path.join(repo, 'icons'))) {
         const name = file.replace(/\.json$/, '');
+
         if (!paths[name]) {
             continue;
         }
 
         const icon = meta('icons', file);
+
         if (icon.tags?.length) {
             tags[name] = icon.tags;
         }
