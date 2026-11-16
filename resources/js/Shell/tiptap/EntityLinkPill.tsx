@@ -10,8 +10,7 @@ import {
     SheetHeader,
     SheetTitle,
 } from '@/components/ui/sheet';
-import { entityIcon } from '@/Shell/linkables/entityIcon';
-import LinkableIcon from '@/Shell/linkables/LinkableIcon';
+import { EntityMark } from '@/Shell/linkables/LinkableIcon';
 
 export default function EntityLinkPill({
     node,
@@ -51,11 +50,7 @@ export default function EntityLinkPill({
     const safeHref = deepLinkUrl ?? '#';
     const label = title || 'Corner link';
 
-    const iconEl = icon ? (
-        <LinkableIcon name={icon} size={14} />
-    ) : (
-        React.createElement(entityIcon(type), { size: 14, 'aria-hidden': true })
-    );
+    const iconEl = <EntityMark type={type} icon={icon} size={14} />;
 
     const handlePillClick = (e: React.MouseEvent) => {
         const isTouch =

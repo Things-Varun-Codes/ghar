@@ -1,13 +1,14 @@
 import type { router as inertiaRouter } from '@inertiajs/react';
 import { describe, expect, it, vi } from 'vitest';
 
-import { installStaleHistoryReload } from '@/lib/stale-history';
+import { installAfterWrite } from '@/lib/stale-history';
 
 type Handler = (event: { detail: Record<string, unknown> }) => void;
 
 function fakeRouter() {
     const handlers: Record<string, Handler[]> = {};
     const visit = vi.fn();
+    const flushAll = vi.fn();
     const router = {
         on(name: string, handler: Handler) {
             (handlers[name] ??= []).push(handler);
@@ -15,54 +16,74 @@ function fakeRouter() {
             return () => {};
         },
         visit,
+        flushAll,
     } as unknown as typeof inertiaRouter;
 
     const fire = (name: string, detail: Record<string, unknown>) =>
         handlers[name]?.forEach((handler) => handler({ detail }));
 
+    installAfterWrite(router);
+
     return {
-        router,
         visit,
-        finish: (method: string) => fire('finish', { visit: { method } }),
-        navigate: (type: 'initial' | 'visit' | 'history') =>
-            fire('navigate', { page: { url: '/x' }, type }),
+        flushAll,
+        write: (method = 'patch') => fire('finish', { visit: { method } }),
+        show: (url: string, type: 'initial' | 'visit' | 'history') =>
+            fire('navigate', { page: { url }, type }),
     };
 }
 
-describe('pages restored from history', () => {
-    it('stay as saved while nothing has been written', () => {
-        const inertia = fakeRouter();
-        installStaleHistoryReload(inertia.router);
+const remount = {
+    replace: true,
+    preserveScroll: true,
+    preserveState: false,
+};
 
-        inertia.finish('get');
-        inertia.navigate('history');
+describe('after a write', () => {
+    it('drops prefetched pages', () => {
+        const inertia = fakeRouter();
+
+        inertia.write('get');
+        expect(inertia.flushAll).not.toHaveBeenCalled();
+
+        inertia.write('delete');
+        expect(inertia.flushAll).toHaveBeenCalledTimes(1);
+    });
+
+    it('leaves pages restored by back alone while nothing has been written', () => {
+        const inertia = fakeRouter();
+
+        inertia.show('/list', 'initial');
+        inertia.show('/list/1', 'visit');
+        inertia.show('/list', 'history');
 
         expect(inertia.visit).not.toHaveBeenCalled();
     });
 
     // An item's picture changed, then back to the list: the list kept the old picture until a
     // browser refresh.
-    it('ask for their props again after a write', () => {
+    it('asks again for a page last seen before the write', () => {
         const inertia = fakeRouter();
-        installStaleHistoryReload(inertia.router);
 
-        inertia.finish('patch');
-        inertia.navigate('history');
+        inertia.show('/list', 'initial');
+        inertia.show('/list/1', 'visit');
+        inertia.write();
+        inertia.show('/list', 'history');
 
-        expect(inertia.visit).toHaveBeenCalledWith(window.location.href, {
-            replace: true,
-            preserveScroll: true,
-            preserveState: false,
-        });
+        expect(inertia.visit).toHaveBeenCalledWith(
+            window.location.href,
+            remount,
+        );
     });
 
-    it('only reload for back and forward, not for ordinary visits', () => {
+    it('keeps a page seen since the write instant', () => {
         const inertia = fakeRouter();
-        installStaleHistoryReload(inertia.router);
 
-        inertia.finish('post');
-        inertia.navigate('visit');
-        inertia.navigate('initial');
+        inertia.show('/list', 'initial');
+        inertia.write();
+        inertia.show('/list', 'visit');
+        inertia.show('/other', 'visit');
+        inertia.show('/list', 'history');
 
         expect(inertia.visit).not.toHaveBeenCalled();
     });

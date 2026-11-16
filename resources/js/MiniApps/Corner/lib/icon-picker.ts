@@ -64,15 +64,7 @@ export function searchIcons(
         return [];
     }
 
-    const inCategories: Record<string, string> = {};
-
-    for (const category of index.categories) {
-        for (const icon of category.icons) {
-            inCategories[icon] =
-                `${inCategories[icon] ?? ''} ${category.title.toLowerCase()}`;
-        }
-    }
-
+    const inCategories = categoryWords(index);
     const scored: { name: string; score: number }[] = [];
 
     for (const name of names) {
@@ -120,6 +112,28 @@ export function searchIcons(
                 a.name.localeCompare(b.name),
         )
         .map((entry) => entry.name);
+}
+
+const categoryCache = new WeakMap<IconIndex, Record<string, string>>();
+
+/* What each icon's categories are called, worked out once per index, not per keystroke. */
+function categoryWords(index: IconIndex): Record<string, string> {
+    let words = categoryCache.get(index);
+
+    if (!words) {
+        words = {};
+
+        for (const category of index.categories) {
+            for (const icon of category.icons) {
+                words[icon] =
+                    `${words[icon] ?? ''} ${category.title.toLowerCase()}`;
+            }
+        }
+
+        categoryCache.set(index, words);
+    }
+
+    return words;
 }
 
 /* Each section as a heading row and its icons in rows of `columns`, with where each row sits. */

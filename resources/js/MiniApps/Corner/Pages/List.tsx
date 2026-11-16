@@ -38,7 +38,7 @@ export default function List({ list, items, filter, sort, sorts, q }: Props) {
 
     return (
         <CornerLayout>
-            <ListPage<CornerItem>
+            <ListPage
                 // A list's own key: moving between two lists keeps nothing of the other.
                 key={list.id}
                 title={list.name}

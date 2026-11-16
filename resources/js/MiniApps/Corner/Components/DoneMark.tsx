@@ -26,20 +26,12 @@ export function DoneGlyph({
 export function DoneSticker({
     icon,
     label,
-    inline = false,
 }: {
     icon: DoneIcon;
     label: string;
-    inline?: boolean;
 }) {
     return (
-        <span
-            className={
-                inline
-                    ? 'corner-sticker corner-sticker--inline'
-                    : 'corner-sticker'
-            }
-        >
+        <span className="corner-sticker">
             {icon === 'heart' && <HeartMark size={12} filled />}
             {label}
         </span>

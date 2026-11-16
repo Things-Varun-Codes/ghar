@@ -18,11 +18,10 @@ type DetailPageProps = {
     back: BackTarget;
     can: ItemPermissions;
     addedByName: string;
-    metaSuffix?: ReactNode;
     mentionedIn: MentionedInRef[];
-    hero?: () => ReactNode;
-    body?: () => ReactNode;
-    externalCta?: () => ReactNode;
+    hero?: ReactNode;
+    body?: ReactNode;
+    externalCta?: ReactNode;
     isDone: boolean;
     /* The list's word for done; the toggle's pressed state says whether it is. */
     doneLabel: string;
@@ -35,7 +34,6 @@ export default function DetailPage({
     back,
     can,
     addedByName,
-    metaSuffix,
     mentionedIn,
     hero,
     body,
@@ -51,16 +49,15 @@ export default function DetailPage({
                 <div className="corner-detail-grid">
                     <div className="corner-detail-main">
                         <article className="corner-detail-article">
-                            {hero?.()}
-                            {body?.()}
+                            {hero}
+                            {body}
 
                             <p className="corner-detail-meta">
                                 Added by {addedByName}
-                                {metaSuffix && <> · {metaSuffix}</>}
                             </p>
 
                             <div className="corner-detail-actions">
-                                {externalCta?.()}
+                                {externalCta}
 
                                 <Toggle
                                     className="corner-done-toggle shell-press"

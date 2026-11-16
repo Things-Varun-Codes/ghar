@@ -113,21 +113,13 @@ export default function ListSettingsSheet({ open, onOpenChange, list }: Props) {
                 />
             </FormField>
 
-            <div className="corner-icon-field">
-                <span id={`${ids}-icon`} className="corner-field-label">
-                    Icon
-                </span>
+            <FormField label="Icon" name="icon" error={errors.icon}>
                 <IconPicker
+                    id="icon"
                     value={data.icon}
                     onChange={(icon) => setData('icon', icon)}
-                    labelledBy={`${ids}-icon`}
                 />
-                {errors.icon && (
-                    <p role="alert" className="corner-field-error">
-                        {errors.icon}
-                    </p>
-                )}
-            </div>
+            </FormField>
 
             <fieldset className="corner-fieldset">
                 <legend className="corner-fieldset-legend">

@@ -1,6 +1,6 @@
 import { useForm } from '@inertiajs/react';
 import { ImageOff, RotateCw } from 'lucide-react';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
 import { Input } from '@/components/ui/input';
 import { useDirtyFormGate } from '@/hooks/use-dirty-form-gate';
@@ -32,8 +32,6 @@ type FormShape = {
     no_picture: boolean;
     notes: string;
     location: string;
-    lat: number | null;
-    lng: number | null;
     address: string;
 };
 
@@ -41,10 +39,9 @@ type LinkJson = {
     ok: boolean;
     title?: string | null;
     image_url?: string | null;
-    site_name?: string | null;
 };
 
-type LinkFound = { title: string | null; site: string | null };
+type LinkFound = { title: string | null };
 
 /* What the location field shows for an item: the link it came from, else its name or point. */
 function locationOf(item: CornerItem): string {
@@ -69,8 +66,6 @@ function shapeOf(item?: CornerItem): FormShape {
         no_picture: false,
         notes: item?.notes ?? '',
         location: item ? locationOf(item) : '',
-        lat: item?.lat ?? null,
-        lng: item?.lng ?? null,
         address: item?.address ?? '',
     };
 }
@@ -96,7 +91,6 @@ export default function ItemSheet({ list, open, onOpenChange, item }: Props) {
         endpoint: linkPreview.url(),
         parse: (json) => ({
             title: json.title ?? null,
-            site: json.site_name ?? null,
         }),
         onResult: (json) => {
             if (!pictureChosen && json.image_url) {
@@ -124,8 +118,7 @@ export default function ItemSheet({ list, open, onOpenChange, item }: Props) {
     };
 
     const changeLocation = (next: string) => {
-        // A new place is read afresh; coordinates kept from before belong to the old one.
-        setData((prev) => ({ ...prev, location: next, lat: null, lng: null }));
+        setData('location', next);
     };
 
     const removePicture = () => {
@@ -134,12 +127,14 @@ export default function ItemSheet({ list, open, onOpenChange, item }: Props) {
         setData((prev) => ({ ...prev, image_url: '', no_picture: true }));
     };
 
+    // Previewed once typing stops, not for every half-typed address.
+    const pictureAddress = useDeferredTyping(data.image_url.trim());
     const pictureSrc =
-        data.image_url.trim() === ''
+        pictureAddress === ''
             ? null
             : item && data.image_url === item.image_url
               ? item.picture_url
-              : picturePreview.url({ query: { url: data.image_url.trim() } });
+              : picturePreview.url({ query: { url: pictureAddress } });
 
     const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault();
@@ -323,7 +318,7 @@ export default function ItemSheet({ list, open, onOpenChange, item }: Props) {
             <FormField
                 label="Where (optional)"
                 name="location"
-                error={errors.location ?? errors.lat}
+                error={errors.location}
             >
                 <Input
                     id="location"
@@ -356,4 +351,22 @@ export default function ItemSheet({ list, open, onOpenChange, item }: Props) {
             )}
         </CornerSheet>
     );
+}
+
+const TYPING_PAUSE_MS = 500;
+
+/* The value once it has stopped changing for a moment. */
+function useDeferredTyping(value: string): string {
+    const [settled, setSettled] = useState(value);
+
+    useEffect(() => {
+        const timer = window.setTimeout(
+            () => setSettled(value),
+            TYPING_PAUSE_MS,
+        );
+
+        return () => window.clearTimeout(timer);
+    }, [value]);
+
+    return settled;
 }

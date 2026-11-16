@@ -165,9 +165,9 @@ PHP/TS identifiers say `ShortLink`.
   `lib/navigation.ts` turns a GET to the path already shown (filter, sort, search, tab, page
   number) into a replace, so back leaves the page instead of undoing the filter. Link to another
   page with Inertia's `Link`: a plain `<a>` reloads the document and the chevron forgets where
-  you came from. Back and forward restore a page from browser history without a request, so once
-  anything has been written in the tab, a restored page asks for its props again
-  (`lib/stale-history.ts`, a replacing visit: `router.reload()` always keeps component state).
+  you came from. Back and forward restore a page from browser history without a request, so a page
+  last seen before a write asks for its props again when restored (`lib/stale-history.ts`, a
+  replacing visit: `router.reload()` always keeps component state).
   Every sheet and dialog that composes or shows an item
   goes through `useOverlayHistory` (`resources/js/hooks/use-overlay-history.ts`), so the back
   gesture closes it instead of leaving the page. One with a draft uses `useDraftCloseGate` +
@@ -184,7 +184,7 @@ PHP/TS identifiers say `ShortLink`.
   (`import { route as adminRoute } from '@/routes/admin'`). Ziggy is gone; a bare `route()` global
   call is a hard error.
 - **Prefetch only side-effect-free pages.** `<Link prefetch="mount">` is on the Home doors, the
-  Corner landing cards and the History tabs; `app.tsx` drops the prefetch cache after any non-GET
+  Corner landing cards (the first four) and the History tabs; `lib/stale-history.ts` drops the prefetch cache after any non-GET
   visit. Never prefetch a page whose GET changes something: Mailbox Messages and Flowers mark
   themselves read when fetched.
 - **Media URLs are stable for an hour.** `SignedUrls` signs from the top of a fixed window so the

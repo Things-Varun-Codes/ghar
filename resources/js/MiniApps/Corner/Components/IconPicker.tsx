@@ -54,8 +54,10 @@ import {
 type Props = {
     value: string;
     onChange: (icon: string) => void;
-    /* Labels the trigger, for a picker that sits under a visible label. */
-    labelledBy?: string;
+    /* For FormField: its label points at the trigger, and an error describes it. */
+    id?: string;
+    'aria-describedby'?: string;
+    'aria-invalid'?: boolean;
 };
 
 type Catalog = { paths: IconPaths; index: IconIndex };
@@ -72,11 +74,16 @@ function preload(): void {
  * browses them by category in one virtualised grid. Keyboard: type to search, arrows to move,
  * Enter to choose, Escape to close; focus returns to the button.
  */
-export default function IconPicker({ value, onChange, labelledBy }: Props) {
+export default function IconPicker({
+    value,
+    onChange,
+    id,
+    'aria-describedby': describedBy,
+    'aria-invalid': invalid,
+}: Props) {
     const [open, setOpen] = useState(false);
     const isPhone = useIsPhone();
     const trigger = useRef<HTMLButtonElement>(null);
-    const titleId = useId();
 
     useOverlayHistory(open, () => setOpen(false));
 
@@ -92,9 +99,9 @@ export default function IconPicker({ value, onChange, labelledBy }: Props) {
             type="button"
             aria-haspopup="dialog"
             aria-expanded={open}
-            aria-labelledby={
-                labelledBy ? `${labelledBy} ${titleId}` : undefined
-            }
+            id={id}
+            aria-describedby={describedBy}
+            aria-invalid={invalid}
             onPointerEnter={preload}
             onFocus={preload}
             onClick={() => setOpen(true)}
@@ -103,9 +110,7 @@ export default function IconPicker({ value, onChange, labelledBy }: Props) {
             <span className="corner-icon-trigger-mark">
                 <ListIcon name={value} size={22} strokeWidth={1.5} />
             </span>
-            <span id={titleId} className="corner-icon-trigger-name">
-                {iconLabel(value)}
-            </span>
+            <span className="corner-icon-trigger-name">{iconLabel(value)}</span>
             <span className="corner-icon-trigger-action">
                 Change
                 <ChevronDown aria-hidden="true" size={16} strokeWidth={1.5} />
@@ -468,7 +473,12 @@ function IconBrowser({
             <div
                 ref={scroller}
                 className="corner-icon-scroll"
-                onScroll={(e) => setScrollTop(e.currentTarget.scrollTop)}
+                onScroll={(e) =>
+                    setScrollTop(
+                        Math.floor(e.currentTarget.scrollTop / ROW_HEIGHT) *
+                            ROW_HEIGHT,
+                    )
+                }
             >
                 {rows.length === 0 ? (
                     <div className="corner-icon-empty" role="status">

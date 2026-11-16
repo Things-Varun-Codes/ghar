@@ -1,7 +1,9 @@
 import * as Sentry from '@sentry/react';
 import { Icon } from 'lucide-react';
 import type { LucideProps } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { createElement, useEffect, useState } from 'react';
+
+import { entityIcon } from '@/Shell/linkables/entityIcon';
 
 import type { IconPaths } from '@/Shell/linkables/lucide';
 import {
@@ -62,4 +64,21 @@ export default function LinkableIcon({ name, size = 24, ...props }: Props) {
     }
 
     return <Icon iconNode={node} aria-hidden size={size} {...props} />;
+}
+
+/* A linked thing's mark: its list's icon when it carries one, otherwise its type's. */
+export function EntityMark({
+    type,
+    icon,
+    size,
+}: {
+    type: string | null;
+    icon: string | null | undefined;
+    size: number;
+}) {
+    return icon ? (
+        <LinkableIcon name={icon} size={size} />
+    ) : (
+        createElement(entityIcon(type), { size, 'aria-hidden': true })
+    );
 }

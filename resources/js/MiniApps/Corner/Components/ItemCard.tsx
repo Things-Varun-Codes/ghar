@@ -12,6 +12,7 @@ import { useMenuAction } from '@/hooks/use-menu-action';
 import { DoneGlyph, DoneSticker } from '@/MiniApps/Corner/Components/DoneMark';
 import ItemThumb from '@/MiniApps/Corner/Components/ItemThumb';
 import { useItemActions } from '@/MiniApps/Corner/Hooks/useItemActions';
+import { bylineOf } from '@/MiniApps/Corner/lib/copy';
 import { hasPlace, placeLabel } from '@/MiniApps/Corner/lib/maps';
 import type { CornerItem, CornerListInfo } from '@/MiniApps/Corner/lib/types';
 import { show } from '@/routes/apps/our-corner/items';
@@ -52,10 +53,8 @@ export default function ItemCard({ list, item, onEdit }: Props) {
         return null;
     }
 
-    const isDone = item.done_at !== null;
-    const byline = [item.author, item.site_name]
-        .filter((part, i, all) => part && all.indexOf(part) === i)
-        .join(' · ');
+    const isDone = item.is_done;
+    const byline = bylineOf(item);
     const preview = firstLine(item.notes);
 
     return (
@@ -78,7 +77,6 @@ export default function ItemCard({ list, item, onEdit }: Props) {
                         <DoneSticker
                             icon={list.done_icon}
                             label={list.done_label}
-                            inline
                         />
                     )}
                     {byline && (

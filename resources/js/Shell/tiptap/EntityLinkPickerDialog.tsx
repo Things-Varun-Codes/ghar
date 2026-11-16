@@ -17,8 +17,7 @@ import {
     SheetTitle,
 } from '@/components/ui/sheet';
 import { useMediaQuery } from '@/hooks/use-media-query';
-import { entityIcon } from '@/Shell/linkables/entityIcon';
-import LinkableIcon from '@/Shell/linkables/LinkableIcon';
+import { EntityMark } from '@/Shell/linkables/LinkableIcon';
 
 // A literal on purpose: Corner owns this route, and the shell must build with Corner disabled.
 const LINKABLE_SEARCH_URL = '/api/linkable/search';
@@ -279,20 +278,11 @@ export default function EntityLinkPickerDialog({
                                         aria-hidden="true"
                                         className="shell-picker-icon"
                                     >
-                                        {row.icon ? (
-                                            <LinkableIcon
-                                                name={row.icon}
-                                                size={18}
-                                            />
-                                        ) : (
-                                            React.createElement(
-                                                entityIcon(row.type),
-                                                {
-                                                    size: 18,
-                                                    'aria-hidden': true,
-                                                },
-                                            )
-                                        )}
+                                        <EntityMark
+                                            type={row.type}
+                                            icon={row.icon}
+                                            size={18}
+                                        />
                                     </span>
                                 )}
                                 <span className="flex min-w-0 flex-col">
@@ -304,20 +294,11 @@ export default function EntityLinkPickerDialog({
                                             aria-hidden="true"
                                             className="mr-[3px] inline-flex align-middle"
                                         >
-                                            {row.icon ? (
-                                                <LinkableIcon
-                                                    name={row.icon}
-                                                    size={13}
-                                                />
-                                            ) : (
-                                                React.createElement(
-                                                    entityIcon(row.type),
-                                                    {
-                                                        size: 13,
-                                                        'aria-hidden': true,
-                                                    },
-                                                )
-                                            )}
+                                            <EntityMark
+                                                type={row.type}
+                                                icon={row.icon}
+                                                size={13}
+                                            />
                                         </span>
                                         {row.group ??
                                             row.type

@@ -9,6 +9,7 @@ import ItemThumb from '@/MiniApps/Corner/Components/ItemThumb';
 import ListMenu from '@/MiniApps/Corner/Components/ListMenu';
 import ListSettingsSheet from '@/MiniApps/Corner/Components/ListSettingsSheet';
 import CornerLayout from '@/MiniApps/Corner/Layouts/CornerLayout';
+import { thingsCount } from '@/MiniApps/Corner/lib/copy';
 import { ListIcon } from '@/MiniApps/Corner/lib/list-icons';
 import type { ListSettings } from '@/MiniApps/Corner/lib/presets';
 import { SUGGESTED_LISTS } from '@/MiniApps/Corner/lib/presets';
@@ -33,12 +34,15 @@ type Props = {
 
 const TITLES = 3;
 
+/* Doors whose list is fetched as soon as the shelf shows; the rest wait for a hover. */
+const PREFETCH_DOORS = 4;
+
 function liveLine(door: Door): string {
     if (door.count === 0) {
         return 'Nothing yet';
     }
 
-    const total = `${door.count} ${door.count === 1 ? 'thing' : 'things'}`;
+    const total = thingsCount(door.count);
 
     return door.done > 0
         ? `${total} · ${door.done} ${door.done_label.toLowerCase()}`
@@ -87,7 +91,6 @@ function DoorPeek({ door }: { door: Door }) {
                         <DoneSticker
                             icon={door.done_icon}
                             label={door.done_label}
-                            inline
                         />
                     )}
                 </li>
@@ -100,10 +103,12 @@ function CornerDoor({
     door,
     first,
     last,
+    prefetchOnMount,
 }: {
     door: Door;
     first: boolean;
     last: boolean;
+    prefetchOnMount: boolean;
 }) {
     const liveId = useId();
 
@@ -122,7 +127,7 @@ function CornerDoor({
                     />
                     <Link
                         href={show.url(door.slug)}
-                        prefetch="mount"
+                        prefetch={prefetchOnMount ? 'mount' : 'hover'}
                         aria-describedby={liveId}
                         className="shell-card-link"
                     >
@@ -253,6 +258,7 @@ export default function Landing({ lists, can }: Props) {
                                     key={door.id}
                                     door={door}
                                     first={i === 0}
+                                    prefetchOnMount={i < PREFETCH_DOORS}
                                     last={i === lists.length - 1}
                                 />
                             ))}

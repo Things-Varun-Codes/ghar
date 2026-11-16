@@ -3,6 +3,7 @@ import type { ReactNode } from 'react';
 
 import { cn } from '@/lib/utils';
 import { CORNER_ROOM } from '@/MiniApps/Corner/Layouts/CornerLayout';
+import type { CornerItem } from '@/MiniApps/Corner/lib/types';
 import EmptyState, { noMatchesTitle } from '@/Shell/Components/EmptyState';
 import Fab from '@/Shell/Components/Fab';
 import ListLoadMoreState from '@/Shell/Components/ListLoadMoreState';
@@ -13,17 +14,11 @@ import SegmentedTabs from '@/Shell/Components/SegmentedTabs';
 import { useCursorPagination } from '@/Shell/Hooks/useCursorPagination';
 import type { Paginated } from '@/types/paginated';
 
-type ItemConstraint = {
-    id: number;
-    added_by_user_id: number;
-    done_at: string | null;
-};
-
 type FilterMode = 'all' | 'active' | 'done';
 
-type ListPageProps<TItem extends ItemConstraint> = {
+type ListPageProps = {
     title: string;
-    paginator: Paginated<TItem>;
+    paginator: Paginated<CornerItem>;
     propName: string;
     /**
      * Server-authoritative {all,active,done} counts — drive the
@@ -36,12 +31,8 @@ type ListPageProps<TItem extends ItemConstraint> = {
     doneLabel: string;
     addCtaLabel: string;
     onOpenAddDialog: () => void;
-    renderItem: (item: TItem) => ReactNode;
-    emptyState?: {
-        all?: ReactNode;
-        active?: ReactNode;
-        done?: ReactNode;
-    };
+    renderItem: (item: CornerItem) => ReactNode;
+    emptyState: Record<FilterMode, ReactNode>;
     query?: string;
     searchPlaceholder?: string;
     sort?: string;
@@ -50,7 +41,7 @@ type ListPageProps<TItem extends ItemConstraint> = {
     actions?: ReactNode;
 };
 
-export default function ListPage<TItem extends ItemConstraint>({
+export default function ListPage({
     title,
     paginator,
     propName,
@@ -67,12 +58,8 @@ export default function ListPage<TItem extends ItemConstraint>({
     sort,
     sortItems,
     actions,
-}: ListPageProps<TItem>) {
-    // A list is named by the household, so its things are just "things": no plural to guess.
-    const noun = 'things';
+}: ListPageProps) {
     const searching = (query ?? '').trim() !== '';
-
-    const defaultEmpty = <EmptyState title={`Nothing in ${title} yet.`} />;
 
     // The reset key needs the counts too: toggle-done moves a row between tabs without changing
     // `all`.
@@ -84,7 +71,7 @@ export default function ListPage<TItem extends ItemConstraint>({
         navigating,
         loadError,
         retryLoadMore,
-    } = useCursorPagination<TItem>({
+    } = useCursorPagination<CornerItem>({
         initial: paginator,
         propName,
         resetKey: [
@@ -133,7 +120,7 @@ export default function ListPage<TItem extends ItemConstraint>({
                                 : 'matches'
                             : counts.all === 1
                               ? 'thing'
-                              : noun}
+                              : 'things'}
                     </span>
                 }
                 sort={sort}
@@ -171,12 +158,12 @@ export default function ListPage<TItem extends ItemConstraint>({
                     <div className="[grid-column:1_/_-1]">
                         {searching ? (
                             <EmptyState
-                                title={noMatchesTitle(noun, query!.trim())}
+                                title={noMatchesTitle('things', query!.trim())}
                                 query={query}
                                 onClearSearch={() => navigate({ q: undefined })}
                             />
                         ) : (
-                            (emptyState?.[filter] ?? defaultEmpty)
+                            emptyState[filter]
                         )}
                     </div>
                 ) : (

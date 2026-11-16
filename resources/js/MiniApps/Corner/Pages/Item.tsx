@@ -7,6 +7,7 @@ import ItemThumb from '@/MiniApps/Corner/Components/ItemThumb';
 import type { MentionedInRef } from '@/MiniApps/Corner/Components/MentionedInList';
 import { useItemActions } from '@/MiniApps/Corner/Hooks/useItemActions';
 import CornerLayout from '@/MiniApps/Corner/Layouts/CornerLayout';
+import { bylineOf } from '@/MiniApps/Corner/lib/copy';
 import {
     hasPlace,
     mapsHref,
@@ -60,9 +61,7 @@ export default function Item({ list, item, mentioned_in }: Props) {
         onDeleted: () => router.visit(listUrl),
     });
 
-    const byline = [item.author, item.site_name]
-        .filter((part, i, all) => part && all.indexOf(part) === i)
-        .join(' · ');
+    const byline = bylineOf(item);
 
     return (
         <CornerLayout>
@@ -76,15 +75,15 @@ export default function Item({ list, item, mentioned_in }: Props) {
                 doneIcon={list.done_icon}
                 doneLabel={list.done_label}
                 itemActions={itemActions}
-                hero={() => (
+                hero={
                     <ItemThumb
                         pictureUrl={item.picture_url}
                         icon={list.icon}
                         size="lg"
                         className="corner-detail-hero-media"
                     />
-                )}
-                body={() => (
+                }
+                body={
                     <>
                         {byline && (
                             <p className="corner-detail-lede">{byline}</p>
@@ -114,8 +113,8 @@ export default function Item({ list, item, mentioned_in }: Props) {
                             </div>
                         )}
                     </>
-                )}
-                externalCta={() => (
+                }
+                externalCta={
                     <>
                         {item.url && (
                             <ExternalCta
@@ -136,7 +135,7 @@ export default function Item({ list, item, mentioned_in }: Props) {
                             />
                         )}
                     </>
-                )}
+                }
             />
 
             {item.can.update && editOpen && (

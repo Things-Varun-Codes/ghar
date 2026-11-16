@@ -2,8 +2,7 @@ import React, { useState } from 'react';
 
 import { useRoomOn } from '@/hooks/use-room-on';
 import { internalHref, thumbnailSrc } from '@/MiniApps/History/lib/pillUrls';
-import { entityIcon } from '@/Shell/linkables/entityIcon';
-import LinkableIcon from '@/Shell/linkables/LinkableIcon';
+import { EntityMark } from '@/Shell/linkables/LinkableIcon';
 
 /* A linked thing as it is now (LinkedThings on the server), keyed "type:id". */
 export type LinkedThing = {
@@ -65,11 +64,7 @@ function CornerLinkRead({
     const mark = current?.icon ?? icon;
     const safeThumbnail =
         cornerOn && !thumbnailBroken ? thumbnailSrc(picture) : null;
-    const iconEl = mark ? (
-        <LinkableIcon name={mark} size={14} />
-    ) : (
-        React.createElement(entityIcon(type), { size: 14, 'aria-hidden': true })
-    );
+    const iconEl = <EntityMark type={type} icon={mark} size={14} />;
 
     const inner = (
         <>

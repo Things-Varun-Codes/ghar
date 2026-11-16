@@ -3,24 +3,27 @@ import type { router as inertiaRouter } from '@inertiajs/react';
 type Router = typeof inertiaRouter;
 
 /*
- * Back and forward restore a page from what was saved in browser history, without asking the
- * server. Once anything has been written in this tab (an item's picture changed, a note sent),
- * those saved pages may show what is no longer true, so a page reached by back or forward then
- * asks for its props again. Before any write, back stays instant.
- *
- * A write also drops Inertia's prefetch cache (app.tsx), for the same reason.
+ * What a write (anything but a GET) does to pages kept for later. Prefetched pages are dropped:
+ * they may show what is no longer true. Back and forward restore a page from what browser
+ * history saved, without asking the server, so a page last seen before a write asks for its
+ * props again when it is restored. One seen since stays instant.
  */
-export function installStaleHistoryReload(router: Router): void {
-    let written = false;
+export function installAfterWrite(router: Router): void {
+    let writes = 0;
+    // The write count when each page was last shown, by URL.
+    const seen = new Map<string, number>();
 
     router.on('finish', (event) => {
         if (event.detail.visit.method !== 'get') {
-            written = true;
+            writes++;
+            router.flushAll();
         }
     });
 
     router.on('navigate', (event) => {
-        if (written && event.detail.type === 'history') {
+        const { page, type } = event.detail;
+
+        if (type === 'history' && (seen.get(page.url) ?? -1) < writes) {
             // Not router.reload(), which always keeps component state: a list keeps its rows in
             // its own state, and only a remount takes the new ones.
             router.visit(window.location.href, {
@@ -28,6 +31,10 @@ export function installStaleHistoryReload(router: Router): void {
                 preserveScroll: true,
                 preserveState: false,
             });
+
+            return;
         }
+
+        seen.set(page.url, writes);
     });
 }
