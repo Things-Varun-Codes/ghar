@@ -10,6 +10,7 @@ import { index as citationsIndex } from '@/routes/apps/our-mailbox/citations';
 import { index as couponsIndex } from '@/routes/apps/our-mailbox/coupons';
 import { index as flowersIndex } from '@/routes/apps/our-mailbox/flowers';
 import { index as messagesIndex } from '@/routes/apps/our-mailbox/messages';
+import EmptyState from '@/Shell/Components/EmptyState';
 import Page from '@/Shell/Components/Page';
 
 type Counts = {
@@ -54,6 +55,7 @@ type MailboxPeeks = {
 };
 
 type Props = {
+    types?: string[];
     mailboxSummary?: MailboxSummaryShared | null;
     mailboxPeeks?: MailboxPeeks | null;
 };
@@ -260,97 +262,118 @@ function CouponStub({ coupon }: { coupon: CouponPeek | null }) {
     );
 }
 
-export default function Landing({ mailboxSummary, mailboxPeeks }: Props) {
+export default function Landing({
+    types = [],
+    mailboxSummary,
+    mailboxPeeks,
+}: Props) {
     const counts = mailboxSummary?.counts ?? EMPTY_COUNTS;
 
     return (
         <MailboxLayout>
             <Page title="Our Mailbox" documentTitle="Our Mailbox" backChevron>
+                {types.length === 0 && (
+                    <EmptyState
+                        title="Nothing is switched on in the Mailbox"
+                        body="An admin can turn on notes, flowers, coupons and citations."
+                    />
+                )}
                 <div className="mailbox-doors">
-                    <MailboxDoor
-                        title="Notes"
-                        href={messagesIndex.url()}
-                        prefetch={false}
-                        live={
-                            waiting(
-                                mailboxSummary?.unread_messages ?? 0,
-                                'unread',
-                            ) ??
-                            tally(
-                                counts.messages,
-                                'note',
-                                'notes',
-                                'None yet. Write one?',
-                            )
-                        }
-                        peek={<NoteScrap note={mailboxPeeks?.notes ?? null} />}
-                    />
-                    <MailboxDoor
-                        title="Flowers"
-                        href={flowersIndex.url()}
-                        prefetch={false}
-                        live={
-                            waiting(
-                                mailboxSummary?.unread_flowers ?? 0,
-                                'unseen',
-                            ) ??
-                            tally(
-                                counts.flowers,
-                                'bouquet received',
-                                'bouquets received',
-                                'No bouquets yet',
-                            )
-                        }
-                        peek={
-                            <BouquetGlimpse
-                                bouquet={mailboxPeeks?.flowers ?? null}
-                            />
-                        }
-                    />
-                    <MailboxDoor
-                        title="Citations"
-                        href={citationsIndex.url()}
-                        prefetch
-                        live={
-                            waiting(
-                                mailboxSummary?.citations_action_needed ?? 0,
-                                'to pay',
-                            ) ??
-                            tally(
-                                counts.citations,
-                                'citation received',
-                                'citations received',
-                                'No citations yet',
-                            )
-                        }
-                        peek={
-                            <CitationSlice
-                                citation={mailboxPeeks?.citations ?? null}
-                            />
-                        }
-                    />
-                    <MailboxDoor
-                        title="Coupons"
-                        href={couponsIndex.url()}
-                        prefetch
-                        live={
-                            waiting(
-                                mailboxSummary?.coupons_action_needed ?? 0,
-                                'to fulfil',
-                            ) ??
-                            tally(
-                                counts.coupons,
-                                'coupon received',
-                                'coupons received',
-                                'No coupons yet',
-                            )
-                        }
-                        peek={
-                            <CouponStub
-                                coupon={mailboxPeeks?.coupons ?? null}
-                            />
-                        }
-                    />
+                    {types.includes('messages') && (
+                        <MailboxDoor
+                            title="Notes"
+                            href={messagesIndex.url()}
+                            prefetch={false}
+                            live={
+                                waiting(
+                                    mailboxSummary?.unread_messages ?? 0,
+                                    'unread',
+                                ) ??
+                                tally(
+                                    counts.messages,
+                                    'note',
+                                    'notes',
+                                    'None yet. Write one?',
+                                )
+                            }
+                            peek={
+                                <NoteScrap note={mailboxPeeks?.notes ?? null} />
+                            }
+                        />
+                    )}
+                    {types.includes('flowers') && (
+                        <MailboxDoor
+                            title="Flowers"
+                            href={flowersIndex.url()}
+                            prefetch={false}
+                            live={
+                                waiting(
+                                    mailboxSummary?.unread_flowers ?? 0,
+                                    'unseen',
+                                ) ??
+                                tally(
+                                    counts.flowers,
+                                    'bouquet received',
+                                    'bouquets received',
+                                    'No bouquets yet',
+                                )
+                            }
+                            peek={
+                                <BouquetGlimpse
+                                    bouquet={mailboxPeeks?.flowers ?? null}
+                                />
+                            }
+                        />
+                    )}
+                    {types.includes('citations') && (
+                        <MailboxDoor
+                            title="Citations"
+                            href={citationsIndex.url()}
+                            prefetch
+                            live={
+                                waiting(
+                                    mailboxSummary?.citations_action_needed ??
+                                        0,
+                                    'to pay',
+                                ) ??
+                                tally(
+                                    counts.citations,
+                                    'citation received',
+                                    'citations received',
+                                    'No citations yet',
+                                )
+                            }
+                            peek={
+                                <CitationSlice
+                                    citation={mailboxPeeks?.citations ?? null}
+                                />
+                            }
+                        />
+                    )}
+                    {types.includes('coupons') && (
+                        <MailboxDoor
+                            title="Coupons"
+                            href={couponsIndex.url()}
+                            prefetch
+                            live={
+                                waiting(
+                                    mailboxSummary?.coupons_action_needed ?? 0,
+                                    'to fulfil',
+                                ) ??
+                                tally(
+                                    counts.coupons,
+                                    'coupon received',
+                                    'coupons received',
+                                    'No coupons yet',
+                                )
+                            }
+                            peek={
+                                <CouponStub
+                                    coupon={mailboxPeeks?.coupons ?? null}
+                                />
+                            }
+                        />
+                    )}
                 </div>
             </Page>
         </MailboxLayout>
