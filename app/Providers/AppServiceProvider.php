@@ -115,13 +115,6 @@ class AppServiceProvider extends ServiceProvider
             return Limit::perMinute(10)->by((string) ($request->user()?->id ?? $request->ip()));
         });
 
-        /**
-         * Tight because each call spends Cloudflare Workers AI quota.
-         */
-        RateLimiter::for('bouquet-generate', function (Request $request) {
-            return Limit::perMinute(3)->by((string) ($request->user()?->id ?? $request->ip()));
-        });
-
         RateLimiter::for('healthz', function (Request $request) {
             return Limit::perMinute(60)->by($request->ip());
         });
