@@ -372,4 +372,27 @@ class CornerListsMigrationTest extends TestCase
         $this->assertSame($first, DB::table('corner_items')->orderBy('legacy_type')->orderBy('legacy_id')
             ->get(['legacy_type', 'legacy_id', 'title', 'done_at', 'added_by_user_id'])->map(fn ($r) => (array) $r)->all());
     }
+
+    public function test_the_migrations_frozen_link_rules_match_linkkey_today(): void
+    {
+        $migration = require database_path('migrations/our-corner/2026_11_16_100000_replace_corner_tables_with_lists_and_items.php');
+        $call = fn (string $method, string $url): mixed => (fn () => static::{$method}($url))->bindTo(null, $migration::class)();
+
+        $urls = [
+            'http://example.com/a', 'https://example.com/a', 'https://www.Example.COM/A/', 'HTTPS://EXAMPLE.com',
+            'https://example.com/a///', 'https://example.com:443/a', 'http://example.com:80/a', 'http://example.com:8080/a',
+            'https://example.com/a?b=2&a=1', 'https://example.com/a?utm_source=x&id=7&fbclid=z', 'https://example.com/?si=1&gclid=2',
+            'https://example.com/a?x[]=1&x[]=2', 'https://example.com/a?UTM_Medium=m&q=a+b', 'https://example.com/a#frag',
+            'https://example.com/a?q=1#frag', 'https://youtu.be/dQw4w9WgXcQ?si=abc', 'https://www.youtube.com/watch?v=dQw4w9WgXcQ&utm_campaign=c',
+            'https://m.youtube.com/watch?v=dQw4w9WgXcQ&t=10', '  https://example.com/padded  ', 'https://user:pw@example.com/a',
+            'https://münchen.example/ü', 'https://[::1]/a', 'ftp://example.com/a', 'mailto:a@example.com', '//example.com/a',
+            'example.com/a', 'not a url', '', '   ', 'http://', 'https:///a', str_repeat('a', 300).'.com',
+            'https://'.str_repeat('w', 130).'.com/a',
+        ];
+
+        foreach ($urls as $url) {
+            $this->assertSame(LinkKey::for($url), $call('linkKey', $url), "key for [{$url}]");
+            $this->assertSame(LinkKey::siteOf($url), $call('siteOf', $url), "site for [{$url}]");
+        }
+    }
 }
