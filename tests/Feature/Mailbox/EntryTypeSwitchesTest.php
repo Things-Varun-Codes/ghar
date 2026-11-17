@@ -46,7 +46,7 @@ class EntryTypeSwitchesTest extends TestCase
         $this->actingAs($user)->get("/apps/our-mailbox/{$type}")->assertNotFound();
 
         $this->get('/apps/our-mailbox')->assertOk()->assertInertia(fn ($page) => $page
-            ->where('types', fn ($types) => ! collect($types)->contains($type) && count($types) === 3)
+            ->where('types', fn ($types) => ! collect($types)->contains('key', $type) && count($types) === 3)
         );
 
         foreach (array_diff(array_column(self::types(), 0), [$type]) as $other) {
@@ -57,7 +57,12 @@ class EntryTypeSwitchesTest extends TestCase
     public function test_every_type_is_on_when_the_room_is_turned_on(): void
     {
         $this->actingAs(User::factory()->create())->get('/apps/our-mailbox')->assertInertia(fn ($page) => $page
-            ->where('types', ['messages', 'flowers', 'citations', 'coupons']));
+            ->where('types', [
+                ['key' => 'messages', 'label' => 'Notes'],
+                ['key' => 'flowers', 'label' => 'Flowers'],
+                ['key' => 'citations', 'label' => 'Citations'],
+                ['key' => 'coupons', 'label' => 'Coupons'],
+            ]));
     }
 
     public function test_a_type_that_is_off_sends_no_push_and_keeps_its_rows(): void

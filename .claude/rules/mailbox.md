@@ -19,8 +19,10 @@ Our Corner keeps the household's shared lists.
   (`messages`), `flowers`, `citations` and `coupons` as options of the room through
   `Rooms::registerOption()` from `MailboxServiceProvider::boot()`; an option with no row is on.
   Routes sit behind `room:our-mailbox,{type}`, so an off type 404s and its writes (and so its push)
-  cannot happen; the landing gets a `types` prop and `MailboxSummary` / `MailboxPeeks` skip it. Rows
-  are kept. The old `/apps/our-mailbox/challans/{id?}` addresses 301 to `citations`, because
+  cannot happen; `MailboxSummary` / `MailboxPeeks` skip it. Rows are kept. `EntryTypes` holds
+  each type's label and the landing order, and sends the landing the types that are on as
+  `types` (`key`, `label`); `Pages/Landing.tsx` draws each door from its `DOORS` map (href, live
+  line, peek). A new type is one `EntryTypes` entry and one `DOORS` entry. The old `/apps/our-mailbox/challans/{id?}` addresses 301 to `citations`, because
   delivered push notifications and bookmarks hold them.
 
 - Messages, Flowers, Citations and Coupons all resolve through `App\Shell\Support\ListPage` (over
