@@ -49,7 +49,8 @@ yarn-error.log
 
 # Local agent tooling
 /.agents/
-/.claude/
+/.claude/*
+!/.claude/settings.json
 /skills-lock.json
 /.mcp.json
 /database/*.sqlite*
