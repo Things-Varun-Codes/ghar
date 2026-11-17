@@ -4,15 +4,16 @@ namespace App\MiniApps\Mailbox\Actions;
 
 use App\MiniApps\Mailbox\Http\Requests\IssueCouponRequest;
 use App\MiniApps\Mailbox\Models\Coupon;
+use App\MiniApps\Mailbox\Support\EntryTypes;
+use App\MiniApps\Mailbox\Support\MailboxPush;
 use App\Shell\Models\User;
-use App\Shell\Services\PushDispatcher;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 
 class IssueCoupon
 {
     public function __construct(
-        private readonly PushDispatcher $dispatcher,
+        private readonly MailboxPush $push,
     ) {}
 
     /** @return Collection<int, Coupon> */
@@ -29,12 +30,11 @@ class IssueCoupon
         $firstName = $issuer->firstName();
 
         foreach ($coupons as $coupon) {
-            $this->dispatcher->toUsers(
+            $this->push->toEntry(
                 [$coupon->loadMissing('recipient')->recipient],
-                'our-mailbox',
-                'our-mailbox:coupons',
+                EntryTypes::COUPONS,
+                $coupon->id,
                 "{$firstName} sent you a coupon",
-                "/apps/our-mailbox/coupons/{$coupon->id}",
             );
         }
 

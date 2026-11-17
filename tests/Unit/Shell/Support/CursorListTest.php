@@ -7,6 +7,7 @@ use App\MiniApps\Corner\Models\Item;
 use App\Shell\Models\User;
 use App\Shell\Support\CursorList;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\DB;
 use Tests\TestCase;
 
 class CursorListTest extends TestCase
@@ -119,5 +120,35 @@ class CursorListTest extends TestCase
         $this->assertSame(2, $result['counts']['all']);
         $this->assertSame(1, $result['counts']['active']);
         $this->assertSame(1, $result['counts']['done']);
+    }
+
+    public function test_status_counts_come_from_one_query_whatever_the_filter(): void
+    {
+        $user = User::factory()->create();
+        Item::factory()->count(2)->create(['list_id' => $this->list->id, 'added_by_user_id' => $user->id, 'done_at' => null]);
+        Item::factory()->create(['list_id' => $this->list->id, 'added_by_user_id' => $user->id, 'done_at' => now()]);
+
+        DB::enableQueryLog();
+        $result = CursorList::make(Item::query()->orderByDesc('added_at')->orderByDesc('id'))
+            ->status('done_at')
+            ->paginate('done', 50, $this->transform());
+        $queries = DB::getQueryLog();
+        DB::disableQueryLog();
+
+        // One for the counts, one for the page.
+        $this->assertCount(2, $queries);
+        $this->assertSame(['all' => 3, 'active' => 2, 'done' => 1], $result['counts']);
+        $this->assertCount(1, $result['data']);
+    }
+
+    public function test_without_a_status_column_everything_counts_as_active(): void
+    {
+        $user = User::factory()->create();
+        Item::factory()->create(['list_id' => $this->list->id, 'added_by_user_id' => $user->id, 'done_at' => now()]);
+        Item::factory()->create(['list_id' => $this->list->id, 'added_by_user_id' => $user->id, 'done_at' => null]);
+
+        $result = CursorList::make(Item::query()->orderByDesc('id'))->paginate('all', 50, $this->transform());
+
+        $this->assertSame(['all' => 2, 'active' => 2, 'done' => 0], $result['counts']);
     }
 }

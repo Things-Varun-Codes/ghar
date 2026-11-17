@@ -10,9 +10,8 @@ use App\MiniApps\Mailbox\Http\Requests\IssueCouponRequest;
 use App\MiniApps\Mailbox\Http\Resources\CouponResource;
 use App\MiniApps\Mailbox\Models\Coupon;
 use App\Shell\Services\Household;
-use App\Shell\Support\CursorList;
 use App\Shell\Support\FlashToast;
-use App\Shell\Support\ResolvesListSort;
+use App\Shell\Support\ListPage;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
@@ -21,40 +20,25 @@ use Inertia\Response;
 
 class CouponsController
 {
-    use ResolvesListSort;
-
-    /** @return array<string, array<int, array{0: string, 1: 'asc'|'desc'}>> */
-    protected function sortOptions(): array
-    {
-        return [
-            'recent' => [['issued_at', 'desc'], ['id', 'desc']],
-            'oldest' => [['issued_at', 'asc'], ['id', 'asc']],
-        ];
-    }
-
     public function index(Request $request, Household $household): Response
     {
         $viewer = $request->user();
 
         $tab = $request->query('tab') === 'issued' ? 'issued' : 'received';
-        $sideColumn = $tab === 'issued' ? 'issuer_id' : 'recipient_id';
 
-        $base = Coupon::query()
-            ->visibleTo($viewer)
-            ->where($sideColumn, $viewer->id)
-            ->with(['issuer', 'recipient']);
+        $base = Coupon::query()->with(['issuer', 'recipient']);
 
-        $sort = $this->resolveSort($request);
-        $this->applyListOrder($base, $sort);
-        $q = trim((string) $request->query('q')) ?: null;
+        if ($tab === 'issued') {
+            $base->issuedBy($viewer);
+        } else {
+            $base->receivedBy($viewer);
+        }
 
         return Inertia::render('MiniApps/Mailbox/Pages/Coupons/Index', [
-            'coupons' => CursorList::make($base)
-                ->searchable(['title', 'description'], $q)
-                ->paginate('all', 50, fn (Coupon $c) => app(CouponResource::class)($c)),
+            ...ListPage::make($request, $base, ListPage::chronological('issued_at'))
+                ->searchable(['title', 'description'])
+                ->props('coupons', 50, fn (Coupon $c) => app(CouponResource::class)($c)),
             'tab' => $tab,
-            'sort' => $sort,
-            'q' => $q,
             'members' => $household->optionsFor($viewer),
         ]);
     }

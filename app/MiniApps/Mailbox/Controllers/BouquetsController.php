@@ -12,9 +12,8 @@ use App\MiniApps\Mailbox\Http\Resources\BouquetResource;
 use App\MiniApps\Mailbox\Models\Bouquet;
 use App\MiniApps\Mailbox\Support\BouquetPromptBuilder;
 use App\Shell\Services\Household;
-use App\Shell\Support\CursorList;
 use App\Shell\Support\FlashToast;
-use App\Shell\Support\ResolvesListSort;
+use App\Shell\Support\ListPage;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -24,17 +23,6 @@ use Inertia\Response;
 
 class BouquetsController
 {
-    use ResolvesListSort;
-
-    /** @return array<string, array<int, array{0: string, 1: 'asc'|'desc'}>> */
-    protected function sortOptions(): array
-    {
-        return [
-            'recent' => [['posted_at', 'desc'], ['id', 'desc']],
-            'oldest' => [['posted_at', 'asc'], ['id', 'asc']],
-        ];
-    }
-
     public function index(Request $request, MarkBouquetsRead $markRead, Household $household): Response
     {
         $viewer = $request->user();
@@ -53,17 +41,11 @@ class BouquetsController
             $base->where('sender_id', $viewer->id);
         }
 
-        $sort = $this->resolveSort($request);
-        $this->applyListOrder($base, $sort);
-        $q = trim((string) $request->query('q')) ?: null;
-
         return Inertia::render('MiniApps/Mailbox/Pages/Flowers', [
-            'bouquets' => CursorList::make($base)
-                ->searchable(['note'], $q)
-                ->paginate('all', 50, fn (Bouquet $b) => app(BouquetResource::class)($b, $viewer)),
+            ...ListPage::make($request, $base, ListPage::chronological('posted_at'))
+                ->searchable(['note'])
+                ->props('bouquets', 50, fn (Bouquet $b) => app(BouquetResource::class)($b, $viewer)),
             'tab' => $tab,
-            'sort' => $sort,
-            'q' => $q,
             'members' => $household->optionsFor($viewer),
             'catalog' => config('mailbox-bouquets'),
         ]);
