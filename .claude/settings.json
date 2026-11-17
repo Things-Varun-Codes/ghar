@@ -32,7 +32,6 @@
             "Bash(npm ls:*)",
             "Bash(php artisan test:*)",
             "Bash(php artisan route:list:*)",
-            "Bash(ghar-test:*)",
             "Bash(./vendor/bin/pint --test:*)",
             "Bash(vendor/bin/pint --test:*)",
             "Bash(./vendor/bin/phpstan analyse:*)",
