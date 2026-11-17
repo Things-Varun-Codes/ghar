@@ -7,15 +7,21 @@
  *   --no-google  also asserts the location field is a plain, typeable input
  */
 
-import { spawn, spawnSync } from 'child_process';
-import * as net from 'net';
 import { chromium } from 'playwright';
 import {
     DEV_ACCOUNTS,
     DEV_INVITE_TOKEN,
     DEV_PASSWORD,
 } from './lib/dev-data.mjs';
-import { ensureSmokeDatabase, smokeDatabaseEnv } from './lib/smoke-database.mjs';
+import { ensureSmokeDatabase } from './lib/smoke-database.mjs';
+import {
+    SERVE_HOST,
+    isPortFree,
+    login,
+    runCommand as run,
+    smokeEnv as buildSmokeEnv,
+    startServe,
+} from './lib/smoke-server.mjs';
 
 const noGoogle = process.argv.includes('--no-google');
 console.log(
@@ -26,50 +32,31 @@ console.log(
     }`,
 );
 
-const SERVE_HOST = '127.0.0.1';
 const SERVE_PORT = 8765;
 const BASE_URL = `http://${SERVE_HOST}:${SERVE_PORT}`;
-const BOOT_TIMEOUT_MS = 30_000;
-const POLL_INTERVAL_MS = 200;
 
-const keyResult = spawnSync('php', ['artisan', 'key:generate', '--show'], {
-    encoding: 'utf8',
-    env: {
-        ...process.env,
-        APP_KEY: 'base64:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa=',
+const smokeEnv = buildSmokeEnv({
+    port: SERVE_PORT,
+    database: 'ghar_smoke',
+    mediaPrefix: 'smoke',
+    overrides: {
+        RESEND_API_KEY: 're_test_smoke',
+        // Shared store and a real queue: /healthz reads heartbeats written by
+        // separate scheduler and worker processes.
+        CACHE_STORE: 'database',
+        QUEUE_CONNECTION: 'database',
+        // Placeholders so webpush doesn't crash when the Notifications page renders.
+        VAPID_SUBJECT: 'mailto:smoke@example.test',
+        VAPID_PRIVATE_KEY: 'smoke-private-key-placeholder',
+        // --no-google: '' (rather than `undefined`) overrides any value in .env
+        // on disk, and renders the typed-location path.
+        ...(noGoogle ? { GOOGLE_MAPS_API_KEY: '' } : {}),
     },
 });
-const appKey =
-    keyResult.stdout.trim() ||
-    'base64:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa=';
 
-const smokeEnv = {
-    ...process.env,
-    APP_ENV: 'testing',
-    APP_KEY: appKey,
-    APP_DEBUG: 'true',
-    APP_URL: BASE_URL,
-    ...smokeDatabaseEnv('ghar_smoke'),
-    SESSION_DRIVER: 'file',
-    // Shared store and a real queue: /healthz reads heartbeats written by
-    // separate scheduler and worker processes.
-    CACHE_STORE: 'database',
-    QUEUE_CONNECTION: 'database',
-    MAIL_MAILER: 'array',
-    RESEND_API_KEY: 're_test_smoke',
-    // Seeded photos and bouquets live on the local disk: same-origin signed URLs,
-    // no bucket. The prefix keeps them apart from the developer's own files.
-    MEDIA_DISK: 'local',
-    MEDIA_PREFIX: 'smoke',
-    // Placeholders so webpush doesn't crash when the Notifications page renders.
-    VAPID_SUBJECT: 'mailto:smoke@example.test',
-    VAPID_PUBLIC_KEY:
-        'BNcRdreALRFXTkOOUHK1EtK2wtfuJYMdBETGGv8kXHfCvqJI9JGKbVx5mJTsMIXl5Lfq8vSNWxQJMOlLuOsYGE',
-    VAPID_PRIVATE_KEY: 'smoke-private-key-placeholder',
-    // --no-google: '' (rather than `undefined`) overrides any value in .env
-    // on disk, and renders the typed-location path.
-    ...(noGoogle ? { GOOGLE_MAPS_API_KEY: '' } : {}),
-};
+function runCommand(cmd, args, description) {
+    return run(smokeEnv, '  [smoke]', cmd, args, description);
+}
 
 // One scheduler tick, then a worker draining what it queued.
 function runHeartbeats() {
@@ -81,70 +68,7 @@ function runHeartbeats() {
     );
 }
 
-function runCommand(cmd, args, description) {
-    process.stdout.write(`  [smoke] ${description}...`);
-    const result = spawnSync(cmd, args, {
-        encoding: 'utf8',
-        env: smokeEnv,
-        timeout: 180_000,
-    });
-
-    if (result.status !== 0) {
-        console.error(
-            ` FAILED\n${result.stderr || result.stdout || '(no output)'}`,
-        );
-
-        throw new Error(`Command failed: ${cmd} ${args.join(' ')}`);
-    }
-
-    console.log(' OK');
-
-    return result.stdout;
-}
-
-function waitForPort(host, port, timeoutMs) {
-    return new Promise((resolve, reject) => {
-        const deadline = Date.now() + timeoutMs;
-        function probe() {
-            const socket = new net.Socket();
-            socket.setTimeout(200);
-            socket.on('connect', () => {
-                socket.destroy();
-                resolve();
-            });
-            socket.on('timeout', () => {
-                socket.destroy();
-
-                if (Date.now() > deadline) {
-                    reject(
-                        new Error(
-                            `Timed out waiting for ${host}:${port} after ${timeoutMs}ms`,
-                        ),
-                    );
-                } else {
-                    setTimeout(probe, POLL_INTERVAL_MS);
-                }
-            });
-            socket.on('error', () => {
-                socket.destroy();
-
-                if (Date.now() > deadline) {
-                    reject(
-                        new Error(
-                            `Timed out waiting for ${host}:${port} after ${timeoutMs}ms`,
-                        ),
-                    );
-                } else {
-                    setTimeout(probe, POLL_INTERVAL_MS);
-                }
-            });
-            socket.connect(port, host);
-        }
-        probe();
-    });
-}
-
-let serveProc = null;
+let server = null;
 let browser = null;
 
 async function cleanup() {
@@ -156,55 +80,7 @@ async function cleanup() {
         }
     }
 
-    if (serveProc) {
-        try {
-            // The whole process group, so PHP children don't hold the port.
-            if (serveProc.pid) {
-                try {
-                    process.kill(-serveProc.pid, 'SIGTERM');
-                } catch {
-                    serveProc.kill('SIGTERM');
-                }
-            }
-        } catch {
-            // Best-effort teardown: it may already be gone.
-        }
-    }
-}
-
-async function isPortFree(host, port) {
-    return new Promise((resolve) => {
-        const server = net.createServer();
-        server.once('error', () => resolve(false));
-        server.once('listening', () => {
-            server.close();
-            resolve(true);
-        });
-        server.listen(port, host);
-    });
-}
-
-// Reassigns the module-scope `serveProc`, so cleanup() follows a mid-run respawn.
-async function startServe() {
-    process.stdout.write('[smoke] starting artisan serve...');
-    serveProc = spawn(
-        'php',
-        ['artisan', 'serve', `--host=${SERVE_HOST}`, `--port=${SERVE_PORT}`],
-        {
-            env: smokeEnv,
-            // Not a pipe: nothing here reads the server's request log, and once an
-            // unread pipe fills, `artisan serve` blocks on its next log line and
-            // every later request times out.
-            stdio: 'ignore',
-            detached: true,
-        },
-    );
-    serveProc.on('error', (err) => {
-        console.error('\n[smoke] artisan serve error:', err.message);
-    });
-
-    await waitForPort(SERVE_HOST, SERVE_PORT, BOOT_TIMEOUT_MS);
-    console.log(' ready');
+    server?.stop();
 }
 
 async function main() {
@@ -295,7 +171,7 @@ echo json_encode([
     };
     console.log(`  [smoke] fixtures: admin=${fixtures.email}`);
 
-    await startServe();
+    server = await startServe(smokeEnv, '[smoke]', SERVE_PORT);
 
     browser = await chromium.launch({ headless: true });
 
@@ -498,31 +374,10 @@ echo json_encode([
     const authContext = await browser.newContext();
     const loginPage = await authContext.newPage();
 
-    const loginRes = await loginPage.goto(`${BASE_URL}/login`);
-
-    if (!loginRes || loginRes.status() !== 200) {
-        console.error(
-            `[smoke] ERROR: /login returned ${loginRes?.status()} instead of 200`,
-        );
-        await cleanup();
-        process.exit(1);
-    }
-
-    await loginPage.fill('input[name="email"]', fixtures.email);
-    await loginPage.fill('input[name="password"]', fixtures.password);
-    await loginPage.click('button[type="submit"]');
-
-    // Login is an XHR, not a document load. If the page has already gone idle,
-    // waitForLoadState('networkidle') returns at once and closing the page
-    // cancels the login, so every authenticated route then renders /login.
     try {
-        await loginPage.waitForURL((url) => url.pathname !== '/login', {
-            timeout: 30_000,
-        });
-    } catch {
-        console.error(
-            `[smoke] ERROR: still on /login 30s after signing in as ${fixtures.email}`,
-        );
+        await login(loginPage, BASE_URL, fixtures.email, fixtures.password);
+    } catch (error) {
+        console.error(`[smoke] ERROR: ${error.message}`);
         await cleanup();
         process.exit(1);
     }

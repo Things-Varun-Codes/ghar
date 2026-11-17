@@ -10,21 +10,20 @@
  * Usage: npm run smoke-loadmore
  */
 
-import { spawn, spawnSync } from 'node:child_process';
-import * as net from 'node:net';
-
 import { chromium } from 'playwright';
 import { DEV_ACCOUNTS, DEV_PASSWORD } from './lib/dev-data.mjs';
+import { ensureSmokeDatabase } from './lib/smoke-database.mjs';
 import {
-    ensureSmokeDatabase,
-    smokeDatabaseEnv,
-} from './lib/smoke-database.mjs';
+    SERVE_HOST,
+    isPortFree,
+    login,
+    runCommand as run,
+    smokeEnv as buildSmokeEnv,
+    startServe,
+} from './lib/smoke-server.mjs';
 
-const SERVE_HOST = '127.0.0.1';
 const SERVE_PORT = 8877;
 const BASE_URL = `http://${SERVE_HOST}:${SERVE_PORT}`;
-const BOOT_TIMEOUT_MS = 30_000;
-const POLL_INTERVAL_MS = 200;
 
 const PAGE_SIZE = 50;
 
@@ -36,37 +35,17 @@ const RETRY_BUTTON_NAME = 'Try again';
 // Noise this harness's own fault injection causes. Suppressed only while a fault is armed.
 const CONSOLE_ALLOW_PATTERNS = [/net::ERR_/i, /Failed to load resource/i];
 
-const keyResult = spawnSync('php', ['artisan', 'key:generate', '--show'], {
-    encoding: 'utf8',
-    env: {
-        ...process.env,
-        APP_KEY: 'base64:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa=',
+const smokeEnv = buildSmokeEnv({
+    port: SERVE_PORT,
+    database: 'ghar_smoke_loadmore',
+    mediaPrefix: 'smoke-loadmore',
+    overrides: {
+        CACHE_STORE: 'array',
+        RESEND_API_KEY: 're_test_loadmore_smoke',
+        VAPID_SUBJECT: 'mailto:loadmore-smoke@example.test',
+        VAPID_PRIVATE_KEY: 'loadmore-smoke-private-key-placeholder',
     },
 });
-const appKey =
-    keyResult.stdout.trim() ||
-    'base64:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa=';
-
-const smokeEnv = {
-    ...process.env,
-    APP_ENV: 'testing',
-    APP_KEY: appKey,
-    APP_DEBUG: 'true',
-    APP_URL: BASE_URL,
-    ...smokeDatabaseEnv('ghar_smoke_loadmore'),
-    SESSION_DRIVER: 'file',
-    CACHE_STORE: 'array',
-    MAIL_MAILER: 'array',
-    RESEND_API_KEY: 're_test_loadmore_smoke',
-    // The seeder draws photos onto the local disk; the prefix keeps them
-    // apart from the developer's own files.
-    MEDIA_DISK: 'local',
-    MEDIA_PREFIX: 'smoke-loadmore',
-    VAPID_SUBJECT: 'mailto:loadmore-smoke@example.test',
-    VAPID_PUBLIC_KEY:
-        'BNcRdreALRFXTkOOUHK1EtK2wtfuJYMdBETGGv8kXHfCvqJI9JGKbVx5mJTsMIXl5Lfq8vSNWxQJMOlLuOsYGE',
-    VAPID_PRIVATE_KEY: 'loadmore-smoke-private-key-placeholder',
-};
 
 const results = [];
 
@@ -81,86 +60,10 @@ function fail(name, err) {
 }
 
 function runCommand(cmd, args, description) {
-    process.stdout.write(`[loadmore-smoke] ${description}...`);
-
-    const result = spawnSync(cmd, args, {
-        encoding: 'utf8',
-        env: smokeEnv,
-        timeout: 180_000,
-    });
-
-    if (result.status !== 0) {
-        console.error(
-            ` FAILED\n${result.stderr || result.stdout || '(no output)'}`,
-        );
-
-        throw new Error(`Command failed: ${cmd} ${args.join(' ')}`);
-    }
-
-    console.log(' OK');
-
-    return result.stdout;
+    return run(smokeEnv, '[loadmore-smoke]', cmd, args, description);
 }
 
-function waitForPort(host, port, timeoutMs) {
-    return new Promise((resolve, reject) => {
-        const deadline = Date.now() + timeoutMs;
-
-        function probe() {
-            const socket = new net.Socket();
-
-            socket.setTimeout(200);
-            socket.on('connect', () => {
-                socket.destroy();
-                resolve();
-            });
-            socket.on('timeout', () => {
-                socket.destroy();
-
-                if (Date.now() > deadline) {
-                    reject(
-                        new Error(
-                            `Timed out waiting for ${host}:${port} after ${timeoutMs}ms`,
-                        ),
-                    );
-                } else {
-                    setTimeout(probe, POLL_INTERVAL_MS);
-                }
-            });
-            socket.on('error', () => {
-                socket.destroy();
-
-                if (Date.now() > deadline) {
-                    reject(
-                        new Error(
-                            `Timed out waiting for ${host}:${port} after ${timeoutMs}ms`,
-                        ),
-                    );
-                } else {
-                    setTimeout(probe, POLL_INTERVAL_MS);
-                }
-            });
-            socket.connect(port, host);
-        }
-
-        probe();
-    });
-}
-
-async function isPortFree(host, port) {
-    return new Promise((resolve) => {
-        const server = net.createServer();
-
-        server.once('error', () => resolve(false));
-        server.once('listening', () => {
-            server.close();
-            resolve(true);
-        });
-        server.listen(port, host);
-    });
-}
-
-let serveProc = null;
+let server = null;
 let browser = null;
 
 async function cleanup() {
@@ -172,39 +75,7 @@ async function cleanup() {
         }
     }
 
-    if (serveProc && serveProc.pid) {
-        try {
-            process.kill(-serveProc.pid, 'SIGTERM');
-        } catch {
-            try {
-                serveProc.kill('SIGTERM');
-            } catch {
-                // Best-effort teardown: it may already be gone.
-            }
-        }
-    }
-}
-
-async function startServe() {
-    process.stdout.write('[loadmore-smoke] starting artisan serve...');
-    serveProc = spawn(
-        'php',
-        ['artisan', 'serve', `--host=${SERVE_HOST}`, `--port=${SERVE_PORT}`],
-        {
-            env: smokeEnv,
-            // Not a pipe: nothing here reads the server's request log, and once an
-            // unread pipe fills, `artisan serve` blocks on its next log line and
-            // every later request times out.
-            stdio: 'ignore',
-            detached: true,
-        },
-    );
-    serveProc.on('error', (err) => {
-        console.error('\n[loadmore-smoke] artisan serve error:', err.message);
-    });
-
-    await waitForPort(SERVE_HOST, SERVE_PORT, BOOT_TIMEOUT_MS);
-    console.log(' ready');
+    server?.stop();
 }
 
 // Chromium's load-failure console messages don't include the URL, so attribution uses
@@ -380,7 +251,7 @@ async function main() {
         'migrate:fresh --seed',
     );
 
-    await startServe();
+    server = await startServe(smokeEnv, '[loadmore-smoke]', SERVE_PORT);
 
     browser = await chromium.launch({ headless: true });
     const context = await browser.newContext();
@@ -389,21 +260,7 @@ async function main() {
     attachConsolePolicy(page);
 
     try {
-        const loginRes = await page.goto(`${BASE_URL}/login`);
-
-        if (!loginRes || loginRes.status() !== 200) {
-            throw new Error(
-                `/login returned ${loginRes?.status()} instead of 200`,
-            );
-        }
-
-        await page.fill('input[name="email"]', DEV_ACCOUNTS.admin);
-        await page.fill('input[name="password"]', DEV_PASSWORD);
-        await page.click('button[type="submit"]');
-        // Login is an XHR: 'networkidle' can already be true and return before it lands.
-        await page.waitForURL((url) => url.pathname !== '/login', {
-            timeout: 30_000,
-        });
+        await login(page, BASE_URL, DEV_ACCOUNTS.admin, DEV_PASSWORD);
         pass('login');
 
         await page.goto(`${BASE_URL}/apps/our-corner/songs`, {
