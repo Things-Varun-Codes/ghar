@@ -255,17 +255,17 @@ function tag() {
     }
 
     // The commit that added the section, not the tip of main: anything merged after the
-    // release pull request belongs to the next version.
+    // release pull request belongs to the next version. The newest such commit: an older
+    // one may have carried the same heading as a draft that was later removed.
     const commit = git(
         'log',
         'origin/main',
+        '-1',
         '--format=%H',
         `-S## [${version}]`,
         '--',
         'CHANGELOG.md',
-    )
-        .split('\n')
-        .at(-1);
+    );
 
     if (!commit) {
         throw new Error(
