@@ -1,0 +1,6 @@
+# Read by ripgrep-based search tools (editors, coding agents). These files are
+# generated and large; a search that needs them can pass --no-ignore.
+composer.lock
+package-lock.json
+resources/js/Shell/linkables/lucide-paths.json
+resources/js/Shell/linkables/lucide-index.json

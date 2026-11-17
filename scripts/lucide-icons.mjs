@@ -36,6 +36,25 @@ if (installed !== version) {
     process.exit(1);
 }
 
+// JSON with one entry of each top-level collection per line. On a single line, any text search
+// that matched one icon returned the whole half-megabyte file.
+function perLine(data) {
+    const body = Object.entries(data).map(([key, value]) => {
+        if (value === null || typeof value !== 'object') {
+            return `${JSON.stringify(key)}:${JSON.stringify(value)}`;
+        }
+
+        const entries = Array.isArray(value)
+            ? value.map((item) => JSON.stringify(item))
+            : Object.entries(value).map(([name, item]) => `${JSON.stringify(name)}:${JSON.stringify(item)}`);
+        const [open, close] = Array.isArray(value) ? '[]' : '{}';
+
+        return `${JSON.stringify(key)}:${open}\n${entries.join(',\n')}\n${close}`;
+    });
+
+    return `{\n${body.join(',\n')}\n}\n`;
+}
+
 const { default: imports } = await import('lucide-react/dynamicIconImports');
 const names = Object.keys(imports).sort();
 
@@ -105,8 +124,8 @@ try {
         .sort((a, b) => a.title.localeCompare(b.title));
 
     const linkables = path.join(root, 'resources/js/Shell/linkables');
-    writeFileSync(path.join(linkables, 'lucide-paths.json'), JSON.stringify({ version, paths, aliases }) + '\n');
-    writeFileSync(path.join(linkables, 'lucide-index.json'), JSON.stringify({ version, categories, tags }) + '\n');
+    writeFileSync(path.join(linkables, 'lucide-paths.json'), perLine({ version, paths, aliases }));
+    writeFileSync(path.join(linkables, 'lucide-index.json'), perLine({ version, categories, tags }));
     writeFileSync(
         path.join(root, 'app/MiniApps/Corner/Support/icon-names.json'),
         JSON.stringify(names, null, 4) + '\n',

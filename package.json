@@ -13,6 +13,8 @@
         "dev": "vite",
         "dev-reset": "bash scripts/dev-reset.sh",
         "dev-setup": "bash scripts/dev-setup.sh",
+        "dev-sync": "bash scripts/dev-sync.sh",
+        "dev-up": "bash scripts/dev-sync.sh --serve",
         "format": "prettier --write resources/",
         "format:check": "prettier --check resources/",
         "lint": "eslint . --fix",

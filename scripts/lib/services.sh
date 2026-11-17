@@ -1,0 +1,71 @@
+# Sourced by the dev scripts. `ensure_services` leaves Postgres and Mailpit
+# running and healthy, starting Docker first when it can.
+
+ensure_docker() {
+  command -v docker >/dev/null || {
+    echo "error: no Postgres is answering and Docker is not installed. Install Docker, or run Postgres 17 on 127.0.0.1:5432 with user and password \`ghar\` (allowed to create databases)." >&2
+    return 1
+  }
+  docker info >/dev/null 2>&1 && return 0
+
+  if [ "$(uname)" = "Darwin" ]; then
+    open -ga OrbStack 2>/dev/null || open -ga Docker 2>/dev/null || true
+    printf '    waiting for Docker to start'
+    for _ in $(seq 1 45); do
+      if docker info >/dev/null 2>&1; then printf '\n'; return 0; fi
+      printf '.'
+      sleep 2
+    done
+    printf '\n'
+  fi
+
+  echo "error: Docker is not running. Start it and re-run." >&2
+  return 1
+}
+
+# True when the Postgres that .env points at answers. A machine without Docker
+# (a dev container, a VPS) can run its own Postgres 17 with the `ghar` user.
+postgres_answers() {
+  local host port
+  host="$(sed -n 's/^DB_HOST=//p' .env 2>/dev/null | tail -n 1)"
+  port="$(sed -n 's/^DB_PORT=//p' .env 2>/dev/null | tail -n 1)"
+  GHAR_PG_DSN="pgsql:host=${host:-127.0.0.1};port=${port:-5432};dbname=postgres" php -r '
+    try { new PDO(getenv("GHAR_PG_DSN"), "ghar", "ghar", [PDO::ATTR_TIMEOUT => 2]); } catch (PDOException) { exit(1); }
+  ' 2>/dev/null
+}
+
+ensure_services() {
+  if ! docker info >/dev/null 2>&1 && postgres_answers; then
+    echo "    using the Postgres that is already running (no Docker here, so no Mailpit)"
+    return 0
+  fi
+
+  ensure_docker || return 1
+  # One Postgres for the machine: a worktree uses the main checkout's, since a
+  # second Compose project could not bind the same port. `--wait` returns once
+  # Postgres passes its healthcheck, so nothing after this connects too early.
+  local dir
+  dir="$(main_checkout)"
+  (cd "${dir:-.}" && docker compose -f docker-compose.override.yml up -d --wait postgres mailpit) || {
+    echo "error: could not start Postgres and Mailpit. If a port is taken, set GHAR_DB_PORT, GHAR_MAILPIT_SMTP_PORT or GHAR_MAILPIT_UI_PORT and re-run." >&2
+    return 1
+  }
+}
+
+# The main checkout when this one is a linked worktree, empty otherwise.
+main_checkout() {
+  local common
+  common="$(git rev-parse --path-format=absolute --git-common-dir 2>/dev/null)" || return 0
+  [ "$common" = "$(git rev-parse --path-format=absolute --git-dir)" ] || dirname "$common"
+}
+
+# Hooks live in the shared .git, so one install covers every worktree.
+install_hooks() {
+  git rev-parse --git-dir >/dev/null 2>&1 || return 0
+  npx lefthook install >/dev/null
+}
+
+# lock_changed <lockfile> <stamp>: true when the lockfile differs from the one
+# last installed. `record_lock` writes the stamp after an install.
+lock_changed() { [ ! -f "$2" ] || [ "$(shasum < "$1")" != "$(cat "$2")" ]; }
+record_lock() { mkdir -p "$(dirname "$2")" && shasum < "$1" > "$2"; }

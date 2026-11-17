@@ -1,14 +1,12 @@
 #!/usr/bin/env bash
 # The whole set CI requires before merge, run locally in one go: `npm run verify`.
-# Stops at the first failure and prints how long each step took. Needs the dev
+# Stops at the first failure and prints how long each step took. Starts the dev
 # Postgres; the smoke steps use fixed ports, so one run at a time per machine.
 set -euo pipefail
 cd "$(dirname "$0")/.."
 
-# A host may provide a `ghar-test` wrapper that points PHPUnit at a database of
-# this checkout's own, so parallel worktrees don't share `ghar_test`.
-phpunit="php artisan test"
-command -v ghar-test >/dev/null 2>&1 && phpunit="ghar-test"
+source scripts/lib/services.sh
+ensure_services
 
 steps=(
     "./scripts/check-boundaries.sh"
@@ -29,7 +27,7 @@ steps=(
     "node scripts/check-smoke-routes.mjs"
     "npm run smoke"
     "node scripts/loadmore-smoke.mjs"
-    "$phpunit"
+    "php artisan test"
 )
 
 total_start=$SECONDS

@@ -36,6 +36,8 @@ extend `database/seeders/DevDataSeeder.php` and this table.**
 ```sh
 npm run dev-setup     # fresh clone to seeded environment (safe to re-run; rebuilds the database)
 npm run dev-reset     # re-seed only: every row back to the known state
+npm run dev-sync      # after a pull or branch switch: services, dependencies, routes, migrations
+npm run dev-up        # dev-sync, then composer dev
 npm run smoke-mcp     # build + serve the seeded data on 127.0.0.1:8000, prints the accounts
 composer dev          # or: server + queue + logs + Vite, also on 127.0.0.1:8000
 ```
@@ -52,6 +54,16 @@ Password for every account: `ghar-local-dev`. Mail lands in Mailpit at `http://1
 Every state the seed covers, with the ids to use, is in `.claude/rules/dev-data.md`.
 
 `npm run smoke` and `npm run smoke-loadmore` seed the same household into their own databases.
+
+**Start a session with `npm run dev-sync`.** It starts Docker, Postgres and Mailpit if they are
+down, installs dependencies when a lockfile changed, installs the git hooks, regenerates Wayfinder
+and migrates. If a migration that already ran was edited, it rebuilds the database from the seed.
+
+**In a new git worktree, run `bash scripts/worktree-setup.sh` first** (and
+`bash scripts/worktree-teardown.sh` before removing it). It copies `.env` from the main checkout,
+installs dependencies and builds. A worktree shares the main checkout's Postgres and dev database;
+PHPUnit gets its own database there (`tests/bootstrap.php`), so plain `php artisan test` is safe in
+parallel worktrees. The smoke scripts use fixed ports: one run at a time per machine.
 
 ### Constraints
 
@@ -96,8 +108,17 @@ Every state the seed covers, with the ids to use, is in `.claude/rules/dev-data.
   in the same pull request (format and wording: `.changes/README.md`). The pull request title is a
   Conventional Commits title, and the "Change file" check fails a `feat:` or `fix:` without a file.
   Edit an unreleased file when your change touches what it describes. Never edit `CHANGELOG.md`.
+- **Branch from a fresh `origin/main`,** never from another open branch: `git fetch origin main`
+  then `git switch -c <type>/<name> origin/main`.
+- **The shell is zsh: quote every glob** (`grep --include='*.php'`, `ls 'app/Foo/'*.php`). An
+  unquoted pattern that matches nothing fails the whole command with `no matches found`.
+- **When tests are red, rerun with `--stop-on-failure` or a `--filter`.** Each failed page test
+  prints the whole exception trace, so a broad red run is megabytes of output.
+- **PHPStan needs `--memory-limit=1G`,** on one file as much as on the repo.
 - **Don't read the lockfiles whole.** `composer.lock` (~480 KB) and `package-lock.json` (~330 KB)
   are most of a context window: use `composer show <package>` and `npm ls <package>`.
+- **`.ignore` keeps the lockfiles and the two lucide data files out of ripgrep searches;** pass
+  `--no-ignore` when you do need them.
 - **Search the big stylesheets instead of reading them.** `app.css`, `themes/history.css` and
   `themes/mailbox.css` are 45–60 KB each; grep for the class or token you need.
 
@@ -136,8 +157,9 @@ Five tiers; none replaces another. Start with [How to test locally](#how-to-test
 **The loop.** Locally, run the tests for what you touched: `php artisan test --filter=…` or one
 test directory, and `npx vitest run <path>`. Then push and wait for CI with
 `gh pr checks <n> --watch` (about two minutes). The pre-push hook is a quick gate, under a minute:
-a clean tree, the `scripts/` checks, formatting of the files being pushed, and lint and types across
-the repo. It runs no tests. `.github/workflows/ci.yml` runs the full set on every pull request and
+a clean tree, the `scripts/` checks, formatting of the files being pushed, and PHPStan, lint and
+types across the repo. It runs no tests. If a push goes through without it, the hooks are missing:
+`npm run dev-sync` installs them. `.github/workflows/ci.yml` runs the full set on every pull request and
 `main` requires it to pass: the `scripts/` checks, both dependency audits, formatting, types, lint,
 Vitest, the ESLint rule tests, Pint, PHPStan, the build, PHPUnit, both headless smokes and the
 production image. `npm run verify` runs that set (all but the image) locally in one command, several

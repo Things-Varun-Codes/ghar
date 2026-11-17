@@ -21,6 +21,11 @@ If `.env` already exists, `dev-setup` shows what differs from the local values a
 (`npm run dev-setup -- --yes` skips the question). If a port is taken, set `GHAR_DB_PORT`,
 `GHAR_MAILPIT_SMTP_PORT` or `GHAR_MAILPIT_UI_PORT`.
 
+After a pull or a branch switch, `npm run dev-sync` brings the checkout up to date: it starts the
+services, installs dependencies if a lockfile changed, and runs new migrations. `npm run dev-up`
+does the same and then starts `composer dev`. In a git worktree, run
+`bash scripts/worktree-setup.sh` once instead of `dev-setup`.
+
 ## Local test users
 
 `npm run dev-setup` seeds one household with data in every state, and `npm run dev-reset` puts it
@@ -51,8 +56,8 @@ multi-step form. Add every new page to `scripts/smoke.mjs`; a check fails if a r
 
 `npm run dev-setup` installs [lefthook](https://lefthook.dev). `pre-commit` lints the staged files;
 `pre-push` is a quick gate, usually well under a minute: a clean working tree, then in parallel the
-repository checks in `scripts/`, formatting of the files being pushed, and lint and types across the
-repo. Don't skip it with `--no-verify`. To run everything CI runs before you open a pull request,
+repository checks in `scripts/`, formatting of the files being pushed, and static analysis, lint and
+types across the repo. Don't skip it with `--no-verify`. To run everything CI runs before you open a pull request,
 use `npm run verify` (several minutes; it stops at the first failure).
 
 GitHub Actions runs the full set on every pull request: the repository checks, dependency audits,

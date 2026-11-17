@@ -1,4 +1,4 @@
-# Local checks. `npm run dev-setup` installs these hooks. Pre-push is a fast
+# Local checks. `npm run dev-setup` and `npm run dev-sync` install these hooks. Pre-push is a fast
 # gate; the full set (PHPUnit, static analysis, the build, both smoke runs, the
 # audits) runs in .github/workflows/ci.yml on every pull request and is required
 # before merge. `npm run verify` runs that full set locally.
@@ -23,8 +23,8 @@ pre-commit:
 # Runs on `git push` against any branch, and must stay quick: git opens the
 # connection before the hook runs, and GitHub drops it if the hook takes minutes.
 # The clean-tree check runs first, then the rest in parallel. Formatting covers
-# only the files being pushed; eslint and tsc cover the whole repo through their
-# caches in node_modules/.cache (CI runs both without a cache).
+# only the files being pushed; PHPStan, eslint and tsc cover the whole repo
+# through their caches (CI runs them without one).
 pre-push:
   piped: true
   jobs:
@@ -61,6 +61,9 @@ pre-push:
           - name: prettier
             glob: '*.{ts,tsx,js,jsx,css,md,json}'
             run: npx prettier --check {push_files}
+          - name: phpstan
+            # About a second from its result cache, under ten without one.
+            run: ./vendor/bin/phpstan analyse --no-progress --memory-limit=1G
           - name: eslint
             run: npx eslint . --cache --cache-strategy content --cache-location node_modules/.cache/eslint/
           - name: types

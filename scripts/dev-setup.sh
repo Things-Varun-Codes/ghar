@@ -24,6 +24,8 @@ for arg in "$@"; do
   esac
 done
 
+source scripts/lib/services.sh
+
 step() { printf '\n==> %s\n' "$1"; }
 die() { printf '\nerror: %s\n' "$1" >&2; exit 1; }
 
@@ -43,9 +45,14 @@ command -v node >/dev/null || die "Node is not installed. Ghar needs Node 22 or 
 [ "$(node -p 'process.versions.node.split(".")[0]')" -ge 22 ] \
   || die "Node $(node -v) is too old. Ghar needs Node 22 or newer."
 command -v npm >/dev/null || die "npm is not installed."
-command -v docker >/dev/null || die "Docker is not installed. It runs the local Postgres and Mailpit."
-docker compose version >/dev/null 2>&1 || die "Docker Compose v2 is not installed."
-docker info >/dev/null 2>&1 || die "Docker is installed but not running. Start it and re-run."
+# Docker runs the local Postgres and Mailpit. Without it, a Postgres that is
+# already answering on 127.0.0.1 will do.
+if command -v docker >/dev/null; then
+  docker compose version >/dev/null 2>&1 || die "Docker Compose v2 is not installed."
+  ensure_docker || exit 1
+else
+  postgres_answers || { ensure_docker; exit 1; }
+fi
 
 echo "    all present"
 
@@ -136,21 +143,20 @@ done
 
 # ─── Postgres and Mailpit ───────────────────────────────────────────────
 step "Starting Postgres and Mailpit"
-docker compose -f docker-compose.override.yml up -d --wait postgres mailpit \
-  || die "Could not start the containers. If a port is taken, set GHAR_DB_PORT, GHAR_MAILPIT_SMTP_PORT or GHAR_MAILPIT_UI_PORT and re-run."
+ensure_services || exit 1
 
 # ─── Dependencies ───────────────────────────────────────────────────────
 step "Installing PHP dependencies"
 composer install --no-interaction --no-progress
+record_lock composer.lock vendor/.ghar-lock
 
 step "Installing JS dependencies"
 npm ci --no-audit --no-fund
+record_lock package-lock.json node_modules/.cache/ghar-lock
 
 # .npmrc sets ignore-scripts, so neither of these runs during `npm ci`.
-if [ -d .git ]; then
-  step "Installing git hooks"
-  npx lefthook install
-fi
+step "Installing git hooks"
+install_hooks
 
 step "Installing Playwright Chromium"
 npx playwright install chromium
@@ -177,9 +183,14 @@ fi
 step "Generating Wayfinder routes"
 php artisan wayfinder:generate --with-form --quiet
 
+# PHPUnit renders pages through the built manifest.
+step "Building the frontend"
+npm run build
+
 
 step "Seeding the sample household"
 php artisan migrate:fresh --seed --force
+bash scripts/lib/migration-stamp.sh write
 
 node --input-type=module -e "
 import { printDevCredentials } from './scripts/lib/dev-data.mjs';
