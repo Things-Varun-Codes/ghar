@@ -22,12 +22,27 @@ registry props, the manifest shortcuts, Home's summaries and previews, and `Push
 nothing for it; its data stays. A provider's `boot()` runs either way, so a resolver or command it
 registers must cope with its room being off (summaries and previews are only asked for rooms that
 are on). The admin page lists rooms from the registry, so a new room needs no edit there.
-Everything else is a hand edit:
+A room can offer options of its own (Our Mailbox's entry types) with `Rooms::registerOption()` in
+its provider's `boot()`. Everything else is a hand edit:
 
 1. `config/miniapps.php` entry — include `component_prefix` or `AppLayout`'s chrome-hide breaks,
    and `nav_label` for the phone bottom bar. Ship `resources/js/MiniApps/{App}/nav-icon.tsx` whose
    default export is the room's lucide icon (`export { Map as default } from 'lucide-react';`); the
    shell finds it by glob, and a room without one shows a generic grid icon.
+
+    ```php
+    [
+        'name' => 'Our Recipes',
+        'nav_label' => 'Recipes',
+        'slug' => 'our-recipes',
+        'route' => '/apps/our-recipes',
+        'description' => 'Recipes, including the ones nobody wrote down.',
+        'provider' => RecipesServiceProvider::class,
+        'admin_only' => false,
+        'component_prefix' => 'MiniApps/Recipes/',
+    ],
+    ```
+
 2. `provider` in that entry; registry order is boot order.
 3. Console commands and scheduled tasks go in the provider's `boot()` (`$this->commands([...])`,
    `callAfterResolving(Schedule::class, …)`), never `bootstrap/app.php` or `routes/console.php`.
