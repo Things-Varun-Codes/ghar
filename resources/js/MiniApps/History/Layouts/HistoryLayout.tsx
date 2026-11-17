@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react';
 
 import { AppAttrsProvider } from '@/hooks/use-app-attrs';
+import { dashboard } from '@/routes';
 import { calendar, gallery, timeline } from '@/routes/apps/our-history';
 import Page from '@/Shell/Components/Page';
 import SegmentedTabs from '@/Shell/Components/SegmentedTabs';
@@ -15,6 +16,9 @@ const HISTORY_VIEW_TABS: Array<{ key: HistoryViewTab; label: string }> = [
 ];
 
 const HISTORY_VIEW_ROUTES = { timeline, gallery, calendar };
+
+// The views are tabs of one page, so back leaves the room rather than stepping to Timeline.
+const LEAVE_ROOM = { href: dashboard.url(), label: 'Home' };
 
 function historyViewHref(key: HistoryViewTab): string {
     return HISTORY_VIEW_ROUTES[key].url();
@@ -57,7 +61,7 @@ export default function HistoryLayout({
                     title="Our History"
                     room="Our History"
                     documentTitle={tabLabel}
-                    backChevron
+                    back={LEAVE_ROOM}
                     tabs={tabs}
                     pb="pb-0"
                 >

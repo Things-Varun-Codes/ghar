@@ -5,6 +5,7 @@ namespace Tests\Feature\History;
 use App\MiniApps\History\Models\Event;
 use App\Shell\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Inertia\Testing\AssertableInertia as Assert;
 use Tests\TestCase;
 
 class HistoryEventCrudTest extends TestCase
@@ -35,6 +36,25 @@ class HistoryEventCrudTest extends TestCase
         // body_html must persist (sanitized) when body_html provided in the payload.
         $event = Event::first();
         $this->assertNotNull($event->body_html);
+    }
+
+    public function test_create_hands_the_new_id_to_the_form_through_inertia_flash(): void
+    {
+        /** @var User $user */
+        $user = User::factory()->create();
+
+        $response = $this->actingAs($user)->post('/apps/our-history/events', [
+            'occurred_on' => '2024-06-01',
+        ]);
+
+        $event = Event::query()->latest('id')->firstOrFail();
+        $response->assertInertiaFlash('created_event_id', $event->id);
+
+        // The staged-upload drain reads it from the page the redirect lands on.
+        $this->get('/apps/our-history')
+            ->assertInertia(fn (Assert $page) => $page
+                ->hasFlash('created_event_id', $event->id)
+                ->missing('flash.created_event_id'));
     }
 
     public function test_user_can_create_event_with_only_date(): void

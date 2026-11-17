@@ -2,6 +2,7 @@
 
 namespace App\Shell\Services;
 
+use App\Shell\Models\User;
 use App\Shell\Support\RoomSwitches;
 
 /**
@@ -27,12 +28,40 @@ class Rooms
 
     public function has(string $slug): bool
     {
-        return collect($this->installed())->contains('slug', $slug);
+        return $this->entry($slug) !== null;
     }
 
     public function isOn(string $slug): bool
     {
         return $this->has($slug) && $this->switches()->get($slug) === true;
+    }
+
+    /** The one rule for who may use a room: it is on, and an `admin_only` room only for admins. */
+    public function canEnter(?User $user, string $slug): bool
+    {
+        $app = $this->entry($slug);
+
+        return $app !== null && $this->isOn($slug) && $this->admits($user, $app);
+    }
+
+    /**
+     * The registry entries of the rooms this viewer may enter, in registry order.
+     *
+     * @return list<array<string, mixed>>
+     */
+    public function enterableBy(?User $user): array
+    {
+        return collect($this->installed())
+            ->filter(fn (array $app): bool => $this->isOn($app['slug']) && $this->admits($user, $app))
+            ->values()
+            ->all();
+    }
+
+    public function name(string $slug): ?string
+    {
+        $app = $this->entry($slug);
+
+        return $app === null ? null : (string) ($app['name'] ?? $slug);
     }
 
     public function set(string $slug, bool $on): void
@@ -61,12 +90,17 @@ class Rooms
     {
         return $this->isOn($slug)
             && $this->hasOption($slug, $key)
-            && $this->switches()->get("{$slug}:{$key}") !== false;
+            && $this->switches()->get(self::optionKey($slug, $key)) !== false;
+    }
+
+    public function optionLabel(string $slug, string $key): ?string
+    {
+        return $this->options[$slug][$key]['label'] ?? null;
     }
 
     public function setOption(string $slug, string $key, bool $on): void
     {
-        $this->switches()->put("{$slug}:{$key}", $on);
+        $this->switches()->put(self::optionKey($slug, $key), $on);
     }
 
     /** @return list<array{slug: string, name: string, description: string, enabled: bool, options: list<array{key: string, label: string, description: string, enabled: bool}>}> */
@@ -82,7 +116,7 @@ class Rooms
                     'key' => $key,
                     'label' => $option['label'],
                     'description' => $option['description'],
-                    'enabled' => $this->switches()->get("{$app['slug']}:{$key}") !== false,
+                    'enabled' => $this->switches()->get(self::optionKey($app['slug'], $key)) !== false,
                 ])
                 ->values()
                 ->all(),
@@ -92,6 +126,28 @@ class Rooms
     public static function validSlug(mixed $slug): bool
     {
         return is_string($slug) && preg_match('/^[a-z][a-z0-9-]*$/', $slug) === 1;
+    }
+
+    /** @return array<string, mixed>|null */
+    private function entry(string $slug): ?array
+    {
+        return collect($this->installed())->firstWhere('slug', $slug);
+    }
+
+    /** @param  array<string, mixed>  $app */
+    private function admits(?User $user, array $app): bool
+    {
+        if (empty($app['admin_only'])) {
+            return true;
+        }
+
+        // Loaded, not lazy: push recipients come from a collection, where strict mode forbids it.
+        return (bool) $user?->loadMissing('roles')->hasRole('admin');
+    }
+
+    private static function optionKey(string $slug, string $key): string
+    {
+        return "{$slug}:{$key}";
     }
 
     private function switches(): RoomSwitches

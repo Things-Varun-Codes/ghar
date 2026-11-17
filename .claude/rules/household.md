@@ -25,6 +25,14 @@ Every invited user is a household member (`App\Shell\Services\Household`: `membe
 | Notes, flowers (`RecipientMailPolicy`) | Sender, recipients | Delete: sender                                              |
 | Coupons, citations (own policies)      | Issuer, recipient  | Request, cancel, pay: recipient. Fulfil, delete: issuer     |
 
+- **"Maker or admin"** is one rule, `User::makerOrAdmin($makerId)`; policies call it rather than
+  spelling it out.
+- **Admin pages** are guarded once, by `can:admin` on the `/admin` route group; their controllers
+  don't repeat it. A new admin route goes inside that group (`NonAdminCannotAccessAdminTest` walks
+  every `admin.*` route).
+- **Who may enter a room** is `Rooms::canEnter($user, $slug)`: on, and an `admin_only` room only
+  for admins. The `room:` middleware, the registry props (`Rooms::enterableBy`) and
+  `PushDispatcher` all ask it.
 - **Enforcement is server-side;** the `can` flags on History and Corner payloads only decide which
   buttons render.
 - **Mailbox visibility:** viewer-reachable queries start with `visibleTo($user)` or (notes and

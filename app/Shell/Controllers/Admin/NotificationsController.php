@@ -6,7 +6,6 @@ use App\Shell\Models\User;
 use App\Shell\Services\Notify;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Gate;
 use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -15,8 +14,6 @@ class NotificationsController
 {
     public function show(): Response
     {
-        Gate::authorize('admin');
-
         return Inertia::render('Shell/Pages/Admin/NotificationsSend', [
             'users' => User::orderBy('name')->get(['id', 'name', 'email']),
         ]);
@@ -24,8 +21,6 @@ class NotificationsController
 
     public function send(Request $request): RedirectResponse
     {
-        Gate::authorize('admin');
-
         $validated = $request->validate([
             'user_id' => ['required', 'integer', 'exists:users,id'],
             'title' => ['required', 'string', 'max:200'],

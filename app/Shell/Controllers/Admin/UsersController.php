@@ -11,7 +11,6 @@ use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Gate;
 use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -20,8 +19,6 @@ class UsersController
 {
     public function index(): Response
     {
-        Gate::authorize('admin');
-
         $users = User::with('roles')
             ->orderBy('name')
             ->paginate(25);
@@ -33,8 +30,6 @@ class UsersController
 
     public function edit(User $user): Response
     {
-        Gate::authorize('admin');
-
         $user->load('roles');
 
         return Inertia::render('Shell/Pages/Admin/UsersEdit', [
@@ -49,8 +44,6 @@ class UsersController
 
     public function update(Request $request, User $user): RedirectResponse
     {
-        Gate::authorize('admin');
-
         $validated = $request->validate([
             'role' => ['required', 'string', Rule::in(array_column(UserRole::cases(), 'value'))],
         ]);
@@ -81,8 +74,6 @@ class UsersController
 
     public function destroy(User $user, UserOwnedContent $ownedContent): RedirectResponse
     {
-        Gate::authorize('admin');
-
         /** @var User $actor */
         $actor = auth()->user();
 

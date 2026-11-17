@@ -21,11 +21,16 @@ class PushDispatcher
     public function toUsers(iterable $recipients, string $app, string $tag, string $body, string $url): void
     {
         // A queued or scheduled sender can outlive the admin turning its room off.
-        if ($this->rooms->has($app) && ! $this->rooms->isOn($app)) {
+        $isRoom = $this->rooms->has($app);
+        if ($isRoom && ! $this->rooms->isOn($app)) {
             return;
         }
 
         foreach ($recipients as $recipient) {
+            if ($isRoom && ! $this->rooms->canEnter($recipient, $app)) {
+                continue;
+            }
+
             $this->notify->send($recipient, [
                 'app' => $app,
                 'tag' => $tag,

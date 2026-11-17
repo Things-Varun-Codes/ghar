@@ -9,6 +9,7 @@ use App\MiniApps\History\Http\Requests\StoreEventRequest;
 use App\MiniApps\History\Http\Requests\UpdateEventRequest;
 use App\MiniApps\History\Http\Resources\EventResource;
 use App\MiniApps\History\Models\Event;
+use App\MiniApps\History\Providers\HistoryServiceProvider;
 use App\MiniApps\History\Support\LinkedThings;
 use App\MiniApps\History\Support\RequestedMoment;
 use App\Shell\Services\PushDispatcher;
@@ -64,15 +65,16 @@ class EventsController
         $firstName = $actor->firstName();
         app(PushDispatcher::class)->toHousehold(
             $actor,
-            'our-history',
-            'our-history',
+            HistoryServiceProvider::SLUG,
+            HistoryServiceProvider::SLUG,
             "{$firstName} added a moment: ".($event->title ?? 'untitled'),
             RequestedMoment::url($event->id),
         );
 
         // The client needs the new id to drain uploads staged before the save.
-        return redirect()->route('apps.our-history.timeline')
-            ->with('created_event_id', $event->id);
+        Inertia::flash('created_event_id', $event->id);
+
+        return redirect()->route('apps.our-history.timeline');
     }
 
     public function update(Event $event, UpdateEventRequest $request, UpdateEvent $action): RedirectResponse

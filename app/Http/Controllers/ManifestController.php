@@ -22,7 +22,7 @@ class ManifestController extends Controller
 
         // Long-press shortcuts, one per room. Admin-only rooms are left out: the manifest is
         // public and the same for everyone.
-        $shortcuts = collect(MiniAppRegistry::visibleFor(null, false))
+        $shortcuts = collect(MiniAppRegistry::visibleFor(null))
             ->map(fn (array $app): array => [
                 'name' => $app['name'],
                 'url' => $app['route'],
