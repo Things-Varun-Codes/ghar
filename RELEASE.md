@@ -41,7 +41,7 @@ You need a clean working tree, `gh` signed in, and a checkout that has had `npm 
    point where the wording can change.
 4. **Publish.** `npm run release:tag` tags the commit that added the section as `v1.2.3` and pushes
    the tag. Pull requests merged after step 3 are not in the release, even if they are already on
-   `main`.
+   `main`. It prints the commit it is about to tag; that must be `chore: release 1.2.3`.
 
 The tag starts `.github/workflows/release.yml`. It runs CI again, builds the image for amd64 and
 arm64, publishes `ghcr.io/<owner>/ghar:1.2.3`, `:1.2`, `:1` and `:latest`, and creates the GitHub
@@ -66,7 +66,9 @@ The script only saves typing. Without it:
     git push origin v1.2.3
     ```
 
-The workflow fails in its first job if `CHANGELOG.md` has no section for the tag.
+Before you push, check the commit: `node scripts/release.mjs check-tag 1.2.3 <the merged commit>`.
+The workflow runs the same check in its first job and publishes nothing unless the tag is on
+`main`, on the one commit that added the dated `## [1.2.3]` section.
 
 ## Rehearse one
 
@@ -80,6 +82,11 @@ alone, uses the `1.2.3` changelog section and marks the GitHub release as a pre-
   through a pull request first.
 - **It couldn't open the pull request.** The branch is pushed. Open the pull request from
   `release/v1.2.3` yourself, with the title it printed.
+- **The tag is on the wrong commit.** The workflow's first job fails and nothing is published, but
+  the tag stays, because release tags can't be moved or deleted. Don't re-run that workflow run.
+  If nothing was ever published under the tag, the repository owner can turn off the "release
+  tags: never moved or deleted" ruleset in the repository settings, delete the tag, turn the
+  ruleset back on and run `npm run release:tag` again. Otherwise release the next patch version.
 - **The workflow failed after the tag was pushed.** Release tags can't be moved or deleted. If the
   failure was a passing problem, re-run the failed jobs (`gh run rerun --failed`). If the code is
   wrong, fix it on `main` with a `fix:` pull request and release the next patch version.

@@ -8,6 +8,7 @@ import {
     nextVersion,
     parseChange,
     pullRequestProblems,
+    releaseCommitProblem,
     renderSection,
     sectionFor,
 } from '../lib/changes.mjs';
@@ -199,4 +200,31 @@ test('sectionFor gives a pre-release the section it leads up to', () => {
 test('sectionFor returns null for a missing version', () => {
     assert.equal(sectionFor(LOG, '2.0.0'), null);
     assert.equal(sectionFor(LOG, '2.0.0-rc.1'), null);
+});
+
+const BEFORE = '# Changelog\n\n## [1.2.0] - 2026-01-01\n\n- Old.\n';
+
+test('the release commit is the one that adds the dated section', () => {
+    assert.equal(releaseCommitProblem('1.3.0', LOG, BEFORE), null);
+    assert.equal(releaseCommitProblem('1.3.0-rc.1', LOG, BEFORE), null);
+    assert.equal(releaseCommitProblem('1.2.0', BEFORE, ''), null);
+});
+
+test('a commit after the release is not the release commit', () => {
+    assert.match(releaseCommitProblem('1.3.0', LOG, LOG), /one commit earlier/);
+});
+
+test('a draft heading or a missing one is not a release', () => {
+    const draft = LOG.replace('2026-02-01', 'Unreleased');
+
+    assert.match(
+        releaseCommitProblem('1.3.0', draft, BEFORE),
+        /no dated section/,
+    );
+    assert.match(
+        releaseCommitProblem('2.0.0', LOG, BEFORE),
+        /no dated section/,
+    );
+    // The commit that turns a draft into a dated section is the release.
+    assert.equal(releaseCommitProblem('1.3.0', LOG, draft), null);
 });

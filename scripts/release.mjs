@@ -6,6 +6,9 @@
 //   notes          print the next version and its changelog section, change nothing
 //   section <version>
 //                  print that version's changelog section, for the release workflow
+//   check-tag <version> [commit]
+//                  fail unless the commit (HEAD by default) is on main and is the one that
+//                  added that version's section; the release workflow runs it on every tag
 //   prepare        write the section into CHANGELOG.md, delete the change files and open
 //                  the release pull request (--version 2.0.0 overrides the version;
 //                  --no-pr edits the files in place and stops)
@@ -32,6 +35,7 @@ import {
     nextVersion,
     parseChange,
     pullRequestProblems,
+    releaseCommitProblem,
     renderSection,
     sectionFor,
 } from './lib/changes.mjs';
@@ -243,6 +247,36 @@ function prepare() {
     );
 }
 
+// Throws unless `commit` is the release of `version`: on main, and the commit that added the
+// dated section. Shared by `tag`, before it pushes, and by the workflow, before it builds.
+function assertReleaseCommit(version, commit) {
+    const show = (rev) => {
+        try {
+            return git('show', `${rev}:CHANGELOG.md`);
+        } catch {
+            return '';
+        }
+    };
+    const sha = git('rev-parse', '--verify', `${commit}^{commit}`);
+    const where = `${sha.slice(0, 7)} (${git('log', '-1', '--format=%s', sha)})`;
+
+    try {
+        git('merge-base', '--is-ancestor', sha, 'origin/main');
+    } catch {
+        throw new Error(`${where} is not on main, so it can't be v${version}.`);
+    }
+
+    const problem = releaseCommitProblem(version, show(sha), show(`${sha}^`));
+
+    if (problem) {
+        throw new Error(
+            `${where} is not the release of ${version}: ${problem}.`,
+        );
+    }
+
+    return where;
+}
+
 function tag() {
     git('fetch', '--quiet', '--tags', 'origin', 'main');
     const version = latestVersion(git('show', 'origin/main:CHANGELOG.md'));
@@ -273,7 +307,9 @@ function tag() {
         );
     }
 
-    console.log(`Tagging ${commit.slice(0, 7)} as ${name} and pushing it.`);
+    const where = assertReleaseCommit(version, commit);
+
+    console.log(`Tagging ${where} as ${name} and pushing it.`);
     git('tag', name, commit);
     run('git', 'push', 'origin', name);
     console.log(
@@ -298,6 +334,18 @@ const commands = {
         }
 
         process.stdout.write(section);
+    },
+    'check-tag': () => {
+        const version = flags[0]?.replace(/^v/, '');
+        const commit = flags[1] ?? 'HEAD';
+
+        if (!version) {
+            throw new Error('Usage: release.mjs check-tag <version> [commit]');
+        }
+
+        console.log(
+            `${assertReleaseCommit(version, commit)} is the release of ${version}.`,
+        );
     },
     prepare,
     tag,
