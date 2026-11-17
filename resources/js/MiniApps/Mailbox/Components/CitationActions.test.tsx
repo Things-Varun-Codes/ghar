@@ -67,6 +67,8 @@ describe('CitationActions pay', () => {
 
         fireEvent.click(confirm);
 
+        // Confirming closes the dialog, so the pending state shows on the trigger.
+        expect(screen.queryByRole('alertdialog')).toBeNull();
         expect(routerPatch).toHaveBeenCalledTimes(1);
         const [url, , options] = routerPatch.mock.calls[0];
         expect(url).toContain('/citations/7');

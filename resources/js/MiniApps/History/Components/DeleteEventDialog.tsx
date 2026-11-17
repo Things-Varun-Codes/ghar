@@ -1,5 +1,4 @@
 import { router } from '@inertiajs/react';
-import { useState } from 'react';
 import { mutationOptions } from '@/lib/mutation';
 import { HISTORY_CONFIRM_CLASSES } from '@/MiniApps/History/lib/confirmDialog';
 import events from '@/routes/apps/our-history/events';
@@ -18,8 +17,6 @@ export default function DeleteEventDialog({
     eventId,
     onDeleted,
 }: Props) {
-    const [pending, setPending] = useState(false);
-
     function handleDelete() {
         router.delete(events.destroy(eventId).url, {
             onSuccess: () => {
@@ -30,7 +27,6 @@ export default function DeleteEventDialog({
                 component: 'History/DeleteEventDialog',
                 action: 'event.delete',
                 message: "Couldn't delete this moment. Try again.",
-                onPendingChange: setPending,
             }),
         });
     }
@@ -44,7 +40,6 @@ export default function DeleteEventDialog({
             cancelLabel="Keep it"
             confirmLabel="Delete moment"
             variant="destructive"
-            processing={pending}
             onConfirm={handleDelete}
             classNames={{
                 ...HISTORY_CONFIRM_CLASSES,

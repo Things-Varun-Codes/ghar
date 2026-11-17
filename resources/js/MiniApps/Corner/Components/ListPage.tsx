@@ -1,8 +1,8 @@
 import { Plus } from 'lucide-react';
 import type { ReactNode } from 'react';
 
+import { count } from '@/lib/plural';
 import { CORNER_ROOM } from '@/MiniApps/Corner/Layouts/CornerLayout';
-import { thingsCount } from '@/MiniApps/Corner/lib/copy';
 import type { CornerItem, CornerListInfo } from '@/MiniApps/Corner/lib/types';
 import CursorListBody from '@/Shell/Components/CursorListBody';
 import Fab from '@/Shell/Components/Fab';
@@ -84,8 +84,8 @@ export default function ListPage({
                     // Search narrows the counts too, so while searching they read as matches.
                     <span className="text-(length:--text-meta) font-medium text-(--corner-ink-soft) tabular-nums">
                         {searching
-                            ? `${counts.all} ${counts.all === 1 ? 'match' : 'matches'}`
-                            : thingsCount(counts.all)}
+                            ? count(counts.all, 'match', 'matches')
+                            : count(counts.all, 'thing')}
                     </span>
                 }
                 sort={sort}
