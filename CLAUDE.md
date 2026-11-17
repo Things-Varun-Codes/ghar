@@ -92,6 +92,10 @@ Every state the seed covers, with the ids to use, is in `.claude/rules/dev-data.
 - **Comments:** only what a reader can't get from the code: a real why, a non-obvious constraint,
   a gotcha. No narration, retold history or PHPDoc that repeats native types (keep generics PHPStan
   needs). Don't cite internal planning, ticket or audit IDs.
+- **Don't read the lockfiles whole.** `composer.lock` (~480 KB) and `package-lock.json` (~330 KB)
+  are most of a context window: use `composer show <package>` and `npm ls <package>`.
+- **Search the big stylesheets instead of reading them.** `app.css`, `themes/history.css` and
+  `themes/mailbox.css` are 45–60 KB each; grep for the class or token you need.
 
 ## Testing
 
@@ -116,17 +120,24 @@ Five tiers; none replaces another. Start with [How to test locally](#how-to-test
   its skip-list.
 - **Fault-injection smoke — `npm run smoke-loadmore`.** Own `ghar_smoke_loadmore` database (same
   seed) + `artisan serve` on 8877; forces transport failure and 5xx on the Corner Songs cursor
-  request and asserts the inline retry recovers. Run when touching cursor pagination, the list
-  footer or the pagination hook.
+  request and asserts the inline retry recovers. CI runs it on every pull request; run it locally
+  when touching cursor pagination, the list footer or the pagination hook.
 - **Interactive — Playwright MCP.** Start with `npm run smoke-mcp` (rebuilds the bundle, serves the
   seeded data on `127.0.0.1:8000`; plain `artisan serve` serves a stale `public/build/`). **Required
   when** a change touches XHR/fetch/upload/drag-drop/`FormData`, any Radix portal (Dialog, Sheet,
   AlertDialog, Popover, Dropdown), a dirty-gate or multi-step/close-intent flow, or a new mini-app
   interactive surface.
 
-Before pushing: `npm test`, `php artisan test`, `npm run build`, `npm run smoke`, plus
-`smoke-loadmore` / MCP when they apply. lefthook's pre-push runs the same set fail-fast;
-`.github/workflows/ci.yml` runs all but the audits and `smoke-loadmore` on every pull request. Never use `--no-verify`.
+**The loop.** Locally, run the tests for what you touched: `php artisan test --filter=…` or one
+test directory, and `npx vitest run <path>`. Then push and wait for CI with
+`gh pr checks <n> --watch` (about two minutes). The pre-push hook is a quick gate, under a minute:
+a clean tree, the `scripts/` checks, formatting of the files being pushed, and lint and types across
+the repo. It runs no tests. `.github/workflows/ci.yml` runs the full set on every pull request and
+`main` requires it to pass: the `scripts/` checks, both dependency audits, formatting, types, lint,
+Vitest, the ESLint rule tests, Pint, PHPStan, the build, PHPUnit, both headless smokes and the
+production image. `npm run verify` runs that set (all but the image) locally in one command, several
+minutes; use it when you want everything green before opening a pull request. The interactive tier
+stays yours to run when it applies. Never use `--no-verify`.
 
 Strictness: `tsconfig.json` enforces `noUnusedLocals`, `noUnusedParameters`, `noImplicitReturns`,
 `noFallthroughCasesInSwitch`, `noImplicitOverride`; ESLint enforces `no-explicit-any`. Fix

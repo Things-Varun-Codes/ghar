@@ -155,8 +155,8 @@ npm run smoke-loadmore   # breaks pagination on purpose and checks the recovery
 npm run smoke-mcp        # serves the sample data for testing by hand
 ```
 
-CI runs the first three on every pull request. [`CONTRIBUTING.md`](./CONTRIBUTING.md) explains what
-each one is for.
+CI runs the first four on every pull request, and `npm run verify` runs everything CI checks in
+one go. [`CONTRIBUTING.md`](./CONTRIBUTING.md) explains what each one is for.
 
 ## Contributing
 
