@@ -190,11 +190,8 @@ const EventForm = forwardRef<EventFormHandle, EventFormProps>(
             transform((d) => ({ ...d, body_html: bodyHtmlRef.current }));
 
             if (eventId !== null) {
-                // preserveState: false: a PATCH doesn't change the total, so Timeline only re-seeds
-                // on a remount.
                 patch(events.update({ event: eventId }).url, {
                     preserveScroll: true,
-                    preserveState: false,
                     onSuccess: () => {
                         reset();
                         toast.success('Changes saved.');
