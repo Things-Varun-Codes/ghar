@@ -11,17 +11,11 @@ import {
     DialogTitle,
 } from '@/components/ui/dialog';
 import { Switch } from '@/components/ui/switch';
-import {
-    Table,
-    TableBody,
-    TableCell,
-    TableHead,
-    TableHeader,
-    TableRow,
-} from '@/components/ui/table';
 import { mutationOptions } from '@/lib/mutation';
 import { cn } from '@/lib/utils';
 import * as shortlinksRoutes from '@/routes/admin/shortlinks';
+import AdminCollection from '@/Shell/Components/AdminCollection';
+import type { AdminColumn } from '@/Shell/Components/AdminCollection';
 import ConfirmDialog from '@/Shell/Components/ConfirmDialog';
 import EmptyState from '@/Shell/Components/EmptyState';
 import FormField from '@/Shell/Components/FormField';
@@ -253,6 +247,32 @@ export default function ShortLinks({ shortlinks }: Props) {
         </div>
     );
 
+    const columns: AdminColumn<ShortLink>[] = [
+        {
+            header: 'Label',
+            cell: (shortlink) => shortlink.label,
+            className: 'os-admin-strong',
+            card: { as: 'title' },
+        },
+        {
+            header: 'Short URL',
+            cell: renderUrlCell,
+            card: { as: 'block', className: 'mb-3' },
+        },
+        {
+            header: 'Destination',
+            cell: (shortlink) => shortlink.destination,
+            className: 'os-admin-muted max-w-[320px] truncate',
+            tooltip: (shortlink) => shortlink.destination,
+            card: { as: 'subtitle', className: 'mt-1 truncate' },
+        },
+        {
+            header: 'Enabled',
+            cell: renderSwitch,
+            card: { as: 'row', className: 'mb-3' },
+        },
+    ];
+
     return (
         <>
             <Page title="Shortlinks" room="Admin" backChevron>
@@ -324,80 +344,20 @@ export default function ShortLinks({ shortlinks }: Props) {
                         body="Create a shortlink above to point an NFC tag somewhere private."
                     />
                 ) : (
-                    <div className="@container">
-                        <div className="os-admin-surface hidden overflow-x-auto border @min-[760px]:block">
-                            <Table className="min-w-[760px]">
-                                <TableHeader>
-                                    <TableRow>
-                                        <TableHead>Label</TableHead>
-                                        <TableHead>Short URL</TableHead>
-                                        <TableHead>Destination</TableHead>
-                                        <TableHead>Enabled</TableHead>
-                                        <TableHead className="os-admin-sticky-actions text-right">
-                                            Actions
-                                        </TableHead>
-                                    </TableRow>
-                                </TableHeader>
-                                <TableBody>
-                                    {shortlinks.map((shortlink) => (
-                                        <TableRow key={shortlink.id}>
-                                            <TableCell className="os-admin-strong">
-                                                {shortlink.label}
-                                            </TableCell>
-                                            <TableCell>
-                                                {renderUrlCell(shortlink)}
-                                            </TableCell>
-                                            <TableCell
-                                                className="os-admin-muted max-w-[320px] truncate"
-                                                title={shortlink.destination}
-                                            >
-                                                {shortlink.destination}
-                                            </TableCell>
-                                            <TableCell>
-                                                {renderSwitch(shortlink)}
-                                            </TableCell>
-                                            <TableCell className="os-admin-sticky-actions">
-                                                <div className="flex justify-end">
-                                                    {renderActions(shortlink)}
-                                                </div>
-                                            </TableCell>
-                                        </TableRow>
-                                    ))}
-                                </TableBody>
-                            </Table>
-                        </div>
-
-                        <div className="flex flex-col gap-3 @min-[760px]:hidden">
-                            {shortlinks.map((shortlink) => (
-                                <div
-                                    key={shortlink.id}
-                                    className="os-admin-surface border p-4"
-                                >
-                                    <div className="mb-3">
-                                        <p className="os-admin-strong">
-                                            {shortlink.label}
-                                        </p>
-                                        <p
-                                            className="os-admin-meta mt-1 truncate"
-                                            title={shortlink.destination}
-                                        >
-                                            {shortlink.destination}
-                                        </p>
-                                    </div>
-                                    <div className="mb-3">
-                                        {renderUrlCell(shortlink)}
-                                    </div>
-                                    <div className="mb-3 flex min-h-11 items-center justify-between">
-                                        <span className="os-admin-meta">
-                                            Enabled
-                                        </span>
-                                        {renderSwitch(shortlink)}
-                                    </div>
+                    <AdminCollection
+                        columns={columns}
+                        rows={shortlinks}
+                        rowKey={(shortlink) => shortlink.id}
+                        actions={{
+                            cell: (shortlink) => (
+                                <div className="flex justify-end">
                                     {renderActions(shortlink)}
                                 </div>
-                            ))}
-                        </div>
-                    </div>
+                            ),
+                            card: renderActions,
+                        }}
+                        tableClassName="min-w-[760px]"
+                    />
                 )}
 
                 <ConfirmDialog
