@@ -26,3 +26,8 @@ Rules that aren't obvious from the code:
 - **PhotoSwipe inside the EventSheet:** the Sheet's `onPointerDownOutside` / `onInteractOutside`
   must `preventDefault()` when `e.target.closest('.pswp')` (`EventSheet.tsx`), or the next-arrow
   click and mobile swipes close the Sheet.
+- **Links in a story never name another room.** The editor offers the picker while
+  `useLinking().searchable`; `BodyHtml` draws a pill as a link (and its picture) only while
+  `useLinkTypeOn(type)`. Moments register as `history.event` (label "Moments") in
+  `HistoryServiceProvider`; a save keeps every pill whose type is registered (`ExtractsCornerLinks`)
+  and records it as an `entity_references` row.

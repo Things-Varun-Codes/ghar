@@ -42,6 +42,12 @@ paths:
   Corner landing cards (the first four) and the History tabs; `lib/stale-history.ts` drops the prefetch cache after any non-GET
   visit. Never prefetch a page whose GET changes something: Mailbox Messages and Flowers mark
   themselves read when fetched.
+- **Links between rooms are the shell's.** The picker (`Shell/tiptap/EntityLinkPickerDialog`) and
+  the pill (`EntityLinkPill` in the editor, `Shell/linkables/EntityPillContent` wherever a pill is
+  read) take labels, groups and icons from the server and never name a room. Whether to offer or
+  draw a link comes from the shared `linking` prop (`useLinking()`, `useLinkTypeOn(type)`), not
+  `useRoomOn`. A pill's stored href and picture are free text: pass them through
+  `Shell/linkables/urls.ts` before use. The persisted format (`cornerLink`, `data-corner-*`) stays.
 
 ## State-adoption contract
 

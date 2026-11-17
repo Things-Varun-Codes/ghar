@@ -45,8 +45,14 @@ class HistoryServiceProvider extends ServiceProvider
 
         $linkable->register(
             type: 'history.event',
+            label: 'Moments',
             room: 'our-history',
-            listing: fn (string $q, int $limit) => Event::query()
+            resolveMany: fn (array $ids): array => Event::query()
+                ->whereIn('id', $ids)
+                ->get()
+                ->mapWithKeys(fn (Event $e) => [$e->id => $this->snapshotFor($e)])
+                ->all(),
+            listing: fn (string $q, int $limit): array => Event::query()
                 ->where(function ($builder) use ($q) {
                     $pattern = CursorList::containsPattern($q);
                     $builder->where('title', 'ilike', $pattern)
@@ -55,36 +61,18 @@ class HistoryServiceProvider extends ServiceProvider
                 ->orderByDesc('occurred_on')
                 ->limit($limit)
                 ->get()
-                ->map(fn (Event $e) => [
-                    'id' => $e->id,
-                    'title' => $e->title ?: $e->occurred_on->toDateString(),
-                    'thumbnail_url' => null,
-                ])
+                ->map(fn (Event $e) => ['id' => $e->id] + $this->snapshotFor($e))
                 ->all(),
-            resolve: function (int $id): ?array {
-                $event = Event::find($id);
-                if ($event === null) {
-                    return null;
-                }
-
-                return $this->snapshotFor($event);
-            },
-            resolveMany: function (array $ids): array {
-                return Event::query()
-                    ->whereIn('id', $ids)
-                    ->get()
-                    ->mapWithKeys(fn (Event $e) => [$e->id => $this->snapshotFor($e)])
-                    ->all();
-            },
         );
     }
 
-    /** @return array{title: string, thumbnail_url: null, deep_link_url: string} */
+    /** @return array{title: string, thumbnail_url: null, icon: string, deep_link_url: string} */
     private function snapshotFor(Event $event): array
     {
         return [
             'title' => $event->title ?: $event->occurred_on->toDateString(),
             'thumbnail_url' => null,
+            'icon' => 'book-heart',
             'deep_link_url' => RequestedMoment::url($event->id),
         ];
     }

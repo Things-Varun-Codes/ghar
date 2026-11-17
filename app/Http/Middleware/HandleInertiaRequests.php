@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Shell\Services\LinkableEntities;
 use App\Shell\Support\AppVersion;
 use App\Shell\Support\MiniAppRegistry;
 use Illuminate\Http\Request;
@@ -41,6 +42,7 @@ class HandleInertiaRequests extends Middleware
                 ] : null,
             ],
             'miniApps' => $miniApps,
+            'linking' => fn () => $user ? app(LinkableEntities::class)->forPage() : null,
             'today' => now()->toDateString(),
             // EventForm reads this to drain staged uploads once the moment exists.
             'flash' => [

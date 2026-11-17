@@ -63,15 +63,16 @@ its own lists; nothing about Songs or Movies is hard-coded any more.
   `legacy_type` / `legacy_id`, and started new ids above every old one. So
   `/apps/our-corner/songs/5` finds id 5 in that list or, failing that, `legacy_id` 5. History
   pills saved before then say `corner.song` (etc.) with the old id: those four types stay
-  registered in `LinkableEntities` as resolve-only aliases (`CornerLinks`), or History would drop
-  them on the next save. New pills use `corner.item`. Never rewrite History's `body_html` from
-  Corner.
+  registered in `LinkableEntities` as resolve-only aliases (no `listing`, see `CornerLinks`), or
+  History would drop them on the next save. New pills use `corner.item`. Never rewrite History's
+  `body_html` from Corner.
 - **A fresh install has no lists.** The empty landing offers `SUGGESTED_LISTS`
   (`lib/presets.ts`), one tap each through the normal create endpoint.
 - **While the room is off** its routes 404, Home shows no door, push is dropped by
   `PushDispatcher` and every Corner linkable type is registered with `room: 'our-corner'`, so
-  the picker finds nothing. The types stay registered, so History keeps both old and new pills
-  (shown as plain text) when a moment is saved meanwhile.
+  the picker finds none of its things (it still finds moments) and the shared `linking.types`
+  leaves them out. The types stay registered, so History keeps both old and new pills (shown as
+  plain text) when a moment is saved meanwhile.
 - **Our Corner** — a shelf of loved things, one look for every list. Its character is in its
   objects, not its type or motion: `.corner-sticker` done flags (a fixed tilt, never animated), each
   item's picture in a rounded thumb (`ItemThumb`), and where there is no picture the list's own icon

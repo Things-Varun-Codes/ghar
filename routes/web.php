@@ -13,6 +13,7 @@ use App\Shell\Controllers\Admin\ShortLinksController;
 use App\Shell\Controllers\Admin\UsersController;
 use App\Shell\Controllers\DashboardController;
 use App\Shell\Controllers\InvitationAcceptController;
+use App\Shell\Controllers\LinkableSearchController;
 use App\Shell\Controllers\Settings\EmailVerificationController;
 use App\Shell\Controllers\Settings\NotificationsController;
 use App\Shell\Controllers\Settings\PasswordController;
@@ -51,6 +52,10 @@ Route::get('/', function () {
 
 Route::middleware(['auth'])->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+
+    Route::get('/api/linkable/search', [LinkableSearchController::class, 'search'])
+        ->middleware('throttle:linkable-picker')
+        ->name('linkable.search');
 
     Route::prefix('settings')->name('settings.')->group(function () {
         Route::get('/profile', [ProfileController::class, 'show'])->name('profile.show');

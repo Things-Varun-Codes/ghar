@@ -1708,6 +1708,53 @@ button[type='submit'][data-slot='button'] {
     color: var(--shell-text-muted);
 }
 
+/* ── A link to a thing, in a story and in the editor (persisted as .tt-pill) ── */
+
+.tt-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 2px 8px;
+    border-radius: var(--radius-pill);
+    background-color: var(--shell-surface);
+    color: var(--shell-text);
+    border: 1px solid var(--shell-border);
+    font-family: var(--font-sans);
+    font-size: var(--text-meta);
+    font-weight: 500;
+    line-height: 1.3;
+    cursor: pointer;
+    text-decoration: none;
+    vertical-align: baseline;
+}
+
+.tt-pill .tt-pill-glyph {
+    display: inline-flex;
+    align-items: center;
+    color: var(--shell-accent-text);
+}
+
+.tt-pill .tt-pill-remove {
+    visibility: hidden;
+    background: transparent;
+    border: none;
+    color: var(--shell-text-muted);
+    cursor: pointer;
+    padding: 0 2px;
+    font-size: var(--text-small);
+    line-height: 1;
+}
+
+.tt-pill:hover .tt-pill-remove,
+.tt-pill:focus-within .tt-pill-remove {
+    visibility: visible;
+}
+
+.tt-pill:focus-visible {
+    outline: 2px solid var(--shell-action);
+    outline-offset: 2px;
+}
+
 .shell-pill-thumb {
     width: 16px;
     height: 16px;

@@ -24,7 +24,7 @@ class CornerRoomOffTest extends TestCase
         app(Rooms::class)->set('our-corner', false);
     }
 
-    public function test_its_pages_home_door_and_picker_are_gone(): void
+    public function test_its_pages_and_home_door_are_gone_and_its_things_cannot_be_found(): void
     {
         $user = User::factory()->create();
         $songs = $this->songs();
@@ -33,7 +33,6 @@ class CornerRoomOffTest extends TestCase
 
         $this->actingAs($user)->get('/apps/our-corner')->assertNotFound();
         $this->get("/apps/our-corner/songs/{$item->id}")->assertNotFound();
-        $this->get('/api/linkable/search?q=rain')->assertNotFound();
         $this->get('/api/corner/link-preview?url='.urlencode('https://example.com/a'))->assertNotFound();
         $this->get('/api/corner/picture-preview?url='.urlencode('https://example.com/a.jpg'))->assertNotFound();
         $this->get("/apps/our-corner/items/{$item->id}/picture?v=1")->assertNotFound();
@@ -45,6 +44,22 @@ class CornerRoomOffTest extends TestCase
         );
 
         $this->assertSame([], app(LinkableEntities::class)->search('rain'));
+    }
+
+    public function test_the_picker_still_finds_moments_and_pages_stop_linking_to_items(): void
+    {
+        $user = User::factory()->create();
+        $this->itemIn($this->songs(), $user, ['title' => 'Rain on the Tin Roof']);
+        Event::factory()->create(['title' => 'Rain at the wedding']);
+        $this->turnCornerOff();
+
+        $results = $this->actingAs($user)->getJson('/api/linkable/search?q=rain')->assertOk()->json('results');
+        $this->assertSame(['history.event'], array_column($results, 'type'));
+
+        $this->get('/dashboard')->assertOk()->assertInertia(fn ($page) => $page
+            ->where('linking.types', ['history.event'])
+            ->where('linking.searchable', true)
+        );
     }
 
     public function test_an_add_that_outlives_the_switch_sends_no_push(): void

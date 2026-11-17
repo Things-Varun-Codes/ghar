@@ -8,7 +8,9 @@ const rooms = vi.hoisted(() => ({ corner: true }));
 vi.mock('@inertiajs/react', () => ({
     usePage: () => ({
         props: {
-            miniApps: rooms.corner ? [{ slug: 'our-corner' }] : [],
+            linking: rooms.corner
+                ? { types: ['corner.item', 'corner.song'], searchable: true }
+                : { types: [], searchable: false },
         },
     }),
 }));
@@ -69,7 +71,7 @@ describe('a link in a story', () => {
         );
     });
 
-    it('is plain text, without a picture, while Corner is off', () => {
+    it('is plain text, without a picture, while its type is off', () => {
         rooms.corner = false;
         const { container } = render(
             <BodyHtml

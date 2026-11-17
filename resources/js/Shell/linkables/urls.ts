@@ -13,7 +13,7 @@ function parse(value: string, origin: string): URL | null {
 }
 
 /*
- * Corner links are absolute URLs from route(), so same-origin http(s) passes as
+ * Links are usually absolute URLs from route(), so same-origin http(s) passes as
  * well as a root-relative path. Parsing first matters: browsers read "/\host"
  * as "//host", which a prefix test lets through.
  */
