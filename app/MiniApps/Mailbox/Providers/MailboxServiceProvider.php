@@ -19,8 +19,7 @@ use App\Shell\Models\User;
 use App\Shell\Services\DashboardSummaries;
 use App\Shell\Services\Rooms;
 use App\Shell\Services\UserOwnedContent;
-use Illuminate\Cache\RateLimiting\Limit;
-use Illuminate\Http\Request;
+use App\Shell\Support\Limits;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\ServiceProvider;
@@ -85,15 +84,10 @@ class MailboxServiceProvider extends ServiceProvider
         $summaries->register('our-mailbox', fn (User $user): string => DashboardLine::forUser($user));
         $summaries->registerPreview('our-mailbox', fn (User $user): ?array => DashboardPreview::forUser($user));
 
-        // A guest is covered: `??` reads ->id off a null user() without an error.
-        RateLimiter::for('mailbox-mutations', function (Request $request) {
-            return Limit::perMinute(30)->by((string) ($request->user()->id ?? $request->ip()));
-        });
+        RateLimiter::for('mailbox-mutations', Limits::perUser(30));
 
         // Tight because each call spends Cloudflare Workers AI quota.
-        RateLimiter::for('bouquet-generate', function (Request $request) {
-            return Limit::perMinute(3)->by((string) ($request->user()->id ?? $request->ip()));
-        });
+        RateLimiter::for('bouquet-generate', Limits::perUser(3));
 
         Gate::policy(Citation::class, CitationPolicy::class);
 
