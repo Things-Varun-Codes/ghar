@@ -1,5 +1,6 @@
 import { Flower2 } from 'lucide-react';
 import type { ReactNode } from 'react';
+import { count } from '@/lib/plural';
 
 import { cn } from '@/lib/utils';
 import MailboxLayout, {
@@ -70,16 +71,12 @@ type Door = {
 
 const MAX_PIPS = 10;
 
-function plural(n: number, one: string, many: string): string {
-    return `${n} ${n === 1 ? one : many}`;
-}
-
 function waiting(n: number, text: string): Live | null {
     return n > 0 ? { text: `${n} ${text}`, alert: true } : null;
 }
 
 function tally(n: number, one: string, many: string, empty: string): Live {
-    return { text: n > 0 ? plural(n, one, many) : empty, alert: false };
+    return { text: n > 0 ? count(n, one, many) : empty, alert: false };
 }
 
 function MailboxDoor({
