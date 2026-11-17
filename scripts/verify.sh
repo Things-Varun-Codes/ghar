@@ -22,6 +22,8 @@ steps=(
     "npm run lint:check"
     "npm test"
     "npm run test:rules"
+    "npm run test:scripts"
+    "node scripts/release.mjs check"
     "vendor/bin/pint --test"
     "vendor/bin/phpstan analyse --no-progress --memory-limit=1G"
     "node scripts/check-smoke-routes.mjs"

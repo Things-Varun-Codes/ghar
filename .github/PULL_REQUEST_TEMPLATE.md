@@ -4,4 +4,5 @@
 
 - [ ] A test fails without this change
 - [ ] Checked in a real browser, if it touches uploads, dialogs, sheets or a multi-step form
+- [ ] A change file in `.changes/`, if someone using Ghar would notice this
 - [ ] New environment variables are in `.env.example` and `DEPLOY.md`

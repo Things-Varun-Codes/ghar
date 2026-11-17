@@ -7,6 +7,10 @@ paths:
     - '.env.selfhost.example'
     - 'DEPLOY.md'
     - 'CHANGELOG.md'
+    - 'RELEASE.md'
+    - '.changes/**'
+    - 'scripts/release.mjs'
+    - 'scripts/lib/changes.mjs'
     - '.github/workflows/**'
     - 'config/trustedproxy.php'
     - 'app/Shell/Support/TrustedProxies.php'
@@ -30,5 +34,9 @@ paths:
 - **First start:** `docker/docker-entrypoint.sh` generates `APP_KEY` and VAPID keys into
   `storage/app/generated-secrets.env` when unset, migrates, seeds roles, and creates the
   `GHAR_ADMIN_EMAIL` admin if none exists. Every step must stay idempotent.
-- **Releases:** add a `CHANGELOG.md` section, then tag `vX.Y.Z`; the workflow fails without the
-  section. A change that needs action on upgrade is a major version and says so under **Upgrading**.
+- **Releases:** `RELEASE.md` has the steps; follow it when asked to release. `npm run release` folds
+  the change files in `.changes/` into a new `CHANGELOG.md` section, picks the version from their
+  types and opens the release pull request; `npm run release:tag` tags the merged commit, which
+  starts the workflow. Never run either command, merge the release pull request or push a tag
+  unasked. A change that needs action on upgrade sets `breaking: true` in its change file, which
+  makes the release a major version and puts the entry under **Upgrading**.

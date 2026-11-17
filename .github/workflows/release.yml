@@ -1,6 +1,7 @@
 name: Release
 
-# Push a tag like v1.2.3 (after adding its section to CHANGELOG.md) to publish
+# `npm run release:tag` pushes a tag like v1.2.3, once `npm run release` has put
+# its section into CHANGELOG.md. The tag publishes
 # ghcr.io/<owner>/ghar:1.2.3, :1.2, :1 and :latest for amd64 and arm64.
 on:
   push:

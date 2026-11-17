@@ -68,6 +68,8 @@ jobs:
       - run: npm run lint:check
       - run: npm test
       - run: npm run test:rules
+      - run: npm run test:scripts
+      - run: node scripts/release.mjs check
       - run: vendor/bin/pint --test
       - run: vendor/bin/phpstan analyse --no-progress --memory-limit=1G
       # The feature tests render pages, which read the built Vite manifest.

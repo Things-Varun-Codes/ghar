@@ -10,8 +10,8 @@ chooses which rooms a home has** at Admin → Rooms (`/admin/rooms`); a fresh in
 shell or other mini apps.
 
 What's shipped, what's next and what's still open: **`ROADMAP.md`**. Deploy and recovery:
-**`DEPLOY.md`**. Releases: **`CHANGELOG.md`**. For contributors: **`CONTRIBUTING.md`**. This file
-is the agent and architecture reference.
+**`DEPLOY.md`**. Releases: **`CHANGELOG.md`**; how to cut one: **`RELEASE.md`**. For contributors:
+**`CONTRIBUTING.md`**. This file is the agent and architecture reference.
 
 ## Scoped rules
 
@@ -92,6 +92,10 @@ Every state the seed covers, with the ids to use, is in `.claude/rules/dev-data.
 - **Comments:** only what a reader can't get from the code: a real why, a non-obvious constraint,
   a gotcha. No narration, retold history or PHPDoc that repeats native types (keep generics PHPStan
   needs). Don't cite internal planning, ticket or audit IDs.
+- **Every change a household can notice brings its changelog entry:** a change file in `.changes/`,
+  in the same pull request (format and wording: `.changes/README.md`). The pull request title is a
+  Conventional Commits title, and the "Change file" check fails a `feat:` or `fix:` without a file.
+  Edit an unreleased file when your change touches what it describes. Never edit `CHANGELOG.md`.
 - **Don't read the lockfiles whole.** `composer.lock` (~480 KB) and `package-lock.json` (~330 KB)
   are most of a context window: use `composer show <package>` and `npm ls <package>`.
 - **Search the big stylesheets instead of reading them.** `app.css`, `themes/history.css` and
@@ -107,7 +111,8 @@ Five tiers; none replaces another. Start with [How to test locally](#how-to-test
   cancels with zero network traffic; unmounting mid-window deliberately does **not** cancel the
   delete) and `useCursorPagination`'s superseded-visit guard (an older visit's `onFinish` must not
   clear a newer visit's `navigating`). Use this tier for new hook/utility logic with branching or
-  timing. The custom ESLint rules' tests run with `npm run test:rules`.
+  timing. The custom ESLint rules' tests run with `npm run test:rules`, the release script's with
+  `npm run test:scripts`.
 - **PHPUnit — `php artisan test`.** HTTP, Inertia payload shape, DB state, policies, middleware.
   Runs on **Postgres**, like prod: the `ghar_test` database on `127.0.0.1:5432` (phpunit.xml; a real
   `DB_*` env var overrides it). Start the dev container first. `RefreshDatabase` wraps each test in a

@@ -52,6 +52,9 @@ pre-push:
           - name: smoke-routes
             # Every authenticated GET route is in scripts/smoke.mjs or on its skip-list.
             run: node scripts/check-smoke-routes.mjs
+          - name: change-files
+            # Every file in .changes/ parses, so a release can't fail on one later.
+            run: node scripts/release.mjs check
           - name: pint
             glob: '*.php'
             run: ./vendor/bin/pint --test {push_files}

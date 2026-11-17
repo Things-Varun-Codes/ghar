@@ -361,10 +361,7 @@ The build needs about 2 GB of RAM. For readable browser stack traces, set the bu
 `SENTRY_URL`, `SENTRY_AUTH_TOKEN`, `SENTRY_ORG` and `SENTRY_PROJECT`, and the build uploads
 sourcemaps. They are build-time only and never reach the running container.
 
-To cut a release, add its section to `CHANGELOG.md` and push a tag such as `v1.2.3`.
-`.github/workflows/release.yml` runs CI, builds both architectures, and publishes the images and the
-GitHub release. To rehearse one, push a pre-release tag such as `v1.2.3-rc.1`: it publishes only
-`:1.2.3-rc.1`, leaves `:1`, `:1.2` and `:latest` alone, and uses the `1.2.3` changelog section.
+Publishing a new version of the images is in [`RELEASE.md`](./RELEASE.md).
 
 ---
 
