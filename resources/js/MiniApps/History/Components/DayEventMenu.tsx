@@ -7,16 +7,16 @@ import {
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { cn } from '@/lib/utils';
-import type { CalendarEvent } from './CalendarMonth';
+import type { HistoryEvent } from '@/MiniApps/History/lib/types';
 import { firstThumb, MONTH_NAMES } from './CalendarMonth';
 
 type Props = {
     month: number; // 1-12
     day: number;
-    events: CalendarEvent[]; // length >= 2
+    events: HistoryEvent[]; // length >= 2
     size: 'compact' | 'large';
     todayClass: string; // '' or ' history-cal-today'
-    onOpen: (event: CalendarEvent, triggerEl?: HTMLElement | null) => void;
+    onOpen: (event: HistoryEvent, triggerEl?: HTMLElement | null) => void;
 };
 
 export default function DayEventMenu({

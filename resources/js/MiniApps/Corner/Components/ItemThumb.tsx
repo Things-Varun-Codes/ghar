@@ -1,7 +1,7 @@
 import { useState } from 'react';
 
 import { cn } from '@/lib/utils';
-import { ListIcon } from '@/MiniApps/Corner/lib/list-icons';
+import LinkableIcon from '@/Shell/linkables/LinkableIcon';
 
 type Props = {
     pictureUrl: string | null;
@@ -41,7 +41,7 @@ export default function ItemThumb({
                     onError={() => setBroken(pictureUrl)}
                 />
             ) : (
-                <ListIcon
+                <LinkableIcon
                     name={icon}
                     size={ICON_SIZE[size]}
                     strokeWidth={1.5}

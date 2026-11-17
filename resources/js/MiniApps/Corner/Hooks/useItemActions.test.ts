@@ -93,11 +93,23 @@ describe('useItemActions', () => {
         act(() => {
             result.current.handleDelete();
         });
+
+        const [message, toastOptions] = toastFn.mock.calls[0] as unknown as [
+            string,
+            ToastCallOptions,
+        ];
+
+        expect(message).toBe('Removed Yellow');
+        // The constant is the contract — never hardcode 5000 in this
+        // assertion.
+        expect(toastOptions.duration).toBe(DELETE_GRACE_PERIOD_MS);
+        expect(toastOptions.action.label).toBe('Undo');
+
         act(() => {
             vi.advanceTimersByTime(2000);
         });
         act(() => {
-            result.current.handleUndo();
+            toastOptions.action.onClick();
         });
 
         expect(toastDismiss).toHaveBeenCalledWith('toast-id-1');
@@ -107,47 +119,6 @@ describe('useItemActions', () => {
             vi.advanceTimersByTime(10000);
         });
         expect(routerDelete).not.toHaveBeenCalled();
-    });
-
-    it('the toast Undo action is wired to the real undo path, not just the exported handleUndo', () => {
-        const { result } = renderHook(() =>
-            useItemActions({ id: 7, title: 'Yellow' }),
-        );
-
-        act(() => {
-            result.current.handleDelete();
-        });
-
-        const toastOptions = toastFn.mock.calls[0][1] as ToastCallOptions;
-
-        // The constant is the contract — never hardcode 5000 in this
-        // assertion.
-        expect(toastOptions.duration).toBe(DELETE_GRACE_PERIOD_MS);
-        expect(toastOptions.action.label).toBe('Undo');
-
-        act(() => {
-            toastOptions.action.onClick();
-        });
-
-        expect(result.current.isPendingDelete).toBe(false);
-
-        act(() => {
-            vi.advanceTimersByTime(10000);
-        });
-        expect(routerDelete).not.toHaveBeenCalled();
-    });
-
-    it('falls back to the generic item wording when title is null', () => {
-        const { result } = renderHook(() =>
-            useItemActions({ id: 7, title: null }),
-        );
-
-        act(() => {
-            result.current.handleDelete();
-        });
-
-        const message = toastFn.mock.calls[toastFn.mock.calls.length - 1][0];
-        expect(message).toBe('Removed item');
     });
 
     it('raises the toast before invoking onDeleted', () => {

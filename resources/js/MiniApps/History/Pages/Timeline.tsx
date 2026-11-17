@@ -1,62 +1,25 @@
-import { router, usePage } from '@inertiajs/react';
 import { Plus } from 'lucide-react';
-import { useEffect, useMemo, useRef, useState } from 'react';
-import { captureSilent } from '@/lib/observability';
-import type { EventPermissions } from '@/MiniApps/History/Components/CalendarMonth';
+import { useMemo, useState } from 'react';
 import EventCard from '@/MiniApps/History/Components/EventCard';
 import EventSheet from '@/MiniApps/History/Components/EventSheet';
-import type { MediaItem } from '@/MiniApps/History/Components/MediaGrid';
 import SortDropdown from '@/MiniApps/History/Components/SortDropdown';
 import YearBanner from '@/MiniApps/History/Components/YearBanner';
 import YearJumpRail from '@/MiniApps/History/Components/YearJumpRail';
 import { useConversionPolling } from '@/MiniApps/History/Hooks/useConversionPolling';
 import { useMomentFromUrl } from '@/MiniApps/History/Hooks/useMomentFromUrl';
 import HistoryLayout from '@/MiniApps/History/Layouts/HistoryLayout';
+import type { HistoryEvent } from '@/MiniApps/History/lib/types';
 import { timeline } from '@/routes/apps/our-history';
 import EmptyState from '@/Shell/Components/EmptyState';
 import Fab from '@/Shell/Components/Fab';
-import type { Auth } from '@/types/auth';
-
-type Change = {
-    id: number;
-    action: string;
-    summary: string;
-    user_name: string;
-    created_at: string;
-};
-
-type HistoryEvent = {
-    id: number;
-    date: string;
-    date_label: string;
-    year: number;
-    title: string | null;
-    location_freetext: string | null;
-    location_place_id: string | null;
-    location_name: string | null;
-    location_address: string | null;
-    location_lat: number | null;
-    location_lng: number | null;
-    body_html: string | null;
-    body_markdown: string | null;
-    created_at: string;
-    updated_at: string;
-    media: MediaItem[];
-    changes: Change[];
-    can: EventPermissions;
-};
-
-type PaginatedEvents = {
-    data: HistoryEvent[];
-    next_page_url: string | null;
-    next_cursor: string | null;
-    prev_cursor: string | null;
-};
+import ListLoadMoreState from '@/Shell/Components/ListLoadMoreState';
+import { useCursorPagination } from '@/Shell/Hooks/useCursorPagination';
+import type { CursorPaginator } from '@/Shell/Hooks/useCursorPagination';
 
 type SortOrder = 'newest-first' | 'oldest-first';
 
 type Props = {
-    events: PaginatedEvents;
+    events: CursorPaginator<HistoryEvent>;
     order: SortOrder;
     eventsCount: number;
     lastEventOccurredOn: string | null;
@@ -150,16 +113,6 @@ export default function Timeline({
         : null;
 
     const countLine = buildHistoryLine(eventsCount, daysSinceLast);
-    const { auth } = usePage<{ auth: Auth }>().props;
-    const userRole: 'admin' | 'user' | 'guest' = auth.user
-        ? auth.user.roles?.[0] === 'admin'
-            ? 'admin'
-            : 'user'
-        : 'guest';
-    const userRoleRef = useRef(userRole);
-    useEffect(() => {
-        userRoleRef.current = userRole;
-    }, [userRole]);
 
     const [sheetOpen, setSheetOpen] = useState(false);
     const [sheetMode, setSheetMode] = useState<'add' | 'edit' | 'read'>('add');
@@ -171,122 +124,33 @@ export default function Timeline({
         setSheetOpen(true);
     });
 
-    const [accumulatedEvents, setAccumulatedEvents] = useState<HistoryEvent[]>(
-        initialEvents.data,
-    );
-    const [paginatorMeta, setPaginatorMeta] = useState({
-        next_page_url: initialEvents.next_page_url,
+    const {
+        items: loadedEvents,
+        sentinelRef,
+        loadingMore,
+        loadError,
+        retryLoadMore,
+        refreshInPlace,
+    } = useCursorPagination<HistoryEvent>({
+        initial: initialEvents,
+        propName: 'events',
     });
-    const [loadingMore, setLoadingMore] = useState(false);
-    const sentinelRef = useRef<HTMLDivElement>(null);
 
-    useEffect(() => {
-        // eslint-disable-next-line react-hooks/set-state-in-effect -- re-seeds accumulated pages from fresh Inertia props
-        setAccumulatedEvents(initialEvents.data);
-        setPaginatorMeta({
-            next_page_url: initialEvents.next_page_url,
-        });
-        // eslint-disable-next-line react-hooks/exhaustive-deps -- keyed on the query: keying on the data would reset on every appended page
-    }, [order, eventsCount]);
-
-    useEffect(() => {
-        const sentinel = sentinelRef.current;
-
-        if (!sentinel) {
-            return;
-        }
-
-        const observer = new IntersectionObserver(
-            (entries) => {
-                const entry = entries[0];
-
-                if (
-                    entry.isIntersecting &&
-                    paginatorMeta.next_page_url &&
-                    !loadingMore
-                ) {
-                    setLoadingMore(true);
-                    router.get(
-                        paginatorMeta.next_page_url,
-                        {},
-                        {
-                            preserveScroll: true,
-                            preserveState: true,
-                            // A cursor URL in the address bar would make a hard refresh load only
-                            // the after-cursor slice.
-                            preserveUrl: true,
-                            only: ['events'],
-                            onSuccess: (page) => {
-                                const newEvents = page.props
-                                    .events as PaginatedEvents;
-                                setAccumulatedEvents((prev) => [
-                                    ...prev,
-                                    ...newEvents.data,
-                                ]);
-                                setPaginatorMeta({
-                                    next_page_url: newEvents.next_page_url,
-                                });
-                                setLoadingMore(false);
-                            },
-                            onError: (errors) => {
-                                captureSilent(
-                                    new Error(
-                                        'event.timeline-load-more failed',
-                                    ),
-                                    {
-                                        component: 'History/Timeline',
-                                        action: 'event.timeline-load-more',
-                                        surface: 'frontend',
-                                        user_role: userRoleRef.current,
-                                        extra: {
-                                            payload: {
-                                                next_page_url:
-                                                    paginatorMeta.next_page_url,
-                                                errors,
-                                            },
-                                        },
-                                    },
-                                );
-                                setLoadingMore(false);
-                            },
-                        },
-                    );
-                }
-            },
-            { rootMargin: '200px' },
-        );
-
-        observer.observe(sentinel);
-
-        return () => observer.disconnect();
-    }, [paginatorMeta.next_page_url, loadingMore]);
-
-    const hasPendingMedia = accumulatedEvents.some((e) =>
+    const hasPendingMedia = loadedEvents.some((e) =>
         e.media.some((m) => m.pending),
     );
-    useConversionPolling(hasPendingMedia, () => {
-        router.reload({
-            only: ['events'],
-            onSuccess: (page) => {
-                const fresh = (page.props.events as PaginatedEvents).data;
-                const byId = new Map(fresh.map((e) => [e.id, e]));
-                setAccumulatedEvents((prev) =>
-                    prev.map((e) => byId.get(e.id) ?? e),
-                );
-            },
-        });
-    });
+    useConversionPolling(hasPendingMedia, refreshInPlace);
 
     const yearGroups = useMemo(
-        () => groupByYear(accumulatedEvents, order),
-        [accumulatedEvents, order],
+        () => groupByYear(loadedEvents, order),
+        [loadedEvents, order],
     );
     const distinctYears = useMemo(
         () => yearGroups.map((g) => g.year),
         [yearGroups],
     );
 
-    const isEmpty = accumulatedEvents.length === 0;
+    const isEmpty = loadedEvents.length === 0;
 
     return (
         <HistoryLayout
@@ -363,7 +227,7 @@ export default function Timeline({
                                         event={event}
                                         onRead={(id) => {
                                             const target =
-                                                accumulatedEvents.find(
+                                                loadedEvents.find(
                                                     (e) => e.id === id,
                                                 ) ?? null;
                                             setEditingEvent(target);
@@ -376,23 +240,12 @@ export default function Timeline({
                         </div>
                     ))}
 
-                    {loadingMore && (
-                        <div
-                            className="pb-4"
-                            role="status"
-                            aria-busy="true"
-                            aria-label="Loading more"
-                        >
-                            {[1, 2, 3].map((i) => (
-                                <div
-                                    key={i}
-                                    className="history-skeleton-block shell-skeleton"
-                                />
-                            ))}
-                        </div>
-                    )}
-
-                    <div ref={sentinelRef} className="h-[1px]" />
+                    <ListLoadMoreState
+                        loadingMore={loadingMore}
+                        loadError={loadError}
+                        onRetry={retryLoadMore}
+                        sentinelRef={sentinelRef}
+                    />
                 </div>
             )}
 

@@ -9,19 +9,10 @@ export type ListSettings = {
     notify_on_add: boolean;
 };
 
-/* Ready answers for "what is a finished one called". Any word can be typed instead. */
-export const DONE_WORDS = [
-    'Done',
-    'Loved',
-    'Watched',
-    'Visited',
-    'Read',
-    'Cooked',
-    'Played',
-    'Tried',
-];
-
-/* The word for the ones not done yet, when a done word is picked from the chips. */
+/*
+ * Ready answers for "what is a finished one called", each with the word for the ones not done
+ * yet, filled in when the chip is picked. Any word can be typed instead.
+ */
 export const TODO_FOR_DONE: Record<string, string> = {
     Done: 'To do',
     Loved: 'Playlist',
@@ -32,6 +23,8 @@ export const TODO_FOR_DONE: Record<string, string> = {
     Played: 'To play',
     Tried: 'To try',
 };
+
+export const DONE_WORDS = Object.keys(TODO_FOR_DONE);
 
 /* A fresh room offers these, one tap each. Only the name is checked against what exists. */
 export const SUGGESTED_LISTS: ListSettings[] = [

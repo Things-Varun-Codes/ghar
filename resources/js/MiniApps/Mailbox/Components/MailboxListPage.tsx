@@ -4,9 +4,10 @@ import type { ComponentProps, ReactNode } from 'react';
 import { useEffect, useMemo } from 'react';
 
 import { scrollBehavior } from '@/lib/motion';
-import EmptyState, { noMatchesTitle } from '@/Shell/Components/EmptyState';
+import { MAILBOX_ROOM } from '@/MiniApps/Mailbox/Layouts/MailboxLayout';
+import CursorListBody from '@/Shell/Components/CursorListBody';
+import EmptyState from '@/Shell/Components/EmptyState';
 import Fab from '@/Shell/Components/Fab';
-import ListLoadMoreState from '@/Shell/Components/ListLoadMoreState';
 import ListNavBand from '@/Shell/Components/ListNavBand';
 import type { SortItem } from '@/Shell/Components/ListNavBand';
 import Page from '@/Shell/Components/Page';
@@ -72,20 +73,11 @@ export default function MailboxListPage<
 }: MailboxListPageProps<TItem, TTab>) {
     const { url } = usePage();
 
-    // Sort and query are in the reset key because navigate() uses preserveState: true.
-    const {
-        items,
-        sentinelRef,
-        loadingMore,
-        navigate,
-        navigating,
-        loadError,
-        retryLoadMore,
-    } = useCursorPagination<TItem>({
+    const pagination = useCursorPagination<TItem>({
         initial: paginator,
         propName,
-        resetKey: [tab, sort ?? '', query ?? ''],
     });
+    const { navigate } = pagination;
 
     const focusedId = useMemo(() => {
         const raw = new URL(url, 'http://ghar.invalid').searchParams.get(
@@ -121,7 +113,6 @@ export default function MailboxListPage<
         return () => window.clearTimeout(id);
     }, [focusedId]);
 
-    const isEmpty = items.length === 0;
     const searching = Boolean(query && query.trim() !== '');
     const noun = countAll === 1 ? countNoun.one : countNoun.other;
 
@@ -129,7 +120,7 @@ export default function MailboxListPage<
         <>
             <Page
                 title={pageTitle}
-                room="Our Mailbox"
+                room={MAILBOX_ROOM}
                 backChevron
                 fab={
                     <Fab
@@ -146,7 +137,7 @@ export default function MailboxListPage<
                 }
             >
                 <ListNavBand
-                    navigating={navigating}
+                    navigating={pagination.navigating}
                     count={
                         <span className="text-(length:--text-eyebrow) text-(--mailbox-ink-soft)">
                             {countAll} {noun}
@@ -172,35 +163,21 @@ export default function MailboxListPage<
                     }
                 />
 
-                <div
-                    className={navigating ? 'shell-list-pending' : undefined}
-                    aria-busy={navigating}
-                >
-                    {isEmpty && searching ? (
-                        <EmptyState
-                            title={noMatchesTitle(countNoun.other, query ?? '')}
-                            body="Try another word, or clear the search to see everything."
-                            query={query}
-                            onClearSearch={() => navigate({ q: undefined })}
-                        />
-                    ) : isEmpty ? (
+                <CursorListBody
+                    list={pagination}
+                    query={query ?? ''}
+                    noMatchesNoun={countNoun.other}
+                    noMatchesBody="Try another word, or clear the search to see everything."
+                    empty={
                         <EmptyState
                             icon={emptyIcon}
                             title={emptyTitle}
                             body={emptyBody}
                         />
-                    ) : (
-                        <div className="mailbox-feed">
-                            {items.map((item) => renderItem(item, focusedId))}
-                            <ListLoadMoreState
-                                loadingMore={loadingMore}
-                                loadError={loadError}
-                                onRetry={retryLoadMore}
-                                sentinelRef={sentinelRef}
-                            />
-                        </div>
-                    )}
-                </div>
+                    }
+                    renderItem={(item) => renderItem(item, focusedId)}
+                    listClassName="mailbox-feed"
+                />
             </Page>
 
             {children}

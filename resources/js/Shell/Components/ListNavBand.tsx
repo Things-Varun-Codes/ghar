@@ -2,12 +2,12 @@ import { Search, X } from 'lucide-react';
 import type { ReactNode } from 'react';
 import { useEffect, useRef, useState } from 'react';
 
-import ListSortControl from '@/Shell/Components/ListSortControl';
-import type { SortItem } from '@/Shell/Components/ListSortControl';
+import ChoiceMenu from '@/Shell/Components/ChoiceMenu';
+import type { ChoiceItem } from '@/Shell/Components/ChoiceMenu';
 import { Spinner } from '@/Shell/Components/Spinner';
 import Toolbar from '@/Shell/Components/Toolbar';
 
-export type { SortItem };
+export type SortItem = ChoiceItem;
 
 export type ListNavBandProps = {
     count?: ReactNode;
@@ -115,8 +115,9 @@ export default function ListNavBand({
         ) : null;
 
     const sortNode = sortItems ? (
-        <ListSortControl
-            sort={sort ?? 'recent'}
+        <ChoiceMenu
+            label="Sort"
+            value={sort ?? 'recent'}
             items={sortItems}
             onSelect={onSortSelect}
         />

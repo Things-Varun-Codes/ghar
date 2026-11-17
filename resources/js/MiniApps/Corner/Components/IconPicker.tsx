@@ -41,9 +41,9 @@ import {
     sectionAt,
     visibleRows,
 } from '@/MiniApps/Corner/lib/icon-picker';
-import { ListIcon } from '@/MiniApps/Corner/lib/list-icons';
 import ErrorState from '@/Shell/Components/ErrorState';
 import LoadingState from '@/Shell/Components/LoadingState';
+import LinkableIcon from '@/Shell/linkables/LinkableIcon';
 import type { IconIndex, IconPaths } from '@/Shell/linkables/lucide';
 import {
     iconLabel,
@@ -108,7 +108,7 @@ export default function IconPicker({
             className="corner-icon-trigger shell-press"
         >
             <span className="corner-icon-trigger-mark">
-                <ListIcon name={value} size={22} strokeWidth={1.5} />
+                <LinkableIcon name={value} size={22} strokeWidth={1.5} />
             </span>
             <span className="corner-icon-trigger-name">{iconLabel(value)}</span>
             <span className="corner-icon-trigger-action">
@@ -589,7 +589,7 @@ function GridRow({
                         className="corner-icon-option"
                         style={{ width: CELL, height: CELL }}
                     >
-                        <ListIcon name={icon} size={20} strokeWidth={1.5} />
+                        <LinkableIcon name={icon} size={20} strokeWidth={1.5} />
                     </div>
                 );
             })}

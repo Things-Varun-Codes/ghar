@@ -57,7 +57,6 @@ export default function Item({ list, item, mentioned_in }: Props) {
     const itemActions = useItemActions({
         id: item.id,
         title: item.title,
-        onOpenEdit: () => setEditOpen(true),
         onDeleted: () => router.visit(listUrl),
     });
 
@@ -75,6 +74,7 @@ export default function Item({ list, item, mentioned_in }: Props) {
                 doneIcon={list.done_icon}
                 doneLabel={list.done_label}
                 itemActions={itemActions}
+                onEdit={() => setEditOpen(true)}
                 hero={
                     <ItemThumb
                         pictureUrl={item.picture_url}

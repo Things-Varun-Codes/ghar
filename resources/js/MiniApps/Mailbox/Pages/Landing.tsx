@@ -1,10 +1,10 @@
-import { Link } from '@inertiajs/react';
 import { Flower2 } from 'lucide-react';
 import type { ReactNode } from 'react';
-import { useId } from 'react';
 
 import { cn } from '@/lib/utils';
-import MailboxLayout from '@/MiniApps/Mailbox/Layouts/MailboxLayout';
+import MailboxLayout, {
+    MAILBOX_ROOM,
+} from '@/MiniApps/Mailbox/Layouts/MailboxLayout';
 import { monogram } from '@/MiniApps/Mailbox/lib/monogram';
 import { index as citationsIndex } from '@/routes/apps/our-mailbox/citations';
 import { index as couponsIndex } from '@/routes/apps/our-mailbox/coupons';
@@ -12,6 +12,7 @@ import { index as flowersIndex } from '@/routes/apps/our-mailbox/flowers';
 import { index as messagesIndex } from '@/routes/apps/our-mailbox/messages';
 import EmptyState from '@/Shell/Components/EmptyState';
 import Page from '@/Shell/Components/Page';
+import RoomDoor from '@/Shell/Components/RoomDoor';
 
 type Counts = {
     messages: number;
@@ -20,7 +21,7 @@ type Counts = {
     coupons: number;
 };
 
-type MailboxSummaryShared = {
+type MailboxSummary = {
     counts: Counts;
     unread_messages: number;
     unread_flowers: number;
@@ -55,19 +56,13 @@ type MailboxPeeks = {
 };
 
 type Props = {
-    types?: string[];
-    mailboxSummary?: MailboxSummaryShared | null;
-    mailboxPeeks?: MailboxPeeks | null;
+    /* The entry types switched on. */
+    types: string[];
+    mailboxSummary: MailboxSummary;
+    mailboxPeeks: MailboxPeeks;
 };
 
 type Live = { text: string; alert: boolean };
-
-const EMPTY_COUNTS: Counts = {
-    messages: 0,
-    citations: 0,
-    flowers: 0,
-    coupons: 0,
-};
 
 const MAX_PIPS = 10;
 
@@ -96,34 +91,22 @@ function MailboxDoor({
     live: Live;
     peek: ReactNode;
 }) {
-    const liveId = useId();
-
     return (
-        <article className="mailbox-card mailbox-door shell-card-stretch shell-lift">
-            <div className="mailbox-door-peek" aria-hidden="true">
-                {peek}
-            </div>
-            <h2 className="mailbox-door-name">
-                <Link
-                    href={href}
-                    // Notes and flowers mark themselves read when fetched: never prefetched.
-                    prefetch={prefetch ? 'hover' : false}
-                    aria-describedby={liveId}
-                    className="shell-card-link"
-                >
-                    {title}
-                </Link>
-            </h2>
-            <p
-                id={liveId}
-                className={cn(
-                    'mailbox-door-live',
-                    live.alert && 'mailbox-door-live--alert',
-                )}
-            >
-                {live.text}
-            </p>
-        </article>
+        <RoomDoor
+            href={href}
+            // Notes and flowers mark themselves read when fetched: never prefetched.
+            prefetch={prefetch ? 'hover' : false}
+            name={title}
+            peek={peek}
+            live={live.text}
+            className="mailbox-card mailbox-door"
+            peekClassName="mailbox-door-peek"
+            nameClassName="mailbox-door-name"
+            liveClassName={cn(
+                'mailbox-door-live',
+                live.alert && 'mailbox-door-live--alert',
+            )}
+        />
     );
 }
 
@@ -263,15 +246,15 @@ function CouponStub({ coupon }: { coupon: CouponPeek | null }) {
 }
 
 export default function Landing({
-    types = [],
+    types,
     mailboxSummary,
     mailboxPeeks,
 }: Props) {
-    const counts = mailboxSummary?.counts ?? EMPTY_COUNTS;
+    const { counts } = mailboxSummary;
 
     return (
         <MailboxLayout>
-            <Page title="Our Mailbox" documentTitle="Our Mailbox" backChevron>
+            <Page title={MAILBOX_ROOM} documentTitle={MAILBOX_ROOM} backChevron>
                 {types.length === 0 && (
                     <EmptyState
                         title="Nothing is switched on in the Mailbox"
@@ -286,7 +269,7 @@ export default function Landing({
                             prefetch={false}
                             live={
                                 waiting(
-                                    mailboxSummary?.unread_messages ?? 0,
+                                    mailboxSummary.unread_messages,
                                     'unread',
                                 ) ??
                                 tally(
@@ -296,9 +279,7 @@ export default function Landing({
                                     'None yet. Write one?',
                                 )
                             }
-                            peek={
-                                <NoteScrap note={mailboxPeeks?.notes ?? null} />
-                            }
+                            peek={<NoteScrap note={mailboxPeeks.notes} />}
                         />
                     )}
                     {types.includes('flowers') && (
@@ -308,7 +289,7 @@ export default function Landing({
                             prefetch={false}
                             live={
                                 waiting(
-                                    mailboxSummary?.unread_flowers ?? 0,
+                                    mailboxSummary.unread_flowers,
                                     'unseen',
                                 ) ??
                                 tally(
@@ -320,7 +301,7 @@ export default function Landing({
                             }
                             peek={
                                 <BouquetGlimpse
-                                    bouquet={mailboxPeeks?.flowers ?? null}
+                                    bouquet={mailboxPeeks.flowers}
                                 />
                             }
                         />
@@ -332,8 +313,7 @@ export default function Landing({
                             prefetch
                             live={
                                 waiting(
-                                    mailboxSummary?.citations_action_needed ??
-                                        0,
+                                    mailboxSummary.citations_action_needed,
                                     'to pay',
                                 ) ??
                                 tally(
@@ -345,7 +325,7 @@ export default function Landing({
                             }
                             peek={
                                 <CitationSlice
-                                    citation={mailboxPeeks?.citations ?? null}
+                                    citation={mailboxPeeks.citations}
                                 />
                             }
                         />
@@ -357,7 +337,7 @@ export default function Landing({
                             prefetch
                             live={
                                 waiting(
-                                    mailboxSummary?.coupons_action_needed ?? 0,
+                                    mailboxSummary.coupons_action_needed,
                                     'to fulfil',
                                 ) ??
                                 tally(
@@ -367,11 +347,7 @@ export default function Landing({
                                     'No coupons yet',
                                 )
                             }
-                            peek={
-                                <CouponStub
-                                    coupon={mailboxPeeks?.coupons ?? null}
-                                />
-                            }
+                            peek={<CouponStub coupon={mailboxPeeks.coupons} />}
                         />
                     )}
                 </div>

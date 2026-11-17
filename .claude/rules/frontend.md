@@ -35,9 +35,14 @@ paths:
 - **Routing: Wayfinder only.** Import typed helpers from `resources/js/routes/**`
   (`import { route as adminRoute } from '@/routes/admin'`). Ziggy is gone; a bare `route()` global
   call is a hard error.
-- **Corner and Mailbox list rows:** a mutation that doesn't move the list's reset key must pass
-  `preserveState: false`, or the list shows a stale row. Mailbox create sheets use
-  `preserveState: 'errors'`.
+- **Cursor lists** (Corner, Mailbox, History's Timeline and Gallery) keep their loaded rows in
+  `useCursorPagination`, which re-seeds from any server response that carries the list (a
+  mutation's redirect, a reload, a filter, sort or search visit) and from a page restored from
+  history; only its own load-more appends, and `refreshInPlace()` updates the shown rows without
+  dropping later pages. So a mutation needs no `preserveState: false` to show fresh rows. A partial
+  reload whose `only` leaves the list out doesn't touch it. Mailbox create sheets use
+  `preserveState: 'errors'`. The shared body (rows, empty and no-matches states, load-more
+  footer, pending dim) is `Shell/Components/CursorListBody`.
 - **Prefetch only side-effect-free pages.** `<Link prefetch="mount">` is on the Home doors, the
   Corner landing cards (the first four) and the History tabs; `lib/stale-history.ts` drops the prefetch cache after any non-GET
   visit. Never prefetch a page whose GET changes something: Mailbox Messages and Flowers mark

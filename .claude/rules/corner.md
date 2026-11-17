@@ -84,7 +84,8 @@ its own lists; nothing about Songs or Movies is hard-coded any more.
 Applies to every list.
 
 - **`useItemActions`** (`resources/js/MiniApps/Corner/Hooks/useItemActions.ts`) is the sole source
-  of Edit, Delete and Toggle-done. Don't hand-roll an Inertia mutation or a confirm dialog.
+  of Delete and Toggle-done (Edit only opens `ItemSheet`). Don't hand-roll an Inertia mutation
+  or a confirm dialog.
 - Call it **exactly once per rendered item, inside the card/tile** — never in an index page or the
   list primitive's render callback. Hoisting it hides every row on a single delete, silently.
 - **`DetailPage`** owns the frame (two-column grid, back-reference sidebar, meta, actions, done

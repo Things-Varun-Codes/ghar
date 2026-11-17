@@ -1,8 +1,7 @@
 import { router } from '@inertiajs/react';
 import { Images } from 'lucide-react';
-import { useEffect, useRef, useState } from 'react';
+import { useRef } from 'react';
 
-import { captureSilent } from '@/lib/observability';
 import FilterRail from '@/MiniApps/History/Components/FilterRail';
 import FilterSegmented from '@/MiniApps/History/Components/FilterSegmented';
 import MasonryGrid from '@/MiniApps/History/Components/MasonryGrid';
@@ -14,6 +13,8 @@ import { useConversionPolling } from '@/MiniApps/History/Hooks/useConversionPoll
 import HistoryLayout from '@/MiniApps/History/Layouts/HistoryLayout';
 import { gallery } from '@/routes/apps/our-history';
 import EmptyState from '@/Shell/Components/EmptyState';
+import ListLoadMoreState from '@/Shell/Components/ListLoadMoreState';
+import { useCursorPagination } from '@/Shell/Hooks/useCursorPagination';
 
 type PaginatedMedia = {
     data: GalleryMediaItem[];
@@ -50,114 +51,23 @@ export default function Gallery({
     order,
 }: Props) {
     const lightboxRef = useRef<PhotoSwipeGalleryHandle>(null);
-    const sentinelRef = useRef<HTMLDivElement>(null);
 
-    const [accumulatedMedia, setAccumulatedMedia] = useState<
-        GalleryMediaItem[]
-    >(initialMedia.data);
-    const [paginatorMeta, setPaginatorMeta] = useState({
-        current_page: initialMedia.current_page,
-        last_page: initialMedia.last_page,
-        next_page_url: initialMedia.next_page_url,
+    const {
+        items: loadedMedia,
+        sentinelRef,
+        loadingMore,
+        loadError,
+        retryLoadMore,
+        refreshInPlace,
+    } = useCursorPagination<GalleryMediaItem>({
+        initial: initialMedia,
+        propName: 'media',
     });
-    const [loadingMore, setLoadingMore] = useState(false);
 
-    // Reset on a filter or order switch only; keying on the data would reset on every appended
-    // page.
-    useEffect(() => {
-        // eslint-disable-next-line react-hooks/set-state-in-effect -- re-seeds accumulated pages from fresh Inertia props
-        setAccumulatedMedia(initialMedia.data);
-        setPaginatorMeta({
-            current_page: initialMedia.current_page,
-            last_page: initialMedia.last_page,
-            next_page_url: initialMedia.next_page_url,
-        });
-        // eslint-disable-next-line react-hooks/exhaustive-deps -- keyed on the query: keying on the data would reset on every appended page
-    }, [order, filters.type, filters.year]);
-
-    useEffect(() => {
-        const sentinel = sentinelRef.current;
-
-        if (!sentinel) {
-            return;
-        }
-
-        const observer = new IntersectionObserver(
-            (entries) => {
-                const entry = entries[0];
-
-                if (
-                    entry.isIntersecting &&
-                    paginatorMeta.next_page_url &&
-                    !loadingMore
-                ) {
-                    setLoadingMore(true);
-                    router.get(
-                        paginatorMeta.next_page_url,
-                        {},
-                        {
-                            preserveScroll: true,
-                            preserveState: true,
-                            // ?page=N in the address bar would make a hard refresh load only that
-                            // slice.
-                            preserveUrl: true,
-                            only: ['media'],
-                            onSuccess: (page) => {
-                                const next = page.props.media as PaginatedMedia;
-                                setAccumulatedMedia((prev) => [
-                                    ...prev,
-                                    ...next.data,
-                                ]);
-                                setPaginatorMeta({
-                                    current_page: next.current_page,
-                                    last_page: next.last_page,
-                                    next_page_url: next.next_page_url,
-                                });
-                                setLoadingMore(false);
-                            },
-                            onError: (errors) => {
-                                captureSilent(
-                                    new Error('gallery.load-more failed'),
-                                    {
-                                        component: 'History/Gallery',
-                                        action: 'gallery.load-more',
-                                        surface: 'frontend',
-                                        extra: {
-                                            payload: {
-                                                next_page_url:
-                                                    paginatorMeta.next_page_url,
-                                                errors,
-                                            },
-                                        },
-                                    },
-                                );
-                                setLoadingMore(false);
-                            },
-                        },
-                    );
-                }
-            },
-            { rootMargin: '200px' },
-        );
-
-        observer.observe(sentinel);
-
-        return () => observer.disconnect();
-    }, [paginatorMeta.next_page_url, loadingMore]);
-
-    const hasPendingMedia = accumulatedMedia.some((m) => m.pending);
-    useConversionPolling(hasPendingMedia, () => {
-        router.reload({
-            only: ['media'],
-            onSuccess: (page) => {
-                const fresh = (page.props.media as PaginatedMedia).data;
-                const byId = new Map(fresh.map((m) => [m.id, m]));
-                setAccumulatedMedia((prev) =>
-                    prev.map((m) => byId.get(m.id) ?? m),
-                );
-            },
-        });
-    });
+    useConversionPolling(
+        loadedMedia.some((m) => m.pending),
+        refreshInPlace,
+    );
 
     const hasFilters = filters.type !== 'all' || filters.year !== null;
 
@@ -204,7 +114,7 @@ export default function Gallery({
             }
         >
             <div className="history-gallery-wide min-w-0 flex-1">
-                {accumulatedMedia.length === 0 && !hasFilters && (
+                {loadedMedia.length === 0 && !hasFilters && (
                     <EmptyState
                         icon={Images}
                         title="No photos or videos yet."
@@ -212,7 +122,7 @@ export default function Gallery({
                     />
                 )}
 
-                {accumulatedMedia.length === 0 && hasFilters && (
+                {loadedMedia.length === 0 && hasFilters && (
                     <EmptyState
                         icon={Images}
                         title={`No ${filters.type !== 'all' ? filters.type : 'photos or videos'}${filters.year ? ` in ${filters.year}` : ''}.`}
@@ -230,41 +140,30 @@ export default function Gallery({
                     />
                 )}
 
-                {accumulatedMedia.length > 0 && (
+                {loadedMedia.length > 0 && (
                     <>
-                        {/* CRITICAL: pass the flat accumulatedMedia array to BOTH MasonryGrid
+                        {/* CRITICAL: pass the flat loadedMedia array to BOTH MasonryGrid
                                 and PhotoSwipeGallery — the SAME array reference — so the
                                 round-robin tile index stays 1:1 with the lightbox index across
                                 appended pages. Never pass the paginator object to either child. */}
                         <MasonryGrid
-                            media={accumulatedMedia}
+                            media={loadedMedia}
                             onTileClick={(index) =>
                                 lightboxRef.current?.open(index)
                             }
                         />
 
-                        {loadingMore && (
-                            <div
-                                className="pt-2 pb-4"
-                                role="status"
-                                aria-busy="true"
-                                aria-label="Loading more"
-                            >
-                                {[1, 2, 3].map((i) => (
-                                    <div
-                                        key={i}
-                                        className="history-skeleton-block shell-skeleton"
-                                    />
-                                ))}
-                            </div>
-                        )}
-
-                        <div ref={sentinelRef} className="h-[1px]" />
+                        <ListLoadMoreState
+                            loadingMore={loadingMore}
+                            loadError={loadError}
+                            onRetry={retryLoadMore}
+                            sentinelRef={sentinelRef}
+                        />
                     </>
                 )}
             </div>
 
-            <PhotoSwipeGallery ref={lightboxRef} media={accumulatedMedia} />
+            <PhotoSwipeGallery ref={lightboxRef} media={loadedMedia} />
         </HistoryLayout>
     );
 }
