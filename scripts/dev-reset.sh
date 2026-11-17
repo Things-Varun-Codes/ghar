@@ -18,10 +18,12 @@ case "$(value DB_HOST)" in
   *) echo "error: DB_HOST is not local; refusing to reset this database." >&2; exit 1 ;;
 esac
 
-docker compose -f docker-compose.override.yml up -d --wait postgres mailpit
+source scripts/lib/services.sh
+ensure_services
 
 php artisan config:clear --quiet
 php artisan migrate:fresh --seed --force
+bash scripts/lib/migration-stamp.sh write
 
 node --input-type=module -e "
 import { printDevCredentials } from './scripts/lib/dev-data.mjs';

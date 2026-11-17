@@ -1,0 +1,17 @@
+{
+    "worktree": {
+        "setup": "bash scripts/worktree-setup.sh",
+        "teardown": "bash scripts/worktree-teardown.sh"
+    },
+    "metadataGeneration": {
+        "branchName": {
+            "instructions": "Prefix with the change type: feat/, fix/, docs/, test/, chore/. Lowercase words joined by hyphens."
+        },
+        "commitMessage": {
+            "instructions": "Conventional Commits, lowercase subject, no trailing period. A scope only where the repo already uses one, e.g. chore(deps)."
+        },
+        "pullRequest": {
+            "instructions": "Sections: Problem, Fix, Testing. Say what was run and the result."
+        }
+    }
+}
