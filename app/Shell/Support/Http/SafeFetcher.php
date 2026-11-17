@@ -1,6 +1,6 @@
 <?php
 
-namespace App\MiniApps\Corner\Services;
+namespace App\Shell\Support\Http;
 
 use Closure;
 use GuzzleHttp\Psr7\Uri;
@@ -11,7 +11,7 @@ use Psr\Http\Message\ResponseInterface;
 use Throwable;
 
 /**
- * The only way Corner reaches an address someone pasted. People paste anything, and the server
+ * The only way the app reaches an address someone pasted. People paste anything, and the server
  * must never be talked into fetching from inside the network it runs in, so every hop is held
  * to these rules:
  *

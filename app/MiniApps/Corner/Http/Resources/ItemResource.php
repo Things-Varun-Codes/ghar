@@ -28,18 +28,14 @@ class ItemResource
             'picture_url' => $item->pictureUrl(),
             'location_label' => $item->location_label,
             'location_url' => $item->location_url,
-            'place_id' => $item->place_id,
             'lat' => $item->lat === null ? null : (float) $item->lat,
             'lng' => $item->lng === null ? null : (float) $item->lng,
             'address' => $item->address,
-            'added_at' => $item->added_at->toIso8601String(),
-            'done_at' => $item->done_at?->toIso8601String(),
             'is_done' => $item->done_at !== null,
             'can' => [
                 'update' => Gate::allows('update', $item),
                 'delete' => Gate::allows('delete', $item),
             ],
-            'added_by_user_id' => $item->added_by_user_id,
             'addedBy' => [
                 'id' => $item->addedBy->id,
                 'name' => $item->addedBy->name,

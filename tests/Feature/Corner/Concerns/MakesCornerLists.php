@@ -4,12 +4,14 @@ namespace Tests\Feature\Corner\Concerns;
 
 use App\MiniApps\Corner\Models\CornerList;
 use App\MiniApps\Corner\Models\Item;
-use App\MiniApps\Corner\Services\SafeFetcher;
 use App\Shell\Models\User;
 use InvalidArgumentException;
+use Tests\Feature\Shell\Concerns\FakesPublicDns;
 
 trait MakesCornerLists
 {
+    use FakesPublicDns;
+
     /** The four lists an upgraded install has. */
     protected function songs(): CornerList
     {
@@ -40,15 +42,6 @@ trait MakesCornerLists
             'places' => $this->places(),
             default => throw new InvalidArgumentException("No list called {$slug}."),
         };
-    }
-
-    /**
-     * Every host resolves to one public address, so SafeFetcher lets the fetch through to
-     * Http::fake without a DNS lookup.
-     */
-    protected function publicDns(string $address = '93.184.216.34'): void
-    {
-        $this->app->instance(SafeFetcher::class, new SafeFetcher(fn (): array => [$address]));
     }
 
     /**

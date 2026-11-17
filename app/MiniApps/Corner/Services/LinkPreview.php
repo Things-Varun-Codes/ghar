@@ -2,8 +2,10 @@
 
 namespace App\MiniApps\Corner\Services;
 
+use App\MiniApps\Corner\Support\ItemRules;
 use App\MiniApps\Corner\Support\LinkKey;
 use App\MiniApps\Corner\Support\PictureCache;
+use App\Shell\Support\Http\SafeFetcher;
 use DOMDocument;
 use DOMElement;
 use DOMXPath;
@@ -193,7 +195,7 @@ class LinkPreview
             return null;
         }
 
-        return preg_match('#^https?://#i', $url) === 1 && strlen($url) <= 2048 ? $url : null;
+        return ItemRules::isWebUrl($url) && strlen($url) <= 2048 ? $url : null;
     }
 
     private static function clean(?string $text, int $max): ?string

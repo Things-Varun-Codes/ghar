@@ -3,6 +3,7 @@
 namespace App\MiniApps\Corner\Controllers;
 
 use App\MiniApps\Corner\Services\LinkPreview;
+use App\MiniApps\Corner\Support\ItemRules;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -12,7 +13,7 @@ class LinkPreviewController
     public function preview(Request $request, LinkPreview $preview): JsonResponse
     {
         $validated = $request->validate([
-            'url' => ['required', 'string', 'url:http,https', 'max:2048'],
+            'url' => ['required', 'string', ItemRules::WEB_URL, 'max:2048'],
         ]);
 
         $found = $preview->lookup($validated['url']);

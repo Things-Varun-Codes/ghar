@@ -18,6 +18,12 @@ final class LinkKey
         return $normal === null ? null : hash('sha256', $normal);
     }
 
+    /** @return array{url: string, url_key: ?string, site_name: ?string} */
+    public static function columnsFor(string $url): array
+    {
+        return ['url' => $url, 'url_key' => self::for($url), 'site_name' => self::siteOf($url)];
+    }
+
     public static function normalise(string $url): ?string
     {
         $parts = parse_url(trim($url));

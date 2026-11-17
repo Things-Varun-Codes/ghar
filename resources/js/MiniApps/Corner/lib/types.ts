@@ -31,14 +31,10 @@ export type CornerItem = {
     picture_url: string | null;
     location_label: string | null;
     location_url: string | null;
-    place_id: string | null;
     lat: number | null;
     lng: number | null;
     address: string | null;
-    added_at: string;
-    done_at: string | null;
     is_done: boolean;
     can: ItemPermissions;
-    added_by_user_id: number;
     addedBy: { id: number; name: string };
 };

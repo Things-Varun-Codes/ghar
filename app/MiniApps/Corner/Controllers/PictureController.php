@@ -3,6 +3,7 @@
 namespace App\MiniApps\Corner\Controllers;
 
 use App\MiniApps\Corner\Models\Item;
+use App\MiniApps\Corner\Support\ItemRules;
 use App\MiniApps\Corner\Support\PictureCache;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
@@ -29,14 +30,14 @@ class PictureController
      */
     public function preview(Request $request, PictureCache $cache): BinaryFileResponse
     {
-        $validated = $request->validate(['url' => ['required', 'string', 'url:http,https', 'max:2048']]);
+        $validated = $request->validate(['url' => ['required', 'string', ItemRules::WEB_URL, 'max:2048']]);
 
         return $this->serve($validated['url'], $cache, self::PREVIEW_MAX_AGE_SECONDS, immutable: false);
     }
 
     private function serve(?string $source, PictureCache $cache, int $maxAge, bool $immutable): BinaryFileResponse
     {
-        abort_if($source === null || ! preg_match('#^https?://#i', $source), 404);
+        abort_if($source === null || ! ItemRules::isWebUrl($source), 404);
 
         $picture = $cache->get($source);
         abort_if($picture === null, 404);

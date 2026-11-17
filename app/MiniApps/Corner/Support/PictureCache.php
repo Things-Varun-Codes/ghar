@@ -2,7 +2,7 @@
 
 namespace App\MiniApps\Corner\Support;
 
-use App\MiniApps\Corner\Services\SafeFetcher;
+use App\Shell\Support\Http\SafeFetcher;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\File;
 

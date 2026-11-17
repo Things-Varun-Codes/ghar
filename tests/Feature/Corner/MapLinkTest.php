@@ -2,8 +2,8 @@
 
 namespace Tests\Feature\Corner;
 
-use App\MiniApps\Corner\Services\SafeFetcher;
 use App\MiniApps\Corner\Support\MapLink;
+use App\Shell\Support\Http\SafeFetcher;
 use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Support\Facades\Http;
 use PHPUnit\Framework\Attributes\DataProvider;
@@ -90,6 +90,31 @@ class MapLinkTest extends TestCase
             'lat' => 12.9563,
             'lng' => 77.573,
         ], MapLink::read('https://maps.example.com/?q=Vidyarthi+Bhavan', $this->fetcher()));
+    }
+
+    public function test_where_a_short_link_goes_is_remembered(): void
+    {
+        Http::fake([
+            'short.example/*' => Http::response('', 302, ['Location' => 'https://maps.example.com/maps/place/Nandi+Hills/@13.3702,77.6835,14z']),
+            'maps.example.com/*' => Http::response('<html></html>', 200, ['Content-Type' => 'text/html']),
+        ]);
+
+        $first = MapLink::read('https://short.example/abc123', $this->fetcher());
+        Http::assertSentCount(2);
+
+        $this->assertEquals($first, MapLink::read('https://short.example/abc123', $this->fetcher()));
+        Http::assertSentCount(2);
+    }
+
+    public function test_a_short_link_that_could_not_be_followed_is_not_retried_straight_away(): void
+    {
+        Http::fake(fn () => throw new ConnectionException('timed out'));
+
+        MapLink::read('https://short.example/dead', $this->fetcher());
+        $sent = count(Http::recorded());
+        MapLink::read('https://short.example/dead', $this->fetcher());
+
+        $this->assertCount($sent, Http::recorded());
     }
 
     public function test_a_short_link_that_cannot_be_followed_is_kept_as_a_link(): void
