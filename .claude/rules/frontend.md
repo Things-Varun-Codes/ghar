@@ -29,9 +29,16 @@ paths:
   `installOverlayHistory()` before `createInertiaApp`: `popstate` listeners run in the order they
   were added, and Inertia's would otherwise reload the page and drop the draft first. A History moment is addressable at
   `/apps/our-history?moment={id}`.
-- **Portal `data-app` propagation.** Radix Dialog / Sheet / AlertDialog / Popover / Select
-  portals render at `<body>`, outside the mini app's `[data-app]` scope. Spread
-  `{...useAppAttrs()}` (`resources/js/hooks/use-app-attrs.tsx`) onto every portaled root.
+- **Portal `data-app` propagation.** Radix portals render at `<body>`, outside the mini app's
+  `[data-app]` scope. The `components/ui` Dialog, Sheet, AlertDialog, Popover, Select and
+  DropdownMenu spread `useAppAttrs()` (`resources/js/hooks/use-app-attrs.tsx`) onto their
+  portaled content themselves, so use those rather than raw Radix primitives and don't spread it
+  again. A new portaled primitive in `components/ui` does the same.
+- **Shared overlays.** A sheet that holds a form is the shell's `FormSheet` (title, scrolling body,
+  footer above the keyboard, the draft gate); its side and keyboard handling are
+  `useResponsiveSheet`, which a sheet with its own frame (History's `EventSheet`) uses directly.
+  A "Delete this?" or "Pay this?" question is `ConfirmDialog`; a room keeps its look through
+  `classNames`, as History does (`MiniApps/History/lib/confirmDialog.ts`).
 - **Routing: Wayfinder only.** Import typed helpers from `resources/js/routes/**`
   (`import { route as adminRoute } from '@/routes/admin'`). Ziggy is gone; a bare `route()` global
   call is a hard error.
@@ -63,14 +70,18 @@ hand-rolled pending string, an ad-hoc empty paragraph or an invisible failure.
 5. **Client-side fetch** (push subscribe, metadata lookup, bouquet generation) — `LoadingState`;
    failure `ErrorState` with `onRetry`.
 6. **Form submit** — `SubmitButton` `processing`; field errors via `FormField`; non-field failures
-   via toast. Conditions that outlive the request (pending email change) stay inline. `ErrorState`
-   is never used inside a form.
+   via toast. Spread `formSubmitOptions()` (`lib/mutation.ts`) into the submit: it toasts only the
+   errors the form has no field for, reports the rejected keys (never what was typed), and toasts
+   and reports transport and 5xx failures. Conditions that outlive the request (pending email
+   change) stay inline. `ErrorState` is never used inside a form.
 7. **Empty result** — `EmptyState`; `title` is a required prop (missing copy fails `tsc`). A search
    that finds nothing passes `query` + `onClearSearch` and titles itself with `noMatchesTitle()`.
 8. **One-tap mutation** (toggle, pay, request, delete) — spread `mutationOptions()`
    (`lib/mutation.ts`) into the visit and disable the control while pending; it toasts and reports
    transport and 5xx failures.
 
+- `captureSilent` tags `user_role` from the page Inertia last showed (`installUserRole` in
+  `app.tsx`); don't work the role out in the caller.
 - The Notifications device-status sub-label stays inline (a standing condition, not a request
   result); the subscribe/unsubscribe confirmation is a toast.
 - **Two different "flash" mechanisms.** Toasts go through `Inertia::flash('toast', …)` → heard by

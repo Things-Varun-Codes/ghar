@@ -67,16 +67,6 @@ interface SharedProps {
     [key: string]: unknown;
 }
 
-function resolveUserRole(auth: Auth): 'admin' | 'user' | 'guest' {
-    if (!auth.user) {
-        return 'guest';
-    }
-
-    const first = auth.user.roles?.[0];
-
-    return first === 'admin' || first === 'user' ? first : 'user';
-}
-
 interface Props {
     subscriptions: string[];
 }
@@ -134,10 +124,8 @@ export default function NotificationsSettings({ subscriptions }: Props) {
     const {
         vapidPublicKey,
         flash,
-        auth,
         name: appName,
     } = usePage<SharedProps>().props;
-    const userRole = resolveUserRole(auth);
 
     const [isStandalone] = useState(detectStandalone);
     const [state, setState] = useState<ToggleState>('checking');
@@ -261,7 +249,6 @@ export default function NotificationsSettings({ subscriptions }: Props) {
                                     component: 'Settings/Notifications',
                                     action: 'push.subscribe.persist',
                                     surface: 'frontend',
-                                    user_role: userRole,
                                     extra: {
                                         payload: errors,
                                         http_status: 422,
@@ -283,7 +270,6 @@ export default function NotificationsSettings({ subscriptions }: Props) {
                     component: 'Settings/Notifications',
                     action: 'push.subscribe',
                     surface: 'frontend',
-                    user_role: userRole,
                     extra: {
                         payload: {
                             vapidConfigured: Boolean(vapidPublicKey),
@@ -314,7 +300,6 @@ export default function NotificationsSettings({ subscriptions }: Props) {
                                     component: 'Settings/Notifications',
                                     action: 'push.unsubscribe.persist',
                                     surface: 'frontend',
-                                    user_role: userRole,
                                     extra: {
                                         payload: errors,
                                         http_status: 422,
@@ -338,7 +323,6 @@ export default function NotificationsSettings({ subscriptions }: Props) {
                     component: 'Settings/Notifications',
                     action: 'push.unsubscribe',
                     surface: 'frontend',
-                    user_role: userRole,
                 });
                 setState('error');
             }

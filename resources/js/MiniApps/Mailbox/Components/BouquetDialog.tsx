@@ -1,4 +1,5 @@
 import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
+import { useOverlayHistory } from '@/hooks/use-overlay-history';
 
 type Props = {
     open: boolean;
@@ -7,6 +8,8 @@ type Props = {
 };
 
 export default function BouquetDialog({ open, onOpenChange, imageUrl }: Props) {
+    useOverlayHistory(open, () => onOpenChange(false));
+
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
             <DialogContent className="mailbox-bouquet-lightbox">

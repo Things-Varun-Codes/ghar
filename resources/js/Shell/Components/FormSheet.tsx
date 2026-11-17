@@ -6,11 +6,8 @@ import {
     SheetDescription,
     SheetTitle,
 } from '@/components/ui/sheet';
-import { useBodyScrollLock } from '@/hooks/use-body-scroll-lock';
 import { useDraftCloseGate } from '@/hooks/use-draft-close-gate';
-import { useKeyboardViewport } from '@/hooks/use-keyboard-viewport';
-import { useMediaQuery } from '@/hooks/use-media-query';
-import { useSwipeDismiss } from '@/hooks/use-swipe-dismiss';
+import { useResponsiveSheet } from '@/hooks/use-responsive-sheet';
 import { cn } from '@/lib/utils';
 import DiscardDraftDialog from '@/Shell/Components/DiscardDraftDialog';
 
@@ -20,53 +17,55 @@ type Props = {
     title: string;
     description: string;
     isDirty: boolean;
-    discardTitle: string;
-    discardBody: string;
-    onDiscard: () => void;
+    onDiscard?: () => void;
     onSubmit: (event: FormEvent<HTMLFormElement>) => void;
-    /* The single filled submit goes last, so it sits on the right. */
-    actions: ReactNode;
+    /* The buttons; the single filled submit goes last, so it sits on the right. */
+    footer: ReactNode;
     /* Says why the submit is disabled; the submit points at it with aria-describedby. */
     hint?: string | null;
-    hintId: string;
+    hintId?: string;
+    discardTitle?: string;
+    discardDescription?: string;
+    /* The widest the side panel gets, in px. */
+    width?: 560 | 640;
     children: ReactNode;
 };
 
+const PANEL_WIDTH = {
+    560: 'w-[90vw] max-w-[560px] sm:max-w-[560px]',
+    640: 'w-[90vw] max-w-[640px] sm:max-w-[640px]',
+};
+
 /*
- * The frame every Mailbox compose sheet shares: a title bar with a 44px close, a scrolling
- * body, and a footer that stays in view (above the iOS keyboard too) with the submit in it.
+ * The frame of every sheet that adds or changes something: from the right on a wide screen
+ * and from the bottom on a phone, a title bar with a 44px close, a scrolling body, and a footer
+ * that stays in view above the keyboard. Every way of closing asks before dropping a draft.
  */
-export default function ComposeSheet({
+export default function FormSheet({
     open,
     onOpenChange,
     title,
     description,
     isDirty,
-    discardTitle,
-    discardBody,
     onDiscard,
     onSubmit,
-    actions,
+    footer,
     hint,
     hintId,
+    discardTitle = 'Discard your changes?',
+    discardDescription = "What you entered here won't be saved.",
+    width = 560,
     children,
 }: Props) {
-    const isWide = useMediaQuery('(min-width: 720px)');
-    const side = isWide ? 'right' : 'bottom';
-    const keyboard = useKeyboardViewport(open && side === 'bottom');
-
-    useBodyScrollLock(open);
-
     const gate = useDraftCloseGate({
         open,
         isDirty,
         onClose: () => onOpenChange(false),
         onDiscard,
     });
-
-    const swipeHandlers = useSwipeDismiss({
-        enabled: side === 'bottom',
-        onDismiss: gate.requestClose,
+    const { side, style, swipeHandlers } = useResponsiveSheet({
+        open,
+        onSwipeDismiss: gate.requestClose,
     });
 
     return (
@@ -76,28 +75,19 @@ export default function ComposeSheet({
                     side={side}
                     showCloseButton={false}
                     className={cn(
-                        'mailbox-sheet-content gap-0 shadow-lg',
-                        side === 'right' &&
-                            'w-[90vw] max-w-[640px] sm:max-w-[640px]',
+                        'shell-form-sheet-content gap-0 shadow-lg',
+                        side === 'right' && PANEL_WIDTH[width],
                         side === 'bottom' && 'h-[90dvh] w-full pb-0',
                     )}
-                    style={
-                        keyboard
-                            ? {
-                                  top: `${keyboard.offsetTop}px`,
-                                  bottom: 'auto',
-                                  height: `${keyboard.height}px`,
-                              }
-                            : undefined
-                    }
+                    style={style}
                 >
                     <form
                         noValidate
                         onSubmit={onSubmit}
-                        className="mailbox-sheet-form"
+                        className="shell-form-sheet-form"
                     >
-                        <div className="mailbox-sheet-header">
-                            <SheetTitle className="mailbox-sheet-title">
+                        <div className="shell-form-sheet-header">
+                            <SheetTitle className="shell-form-sheet-title">
                                 {title}
                             </SheetTitle>
                             <SheetDescription className="sr-only">
@@ -108,19 +98,24 @@ export default function ComposeSheet({
                         {/* Block scroller, no display:flex: iOS Safari freezes a flex + overflow:auto element. */}
                         <div
                             {...swipeHandlers}
-                            className="mailbox-sheet-scroll"
+                            className="shell-form-sheet-scroll"
                         >
-                            <div className="mailbox-sheet-body">{children}</div>
+                            <div className="shell-form-sheet-body">
+                                {children}
+                            </div>
                         </div>
 
-                        <div className="mailbox-sheet-footer">
+                        <div className="shell-form-sheet-footer">
                             {hint && (
-                                <p id={hintId} className="mailbox-sheet-hint">
+                                <p
+                                    id={hintId}
+                                    className="shell-form-sheet-hint"
+                                >
                                     {hint}
                                 </p>
                             )}
-                            <div className="mailbox-sheet-actions">
-                                {actions}
+                            <div className="shell-form-sheet-actions">
+                                {footer}
                             </div>
                         </div>
                     </form>
@@ -133,7 +128,7 @@ export default function ComposeSheet({
             <DiscardDraftDialog
                 {...gate.prompt}
                 title={discardTitle}
-                description={discardBody}
+                description={discardDescription}
             />
         </>
     );

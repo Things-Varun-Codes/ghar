@@ -1,22 +1,14 @@
-import { router, useForm } from '@inertiajs/react';
+import { router } from '@inertiajs/react';
 import type { FormEvent } from 'react';
-import { useEffect, useId, useRef } from 'react';
+import { useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/button';
-import { useDirtyFormGate } from '@/hooks/use-dirty-form-gate';
-import { transportFailureOptions } from '@/lib/mutation';
 import CharCount from '@/MiniApps/Mailbox/Components/CharCount';
-import ComposeSheet from '@/MiniApps/Mailbox/Components/ComposeSheet';
 import type { HouseholdMember } from '@/MiniApps/Mailbox/Components/RecipientPicker';
-import RecipientPicker, {
-    defaultRecipientIds,
-} from '@/MiniApps/Mailbox/Components/RecipientPicker';
-import {
-    reportRejected,
-    SEND_FAILED_MESSAGE,
-    toastUnshownErrors,
-} from '@/MiniApps/Mailbox/lib/visitFailure';
+import RecipientPicker from '@/MiniApps/Mailbox/Components/RecipientPicker';
+import { useComposeForm } from '@/MiniApps/Mailbox/Hooks/useComposeForm';
 import { store } from '@/routes/apps/our-mailbox/messages';
 import FormField from '@/Shell/Components/FormField';
+import FormSheet from '@/Shell/Components/FormSheet';
 import SubmitButton from '@/Shell/Components/SubmitButton';
 
 const BODY_MAX = 600;
@@ -29,24 +21,22 @@ type Props = {
 
 type FormShape = { recipient_ids: number[]; body: string };
 
-const isShownField = (key: string) =>
-    key === 'body' || key.startsWith('recipient_ids');
-
 export default function ComposerSheet({ open, onOpenChange, members }: Props) {
-    const hintId = useId();
     const textareaRef = useRef<HTMLTextAreaElement | null>(null);
     // "Send & write another" keeps the page mounted, so the list is refreshed on close.
     const sentWhileOpen = useRef(false);
 
-    const form = useForm<FormShape>({
-        recipient_ids: defaultRecipientIds(members),
-        body: '',
+    const compose = useComposeForm<FormShape>({
+        component: 'Mailbox/ComposerSheet',
+        action: 'message.create',
+        members,
+        fields: { body: '' },
+        dirtyFields: ['body'],
+        shownFields: ['body'],
+        missing: (data) =>
+            data.body.trim() === '' ? 'Write something first.' : null,
     });
-    const { data, setData, post, processing, errors, reset } = form;
-
-    const { isDirty, reset: gateReset } = useDirtyFormGate(form, {
-        fields: ['body'],
-    });
+    const { data, setData, processing, errors, reset } = compose.form;
 
     useEffect(() => {
         if (open) {
@@ -73,19 +63,7 @@ export default function ComposerSheet({ open, onOpenChange, members }: Props) {
         }
     };
 
-    // The body is never sent to the error tracker: only which fields were rejected.
-    const onRejected = (errs: Record<string, string>, action: string) => {
-        toastUnshownErrors(errs, isShownField, SEND_FAILED_MESSAGE);
-        reportRejected('Mailbox/ComposerSheet', action, errs);
-    };
-
-    const hint =
-        data.recipient_ids.length === 0
-            ? 'Choose who it’s for.'
-            : data.body.trim() === ''
-              ? 'Write something first.'
-              : null;
-    const disabled = processing || hint !== null;
+    const disabled = processing || compose.hint !== null;
 
     const submit = (event?: FormEvent<HTMLFormElement>) => {
         event?.preventDefault();
@@ -94,21 +72,12 @@ export default function ComposerSheet({ open, onOpenChange, members }: Props) {
             return;
         }
 
-        post(store.url(), {
-            preserveScroll: true,
-            preserveState: 'errors',
+        compose.send(store.url(), {
             onSuccess: () => {
                 sentWhileOpen.current = false;
-                reset();
-                gateReset();
+                compose.reset();
                 onOpenChange(false);
             },
-            onError: (errs) => onRejected(errs, 'message.create'),
-            ...transportFailureOptions({
-                component: 'Mailbox/ComposerSheet',
-                action: 'message.create',
-                message: SEND_FAILED_MESSAGE,
-            }),
         });
     };
 
@@ -117,47 +86,40 @@ export default function ComposerSheet({ open, onOpenChange, members }: Props) {
             return;
         }
 
-        post(store.url(), {
-            preserveScroll: true,
+        compose.send(store.url(), {
+            action: 'message.create-another',
+            preserveState: false,
             onSuccess: () => {
                 sentWhileOpen.current = true;
                 reset('body');
-                gateReset();
+                compose.gateReset();
                 textareaRef.current?.focus();
             },
-            onError: (errs) => onRejected(errs, 'message.create-another'),
-            ...transportFailureOptions({
-                component: 'Mailbox/ComposerSheet',
-                action: 'message.create',
-                message: SEND_FAILED_MESSAGE,
-            }),
         });
     };
 
     return (
-        <ComposeSheet
+        <FormSheet
             open={open}
             onOpenChange={(next) => (next ? onOpenChange(true) : close())}
             title="Write a note"
             description="Write a note and choose who it goes to."
-            isDirty={isDirty}
+            isDirty={compose.isDirty}
             discardTitle="Discard this note?"
-            discardBody="Your draft will be lost."
-            onDiscard={() => {
-                reset();
-                gateReset();
-            }}
+            discardDescription="Your draft will be lost."
+            onDiscard={compose.reset}
             onSubmit={submit}
-            hint={processing ? null : hint}
-            hintId={hintId}
-            actions={
+            hint={compose.sheetHint}
+            hintId={compose.hintId}
+            width={640}
+            footer={
                 <>
                     <Button
                         type="button"
                         variant="outline"
                         onClick={sendAnother}
                         disabled={disabled}
-                        aria-describedby={hint ? hintId : undefined}
+                        aria-describedby={compose.describedBy}
                         className="mailbox-btn-send-another"
                     >
                         Send &amp; write another
@@ -166,7 +128,7 @@ export default function ComposerSheet({ open, onOpenChange, members }: Props) {
                         processing={processing}
                         disabled={disabled}
                         busyText="Sending…"
-                        aria-describedby={hint ? hintId : undefined}
+                        aria-describedby={compose.describedBy}
                     >
                         Send note
                     </SubmitButton>
@@ -202,6 +164,6 @@ export default function ComposerSheet({ open, onOpenChange, members }: Props) {
                 </FormField>
                 <CharCount length={data.body.length} max={BODY_MAX} />
             </div>
-        </ComposeSheet>
+        </FormSheet>
     );
 }

@@ -4,16 +4,15 @@ import { useEffect, useState } from 'react';
 
 import { Input } from '@/components/ui/input';
 import { useDirtyFormGate } from '@/hooks/use-dirty-form-gate';
-import { captureSilent } from '@/lib/observability';
-import CornerSheet from '@/MiniApps/Corner/Components/CornerSheet';
+import { formSubmitOptions } from '@/lib/mutation';
 import ItemThumb from '@/MiniApps/Corner/Components/ItemThumb';
 import NotesField from '@/MiniApps/Corner/Components/NotesField';
-import { useDebouncedPreview } from '@/MiniApps/Corner/Hooks/useDebouncedPreview';
+import { useLinkPreview } from '@/MiniApps/Corner/Hooks/useLinkPreview';
 import type { CornerItem, CornerListInfo } from '@/MiniApps/Corner/lib/types';
 import { store, update } from '@/routes/apps/our-corner/items';
-import { preview as linkPreview } from '@/routes/apps/our-corner/link';
 import { preview as picturePreview } from '@/routes/apps/our-corner/picture';
 import FormField from '@/Shell/Components/FormField';
+import FormSheet from '@/Shell/Components/FormSheet';
 import LoadingState from '@/Shell/Components/LoadingState';
 import SubmitButton from '@/Shell/Components/SubmitButton';
 
@@ -35,13 +34,14 @@ type FormShape = {
     address: string;
 };
 
-type LinkJson = {
-    ok: boolean;
-    title?: string | null;
-    image_url?: string | null;
-};
-
-type LinkFound = { title: string | null };
+const SHOWN_FIELDS = [
+    'url',
+    'title',
+    'image_url',
+    'notes',
+    'location',
+    'address',
+];
 
 /* What the location field shows for an item: the link it came from, else its name or point. */
 function locationOf(item: CornerItem): string {
@@ -87,29 +87,14 @@ export default function ItemSheet({ list, open, onOpenChange, item }: Props) {
     );
     const [pictureFieldOpen, setPictureFieldOpen] = useState(false);
 
-    const link = useDebouncedPreview<LinkJson, LinkFound>({
-        endpoint: linkPreview.url(),
-        parse: (json) => ({
-            title: json.title ?? null,
-        }),
-        onResult: (json) => {
-            if (!pictureChosen && json.image_url) {
-                setData((prev) => ({
-                    ...prev,
-                    image_url: json.image_url ?? '',
-                    no_picture: false,
-                }));
-            }
-        },
-        noMatchMessage:
-            "That page didn't say what it is. Give it a name yourself.",
-        failureMessage:
-            "Couldn't reach that page. It will be saved with what you type.",
-        report: {
-            component: 'Corner/ItemSheet',
-            action: 'link.preview',
-            tag: 'corner.link-preview',
-        },
+    const link = useLinkPreview((found) => {
+        if (!pictureChosen && found.image_url) {
+            setData((prev) => ({
+                ...prev,
+                image_url: found.image_url ?? '',
+                no_picture: false,
+            }));
+        }
     });
 
     const changeUrl = (next: string) => {
@@ -141,23 +126,17 @@ export default function ItemSheet({ list, open, onOpenChange, item }: Props) {
 
         const options = {
             preserveScroll: true,
-            onSuccess: () => {
-                reset();
-                gateReset();
-                link.clear();
-                onOpenChange(false);
-            },
-            onError: (errs: Record<string, string>) => {
-                captureSilent(new Error('corner.item submit failed'), {
-                    component: 'Corner/ItemSheet',
-                    action: isEdit ? 'item.update' : 'item.create',
-                    surface: 'frontend',
-                    extra: {
-                        tag: 'corner.item',
-                        validation_keys: Object.keys(errs ?? {}),
-                    },
-                });
-            },
+            ...formSubmitOptions({
+                component: 'Corner/ItemSheet',
+                action: isEdit ? 'item.update' : 'item.create',
+                isShownField: (key) => SHOWN_FIELDS.includes(key),
+                onSuccess: () => {
+                    reset();
+                    gateReset();
+                    link.clear();
+                    onOpenChange(false);
+                },
+            }),
         };
 
         if (isEdit) {
@@ -171,7 +150,7 @@ export default function ItemSheet({ list, open, onOpenChange, item }: Props) {
     const found = link.preview.kind === 'ok' ? link.preview : null;
 
     return (
-        <CornerSheet
+        <FormSheet
             open={open}
             onOpenChange={(next) => {
                 if (!next) {
@@ -349,7 +328,7 @@ export default function ItemSheet({ list, open, onOpenChange, item }: Props) {
                     />
                 </FormField>
             )}
-        </CornerSheet>
+        </FormSheet>
     );
 }
 

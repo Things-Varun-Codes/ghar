@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react';
+import { count } from '@/lib/plural';
 import DayEventMenu from './DayEventMenu';
 import type { MediaItem } from './MediaGrid';
 
@@ -186,7 +187,7 @@ export default function CalendarMonth({
                 </h2>
                 <span className="history-cal-month-count">
                     {monthEventCount > 0
-                        ? `${monthEventCount} ${monthEventCount === 1 ? 'moment' : 'moments'}`
+                        ? count(monthEventCount, 'moment')
                         : ''}
                 </span>
             </div>

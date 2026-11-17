@@ -2,12 +2,12 @@ import * as Sentry from '@sentry/react';
 import { act, renderHook } from '@testing-library/react';
 import { toast } from 'sonner';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { useDebouncedPreview } from './useDebouncedPreview';
+import { useLinkPreview } from './useLinkPreview';
 
 vi.mock('@sentry/react', () => ({ captureException: vi.fn() }));
 vi.mock('sonner', () => ({ toast: { error: vi.fn() } }));
 
-type Json = { ok: boolean; title?: string };
+type Json = { ok: boolean; title?: string; image_url?: string };
 
 type Pending = {
     url: string;
@@ -17,19 +17,10 @@ type Pending = {
 };
 
 let requests: Pending[];
-const onResult = vi.fn();
+const onFound = vi.fn();
 
 function setup() {
-    return renderHook(() =>
-        useDebouncedPreview<Json, { title: string }>({
-            endpoint: '/preview',
-            parse: (json) => ({ title: json.title ?? '' }),
-            onResult,
-            noMatchMessage: 'no match',
-            failureMessage: 'failed',
-            report: { component: 'c', action: 'a', tag: 't' },
-        }),
-    );
+    return renderHook(() => useLinkPreview(onFound));
 }
 
 async function advance(ms = 400) {
@@ -72,7 +63,7 @@ afterEach(() => {
     vi.unstubAllGlobals();
 });
 
-describe('useDebouncedPreview', () => {
+describe('useLinkPreview', () => {
     it('does not let a slow earlier response overwrite a later one', async () => {
         const { result } = setup();
 
@@ -88,9 +79,16 @@ describe('useDebouncedPreview', () => {
         await requests[1].respond({ ok: true, title: 'Later' });
         await requests[0].respond({ ok: true, title: 'Earlier' });
 
-        expect(result.current.preview).toEqual({ kind: 'ok', title: 'Later' });
-        expect(onResult).toHaveBeenCalledTimes(1);
-        expect(onResult).toHaveBeenCalledWith({ ok: true, title: 'Later' });
+        expect(result.current.preview).toEqual({
+            kind: 'ok',
+            title: 'Later',
+            image_url: null,
+        });
+        expect(onFound).toHaveBeenCalledTimes(1);
+        expect(onFound).toHaveBeenCalledWith({
+            title: 'Later',
+            image_url: null,
+        });
     });
 
     it('debounces rapid input into one request', async () => {
@@ -102,7 +100,9 @@ describe('useDebouncedPreview', () => {
         await advance();
 
         expect(requests).toHaveLength(1);
-        expect(requests[0].url).toBe('/preview?url=https%3A%2F%2Fab');
+        expect(requests[0].url).toBe(
+            '/api/corner/link-preview?url=https%3A%2F%2Fab',
+        );
     });
 
     it('does not refetch the same value on blur', async () => {
@@ -136,7 +136,7 @@ describe('useDebouncedPreview', () => {
         await requests[0].respond({ ok: true, title: 'A' });
 
         expect(result.current.preview).toEqual({ kind: 'idle' });
-        expect(onResult).not.toHaveBeenCalled();
+        expect(onFound).not.toHaveBeenCalled();
     });
 
     it('shows a failure once: inline and reported, never a toast', async () => {
@@ -148,7 +148,8 @@ describe('useDebouncedPreview', () => {
 
         expect(result.current.preview).toEqual({
             kind: 'error',
-            message: 'failed',
+            message:
+                "Couldn't reach that page. It will be saved with what you type.",
         });
         expect(Sentry.captureException).toHaveBeenCalledTimes(1);
         expect(toast.error).not.toHaveBeenCalled();
@@ -174,7 +175,8 @@ describe('useDebouncedPreview', () => {
 
         expect(result.current.preview).toEqual({
             kind: 'error',
-            message: 'no match',
+            message:
+                "That page didn't say what it is. Give it a name yourself.",
         });
         expect(Sentry.captureException).not.toHaveBeenCalled();
     });

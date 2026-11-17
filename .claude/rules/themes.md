@@ -20,3 +20,6 @@ here only alias or mix `--shell-*`, never a literal. **Layer 3** `.<app>-*` comp
 - Shared list band (`ListNavBand` / `ListSortControl`, used by Corner and Mailbox) takes app
   identity via `--list-nav-font` and `--list-nav-radius` declared in the app's `[data-app]` scope —
   never by editing the shared component.
+- The shell's form sheet (`FormSheet`, `.shell-form-sheet-*` in `app.css`) takes its colours and
+  title face from `--form-sheet-paper`, `-ink`, `-ink-soft`, `-border` and `-font-display`, which
+  each room aliases to its own tokens in its `[data-app]` block.

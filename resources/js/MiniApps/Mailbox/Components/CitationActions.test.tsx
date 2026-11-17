@@ -83,6 +83,35 @@ describe('CitationActions pay', () => {
         ).toBeTruthy();
     });
 
+    it('withdraws only after "Withdraw" is confirmed', () => {
+        render(
+            <CitationActions
+                citation={{
+                    ...citation,
+                    is_mine: true,
+                    available_actions: ['delete'],
+                }}
+            />,
+        );
+        fireEvent.click(screen.getByRole('button', { name: 'Withdraw' }));
+
+        const dialog = screen.getByRole('alertdialog');
+        expect(dialog.textContent).toContain('Withdraw this citation?');
+
+        fireEvent.click(screen.getByRole('button', { name: 'Keep it' }));
+        expect(screen.queryByRole('alertdialog')).toBeNull();
+        expect(routerDelete).not.toHaveBeenCalled();
+
+        fireEvent.click(screen.getByRole('button', { name: 'Withdraw' }));
+        const confirm = Array.from(
+            screen.getByRole('alertdialog').querySelectorAll('button'),
+        ).find((b) => b.textContent === 'Withdraw')!;
+        fireEvent.click(confirm);
+
+        expect(routerDelete).toHaveBeenCalledTimes(1);
+        expect(routerDelete.mock.calls[0][0]).toContain('/citations/7');
+    });
+
     it('offers no pay button when paying is not allowed', () => {
         render(
             <CitationActions

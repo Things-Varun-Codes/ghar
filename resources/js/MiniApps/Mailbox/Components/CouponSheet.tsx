@@ -1,22 +1,13 @@
-import { useForm } from '@inertiajs/react';
 import { Minus, Plus } from 'lucide-react';
 import type { FormEvent } from 'react';
 import { useId } from 'react';
-import { useDirtyFormGate } from '@/hooks/use-dirty-form-gate';
-import { transportFailureOptions } from '@/lib/mutation';
 import CharCount from '@/MiniApps/Mailbox/Components/CharCount';
-import ComposeSheet from '@/MiniApps/Mailbox/Components/ComposeSheet';
 import type { HouseholdMember } from '@/MiniApps/Mailbox/Components/RecipientPicker';
-import RecipientPicker, {
-    defaultRecipientIds,
-} from '@/MiniApps/Mailbox/Components/RecipientPicker';
-import {
-    reportRejected,
-    SEND_FAILED_MESSAGE,
-    toastUnshownErrors,
-} from '@/MiniApps/Mailbox/lib/visitFailure';
+import RecipientPicker from '@/MiniApps/Mailbox/Components/RecipientPicker';
+import { useComposeForm } from '@/MiniApps/Mailbox/Hooks/useComposeForm';
 import { store } from '@/routes/apps/our-mailbox/coupons';
 import FormField from '@/Shell/Components/FormField';
+import FormSheet from '@/Shell/Components/FormSheet';
 import SubmitButton from '@/Shell/Components/SubmitButton';
 
 type Props = {
@@ -38,43 +29,34 @@ const DESCRIPTION_MAX = 500;
 const QTY_MIN = 1;
 const QTY_MAX = 20;
 
-const SHOWN_FIELDS = ['title', 'description', 'quantity', 'expires_at'];
-const isShownField = (key: string) =>
-    SHOWN_FIELDS.includes(key) || key.startsWith('recipient_ids');
+const FIELDS = ['title', 'description', 'quantity', 'expires_at'] as const;
 
 export default function CouponSheet({ open, onOpenChange, members }: Props) {
-    const hintId = useId();
     const quantityLabelId = useId();
 
-    const form = useForm<CouponFormShape>({
-        recipient_ids: defaultRecipientIds(members),
-        title: '',
-        description: '',
-        quantity: 1,
-        expires_at: '',
+    const compose = useComposeForm<CouponFormShape>({
+        component: 'Mailbox/CouponSheet',
+        action: 'coupon.create',
+        members,
+        fields: {
+            title: '',
+            description: '',
+            quantity: 1,
+            expires_at: '',
+        },
+        dirtyFields: [...FIELDS],
+        shownFields: [...FIELDS],
+        missing: (data) =>
+            data.title.trim() === '' ? 'Say what it’s good for.' : null,
     });
-    const { data, setData, post, processing, errors, reset } = form;
-
-    const { isDirty, reset: gateReset } = useDirtyFormGate(form, {
-        fields: ['title', 'description', 'quantity', 'expires_at'],
-    });
-
-    const handleReset = () => {
-        reset();
-        gateReset();
-    };
+    const { data, setData, processing, errors } = compose.form;
 
     const setQuantity = (n: number) => {
         setData('quantity', Math.max(QTY_MIN, Math.min(QTY_MAX, n)));
     };
 
-    const hint =
-        data.recipient_ids.length === 0
-            ? 'Choose who it’s for.'
-            : data.title.trim() === ''
-              ? 'Say what it’s good for.'
-              : null;
-    const disabled = processing || hint !== null || data.quantity < QTY_MIN;
+    const disabled =
+        processing || compose.hint !== null || data.quantity < QTY_MIN;
 
     const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
         event.preventDefault();
@@ -83,44 +65,34 @@ export default function CouponSheet({ open, onOpenChange, members }: Props) {
             return;
         }
 
-        post(store.url(), {
-            preserveScroll: true,
-            preserveState: 'errors',
+        compose.send(store.url(), {
             onSuccess: () => {
-                handleReset();
+                compose.reset();
                 onOpenChange(false);
             },
-            onError: (errs) => {
-                toastUnshownErrors(errs, isShownField, SEND_FAILED_MESSAGE);
-                reportRejected('Mailbox/CouponSheet', 'coupon.create', errs);
-            },
-            ...transportFailureOptions({
-                component: 'Mailbox/CouponSheet',
-                action: 'coupon.create',
-                message: SEND_FAILED_MESSAGE,
-            }),
         });
     };
 
     return (
-        <ComposeSheet
+        <FormSheet
             open={open}
             onOpenChange={onOpenChange}
             title="Write a coupon"
             description="Write what the coupon is good for and choose who it is for."
-            isDirty={isDirty}
+            isDirty={compose.isDirty}
             discardTitle="Discard this coupon?"
-            discardBody="The details you entered will be lost."
-            onDiscard={handleReset}
+            discardDescription="The details you entered will be lost."
+            onDiscard={compose.reset}
             onSubmit={handleSubmit}
-            hint={processing ? null : hint}
-            hintId={hintId}
-            actions={
+            hint={compose.sheetHint}
+            hintId={compose.hintId}
+            width={640}
+            footer={
                 <SubmitButton
                     processing={processing}
                     disabled={disabled}
                     busyText="Sending…"
-                    aria-describedby={hint ? hintId : undefined}
+                    aria-describedby={compose.describedBy}
                 >
                     Send coupon
                 </SubmitButton>
@@ -234,6 +206,6 @@ export default function CouponSheet({ open, onOpenChange, members }: Props) {
                     max={DESCRIPTION_MAX}
                 />
             </div>
-        </ComposeSheet>
+        </FormSheet>
     );
 }
