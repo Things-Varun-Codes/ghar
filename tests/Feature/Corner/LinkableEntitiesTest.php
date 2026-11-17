@@ -2,7 +2,8 @@
 
 namespace Tests\Feature\Corner;
 
-use App\MiniApps\Corner\Models\Activity;
+use App\MiniApps\Corner\Models\CornerList;
+use App\MiniApps\Corner\Models\Item;
 use App\Shell\Models\User;
 use App\Shell\Services\LinkableEntities;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -274,12 +275,13 @@ class LinkableEntitiesTest extends TestCase
     public function test_picker_search_treats_wildcards_as_literal_text(): void
     {
         $adder = User::factory()->create();
-        Activity::factory()->create(['title' => '100% fun', 'added_by_user_id' => $adder->id]);
-        Activity::factory()->create(['title' => '100 fun', 'added_by_user_id' => $adder->id]);
+        $list = CornerList::factory()->create();
+        Item::factory()->create(['list_id' => $list->id, 'title' => '100% fun', 'added_by_user_id' => $adder->id]);
+        Item::factory()->create(['list_id' => $list->id, 'title' => '100 fun', 'added_by_user_id' => $adder->id]);
 
         $linkable = app(LinkableEntities::class);
 
-        $this->assertSame(['100% fun'], array_column($linkable->search('0%', ['corner.activity']), 'title'));
-        $this->assertSame([], $linkable->search('1_0', ['corner.activity']));
+        $this->assertSame(['100% fun'], array_column($linkable->search('0%', ['corner.item']), 'title'));
+        $this->assertSame([], $linkable->search('1_0', ['corner.item']));
     }
 }

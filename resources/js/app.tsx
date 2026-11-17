@@ -7,6 +7,7 @@ import { watchConnection } from '@/lib/connection';
 import { installNavigation } from '@/lib/navigation';
 import { captureSilent } from '@/lib/observability';
 import { installRouteFocus } from '@/lib/route-focus';
+import { installAfterWrite } from '@/lib/stale-history';
 import AppLayout from '@/Shell/Layouts/AppLayout';
 
 // Server-rendered in app.blade.php, so these come from the runtime environment.
@@ -119,17 +120,10 @@ createInertiaApp({
 });
 
 installNavigation(router);
+installAfterWrite(router);
 installRouteFocus();
 
 watchConnection(appName);
-
-// Prefetched pages are kept for a few seconds. Anything that writes may have changed
-// what they show, so a write drops them all rather than risk a stale list.
-router.on('finish', (event) => {
-    if (event.detail.visit.method !== 'get') {
-        router.flushAll();
-    }
-});
 
 // A page's code is its own chunk, fetched only after the server has answered the
 // first visit to it. Fetching the everyday pages while the browser is idle takes that

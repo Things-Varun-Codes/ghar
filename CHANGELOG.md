@@ -20,11 +20,31 @@ Migrations only run forward.
 - Challans are now called citations everywhere: the screens, the addresses, the database table and
   the notification tag. Old `/apps/our-mailbox/challans` addresses redirect, and reference numbers
   already issued (`OC/2026/000007`) are unchanged.
+- Our Corner's lists are the household's own. Anyone can make a list, with a name, an icon from the
+  whole lucide set, a word for done (loved, watched, read, cooked or anything) and a heart or a
+  tick. Lists can be renamed and reordered; deleting one with other people's things in it takes an
+  admin.
+- Every item in every list looks the same and can have a name, notes, a link, a picture and a
+  place. Pasting a link to almost any page fills in its name and picture from what the page itself
+  publishes; Corner no longer knows any site by name. A picture can also be pasted or removed.
+  Pictures are fetched and served by your install, so browsers never contact other sites, and
+  every fetch refuses addresses inside your own network.
+- A place is a pasted map link, coordinates or a typed name, and "Open in Maps" opens it in the
+  device's maps app. Our Corner no longer uses Google Places.
+- Our Corner with no lists yet (a new install, once the room is on) suggests lists to add in one
+  tap.
+- The History link picker searches every list and shows which list each result is in.
 
 Nothing to do on upgrade. An install that already has people keeps every room on; the migration
 records that. The rooms a source build used to disable in `config/miniapps.php` are now chosen in
 Admin → Rooms instead, so check that page once. The table rename is in the migrations, which run
 on start; back up first, as always.
+
+The upgrade also moves your songs, movies, activities and places into four lists of the same names,
+with everything kept: who added each one, who marked it done and when, pictures, links, addresses
+and coordinates. Old links, notifications and the links inside History moments keep working. No
+setting was removed. A link in a History moment now shows the linked thing's current picture,
+so it follows a picture that changes or goes.
 
 ## [1.1.0] - 2026-11-14
 

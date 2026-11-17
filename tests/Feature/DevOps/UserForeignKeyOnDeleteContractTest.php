@@ -14,10 +14,8 @@ class UserForeignKeyOnDeleteContractTest extends TestCase
     private static function expectations(): array
     {
         return [
-            'corner_songs' => ['added_by_user_id' => 'restrict', 'done_by_user_id' => 'set null'],
-            'corner_movies' => ['added_by_user_id' => 'restrict', 'done_by_user_id' => 'set null'],
-            'corner_activities' => ['added_by_user_id' => 'restrict', 'done_by_user_id' => 'set null'],
-            'corner_places' => ['added_by_user_id' => 'restrict', 'done_by_user_id' => 'set null'],
+            'corner_lists' => ['created_by_user_id' => 'set null'],
+            'corner_items' => ['added_by_user_id' => 'restrict', 'done_by_user_id' => 'set null'],
             'mailbox_messages' => ['sender_id' => 'restrict'],
             'mailbox_message_recipients' => ['user_id' => 'restrict'],
             'mailbox_citations' => ['issuer_id' => 'restrict', 'recipient_id' => 'restrict'],

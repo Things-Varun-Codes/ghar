@@ -29,7 +29,7 @@ return [
         'nav_label' => 'Corner',
         'slug' => 'our-corner',
         'route' => '/apps/our-corner',
-        'description' => 'Songs, movies, places and things to do together.',
+        'description' => 'Shared lists you make together: songs, films, places, books, anything.',
         'provider' => CornerServiceProvider::class,
         'admin_only' => false,
         'component_prefix' => 'MiniApps/Corner/',

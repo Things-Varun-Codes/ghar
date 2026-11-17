@@ -2,6 +2,7 @@ import { MapPin } from 'lucide-react';
 import { useMemo, useRef } from 'react';
 import ActivityStrip from './ActivityStrip';
 import BodyHtml from './BodyHtml';
+import type { LinkedThings } from './BodyHtml';
 import MediaGrid from './MediaGrid';
 import type { MediaItem } from './MediaGrid';
 import PhotoSwipeGallery from './PhotoSwipeGallery';
@@ -30,6 +31,7 @@ type HistoryEvent = {
     location_lat: number | null;
     location_lng: number | null;
     body_html: string | null;
+    links?: LinkedThings;
     media: MediaItem[];
     changes: Change[];
 };
@@ -121,7 +123,11 @@ export default function EventReadView({ event }: Props) {
 
             {event.body_html && (
                 <div className="mt-6">
-                    <BodyHtml html={event.body_html} headingBase={2} />
+                    <BodyHtml
+                        html={event.body_html}
+                        headingBase={2}
+                        links={event.links}
+                    />
                 </div>
             )}
 

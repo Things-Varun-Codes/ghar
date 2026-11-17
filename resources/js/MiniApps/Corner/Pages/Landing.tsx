@@ -1,265 +1,282 @@
-import { Link } from '@inertiajs/react';
-import type { LucideIcon } from 'lucide-react';
-import { useId } from 'react';
+import { Link, router } from '@inertiajs/react';
+import { Plus } from 'lucide-react';
+import { useId, useState } from 'react';
 
+import { Button } from '@/components/ui/button';
+import { mutationOptions } from '@/lib/mutation';
+import { DoneSticker } from '@/MiniApps/Corner/Components/DoneMark';
+import ItemThumb from '@/MiniApps/Corner/Components/ItemThumb';
+import ListMenu from '@/MiniApps/Corner/Components/ListMenu';
+import ListSettingsSheet from '@/MiniApps/Corner/Components/ListSettingsSheet';
 import CornerLayout from '@/MiniApps/Corner/Layouts/CornerLayout';
-import { index as activities } from '@/routes/apps/our-corner/activities';
-import { index as movies } from '@/routes/apps/our-corner/movies';
-import { index as places } from '@/routes/apps/our-corner/places';
-import { index as songs } from '@/routes/apps/our-corner/songs';
+import { thingsCount } from '@/MiniApps/Corner/lib/copy';
+import { ListIcon } from '@/MiniApps/Corner/lib/list-icons';
+import type { ListSettings } from '@/MiniApps/Corner/lib/presets';
+import { SUGGESTED_LISTS } from '@/MiniApps/Corner/lib/presets';
+import type { CornerListInfo } from '@/MiniApps/Corner/lib/types';
+import { show } from '@/routes/apps/our-corner/lists';
+import { store } from '@/routes/apps/our-corner/lists';
 import Page from '@/Shell/Components/Page';
-import { entityIcon } from '@/Shell/linkables/entityIcon';
 
-type Slug = 'songs' | 'movies' | 'activities' | 'places';
+type PeekItem = { title: string; done: boolean; picture_url: string | null };
 
-type Tally = Record<Slug, number>;
-
-type Peeks = {
-    songs: { images: string[] };
-    movies: { images: string[] };
-    activities: { items: { title: string; done: boolean }[] };
-    places: { title: string; address: string | null } | null;
-};
-
-type CornerSummaryShared = {
-    counts: Tally;
-    done?: Tally;
-    peeks?: Peeks;
+type Door = CornerListInfo & {
+    count: number;
+    done: number;
+    /* The newest few, newest first. */
+    peek: PeekItem[];
 };
 
 type Props = {
-    cornerSummary?: CornerSummaryShared | null;
+    lists: Door[];
+    can: { create: boolean };
 };
 
-type Door = {
-    slug: Slug;
-    label: string;
-    href: string;
-    Icon: LucideIcon;
-    // Both plural forms are written out: a trailing-s rule can't handle irregulars.
-    singularNoun: string;
-    pluralNoun: string;
-    doneWord: string;
-};
+const TITLES = 3;
 
-const DOORS: readonly Door[] = [
-    {
-        slug: 'songs',
-        label: 'Songs',
-        href: songs.url(),
-        Icon: entityIcon('corner.song'),
-        singularNoun: 'song',
-        pluralNoun: 'songs',
-        doneWord: 'loved',
-    },
-    {
-        slug: 'movies',
-        label: 'Movies',
-        href: movies.url(),
-        Icon: entityIcon('corner.movie'),
-        singularNoun: 'movie',
-        pluralNoun: 'movies',
-        doneWord: 'watched',
-    },
-    {
-        slug: 'activities',
-        label: 'Activities',
-        href: activities.url(),
-        Icon: entityIcon('corner.activity'),
-        singularNoun: 'activity',
-        pluralNoun: 'activities',
-        doneWord: 'done',
-    },
-    {
-        slug: 'places',
-        label: 'Places',
-        href: places.url(),
-        Icon: entityIcon('corner.place'),
-        singularNoun: 'place',
-        pluralNoun: 'places',
-        doneWord: 'visited',
-    },
-];
+/* Doors whose list is fetched as soon as the shelf shows; the rest wait for a hover. */
+const PREFETCH_DOORS = 4;
 
-/** Empty frames on the shelf: an empty list still reads as a place for things. */
-const EMPTY_FRAMES = 3;
-
-function liveLine(door: Door, count: number, done: number): string {
-    if (count === 0) {
-        return `No ${door.pluralNoun} yet`;
+function liveLine(door: Door): string {
+    if (door.count === 0) {
+        return 'Nothing yet';
     }
 
-    const total = `${count} ${count === 1 ? door.singularNoun : door.pluralNoun}`;
+    const total = thingsCount(door.count);
 
-    return done > 0 ? `${total} · ${done} ${door.doneWord}` : total;
+    return door.done > 0
+        ? `${total} · ${door.done} ${door.done_label.toLowerCase()}`
+        : total;
 }
 
-function Shelf({
-    images,
-    frame,
-    Icon,
-}: {
-    images: string[];
-    frame: 'cd' | 'poster';
-    Icon: LucideIcon;
-}) {
-    const frameClass = frame === 'cd' ? 'corner-cd' : 'corner-poster';
-    const coverClass =
-        frame === 'cd' ? 'corner-cd-cover' : 'corner-poster-cover';
-    const fallbackClass =
-        frame === 'cd' ? 'corner-cd-fallback' : 'corner-poster-fallback';
+/*
+ * A glimpse of the list: its pictures on a shelf when the newest things have any (a thing
+ * without one shows the list's icon in its place), its newest names otherwise, and the icon
+ * alone while the list is empty.
+ */
+function DoorPeek({ door }: { door: Door }) {
+    const { peek } = door;
+
+    if (peek.length === 0) {
+        return (
+            <span className="corner-door-empty">
+                <ListIcon name={door.icon} size={28} strokeWidth={1.5} />
+            </span>
+        );
+    }
+
+    if (peek.some((item) => item.picture_url !== null)) {
+        return (
+            <span className="corner-door-shelf">
+                {peek.map((item, i) => (
+                    <ItemThumb
+                        key={`${i}-${item.title}`}
+                        pictureUrl={item.picture_url}
+                        icon={door.icon}
+                        className="corner-door-cover"
+                    />
+                ))}
+            </span>
+        );
+    }
 
     return (
-        <span className="corner-door-shelf">
-            {images.length > 0
-                ? images.map((src) => (
-                      <span key={src} className={frameClass}>
-                          <img
-                              src={src}
-                              alt=""
-                              loading="lazy"
-                              decoding="async"
-                              className={coverClass}
-                          />
-                      </span>
-                  ))
-                : Array.from({ length: EMPTY_FRAMES }, (_, i) => (
-                      <span
-                          key={i}
-                          className={`${frameClass} corner-door-frame--empty`}
-                      >
-                          <span className={fallbackClass}>
-                              <Icon size={22} strokeWidth={1.5} />
-                          </span>
-                      </span>
-                  ))}
-        </span>
-    );
-}
-
-function DoorPeek({ door, peeks }: { door: Door; peeks?: Peeks }) {
-    const { Icon } = door;
-
-    switch (door.slug) {
-        case 'songs':
-            return (
-                <Shelf
-                    images={peeks?.songs.images ?? []}
-                    frame="cd"
-                    Icon={Icon}
-                />
-            );
-        case 'movies':
-            return (
-                <Shelf
-                    images={peeks?.movies.images ?? []}
-                    frame="poster"
-                    Icon={Icon}
-                />
-            );
-        case 'activities': {
-            const items = peeks?.activities.items ?? [];
-
-            return items.length > 0 ? (
-                <ul className="corner-door-scrap">
-                    {items.map((item, i) => (
-                        <li key={`${i}-${item.title}`}>
-                            <span className="corner-door-scrap-title">
-                                {item.title}
-                            </span>
-                            {item.done && (
-                                <span className="corner-sticker corner-sticker--inline">
-                                    Done
-                                </span>
-                            )}
-                        </li>
-                    ))}
-                </ul>
-            ) : (
-                <span className="corner-door-empty">
-                    <Icon size={28} strokeWidth={1.5} />
-                </span>
-            );
-        }
-        case 'places': {
-            const place = peeks?.places ?? null;
-
-            return (
-                <span className="corner-door-pin">
-                    <Icon
-                        size={28}
-                        strokeWidth={1.5}
-                        className="corner-door-pin-icon"
-                    />
-                    {place && (
-                        <span className="corner-door-pin-text">
-                            <span className="corner-door-pin-title">
-                                {place.title}
-                            </span>
-                            {place.address && (
-                                <span className="corner-door-pin-address">
-                                    {place.address}
-                                </span>
-                            )}
-                        </span>
+        <ul className="corner-door-scrap">
+            {peek.slice(0, TITLES).map((item, i) => (
+                <li key={`${i}-${item.title}`}>
+                    <span className="corner-door-scrap-title">
+                        {item.title}
+                    </span>
+                    {item.done && (
+                        <DoneSticker
+                            icon={door.done_icon}
+                            label={door.done_label}
+                        />
                     )}
-                </span>
-            );
-        }
-    }
+                </li>
+            ))}
+        </ul>
+    );
 }
 
 function CornerDoor({
     door,
-    count,
-    done,
-    peeks,
+    first,
+    last,
+    prefetchOnMount,
 }: {
     door: Door;
-    count: number;
-    done: number;
-    peeks?: Peeks;
+    first: boolean;
+    last: boolean;
+    prefetchOnMount: boolean;
 }) {
     const liveId = useId();
 
     return (
         <article className="corner-card corner-door shell-card-stretch shell-lift">
             <div className="corner-door-peek" aria-hidden="true">
-                <DoorPeek door={door} peeks={peeks} />
+                <DoorPeek door={door} />
             </div>
-            <h2 className="corner-door-name">
-                <Link
-                    href={door.href}
-                    prefetch="mount"
-                    aria-describedby={liveId}
-                    className="shell-card-link"
-                >
-                    {door.label}
-                </Link>
-            </h2>
+            <div className="corner-door-head">
+                <h2 className="corner-door-name">
+                    <ListIcon
+                        name={door.icon}
+                        size={18}
+                        strokeWidth={1.5}
+                        className="corner-door-icon"
+                    />
+                    <Link
+                        href={show.url(door.slug)}
+                        prefetch={prefetchOnMount ? 'mount' : 'hover'}
+                        aria-describedby={liveId}
+                        className="shell-card-link"
+                    >
+                        {door.name}
+                    </Link>
+                </h2>
+                <ListMenu
+                    list={door}
+                    count={door.count}
+                    reorder={{ first, last }}
+                />
+            </div>
             <p id={liveId} className="corner-door-live">
-                {liveLine(door, count, done)}
+                {liveLine(door)}
             </p>
         </article>
     );
 }
 
-export default function Landing({ cornerSummary }: Props) {
+/*
+ * A fresh room has no lists. Rather than starting everyone with one family's choices, it
+ * offers some to pick in one tap, and the sheet for anything else.
+ */
+function Suggestions({ onCustom }: { onCustom: () => void }) {
+    const [pending, setPending] = useState<string | null>(null);
+
+    const make = (preset: ListSettings) => {
+        router.post(store.url(), preset, {
+            ...mutationOptions({
+                component: 'Corner/Landing',
+                action: 'suggested-list',
+                onPendingChange: (busy) =>
+                    setPending(busy ? preset.name : null),
+            }),
+        });
+    };
+
+    return (
+        <section
+            className="corner-suggestions"
+            aria-labelledby="corner-suggestions-title"
+        >
+            <h2
+                id="corner-suggestions-title"
+                className="corner-suggestions-title"
+            >
+                Start a list
+            </h2>
+            <p className="corner-suggestions-body">
+                Somewhere to keep the things you want to share: songs to play,
+                films to watch, places to go. Pick one to start, or make your
+                own.
+            </p>
+            <ul className="corner-suggestion-grid">
+                {SUGGESTED_LISTS.map((preset) => {
+                    return (
+                        <li key={preset.name}>
+                            <button
+                                type="button"
+                                className="corner-suggestion shell-press"
+                                disabled={pending !== null}
+                                aria-busy={pending === preset.name}
+                                onClick={() => make(preset)}
+                            >
+                                <ListIcon
+                                    name={preset.icon}
+                                    size={22}
+                                    strokeWidth={1.5}
+                                    className="corner-suggestion-icon"
+                                />
+                                <span className="corner-suggestion-name">
+                                    {preset.name}
+                                </span>
+                                <span className="corner-suggestion-kind">
+                                    {preset.done_label} or{' '}
+                                    {preset.todo_label.toLowerCase()}
+                                </span>
+                            </button>
+                        </li>
+                    );
+                })}
+            </ul>
+            <Button
+                type="button"
+                variant="outline"
+                className="shell-press"
+                onClick={onCustom}
+            >
+                <Plus aria-hidden="true" size={16} />
+                Make your own
+            </Button>
+        </section>
+    );
+}
+
+export default function Landing({ lists, can }: Props) {
+    const [creating, setCreating] = useState(false);
+
     return (
         <CornerLayout>
-            <Page title="Our Corner" documentTitle="Our Corner" backChevron>
-                <div className="corner-doors">
-                    {DOORS.map((door) => (
-                        <CornerDoor
-                            key={door.slug}
-                            door={door}
-                            count={cornerSummary?.counts[door.slug] ?? 0}
-                            done={cornerSummary?.done?.[door.slug] ?? 0}
-                            peeks={cornerSummary?.peeks}
-                        />
-                    ))}
-                </div>
+            <Page
+                title="Our Corner"
+                documentTitle="Our Corner"
+                backChevron
+                actions={
+                    can.create &&
+                    lists.length > 0 && (
+                        <Button
+                            type="button"
+                            className="shell-press"
+                            onClick={() => setCreating(true)}
+                        >
+                            <Plus aria-hidden="true" size={16} />
+                            New list
+                        </Button>
+                    )
+                }
+            >
+                {lists.length === 0 ? (
+                    can.create && (
+                        <Suggestions onCustom={() => setCreating(true)} />
+                    )
+                ) : (
+                    <div className="corner-doors-wrap">
+                        <div className="corner-doors">
+                            {lists.map((door, i) => (
+                                <CornerDoor
+                                    key={door.id}
+                                    door={door}
+                                    first={i === 0}
+                                    prefetchOnMount={i < PREFETCH_DOORS}
+                                    last={i === lists.length - 1}
+                                />
+                            ))}
+                        </div>
+                    </div>
+                )}
             </Page>
+
+            {creating && (
+                <ListSettingsSheet
+                    open
+                    onOpenChange={(next) => {
+                        if (!next) {
+                            setCreating(false);
+                        }
+                    }}
+                />
+            )}
         </CornerLayout>
     );
 }

@@ -56,6 +56,7 @@
 }
 
 [data-app='our-corner'] .corner-row-meta {
+    display: block;
     margin: 4px 0 0;
 }
 
@@ -71,125 +72,13 @@
     font-family: var(--corner-font);
 }
 
-/* A row card has no picture to sit against the edge, so it takes the fuller inset. */
-[data-app='our-corner'] .corner-card:has(> .corner-item-row) {
-    padding: 16px 12px 16px 20px;
-}
-
-/* The card lifts with .shell-lift; its artwork leans in. */
-@media (hover: hover) and (pointer: fine) {
-    [data-app='our-corner'] .corner-card:hover .corner-cd-cover,
-    [data-app='our-corner'] .corner-card:hover .corner-poster-cover {
-        transform: scale(1.03);
-        transition-duration: var(--dur-media, 300ms);
-    }
-}
-
 [data-app='our-corner'] a.corner-card:focus-visible {
     outline: 2px solid var(--corner-action);
     outline-offset: 2px;
 }
 
-/* 136px keeps two tiles side by side on a 320px phone. */
-[data-app='our-corner'] .corner-tile-grid {
-    grid-template-columns: repeat(auto-fill, minmax(min(136px, 100%), 1fr));
-}
+/* ── Row text ────────────────────────────────────────────────────────────── */
 
-[data-app='our-corner'] .corner-tile-grid > * {
-    container: corner-tile / inline-size;
-}
-
-/* Under 148px the three tile buttons no longer fit beside the card's padding. */
-@container corner-tile (max-width: 147px) {
-    [data-app='our-corner'] .corner-card {
-        padding: 6px;
-    }
-
-    [data-app='our-corner'] .corner-card .corner-done-toggle--icon {
-        min-width: 40px;
-        width: 40px;
-        height: 40px;
-    }
-
-    /* Side by side, the tap areas grow only upwards and downwards. */
-    [data-app='our-corner'] .corner-card .corner-done-toggle--icon::after,
-    [data-app='our-corner'] .corner-card .corner-tile-icon-btn::after {
-        width: 100%;
-    }
-}
-
-@variant lg {
-    [data-app='our-corner'] .corner-tile-grid {
-        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-    }
-}
-
-/* ── The CD frame and the movie poster ───────────────────────────────────── */
-
-[data-app='our-corner'] .corner-cd,
-[data-app='our-corner'] .corner-poster {
-    position: relative;
-    overflow: hidden;
-    border-radius: var(--corner-radius-inner);
-    background: var(--corner-tile-wash-strong);
-}
-
-[data-app='our-corner'] .corner-cd {
-    aspect-ratio: 1 / 1;
-}
-
-[data-app='our-corner'] .corner-poster {
-    aspect-ratio: 2 / 3;
-}
-
-/* A hairline over the artwork, so a pale cover still has an edge. */
-[data-app='our-corner'] .corner-cd::after,
-[data-app='our-corner'] .corner-poster::after {
-    content: '';
-    position: absolute;
-    inset: 0;
-    z-index: 2;
-    border-radius: inherit;
-    box-shadow: inset 0 0 0 1px var(--corner-hairline);
-    pointer-events: none;
-}
-
-[data-app='our-corner'] .corner-cd-cover,
-[data-app='our-corner'] .corner-poster-cover {
-    position: absolute;
-    inset: 0;
-    z-index: 1;
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    transition: transform var(--dur-media, 300ms) var(--corner-ease);
-}
-
-[data-app='our-corner'] .corner-cd-fallback,
-[data-app='our-corner'] .corner-poster-fallback {
-    position: absolute;
-    inset: 0;
-    z-index: 1;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-[data-app='our-corner'] .corner-cd-fallback svg,
-[data-app='our-corner'] .corner-poster-fallback svg,
-[data-app='our-corner'] .corner-preview-placeholder svg {
-    color: var(--corner-accent-text);
-}
-
-[data-app='our-corner'] .corner-cd--lg {
-    max-width: 320px;
-    width: 100%;
-    border-radius: var(--corner-radius-corner);
-}
-
-/* ── Tile and row text ───────────────────────────────────────────────────── */
-
-[data-app='our-corner'] .corner-tile-title,
 [data-app='our-corner'] .corner-row-title {
     display: block;
     font-family: var(--corner-font);
@@ -200,58 +89,8 @@
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
-}
-
-/* Two lines before it clips: song titles are long and the tile is narrow. */
-[data-app='our-corner'] .corner-tile-title {
-    display: -webkit-box;
-    -webkit-box-orient: vertical;
-    -webkit-line-clamp: 2;
-    line-clamp: 2;
-    white-space: normal;
-    overflow-wrap: anywhere;
-    margin-top: 12px;
-    padding: 0 4px;
-}
-
-[data-app='our-corner'] .corner-tile-meta {
-    display: block;
-    padding: 0 4px;
-    font-family: var(--corner-font);
-    font-size: var(--text-meta);
-    font-weight: 500;
-    line-height: 1.4;
-    color: var(--corner-ink-soft);
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-}
-
-/* Room for the sticker's tilt inside the clipped title line. */
-[data-app='our-corner'] .corner-row-title {
+    /* Room for a tilted sticker inside the clipped line. */
     padding: 2px 0;
-}
-
-[data-app='our-corner'] .corner-activity-preview,
-[data-app='our-corner'] .corner-place-address {
-    margin: 0;
-    font-size: var(--text-small);
-    line-height: 1.5;
-    color: var(--corner-ink-soft);
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-}
-
-[data-app='our-corner'] .corner-item-row {
-    display: flex;
-    gap: 12px;
-    align-items: flex-start;
-}
-
-[data-app='our-corner'] .corner-item-main {
-    flex: 1;
-    min-width: 0;
 }
 
 [data-app='our-corner'] .corner-item-actions {
@@ -262,18 +101,16 @@
     flex-shrink: 0;
 }
 
-/* ── The sticker: a loved song, a watched movie, a place you've been ─────── */
+/* ── The sticker: what is done keeps its colour and earns a mark ─────────── */
 
 /* The tilt is part of the object. It never moves. */
 [data-app='our-corner'] .corner-sticker {
-    position: absolute;
-    top: 8px;
-    left: 8px;
-    z-index: 3;
     display: inline-flex;
     align-items: center;
     gap: 4px;
-    padding: 4px 12px;
+    margin-left: 8px;
+    padding: 2px 12px;
+    vertical-align: 1px;
     border-radius: var(--corner-radius-pill);
     background: var(--corner-accent);
     color: var(--corner-accent-fg);
@@ -281,14 +118,6 @@
     font-size: var(--text-meta);
     font-weight: 500;
     line-height: 1.3;
-    transform: rotate(-3deg);
-}
-
-[data-app='our-corner'] .corner-sticker--inline {
-    position: static;
-    margin-left: 8px;
-    padding: 2px 12px;
-    vertical-align: 1px;
     transform: rotate(-2deg);
 }
 
@@ -390,8 +219,7 @@
     height: 18px;
 }
 
-[data-app='our-corner'] .corner-icon-btn,
-[data-app='our-corner'] .corner-tile-icon-btn {
+[data-app='our-corner'] .corner-icon-btn {
     display: flex;
     align-items: center;
     justify-content: center;
@@ -402,23 +230,12 @@
     color: var(--corner-ink);
     text-decoration: none;
     cursor: pointer;
-}
-
-[data-app='our-corner'] .corner-icon-btn {
     width: 44px;
     height: 44px;
 }
 
-/* 40px drawn so three fit under a narrow tile; .shell-hit-44 keeps the tap area at 44px. */
-[data-app='our-corner'] .corner-tile-icon-btn {
-    width: 40px;
-    height: 40px;
-}
-
 [data-app='our-corner'] .corner-icon-btn:hover,
-[data-app='our-corner'] .corner-tile-icon-btn:hover,
-[data-app='our-corner'] .corner-icon-btn[data-state='open'],
-[data-app='our-corner'] .corner-tile-icon-btn[data-state='open'] {
+[data-app='our-corner'] .corner-icon-btn[data-state='open'] {
     background: color-mix(in oklab, var(--corner-ink) 6%, transparent);
 }
 
@@ -437,8 +254,12 @@
 /* ── Landing: a door per list ────────────────────────────────────────────── */
 
 /* Sized by the room, not the viewport: one door a row on a phone, two on a tablet, four wide. */
-[data-app='our-corner'] .corner-doors {
+/* The container is the wrapper: a container query can't restyle the container itself. */
+[data-app='our-corner'] .corner-doors-wrap {
     container: corner-doors / inline-size;
+}
+
+[data-app='our-corner'] .corner-doors {
     display: grid;
     grid-template-columns: minmax(0, 1fr);
     gap: 12px;
@@ -501,7 +322,7 @@
     color: var(--corner-ink-soft);
 }
 
-/* Covers and posters stand on the shelf at the peek's height; what doesn't fit is clipped. */
+/* Pictures stand on the shelf at the peek's height; what doesn't fit is clipped. */
 [data-app='our-corner'] .corner-door-shelf {
     display: flex;
     gap: 6px;
@@ -510,26 +331,7 @@
     overflow: hidden;
 }
 
-[data-app='our-corner'] .corner-door-shelf > .corner-cd,
-[data-app='our-corner'] .corner-door-shelf > .corner-poster {
-    flex: none;
-    height: 100%;
-    background: var(--corner-paper);
-}
-
-[data-app='our-corner'] .corner-door-frame--empty {
-    border: 1px dashed var(--corner-border-hover);
-}
-
-[data-app='our-corner'] .corner-door-frame--empty::after {
-    content: none;
-}
-
-[data-app='our-corner'] .corner-door-frame--empty svg {
-    opacity: 0.6;
-}
-
-/* Activities: the latest few, like a scrap of a list. */
+/* A list without pictures: the latest few, like a scrap of a list. */
 [data-app='our-corner'] .corner-door-scrap {
     display: flex;
     flex-direction: column;
@@ -567,56 +369,14 @@
     white-space: nowrap;
 }
 
-[data-app='our-corner'] .corner-door-scrap .corner-sticker--inline {
+[data-app='our-corner'] .corner-door-scrap .corner-sticker {
     flex: none;
 }
 
-/* Places: the pin, with the latest place beside it. */
-[data-app='our-corner'] .corner-door-pin {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 12px;
-    width: 100%;
-    padding: 0 20px;
-}
-
-[data-app='our-corner'] .corner-door-pin:has(.corner-door-pin-text) {
-    justify-content: flex-start;
-}
-
-[data-app='our-corner'] .corner-door-pin-icon,
+/* An empty list: its icon alone. */
 [data-app='our-corner'] .corner-door-empty {
     flex: none;
     color: var(--corner-accent-text);
-}
-
-[data-app='our-corner'] .corner-door-pin-text {
-    display: flex;
-    flex-direction: column;
-    min-width: 0;
-}
-
-[data-app='our-corner'] .corner-door-pin-title {
-    font-size: var(--text-body);
-    font-weight: 500;
-    line-height: 1.4;
-    color: var(--corner-ink);
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-}
-
-[data-app='our-corner'] .corner-door-pin-address {
-    font-size: var(--text-meta);
-    line-height: 1.4;
-    color: var(--corner-ink-soft);
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-}
-
-[data-app='our-corner'] .corner-door-empty {
     display: grid;
     place-items: center;
     width: 100%;
@@ -674,61 +434,8 @@
     }
 }
 
-@container corner-detail-main (min-width: 560px) {
-    [data-app='our-corner'] .corner-detail-article:has(> .corner-cd--lg) {
-        display: grid;
-        grid-template-columns: minmax(0, 2fr) minmax(0, 3fr);
-        grid-template-rows: min-content min-content min-content 1fr;
-        column-gap: 32px;
-        align-items: start;
-    }
-
-    [data-app='our-corner']
-        .corner-detail-article:has(> .corner-cd--lg)
-        > .corner-cd--lg {
-        grid-column: 1;
-        grid-row: 1 / span 4;
-        margin-bottom: 0;
-    }
-
-    [data-app='our-corner']
-        .corner-detail-article:has(> .corner-cd--lg)
-        > :not(.corner-cd--lg) {
-        grid-column: 2;
-    }
-
-    [data-app='our-corner'] .corner-detail-article:has(.corner-detail-poster),
-    [data-app='our-corner']
-        .corner-detail-article:has(.corner-detail-poster-fallback) {
-        display: grid;
-        grid-template-columns: minmax(0, 2fr) minmax(0, 3fr);
-        grid-template-rows: min-content min-content 1fr;
-        column-gap: 32px;
-        align-items: start;
-    }
-
-    [data-app='our-corner']
-        .corner-detail-article:has(.corner-detail-poster)
-        > :first-child,
-    [data-app='our-corner']
-        .corner-detail-article:has(.corner-detail-poster-fallback)
-        > :first-child {
-        grid-row: 1 / -1;
-        margin-bottom: 0;
-    }
-
-    [data-app='our-corner']
-        .corner-detail-article:has(.corner-detail-poster)
-        > :not(:first-child),
-    [data-app='our-corner']
-        .corner-detail-article:has(.corner-detail-poster-fallback)
-        > :not(:first-child) {
-        grid-column: 2;
-    }
-}
-
 [data-app='our-corner'] .corner-detail-hero-media {
-    display: block;
+    display: flex;
     margin-bottom: 16px;
 }
 
@@ -771,10 +478,6 @@
     flex-wrap: wrap;
 }
 
-[data-app='our-corner'] .corner-detail-fallback-icon {
-    color: var(--corner-accent-text);
-}
-
 /* The pin. */
 [data-app='our-corner'] .corner-detail-place {
     display: flex;
@@ -786,25 +489,6 @@
 [data-app='our-corner'] .corner-detail-place-icon {
     flex-shrink: 0;
     color: var(--corner-accent-text);
-}
-
-[data-app='our-corner'] .corner-detail-poster,
-[data-app='our-corner'] .corner-detail-poster-fallback {
-    width: 100%;
-    max-width: 280px;
-    aspect-ratio: 2 / 3;
-    border-radius: var(--corner-radius-corner);
-}
-
-[data-app='our-corner'] .corner-detail-poster {
-    object-fit: cover;
-}
-
-[data-app='our-corner'] .corner-detail-poster-fallback {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: var(--corner-tile-wash-strong);
 }
 
 /* ── "Mentioned in" ──────────────────────────────────────────────────────── */
@@ -910,60 +594,7 @@
     cursor: pointer;
 }
 
-/* ── Link preview in the add dialogs ─────────────────────────────────────── */
-
-[data-app='our-corner'] .corner-preview-card {
-    display: flex;
-    gap: 12px;
-    align-items: flex-start;
-    padding: 12px;
-    border-radius: var(--corner-radius-corner);
-    border: 1px solid var(--corner-border);
-    background: var(--corner-tile-wash);
-    color: var(--corner-ink);
-}
-
-[data-app='our-corner'] .corner-preview-thumb,
-[data-app='our-corner'] .corner-preview-placeholder {
-    width: 88px;
-    height: 66px;
-    border-radius: var(--corner-radius-inner);
-    flex-shrink: 0;
-}
-
-[data-app='our-corner'] .corner-preview-thumb {
-    object-fit: cover;
-}
-
-[data-app='our-corner'] .corner-preview-placeholder {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: var(--corner-tile-wash-strong);
-}
-
-[data-app='our-corner'] .corner-preview-title {
-    margin: 0;
-    font-size: var(--text-body);
-    font-weight: 500;
-    line-height: 1.4;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-}
-
-[data-app='our-corner'] .corner-preview-meta,
-[data-app='our-corner'] .corner-preview-provider {
-    margin: 4px 0 0 0;
-    font-size: var(--text-meta);
-    font-weight: 500;
-    line-height: 1.4;
-    color: var(--corner-ink-soft);
-}
-
-[data-app='our-corner'] .corner-preview-provider {
-    text-transform: capitalize;
-}
+/* ── Forms ───────────────────────────────────────────────────────────────── */
 
 [data-app='our-corner'] .corner-form-hint {
     margin: 4px 0 0 0;
@@ -972,41 +603,674 @@
     color: var(--corner-ink-soft);
 }
 
-/* A quiet text button that opens an optional part of a form. */
-[data-app='our-corner'] .corner-disclosure {
+/* ── Landing: a door's name, icon and menu ───────────────────────────────── */
+
+[data-app='our-corner'] .corner-door-head {
+    display: flex;
+    align-items: flex-start;
+    gap: 4px;
+    min-width: 0;
+}
+
+[data-app='our-corner'] .corner-door-head .corner-door-name {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+}
+
+/* A household names its lists: a long name wraps to two lines and then stops. */
+[data-app='our-corner'] .corner-door-name .shell-card-link {
+    min-width: 0;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    overflow: hidden;
+    overflow-wrap: anywhere;
+}
+
+[data-app='our-corner'] .corner-door-icon {
+    flex: none;
+    align-self: center;
+    color: var(--corner-accent-text);
+}
+
+[data-app='our-corner'] .corner-door-head .corner-list-menu-btn {
+    margin-top: 4px;
+    margin-right: -4px;
+}
+
+/* ── Landing: an empty room's suggestions ────────────────────────────────── */
+
+[data-app='our-corner'] .corner-suggestions {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 16px;
+    max-width: 760px;
+}
+
+[data-app='our-corner'] .corner-suggestions-title {
+    margin: 0;
+    font-family: var(--corner-font-display);
+    font-size: var(--text-title);
+    font-weight: 400;
+    line-height: 1.2;
+    letter-spacing: var(--tracking-display);
+}
+
+[data-app='our-corner'] .corner-suggestions-body {
+    margin: 0;
+    max-width: 56ch;
+    font-size: var(--text-body);
+    line-height: 1.5;
+    color: var(--corner-ink-soft);
+}
+
+[data-app='our-corner'] .corner-suggestion-grid {
+    width: 100%;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(160px, 100%), 1fr));
+    gap: 12px;
+}
+
+[data-app='our-corner'] .corner-suggestion {
+    width: 100%;
+    min-height: 96px;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+    padding: 14px 16px;
+    border: 1px solid var(--corner-border);
+    border-radius: var(--corner-radius-card);
+    background: var(--corner-tile-wash);
+    color: var(--corner-ink);
+    font-family: var(--corner-font);
+    text-align: left;
+    cursor: pointer;
+}
+
+[data-app='our-corner'] .corner-suggestion:hover {
+    border-color: var(--corner-border-hover);
+    background: var(--corner-tile-wash-strong);
+}
+
+[data-app='our-corner'] .corner-suggestion:disabled {
+    cursor: default;
+    opacity: 0.6;
+}
+
+[data-app='our-corner'] .corner-suggestion-icon {
+    margin-bottom: 4px;
+    color: var(--corner-accent-text);
+}
+
+[data-app='our-corner'] .corner-suggestion-name {
+    font-size: var(--text-body);
+    font-weight: 500;
+    line-height: 1.3;
+}
+
+[data-app='our-corner'] .corner-suggestion-kind {
+    font-size: var(--text-meta);
+    font-weight: 500;
+    color: var(--corner-ink-soft);
+}
+
+/* ── List settings sheet ─────────────────────────────────────────────────── */
+
+[data-app='our-corner'].corner-sheet-content {
+    background: var(--corner-paper);
+    color: var(--corner-ink);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+[data-app='our-corner'] .corner-sheet-form {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-height: 0;
+}
+
+[data-app='our-corner'] .corner-sheet-header {
+    flex: none;
+    padding: 20px 64px 16px 24px;
+    border-bottom: 1px solid var(--corner-border);
+}
+
+[data-app='our-corner'] .corner-sheet-title {
+    margin: 0;
+    font-family: var(--corner-font-display);
+    font-size: var(--text-title);
+    font-weight: 400;
+    line-height: 1.2;
+    letter-spacing: var(--tracking-display);
+    color: var(--corner-ink);
+    overflow-wrap: anywhere;
+}
+
+[data-app='our-corner'] .corner-sheet-scroll {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
+}
+
+[data-app='our-corner'] .corner-sheet-body {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    padding: 20px 24px 24px;
+}
+
+/* Always in view: the submit never sits below the fold or under the keyboard. */
+[data-app='our-corner'] .corner-sheet-footer {
+    flex: none;
+    display: flex;
+    justify-content: flex-end;
+    padding: 12px 24px max(16px, env(safe-area-inset-bottom));
+    border-top: 1px solid var(--corner-border);
+    background: var(--corner-paper);
+}
+
+@media (max-width: 639px) {
+    [data-app='our-corner'] .corner-sheet-header,
+    [data-app='our-corner'] .corner-sheet-body,
+    [data-app='our-corner'] .corner-sheet-footer {
+        padding-left: 16px;
+        padding-right: 16px;
+    }
+
+    [data-app='our-corner'] .corner-sheet-header {
+        padding-right: 64px;
+    }
+}
+
+[data-app='our-corner'] .corner-fieldset {
+    min-width: 0;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+[data-app='our-corner'] .corner-fieldset-legend {
+    padding: 0;
+    margin-bottom: 10px;
+    font-size: var(--text-small);
+    font-weight: 500;
+    color: var(--corner-ink);
+}
+
+[data-app='our-corner'] .corner-field-error {
+    margin: 0;
+    font-size: var(--text-small);
+    color: var(--corner-destructive);
+}
+
+[data-app='our-corner'] .corner-chip-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+[data-app='our-corner'] .corner-chip {
     display: inline-flex;
     align-items: center;
-    gap: 8px;
-    align-self: flex-start;
+    gap: 6px;
     min-height: 44px;
-    padding: 0;
-    border: none;
-    background: transparent;
-    color: var(--corner-ink-soft);
+    padding: 0 16px;
+    border: 1px solid var(--corner-border-input);
+    border-radius: var(--corner-radius-pill);
+    background: var(--corner-paper);
+    color: var(--corner-ink);
     font-family: var(--corner-font);
+    font-size: var(--text-small);
+    font-weight: 500;
+    cursor: pointer;
+}
+
+[data-app='our-corner'] .corner-chip:hover {
+    background: var(--corner-hover-fill);
+}
+
+[data-app='our-corner'] .corner-chip[aria-checked='true'] {
+    border-color: var(--corner-accent-text);
+    background: var(--corner-tile-wash-strong);
+}
+
+[data-app='our-corner'] .corner-word-pair {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(180px, 100%), 1fr));
+    gap: 12px;
+}
+
+[data-app='our-corner'] .corner-switch-row {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+}
+
+[data-app='our-corner'] .corner-switch-label {
+    display: flex;
+    flex-direction: column;
     font-size: var(--text-body);
     font-weight: 500;
     cursor: pointer;
 }
 
-[data-app='our-corner'] .corner-disclosure:hover {
+[data-app='our-corner'] .corner-switch-label .corner-form-hint {
+    font-weight: 400;
+}
+
+/* ── One look for every item ─────────────────────────────────────────────── */
+
+[data-app='our-corner'] .corner-item-grid {
+    grid-template-columns: repeat(auto-fill, minmax(min(360px, 100%), 1fr));
+}
+
+/*
+ * An item's picture, or its list's icon on the accent wash. The box has its size before the
+ * picture arrives, so nothing shifts; a hairline keeps a pale picture's edge.
+ */
+[data-app='our-corner'] .corner-thumb {
+    position: relative;
+    flex: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    border-radius: var(--corner-radius-inner);
+    background: color-mix(
+        in oklab,
+        var(--shell-accent) 18%,
+        var(--shell-surface)
+    );
+    color: var(--corner-accent-text);
+}
+
+[data-app='our-corner'] .corner-thumb::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    box-shadow: inset 0 0 0 1px var(--corner-hairline);
+    pointer-events: none;
+}
+
+[data-app='our-corner'] .corner-thumb--sm {
+    width: 44px;
+    height: 44px;
+}
+
+[data-app='our-corner'] .corner-thumb--md {
+    width: 72px;
+    height: 72px;
+}
+
+[data-app='our-corner'] .corner-thumb--lg {
+    width: min(100%, 320px);
+    aspect-ratio: 1;
+    border-radius: var(--corner-radius-card);
+}
+
+[data-app='our-corner'] .corner-thumb-picture {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+[data-app='our-corner'] .corner-item-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+}
+
+[data-app='our-corner'] .corner-item-main {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 2px;
+    min-width: 0;
+}
+
+[data-app='our-corner'] .corner-item-link {
+    max-width: 100%;
+    color: inherit;
+    text-decoration: none;
+}
+
+[data-app='our-corner'] .corner-item-main .corner-sticker {
+    margin: 2px 0;
+}
+
+[data-app='our-corner'] .corner-item-byline,
+[data-app='our-corner'] .corner-item-notes,
+[data-app='our-corner'] .corner-item-place {
+    max-width: 100%;
+    font-size: var(--text-small);
+    line-height: 1.5;
+    color: var(--corner-ink-soft);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+[data-app='our-corner'] .corner-item-place {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+
+[data-app='our-corner'] .corner-item-place svg {
+    flex: none;
+    color: var(--corner-accent-text);
+}
+
+[data-app='our-corner'] .corner-door-shelf > .corner-door-cover {
+    width: auto;
+    height: 100%;
+    aspect-ratio: 1;
+    background: color-mix(
+        in oklab,
+        var(--shell-accent) 18%,
+        var(--shell-surface)
+    );
+}
+
+/* ── The add and edit sheet ──────────────────────────────────────────────── */
+
+[data-app='our-corner'] .corner-field-label {
+    display: block;
+    margin-bottom: 8px;
+    font-size: var(--text-small);
+    font-weight: 500;
     color: var(--corner-ink);
 }
 
-[data-app='our-corner'] .corner-disclosure:focus-visible {
+[data-app='our-corner'] .corner-picture-row {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+[data-app='our-corner'] .corner-picture-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px 16px;
+}
+
+[data-app='our-corner'] .corner-picture-field {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+/* A quiet text button inside a form, for an optional step. */
+[data-app='our-corner'] .corner-text-button {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    min-height: 44px;
+    padding: 0;
+    border: none;
+    background: transparent;
+    color: var(--corner-accent-text);
+    font-family: var(--corner-font);
+    font-size: var(--text-small);
+    font-weight: 500;
+    cursor: pointer;
+}
+
+[data-app='our-corner'] .corner-text-button:hover {
+    color: var(--corner-ink);
+}
+
+[data-app='our-corner'] .corner-text-button:focus-visible {
     outline: 2px solid var(--corner-action);
     outline-offset: 2px;
     border-radius: var(--radius-inner);
 }
 
-[data-app='our-corner'] .corner-disclosure-icon {
-    transition: transform var(--dur-out) var(--corner-ease);
+[data-app='our-corner'] .corner-form-note {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0 12px;
+    margin: -8px 0 0;
+    font-size: var(--text-small);
+    line-height: 1.5;
+    color: var(--corner-ink-soft);
 }
 
-[data-app='our-corner']
-    .corner-disclosure[aria-expanded='true']
-    .corner-disclosure-icon {
-    transform: rotate(180deg);
+/* ── The icon picker ─────────────────────────────────────────────────────── */
+
+[data-app='our-corner'] .corner-icon-field {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+}
+
+[data-app='our-corner'] .corner-icon-trigger {
+    display: inline-flex;
+    align-items: center;
+    gap: 12px;
+    min-height: 52px;
+    padding: 4px 14px 4px 4px;
+    border: 1px solid var(--corner-border-input);
+    border-radius: var(--radius-field);
+    background: var(--corner-paper);
+    color: var(--corner-ink);
+    font-family: var(--corner-font);
+    font-size: var(--text-body);
+    cursor: pointer;
+}
+
+[data-app='our-corner'] .corner-icon-trigger:hover {
+    background: var(--corner-hover-fill);
+}
+
+[data-app='our-corner'] .corner-icon-trigger[aria-expanded='true'] {
+    border-color: var(--corner-accent-text);
+}
+
+[data-app='our-corner'] .corner-icon-trigger-mark {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    border-radius: var(--radius-inner);
+    background: color-mix(
+        in oklab,
+        var(--shell-accent) 18%,
+        var(--shell-surface)
+    );
+    color: var(--corner-accent-text);
+}
+
+[data-app='our-corner'] .corner-icon-trigger-action {
+    display: inline-flex;
+    align-items: center;
+    gap: 2px;
+    margin-left: 8px;
+    font-size: var(--text-small);
+    font-weight: 500;
+    color: var(--corner-accent-text);
+}
+
+[data-app='our-corner'].corner-icon-popover {
+    background: var(--corner-paper);
+    color: var(--corner-ink);
+    border: 1px solid var(--corner-border);
+    border-radius: var(--radius-pop);
+    overflow: hidden;
+}
+
+[data-app='our-corner'].corner-icon-sheet {
+    display: flex;
+    flex-direction: column;
+    background: var(--corner-paper);
+    color: var(--corner-ink);
+}
+
+[data-app='our-corner'] .corner-icon-sheet-title {
+    padding: 18px 64px 4px 16px;
+    font-family: var(--corner-font-display);
+    font-size: var(--text-title);
+    font-weight: 400;
+}
+
+[data-app='our-corner'] .corner-icon-panel {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    height: 440px;
+    padding: 12px;
+}
+
+[data-app='our-corner'] .corner-icon-panel--roomy {
+    flex: 1;
+    min-height: 0;
+    height: auto;
+    padding: 8px 16px max(12px, env(safe-area-inset-bottom));
+}
+
+[data-app='our-corner'] .corner-icon-search {
+    position: relative;
+    flex: none;
+}
+
+[data-app='our-corner'] .corner-icon-search > svg {
+    position: absolute;
+    top: 50%;
+    left: 14px;
+    transform: translateY(-50%);
+    color: var(--corner-ink-soft);
+    pointer-events: none;
+}
+
+[data-app='our-corner'] .corner-icon-search input {
+    padding-left: 38px;
+}
+
+[data-app='our-corner'] .corner-icon-jump {
+    flex: none;
+}
+
+[data-app='our-corner'] .corner-icon-jump-select {
+    width: 100%;
+    min-height: 40px;
+    padding: 0 12px;
+    border: 1px solid var(--corner-border-input);
+    border-radius: var(--radius-field);
+    background: var(--corner-paper);
+    color: var(--corner-ink);
+    font-family: var(--corner-font);
+    font-size: var(--text-small);
+}
+
+/* One scrolling grid; only the rows near the visible band exist. */
+[data-app='our-corner'] .corner-icon-scroll {
+    position: relative;
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+}
+
+[data-app='our-corner'] .corner-icon-canvas {
+    position: relative;
+}
+
+[data-app='our-corner'] .corner-icon-heading,
+[data-app='our-corner'] .corner-icon-sticky {
+    display: flex;
+    align-items: center;
+    height: 32px;
+    padding: 0 4px;
+    font-size: var(--text-meta);
+    font-weight: 500;
+    color: var(--corner-ink-soft);
+    background: var(--corner-paper);
+}
+
+[data-app='our-corner'] .corner-icon-heading {
+    position: absolute;
+    left: 0;
+    right: 0;
+}
+
+/* The heading of the category being scrolled through stays at the top. */
+[data-app='our-corner'] .corner-icon-sticky {
+    position: sticky;
+    top: 0;
+    z-index: 1;
+    margin-bottom: -32px;
+}
+
+[data-app='our-corner'] .corner-icon-row {
+    position: absolute;
+    left: 0;
+    right: 0;
+    display: flex;
+    gap: 4px;
+}
+
+[data-app='our-corner'] .corner-icon-option {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex: none;
+    border: 1px solid transparent;
+    border-radius: var(--radius-inner);
+    color: var(--corner-ink-soft);
+    cursor: pointer;
+}
+
+[data-app='our-corner'] .corner-icon-option[data-active] {
+    background: var(--corner-hover-fill);
+    color: var(--corner-ink);
+    outline: 2px solid var(--corner-action);
+    outline-offset: -2px;
+}
+
+[data-app='our-corner'] .corner-icon-option[aria-selected='true'] {
+    border-color: var(--corner-accent-text);
+    background: var(--corner-tile-wash-strong);
+    color: var(--corner-accent-text);
+}
+
+[data-app='our-corner'] .corner-icon-footer {
+    flex: none;
+    margin: 0;
+    padding-top: 6px;
+    border-top: 1px solid var(--corner-border);
+    font-size: var(--text-small);
+    font-weight: 500;
+    color: var(--corner-ink-soft);
+}
+
+[data-app='our-corner'] .corner-icon-empty,
+[data-app='our-corner'] .corner-icon-state {
+    padding: 24px 8px;
+    text-align: center;
+}
+
+[data-app='our-corner'] .corner-icon-empty p {
+    margin: 0 0 4px;
 }
 
 /* ── "This isn't here anymore" ───────────────────────────────────────────── */
@@ -1088,17 +1352,4 @@
 .tt-pill:focus-visible {
     outline: 2px solid var(--shell-action);
     outline-offset: 2px;
-}
-
-@media (prefers-reduced-motion: reduce) {
-    [data-app='our-corner'] .corner-cd-cover,
-    [data-app='our-corner'] .corner-poster-cover,
-    [data-app='our-corner'] .corner-disclosure-icon {
-        transition: none;
-    }
-
-    [data-app='our-corner'] .corner-cd-cover,
-    [data-app='our-corner'] .corner-poster-cover {
-        transform: none !important;
-    }
 }

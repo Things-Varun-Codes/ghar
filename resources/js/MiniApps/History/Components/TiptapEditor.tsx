@@ -298,6 +298,7 @@ export default function TiptapEditor({
                         title: entity.title,
                         thumbnailUrl: entity.thumbnailUrl,
                         deepLinkUrl: entity.deepLinkUrl,
+                        icon: entity.icon,
                     },
                 })
                 .run();

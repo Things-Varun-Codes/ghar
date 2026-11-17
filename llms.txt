@@ -1,7 +1,7 @@
 # Ghar: a private, self-hosted web app for one household
 
 > Ghar is a private, self-hosted web app for one family or household: a shared timeline of moments
-> with photos and videos, shared lists of songs, movies and places, and notes, flowers, coupons and
+> with photos and videos, shared lists the household makes for itself (songs, films, places, books, anything), and notes, flowers, coupons and
 > joke traffic tickets sent to each other. You run it yourself with Docker, people join by
 > invitation only, and it is open source under the MIT licence. "Ghar" is the Hindi and Urdu word
 > for home.
