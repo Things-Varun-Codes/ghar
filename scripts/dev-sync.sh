@@ -51,6 +51,12 @@ else
   bash scripts/lib/migration-stamp.sh write
 fi
 
+# The dev log only grows; past a megabyte, keep the recent end of it.
+log="storage/logs/laravel.log"
+if [ -f "$log" ] && [ "$(wc -c < "$log")" -gt 1000000 ]; then
+  tail -n 500 "$log" > "$log.tmp" && mv "$log.tmp" "$log"
+fi
+
 printf '\nUp to date.\n'
 
 if [ "${1:-}" = "--serve" ]; then

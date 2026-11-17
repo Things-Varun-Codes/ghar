@@ -112,9 +112,13 @@ parallel worktrees. The smoke scripts use fixed ports: one run at a time per mac
   then `git switch -c <type>/<name> origin/main`.
 - **The shell is zsh: quote every glob** (`grep --include='*.php'`, `ls 'app/Foo/'*.php`). An
   unquoted pattern that matches nothing fails the whole command with `no matches found`.
+- **When tests are red, rerun with `--stop-on-failure` or a `--filter`.** Each failed page test
+  prints the whole exception trace, so a broad red run is megabytes of output.
 - **PHPStan needs `--memory-limit=1G`,** on one file as much as on the repo.
 - **Don't read the lockfiles whole.** `composer.lock` (~480 KB) and `package-lock.json` (~330 KB)
   are most of a context window: use `composer show <package>` and `npm ls <package>`.
+- **`.ignore` keeps the lockfiles and the two lucide data files out of ripgrep searches;** pass
+  `--no-ignore` when you do need them.
 - **Search the big stylesheets instead of reading them.** `app.css`, `themes/history.css` and
   `themes/mailbox.css` are 45–60 KB each; grep for the class or token you need.
 
