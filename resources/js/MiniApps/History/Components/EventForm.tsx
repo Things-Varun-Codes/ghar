@@ -208,15 +208,9 @@ const EventForm = forwardRef<EventFormHandle, EventFormProps>(
                     preserveScroll: true,
                     preserveState: true,
                     onSuccess: (page: Page) => {
-                        const flash = (
-                            page.props as {
-                                flash?: { created_event_id?: unknown };
-                            }
-                        ).flash;
+                        const createdId = page.flash?.created_event_id;
                         const newId =
-                            typeof flash?.created_event_id === 'number'
-                                ? flash.created_event_id
-                                : null;
+                            typeof createdId === 'number' ? createdId : null;
 
                         if (newId !== null) {
                             // Seed from the ref: debounced data may still lag the last keystroke

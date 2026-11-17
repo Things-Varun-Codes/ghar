@@ -8,8 +8,9 @@ use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
 
 /**
- * `room:{slug}` or `room:{slug},{option}`. Off answers 404, the same as a page that was never
- * there. It sits after `auth`, so a guest is sent to login either way.
+ * `room:{slug}` or `room:{slug},{option}`. A room that is off, or an `admin_only` room to anyone
+ * but an admin, answers 404, the same as a page that was never there. It sits after `auth`, so a
+ * guest is sent to login either way.
  */
 class EnsureRoomIsOn
 {
@@ -17,11 +18,10 @@ class EnsureRoomIsOn
 
     public function handle(Request $request, Closure $next, string $slug, ?string $option = null): Response
     {
-        $on = $option === null
-            ? $this->rooms->isOn($slug)
-            : $this->rooms->optionOn($slug, $option);
+        $open = $this->rooms->canEnter($request->user(), $slug)
+            && ($option === null || $this->rooms->optionOn($slug, $option));
 
-        abort_unless($on, 404);
+        abort_unless($open, 404);
 
         return $next($request);
     }

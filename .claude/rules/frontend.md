@@ -15,7 +15,11 @@ paths:
   (`back`) and the phone top bar's title. On a route change focus moves to the page's `h1`
   (`lib/route-focus.ts`), except for same-path visits such as filter, sort and search.
 - **Back goes back.** `BackChevron` steps through history when the parent is the page you came
-  from, and replaces the entry otherwise. A page owns one history entry:
+  from, and replaces the entry otherwise. The shell knows only one parent: a page inside a room goes
+  to the room's landing, named from the `miniApps` registry prop, and anything else goes Home
+  (`defaultParent` in `lib/back-navigation.ts`). A page whose parent is something else passes
+  `back` to `Page` (a Corner item to its list, a Mailbox citation or coupon to its list, History's
+  tabs to Home); the shell never names a room (`scripts/check-boundaries.sh`). A page owns one history entry:
   `lib/navigation.ts` turns a GET to the path already shown (filter, sort, search, tab, page
   number) into a replace, so back leaves the page instead of undoing the filter. Link to another
   page with Inertia's `Link`: a plain `<a>` reloads the document and the chevron forgets where

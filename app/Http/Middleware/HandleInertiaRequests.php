@@ -23,9 +23,8 @@ class HandleInertiaRequests extends Middleware
     {
         $user = $request->user();
         $user?->loadMissing('roles');
-        $isAdmin = (bool) $user?->hasRole('admin');
 
-        $miniApps = MiniAppRegistry::visibleFor($user, $isAdmin);
+        $miniApps = MiniAppRegistry::visibleFor($user);
 
         return [
             ...parent::share($request),
@@ -42,9 +41,7 @@ class HandleInertiaRequests extends Middleware
             ],
             'miniApps' => $miniApps,
             'today' => now()->toDateString(),
-            // EventForm reads this to drain staged uploads once the moment exists.
             'flash' => [
-                'created_event_id' => fn () => $request->session()->get('created_event_id'),
                 'success' => fn () => $request->session()->get('success'),
                 'error' => fn () => $request->session()->get('error'),
                 // An ordinary prop, not the toast path: the email-pending notice has to

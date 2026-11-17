@@ -24,6 +24,6 @@ class ListItemPolicy
 
     private function manages(User $user, Item $item): bool
     {
-        return $item->added_by_user_id === $user->id || $user->can('admin');
+        return $user->makerOrAdmin($item->added_by_user_id);
     }
 }

@@ -59,6 +59,7 @@ export default function ItemCard({ list, item, onEdit }: Props) {
 
     return (
         <AppCard
+            base="corner-card"
             variant="list"
             data-app="our-corner"
             className="corner-item shell-card-stretch shell-lift"

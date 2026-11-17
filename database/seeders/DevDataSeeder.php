@@ -102,10 +102,12 @@ class DevDataSeeder extends Seeder
         }
 
         foreach ($disk->directories() as $directory) {
-            if (ctype_digit($directory) || in_array($directory, ['bouquets', Household::FILES_DIRECTORY], true)) {
+            if (ctype_digit($directory) || $directory === Household::FILES_DIRECTORY) {
                 $disk->deleteDirectory($directory);
             }
         }
+
+        MailboxData::clearFiles($disk);
     }
 
     private function seedHousehold(): Household

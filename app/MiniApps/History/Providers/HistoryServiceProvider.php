@@ -13,13 +13,17 @@ use App\Shell\Models\User;
 use App\Shell\Services\DashboardSummaries;
 use App\Shell\Services\LinkableEntities;
 use App\Shell\Support\CursorList;
+use App\Shell\Support\Limits;
 use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\ServiceProvider;
 use Spatie\MediaLibrary\MediaCollections\Models\Media;
 
 class HistoryServiceProvider extends ServiceProvider
 {
+    public const SLUG = 'our-history';
+
     public function register(): void {}
 
     public function boot(LinkableEntities $linkable, DashboardSummaries $summaries): void
@@ -38,14 +42,16 @@ class HistoryServiceProvider extends ServiceProvider
 
         Gate::policy(Event::class, EventPolicy::class);
 
-        $summaries->register('our-history', fn (User $user): ?string => DashboardLine::forUser($user));
-        $summaries->registerPreview('our-history', fn (User $user): ?array => DashboardPreview::forUser($user));
+        RateLimiter::for('history-mutations', Limits::perUser(30));
+
+        $summaries->register(self::SLUG, fn (User $user): ?string => DashboardLine::forUser($user));
+        $summaries->registerPreview(self::SLUG, fn (User $user): ?array => DashboardPreview::forUser($user));
 
         Media::observe(MediaDimensionsObserver::class);
 
         $linkable->register(
             type: 'history.event',
-            room: 'our-history',
+            room: self::SLUG,
             listing: fn (string $q, int $limit) => Event::query()
                 ->where(function ($builder) use ($q) {
                     $pattern = CursorList::containsPattern($q);

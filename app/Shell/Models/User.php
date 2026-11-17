@@ -46,6 +46,12 @@ class User extends Authenticatable
         return explode(' ', $this->name)[0];
     }
 
+    /** Whoever made a thing may change it, and so may an admin. */
+    public function makerOrAdmin(?int $makerId): bool
+    {
+        return $makerId === $this->id || $this->can('admin');
+    }
+
     /** @return array<string, string> */
     protected function casts(): array
     {

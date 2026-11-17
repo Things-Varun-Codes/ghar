@@ -4,6 +4,7 @@ namespace Tests\Feature\Rooms;
 
 use App\MiniApps\History\Models\Event;
 use App\Shell\Models\User;
+use App\Shell\Notifications\GenericPushNotification;
 use App\Shell\Services\Rooms;
 use Database\Seeders\RoleSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -99,6 +100,57 @@ class RoomSwitchesTest extends TestCase
         ])->assertNotFound();
 
         Notification::assertNothingSent();
+    }
+
+    private function makeAdminOnly(string $slug): void
+    {
+        $index = collect(config('miniapps'))->search(fn (array $app): bool => $app['slug'] === $slug);
+        config(["miniapps.{$index}.admin_only" => true]);
+    }
+
+    public function test_an_admin_only_room_is_entered_seen_and_pushed_to_by_admins_alone(): void
+    {
+        Notification::fake();
+        $this->makeAdminOnly('our-history');
+        $admin = $this->admin();
+        $user = User::factory()->create();
+
+        $this->assertTrue($this->rooms()->canEnter($admin, 'our-history'));
+        $this->assertFalse($this->rooms()->canEnter($user, 'our-history'));
+        $this->assertFalse($this->rooms()->canEnter(null, 'our-history'));
+        $this->assertTrue($this->rooms()->canEnter($user, 'our-corner'));
+
+        $this->actingAs($user)->get('/apps/our-history')->assertNotFound();
+        $this->get('/dashboard')->assertOk()->assertInertia(fn ($page) => $page
+            ->where('miniApps', fn ($apps) => collect($apps)->pluck('slug')->doesntContain('our-history'))
+            ->where('summaries', fn ($s) => ! collect($s)->has('our-history'))
+        );
+
+        $this->actingAs($admin)->get('/apps/our-history')->assertOk();
+        $this->get('/dashboard')->assertOk()->assertInertia(fn ($page) => $page
+            ->where('miniApps', fn ($apps) => collect($apps)->pluck('slug')->contains('our-history'))
+        );
+
+        $urls = collect($this->get('/manifest.webmanifest')->json('shortcuts'))->pluck('url');
+        $this->assertNotContains('/apps/our-history', $urls->all());
+
+        // Recipients from a query, as Household gives them: the role check must not lazy-load.
+        $recipients = User::query()->whereKey([$admin->id, $user->id])->get();
+        app(\App\Shell\Services\PushDispatcher::class)
+            ->toUsers($recipients, 'our-history', 'our-history', 'body', '/apps/our-history');
+
+        Notification::assertSentTo($admin, GenericPushNotification::class);
+        Notification::assertNotSentTo($user, GenericPushNotification::class);
+    }
+
+    public function test_an_admin_only_room_that_is_off_is_closed_to_admins_too(): void
+    {
+        $this->makeAdminOnly('our-history');
+        $this->turnOff('our-history');
+        $admin = $this->admin();
+
+        $this->assertFalse($this->rooms()->canEnter($admin, 'our-history'));
+        $this->actingAs($admin)->get('/apps/our-history')->assertNotFound();
     }
 
     public function test_an_off_room_stays_out_of_the_manifest_shortcuts(): void

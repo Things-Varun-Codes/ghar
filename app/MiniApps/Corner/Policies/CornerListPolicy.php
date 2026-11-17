@@ -37,15 +37,15 @@ class CornerListPolicy
      */
     public static function mayDelete(User $user, CornerList $list, int $itemsByOthers): bool
     {
-        if ($user->can('admin')) {
-            return true;
+        if ($itemsByOthers === 0) {
+            return $user->makerOrAdmin($list->created_by_user_id);
         }
 
-        return $list->created_by_user_id === $user->id && $itemsByOthers === 0;
+        return $user->can('admin');
     }
 
     private function manages(User $user, CornerList $list): bool
     {
-        return $list->created_by_user_id === $user->id || $user->can('admin');
+        return $user->makerOrAdmin($list->created_by_user_id);
     }
 }

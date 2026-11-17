@@ -1,6 +1,6 @@
 import { router } from '@inertiajs/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { goBack } from '@/lib/back-navigation';
+import { defaultParent, goBack } from '@/lib/back-navigation';
 import {
     previousPath,
     recordNavigation,
@@ -10,6 +10,54 @@ import {
 vi.mock('@inertiajs/react', () => ({
     router: { visit: vi.fn() },
 }));
+
+describe('defaultParent', () => {
+    const rooms = [
+        { name: 'Our Recipes', route: '/apps/our-recipes' },
+        { name: 'Our Garden', route: '/apps/our-garden' },
+    ];
+
+    it('takes a page inside a room back to that room, named from the registry', () => {
+        expect(defaultParent('/apps/our-recipes/soups', rooms)).toEqual({
+            href: '/apps/our-recipes',
+            label: 'Our Recipes',
+        });
+        expect(defaultParent('/apps/our-garden/beds/4', rooms)).toEqual({
+            href: '/apps/our-garden',
+            label: 'Our Garden',
+        });
+    });
+
+    it('takes a room landing home', () => {
+        expect(defaultParent('/apps/our-recipes', rooms)).toEqual({
+            href: '/dashboard',
+            label: 'Home',
+        });
+    });
+
+    it('does not mistake a room whose route is a prefix of another for it', () => {
+        expect(
+            defaultParent('/apps/our-recipes-old/1', [
+                { name: 'Our Recipes', route: '/apps/our-recipes' },
+            ]),
+        ).toEqual({ href: '/dashboard', label: 'Home' });
+    });
+
+    it('takes a page in a room the viewer cannot see, and a shell page, home', () => {
+        expect(defaultParent('/apps/our-attic/boxes', rooms)).toEqual({
+            href: '/dashboard',
+            label: 'Home',
+        });
+        expect(defaultParent('/settings/profile', rooms)).toEqual({
+            href: '/dashboard',
+            label: 'Home',
+        });
+        expect(defaultParent('/admin/users', [])).toEqual({
+            href: '/dashboard',
+            label: 'Home',
+        });
+    });
+});
 
 describe('goBack', () => {
     beforeEach(() => {

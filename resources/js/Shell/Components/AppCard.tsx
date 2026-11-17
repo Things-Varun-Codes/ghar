@@ -2,7 +2,8 @@ import type { CSSProperties, HTMLAttributes, ReactNode } from 'react';
 
 type Props = HTMLAttributes<HTMLElement> & {
     variant?: 'list' | 'note';
-    base?: string;
+    /** The room's card class; `--note` is appended to it for the note variant. */
+    base: string;
     className?: string;
     children: ReactNode;
     style?: CSSProperties;
@@ -11,7 +12,7 @@ type Props = HTMLAttributes<HTMLElement> & {
 
 export default function AppCard({
     variant = 'list',
-    base = 'corner-card',
+    base,
     className,
     children,
     style,

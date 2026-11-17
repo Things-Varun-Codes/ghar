@@ -35,27 +35,13 @@ class DashboardSummaries
      */
     public function previewsFor(User $user, array $slugs): array
     {
-        $previews = [];
-
-        foreach ($slugs as $slug) {
-            if (! isset($this->previewResolvers[$slug])) {
-                continue;
-            }
-
-            try {
-                $preview = ($this->previewResolvers[$slug])($user);
-            } catch (\Throwable $e) {
-                report($e);
-
-                continue;
-            }
-
-            if (is_array($preview) && $preview !== []) {
-                $previews[$slug] = $preview;
-            }
-        }
-
-        return $previews;
+        /** @var array<string, array> */
+        return $this->resolve(
+            $this->previewResolvers,
+            $user,
+            $slugs,
+            fn (mixed $preview): bool => is_array($preview) && $preview !== [],
+        );
     }
 
     /**
@@ -64,26 +50,43 @@ class DashboardSummaries
      */
     public function forUser(User $user, array $slugs): array
     {
-        $lines = [];
+        /** @var array<string, string> */
+        return $this->resolve(
+            $this->resolvers,
+            $user,
+            $slugs,
+            fn (mixed $line): bool => is_string($line) && $line !== '',
+        );
+    }
+
+    /**
+     * @param  array<string, Closure(User): mixed>  $resolvers
+     * @param  list<string>  $slugs
+     * @param  Closure(mixed): bool  $keep
+     * @return array<string, mixed>
+     */
+    private function resolve(array $resolvers, User $user, array $slugs, Closure $keep): array
+    {
+        $results = [];
 
         foreach ($slugs as $slug) {
-            if (! isset($this->resolvers[$slug])) {
+            if (! isset($resolvers[$slug])) {
                 continue;
             }
 
             try {
-                $line = ($this->resolvers[$slug])($user);
+                $result = ($resolvers[$slug])($user);
             } catch (\Throwable $e) {
                 report($e);
 
                 continue;
             }
 
-            if (is_string($line) && $line !== '') {
-                $lines[$slug] = $line;
+            if ($keep($result)) {
+                $results[$slug] = $result;
             }
         }
 
-        return $lines;
+        return $results;
     }
 }

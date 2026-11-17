@@ -8,6 +8,7 @@ use App\MiniApps\Mailbox\Models\Coupon;
 use App\MiniApps\Mailbox\Models\MailboxMessage;
 use App\Shell\Models\User;
 use Carbon\CarbonImmutable;
+use Illuminate\Contracts\Filesystem\Filesystem;
 
 /**
  * Mailbox rows in every state. Row 1 of each type goes from Ravi to Meera
@@ -15,6 +16,12 @@ use Carbon\CarbonImmutable;
  */
 final class MailboxData
 {
+    /** Bouquets generated against the previous seed land here, outside the media library. */
+    public static function clearFiles(Filesystem $disk): void
+    {
+        $disk->deleteDirectory('bouquets');
+    }
+
     public function seed(Household $h): void
     {
         $this->notes($h);
