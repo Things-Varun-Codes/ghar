@@ -2,6 +2,7 @@ import * as Sentry from '@sentry/react';
 import { toast } from 'sonner';
 import { describe, expect, it, vi } from 'vitest';
 import {
+    formSubmitOptions,
     MUTATION_FAILED_MESSAGE,
     mutationOptions,
     transportFailureOptions,
@@ -57,6 +58,75 @@ describe('mutationOptions', () => {
 
         expect(toast.error).toHaveBeenCalledWith('Already paid.');
         expect(Sentry.captureException).not.toHaveBeenCalled();
+    });
+});
+
+describe('formSubmitOptions', () => {
+    const options = (onSuccess?: () => void) =>
+        formSubmitOptions({
+            component: 'Test',
+            action: 'thing.create',
+            isShownField: (key) => key === 'title',
+            message: "Couldn't send that.",
+            onSuccess,
+        });
+
+    it('leaves an error the form shows beside its field out of the toasts', () => {
+        call(options(), 'onError', { title: 'Give it a name.' });
+
+        expect(toast.error).not.toHaveBeenCalled();
+    });
+
+    it('toasts an error the form has no field for', () => {
+        call(options(), 'onError', {
+            title: 'Give it a name.',
+            recipient: 'Meera has left.',
+        });
+
+        expect(toast.error).toHaveBeenCalledTimes(1);
+        expect(toast.error).toHaveBeenCalledWith('Meera has left.');
+    });
+
+    it('falls back to its message for an unshown error with no text', () => {
+        call(options(), 'onError', { other: '' });
+
+        expect(toast.error).toHaveBeenCalledWith("Couldn't send that.");
+    });
+
+    it('reports a rejection by its keys only', () => {
+        call(options(), 'onError', { title: 'Something private' });
+
+        expect(Sentry.captureException).toHaveBeenCalledWith(
+            expect.any(Error),
+            expect.objectContaining({
+                tags: {
+                    component: 'Test',
+                    action: 'thing.create',
+                    surface: 'frontend',
+                },
+                extra: { validation_keys: ['title'] },
+            }),
+        );
+    });
+
+    it('toasts, reports and suppresses the modal on a transport failure', () => {
+        const callbacks = options();
+
+        expect(call(callbacks, 'onNetworkError', new Error('offline'))).toBe(
+            false,
+        );
+        expect(call(callbacks, 'onHttpException', { status: 500 })).toBe(false);
+        expect(toast.error).toHaveBeenCalledTimes(2);
+        expect(toast.error).toHaveBeenCalledWith("Couldn't send that.");
+        expect(Sentry.captureException).toHaveBeenCalledTimes(2);
+    });
+
+    it('passes success through', () => {
+        const onSuccess = vi.fn();
+
+        options(onSuccess).onSuccess?.({} as never);
+
+        expect(onSuccess).toHaveBeenCalledTimes(1);
     });
 });
 

@@ -25,6 +25,7 @@ import {
 } from '@/components/ui/sheet';
 import { useIsPhone } from '@/hooks/use-breakpoint';
 import { useOverlayHistory } from '@/hooks/use-overlay-history';
+import { count } from '@/lib/plural';
 import { cn } from '@/lib/utils';
 import type { Row, Section } from '@/MiniApps/Corner/lib/icon-picker';
 import {
@@ -300,7 +301,7 @@ function IconBrowser({
             return [
                 {
                     key: 'results',
-                    title: `${found.length} ${found.length === 1 ? 'icon' : 'icons'}`,
+                    title: count(found.length, 'icon'),
                     icons: found,
                 },
             ];

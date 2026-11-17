@@ -1,13 +1,10 @@
-import { router, usePage } from '@inertiajs/react';
-import * as AlertDialogPrimitive from '@radix-ui/react-alert-dialog';
+import { router } from '@inertiajs/react';
 import { Play, X } from 'lucide-react';
 import { useState } from 'react';
-import { toast } from 'sonner';
-import { useAppAttrs } from '@/hooks/use-app-attrs';
-import { transportFailureOptions } from '@/lib/mutation';
-import { captureSilent } from '@/lib/observability';
+import { mutationOptions } from '@/lib/mutation';
+import { HISTORY_CONFIRM_CLASSES } from '@/MiniApps/History/lib/confirmDialog';
 import media from '@/routes/apps/our-history/media';
-import type { Auth } from '@/types/auth';
+import ConfirmDialog from '@/Shell/Components/ConfirmDialog';
 import type { MediaItem } from './MediaGrid';
 
 type CurrentMediaStripProps = {
@@ -21,14 +18,6 @@ export default function CurrentMediaStrip({
     media: mediaItems,
     onDeleted,
 }: CurrentMediaStripProps) {
-    const appAttrs = useAppAttrs();
-    const { auth } = usePage<{ auth: Auth }>().props;
-    const userRole: 'admin' | 'user' | 'guest' = auth.user
-        ? auth.user.roles?.[0] === 'admin'
-            ? 'admin'
-            : 'user'
-        : 'guest';
-
     const [deletingId, setDeletingId] = useState<number | null>(null);
 
     const deletingItem = mediaItems.find((m) => m.id === deletingId) ?? null;
@@ -47,26 +36,13 @@ export default function CurrentMediaStrip({
             media.destroy({ event: eventId, media: idToDelete }).url,
             {
                 preserveScroll: true,
-                ...transportFailureOptions({
+                ...mutationOptions({
                     component: 'History/CurrentMediaStrip',
                     action: 'media.delete',
                     message: "Couldn't remove that file. Try again.",
                 }),
                 onSuccess: () => {
                     onDeleted(idToDelete);
-                },
-                onError: (errors) => {
-                    captureSilent(new Error('media.delete failed'), {
-                        component: 'History/CurrentMediaStrip',
-                        action: 'media.delete',
-                        surface: 'frontend',
-                        user_role: userRole,
-                        extra: {
-                            payload: { eventId, mediaId: idToDelete, errors },
-                            http_status: 422,
-                        },
-                    });
-                    toast.error("Couldn't remove that file. Try again.");
                 },
                 onFinish: () => {
                     setDeletingId(null);
@@ -132,54 +108,24 @@ export default function CurrentMediaStrip({
                 ))}
             </div>
 
-            <AlertDialogPrimitive.Root
+            <ConfirmDialog
                 open={deletingId !== null}
                 onOpenChange={(next) => {
                     if (!next) {
                         setDeletingId(null);
                     }
                 }}
-            >
-                <AlertDialogPrimitive.Portal>
-                    <AlertDialogPrimitive.Overlay
-                        className="history-alert-overlay"
-                        {...appAttrs}
-                    />
-                    <AlertDialogPrimitive.Content
-                        {...appAttrs}
-                        className="history-alert-dialog"
-                    >
-                        <AlertDialogPrimitive.Title className="history-alert-title">
-                            Delete this{' '}
-                            {deletingItem?.kind === 'video' ? 'video' : 'photo'}
-                            ?
-                        </AlertDialogPrimitive.Title>
-                        <AlertDialogPrimitive.Description className="history-alert-body">
-                            This removes it from the moment. There's no undo.
-                        </AlertDialogPrimitive.Description>
-                        <div className="flex justify-end gap-3">
-                            <AlertDialogPrimitive.Cancel asChild>
-                                <button
-                                    type="button"
-                                    className="history-btn-keep-media shell-press"
-                                >
-                                    Keep
-                                </button>
-                            </AlertDialogPrimitive.Cancel>
-
-                            <AlertDialogPrimitive.Action asChild>
-                                <button
-                                    type="button"
-                                    onClick={handleConfirm}
-                                    className="history-btn-destructive shell-press"
-                                >
-                                    Yes, delete
-                                </button>
-                            </AlertDialogPrimitive.Action>
-                        </div>
-                    </AlertDialogPrimitive.Content>
-                </AlertDialogPrimitive.Portal>
-            </AlertDialogPrimitive.Root>
+                title={`Delete this ${deletingItem?.kind === 'video' ? 'video' : 'photo'}?`}
+                description="This removes it from the moment. There's no undo."
+                cancelLabel="Keep"
+                confirmLabel="Yes, delete"
+                variant="destructive"
+                onConfirm={handleConfirm}
+                classNames={{
+                    ...HISTORY_CONFIRM_CLASSES,
+                    cancel: 'history-btn-keep-media h-auto shadow-none',
+                }}
+            />
         </div>
     );
 }

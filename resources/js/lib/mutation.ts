@@ -51,6 +51,58 @@ export function transportFailureOptions({
     };
 }
 
+export const SAVE_FAILED_MESSAGE = "Couldn't save that. Try again.";
+
+type FormSubmitContext = {
+    component: string;
+    action: string;
+    /** Whether the form shows the error for this key beside a field. */
+    isShownField: (key: string) => boolean;
+    /** Toasted when the save fails without a message of its own. */
+    message?: string;
+    onSuccess?: VisitOptions['onSuccess'];
+};
+
+type FormSubmitCallbacks = Pick<VisitOptions, 'onSuccess' | 'onError'> &
+    TransportFailureCallbacks;
+
+/**
+ * Failure handling for a form's submit, spread into `form.post(url, { … })`. A field's error
+ * shows beside it, so it isn't toasted; one the form has no field for is. Every rejection is
+ * reported by its keys only, never what was typed. A transport failure or an error status
+ * toasts, is reported, and doesn't raise Inertia's error modal.
+ */
+export function formSubmitOptions({
+    component,
+    action,
+    isShownField,
+    message = SAVE_FAILED_MESSAGE,
+    onSuccess,
+}: FormSubmitContext): FormSubmitCallbacks {
+    return {
+        onSuccess,
+        onError: (errors) => {
+            const unshown = Object.entries(errors).find(
+                ([key]) => !isShownField(key),
+            );
+
+            if (unshown) {
+                toast.error(
+                    typeof unshown[1] === 'string' && unshown[1] !== ''
+                        ? unshown[1]
+                        : message,
+                );
+            }
+
+            Sentry.captureException(new Error(`${action} rejected`), {
+                tags: { component, action, surface: 'frontend' },
+                extra: { validation_keys: Object.keys(errors) },
+            });
+        },
+        ...transportFailureOptions({ component, action, message }),
+    };
+}
+
 type MutationContext = {
     component: string;
     action: string;

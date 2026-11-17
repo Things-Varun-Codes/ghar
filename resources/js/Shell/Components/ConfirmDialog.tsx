@@ -23,6 +23,16 @@ interface Props {
     onConfirm: () => void;
     processing?: boolean;
     variant?: 'default' | 'destructive';
+    /* For a room or page that draws its own confirm dialogs. */
+    classNames?: {
+        content?: string;
+        header?: string;
+        title?: string;
+        description?: string;
+        footer?: string;
+        cancel?: string;
+        action?: string;
+    };
 }
 
 export default function ConfirmDialog({
@@ -35,20 +45,28 @@ export default function ConfirmDialog({
     onConfirm,
     processing = false,
     variant = 'default',
+    classNames,
 }: Props) {
     return (
         <AlertDialog open={open} onOpenChange={onOpenChange}>
-            <AlertDialogContent>
-                <AlertDialogHeader>
-                    <AlertDialogTitle>{title}</AlertDialogTitle>
+            <AlertDialogContent className={classNames?.content}>
+                <AlertDialogHeader className={classNames?.header}>
+                    <AlertDialogTitle className={classNames?.title}>
+                        {title}
+                    </AlertDialogTitle>
                     {description && (
-                        <AlertDialogDescription>
+                        <AlertDialogDescription
+                            className={classNames?.description}
+                        >
                             {description}
                         </AlertDialogDescription>
                     )}
                 </AlertDialogHeader>
-                <AlertDialogFooter>
-                    <AlertDialogCancel disabled={processing}>
+                <AlertDialogFooter className={classNames?.footer}>
+                    <AlertDialogCancel
+                        disabled={processing}
+                        className={classNames?.cancel}
+                    >
                         {cancelLabel}
                     </AlertDialogCancel>
                     <AlertDialogAction
@@ -57,6 +75,7 @@ export default function ConfirmDialog({
                         className={cn(
                             variant === 'destructive' &&
                                 buttonVariants({ variant: 'destructive' }),
+                            classNames?.action,
                         )}
                     >
                         {processing && (

@@ -1,40 +1,48 @@
 import * as Sentry from '@sentry/react';
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { preview as linkPreview } from '@/routes/apps/our-corner/link';
 
-export type PreviewState<T> =
+/* What a pasted page says about itself. */
+export type LinkFound = {
+    title: string | null;
+    image_url: string | null;
+};
+
+type LinkJson = {
+    ok: boolean;
+    title?: string | null;
+    image_url?: string | null;
+};
+
+export type LinkPreviewState =
     | { kind: 'idle' }
     | { kind: 'loading' }
-    | ({ kind: 'ok' } & T)
+    | ({ kind: 'ok' } & LinkFound)
     | { kind: 'error'; message: string };
-
-type Options<TJson extends { ok: boolean }, T> = {
-    endpoint: string;
-    parse: (json: TJson, url: string) => T;
-    onResult?: (json: TJson) => void;
-    noMatchMessage: string;
-    failureMessage: string;
-    report: { component: string; action: string; tag: string };
-};
 
 const DEBOUNCE_MS = 400;
 
+const NO_MATCH_MESSAGE =
+    "That page didn't say what it is. Give it a name yourself.";
+const FAILURE_MESSAGE =
+    "Couldn't reach that page. It will be saved with what you type.";
+
 /*
- * Debounced paste-a-link preview. Each new input aborts the previous request
- * and an aborted request never touches state, so a slow earlier response can't
- * overwrite a later one. A failure shows inline only, so it reports directly
- * rather than through captureSilent's toast.
+ * Reads a pasted link once typing stops. Each new address aborts the previous request and an
+ * aborted request never touches state, so a slow earlier response can't overwrite a later one.
+ * A failure shows inline only, so it reports directly rather than through captureSilent's toast.
  */
-export function useDebouncedPreview<TJson extends { ok: boolean }, T>(
-    options: Options<TJson, T>,
-) {
-    const [preview, setPreview] = useState<PreviewState<T>>({ kind: 'idle' });
+export function useLinkPreview(onFound?: (link: LinkFound) => void) {
+    const [preview, setPreview] = useState<LinkPreviewState>({
+        kind: 'idle',
+    });
     const timer = useRef<number | null>(null);
     const controller = useRef<AbortController | null>(null);
     const requestedUrl = useRef<string | null>(null);
-    const latestOptions = useRef(options);
+    const latestOnFound = useRef(onFound);
 
     useEffect(() => {
-        latestOptions.current = options;
+        latestOnFound.current = onFound;
     });
 
     const stop = useCallback(() => {
@@ -51,8 +59,6 @@ export function useDebouncedPreview<TJson extends { ok: boolean }, T>(
     useEffect(() => stop, [stop]);
 
     const run = useCallback(async (url: string) => {
-        const { endpoint, parse, onResult, noMatchMessage, failureMessage } =
-            latestOptions.current;
         const ctrl = new AbortController();
 
         controller.current = ctrl;
@@ -60,7 +66,7 @@ export function useDebouncedPreview<TJson extends { ok: boolean }, T>(
 
         try {
             const response = await fetch(
-                `${endpoint}?url=${encodeURIComponent(url)}`,
+                `${linkPreview.url()}?url=${encodeURIComponent(url)}`,
                 {
                     signal: ctrl.signal,
                     headers: { Accept: 'application/json' },
@@ -72,7 +78,7 @@ export function useDebouncedPreview<TJson extends { ok: boolean }, T>(
                 throw new Error(`Preview HTTP ${response.status}`);
             }
 
-            const json = (await response.json()) as TJson;
+            const json = (await response.json()) as LinkJson;
 
             if (ctrl.signal.aborted) {
                 return;
@@ -80,27 +86,34 @@ export function useDebouncedPreview<TJson extends { ok: boolean }, T>(
 
             if (!json.ok) {
                 requestedUrl.current = null;
-                setPreview({ kind: 'error', message: noMatchMessage });
+                setPreview({ kind: 'error', message: NO_MATCH_MESSAGE });
 
                 return;
             }
 
-            setPreview({ kind: 'ok', ...parse(json, url) });
-            onResult?.(json);
+            const found: LinkFound = {
+                title: json.title ?? null,
+                image_url: json.image_url ?? null,
+            };
+
+            setPreview({ kind: 'ok', ...found });
+            latestOnFound.current?.(found);
         } catch (error) {
             if (ctrl.signal.aborted) {
                 return;
             }
 
-            const { component, action, tag } = latestOptions.current.report;
-
             Sentry.captureException(error, {
-                tags: { component, action, surface: 'frontend' },
-                extra: { tag },
+                tags: {
+                    component: 'Corner/ItemSheet',
+                    action: 'link.preview',
+                    surface: 'frontend',
+                },
+                extra: { tag: 'corner.link-preview' },
             });
 
             requestedUrl.current = null;
-            setPreview({ kind: 'error', message: failureMessage });
+            setPreview({ kind: 'error', message: FAILURE_MESSAGE });
         }
     }, []);
 

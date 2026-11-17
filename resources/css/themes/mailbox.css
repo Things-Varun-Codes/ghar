@@ -20,6 +20,13 @@
     --mailbox-coupon-font-display: var(--mailbox-font-hand);
     --mailbox-coupon-font-mono: var(--font-sans);
 
+    /* The shell's form sheet (.shell-form-sheet-*) in this room's paper and ink. */
+    --form-sheet-paper: var(--mailbox-paper);
+    --form-sheet-ink: var(--mailbox-ink);
+    --form-sheet-ink-soft: var(--mailbox-ink-soft);
+    --form-sheet-border: var(--mailbox-border);
+    --form-sheet-font-display: var(--mailbox-font-display);
+
     --mailbox-type-scale-eyebrow: var(--text-eyebrow);
     /* Patrick Hand has a small x-height: 22px reads like 16px sans and sits on the 32px rules. */
     --mailbox-hand-size: 22px;
@@ -62,7 +69,6 @@
         0 12px 24px -16px
             color-mix(in oklab, var(--shell-text) 10%, transparent);
 
-    --mailbox-hover-border: var(--shell-lift-border);
     --mailbox-hover-wash: var(--shell-hover-wash);
     --mailbox-selected-wash: color-mix(
         in oklab,
@@ -1136,96 +1142,10 @@
 
 /* ── Sheets and forms ────────────────────────────────────────────────── */
 
-[data-app='our-mailbox'].mailbox-sheet-content {
-    background: var(--mailbox-paper);
-    color: var(--mailbox-ink);
-    overflow: hidden;
-    display: flex;
-    flex-direction: column;
+/* The shell's form sheet; only its close takes the room's softer ink. */
+[data-app='our-mailbox'].shell-form-sheet-content {
     --overlay-close-ink: var(--mailbox-ink-soft);
     --overlay-close-hover: var(--mailbox-hover-wash);
-}
-
-[data-app='our-mailbox'] .mailbox-sheet-form {
-    display: flex;
-    flex-direction: column;
-    flex: 1;
-    min-height: 0;
-}
-
-[data-app='our-mailbox'] .mailbox-sheet-header {
-    flex: none;
-    padding: 20px 64px 16px 24px;
-    border-bottom: 1px solid var(--mailbox-border);
-}
-
-[data-app='our-mailbox'] .mailbox-sheet-title {
-    margin: 0;
-    font-family: var(--mailbox-font-display);
-    font-size: var(--text-title);
-    font-weight: 400;
-    line-height: 1.2;
-    letter-spacing: var(--tracking-display);
-    color: var(--mailbox-ink);
-}
-
-[data-app='our-mailbox'] .mailbox-sheet-scroll {
-    flex: 1;
-    min-height: 0;
-    overflow-y: auto;
-    overscroll-behavior: contain;
-    -webkit-overflow-scrolling: touch;
-}
-
-[data-app='our-mailbox'] .mailbox-sheet-body {
-    display: flex;
-    flex-direction: column;
-    gap: 24px;
-    padding: 20px 24px 24px;
-}
-
-/* Always in view: the submit never sits below the fold or under the keyboard. */
-[data-app='our-mailbox'] .mailbox-sheet-footer {
-    flex: none;
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    justify-content: flex-end;
-    gap: 8px 16px;
-    padding: 12px 24px max(16px, env(safe-area-inset-bottom));
-    border-top: 1px solid var(--mailbox-border);
-    background: var(--mailbox-paper);
-}
-
-[data-app='our-mailbox'] .mailbox-sheet-hint {
-    flex: 1 1 160px;
-    margin: 0;
-    font-size: var(--text-small);
-    line-height: 1.5;
-    color: var(--mailbox-ink-soft);
-}
-
-[data-app='our-mailbox'] .mailbox-sheet-actions {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: flex-end;
-    gap: 8px;
-    margin-left: auto;
-}
-
-@media (max-width: 639px) {
-    [data-app='our-mailbox'] .mailbox-sheet-header,
-    [data-app='our-mailbox'] .mailbox-sheet-body {
-        padding-left: 16px;
-        padding-right: 16px;
-    }
-    [data-app='our-mailbox'] .mailbox-sheet-header {
-        padding-right: 64px;
-    }
-    [data-app='our-mailbox'] .mailbox-sheet-footer {
-        padding-left: 16px;
-        padding-right: 16px;
-    }
 }
 
 [data-app='our-mailbox'] .mailbox-recipients {

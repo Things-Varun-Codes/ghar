@@ -1,17 +1,6 @@
 import { Maximize2, MoreHorizontal } from 'lucide-react';
 import { useState } from 'react';
 import {
-    AlertDialog,
-    AlertDialogAction,
-    AlertDialogCancel,
-    AlertDialogContent,
-    AlertDialogDescription,
-    AlertDialogFooter,
-    AlertDialogHeader,
-    AlertDialogTitle,
-} from '@/components/ui/alert-dialog';
-import { buttonVariants } from '@/components/ui/button';
-import {
     DropdownMenu,
     DropdownMenuContent,
     DropdownMenuItem,
@@ -22,6 +11,7 @@ import { cn } from '@/lib/utils';
 import BouquetDialog from '@/MiniApps/Mailbox/Components/BouquetDialog';
 import type { FlowerEntry } from '@/MiniApps/Mailbox/Components/NoteCard';
 import AppCard from '@/Shell/Components/AppCard';
+import ConfirmDialog from '@/Shell/Components/ConfirmDialog';
 
 export type BouquetItem = {
     id: number;
@@ -146,35 +136,19 @@ export default function BouquetCard({ message, onDelete, isFocused }: Props) {
                 </div>
 
                 {message.is_mine && onDelete && (
-                    <AlertDialog
+                    <ConfirmDialog
                         open={confirmOpen}
                         onOpenChange={setConfirmOpen}
-                    >
-                        <AlertDialogContent>
-                            <AlertDialogHeader>
-                                <AlertDialogTitle>
-                                    Delete this bouquet?
-                                </AlertDialogTitle>
-                                <AlertDialogDescription>
-                                    This can&apos;t be undone.
-                                </AlertDialogDescription>
-                            </AlertDialogHeader>
-                            <AlertDialogFooter>
-                                <AlertDialogCancel>Keep it</AlertDialogCancel>
-                                <AlertDialogAction
-                                    className={buttonVariants({
-                                        variant: 'destructive',
-                                    })}
-                                    onClick={() => {
-                                        setConfirmOpen(false);
-                                        onDelete?.();
-                                    }}
-                                >
-                                    Delete
-                                </AlertDialogAction>
-                            </AlertDialogFooter>
-                        </AlertDialogContent>
-                    </AlertDialog>
+                        title="Delete this bouquet?"
+                        description="This can't be undone."
+                        cancelLabel="Keep it"
+                        confirmLabel="Delete"
+                        variant="destructive"
+                        onConfirm={() => {
+                            setConfirmOpen(false);
+                            onDelete();
+                        }}
+                    />
                 )}
             </AppCard>
 

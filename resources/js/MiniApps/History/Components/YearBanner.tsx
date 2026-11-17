@@ -1,17 +1,9 @@
+import { count as countOf } from '@/lib/plural';
+
 type Props = {
     year: number;
     count: number;
 };
-
-function countLabel(year: number, count: number): string {
-    const currentYear = new Date().getFullYear();
-
-    if (year === currentYear && count < 12) {
-        return `${count} ${count === 1 ? 'moment' : 'moments'}`;
-    }
-
-    return `${count} ${count === 1 ? 'moment' : 'moments'}`;
-}
 
 export default function YearBanner({ year, count }: Props) {
     return (
@@ -21,7 +13,7 @@ export default function YearBanner({ year, count }: Props) {
         >
             <h2 className="history-year-title">{year}</h2>
             <small className="history-year-count">
-                {countLabel(year, count)}
+                {countOf(count, 'moment')}
             </small>
         </div>
     );

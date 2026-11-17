@@ -2,6 +2,7 @@ import { router } from '@inertiajs/react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useIsPhone } from '@/hooks/use-breakpoint';
+import { count } from '@/lib/plural';
 import CalendarMonth from '@/MiniApps/History/Components/CalendarMonth';
 import EventSheet from '@/MiniApps/History/Components/EventSheet';
 import { useMomentFromUrl } from '@/MiniApps/History/Hooks/useMomentFromUrl';
@@ -142,10 +143,7 @@ export default function Calendar({
     const hasAnyEvents = availableYears.length > 0;
     const yearIsEmpty = events.length === 0;
 
-    const momentCount =
-        events.length > 0
-            ? `${events.length} ${events.length === 1 ? 'moment' : 'moments'}`
-            : '';
+    const momentCount = events.length > 0 ? count(events.length, 'moment') : '';
 
     return (
         <HistoryLayout

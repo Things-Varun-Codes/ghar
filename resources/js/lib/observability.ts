@@ -21,14 +21,19 @@
  * stack overflow. The eslint-disable below documents this.
  */
 
+import type { router as inertiaRouter } from '@inertiajs/react';
 import * as Sentry from '@sentry/react';
 import { toast } from 'sonner';
+import type { Auth } from '@/types/auth';
+
+export type UserRole = 'admin' | 'user' | 'guest';
 
 export interface CaptureCtx {
     component: string;
     action: string;
     surface: 'frontend' | 'backend' | 'queue';
-    user_role?: 'admin' | 'user' | 'guest';
+    /** Defaults to the signed-in person's role on the page last shown. */
+    user_role?: UserRole;
     extra?: {
         payload?: unknown;
         http_status?: number;
@@ -77,6 +82,28 @@ export function sanitizePayload(
     return out;
 }
 
+/* A role the tags don't know is still someone signed in. */
+export function userRoleOf(auth: Auth | undefined): UserRole {
+    if (!auth?.user) {
+        return 'guest';
+    }
+
+    const first = auth.user.roles?.[0];
+
+    return first === 'admin' || first === 'user' ? first : 'user';
+}
+
+let currentRole: UserRole = 'guest';
+
+/** Keeps the role captureSilent tags with in step with every page Inertia shows. */
+export function installUserRole(router: typeof inertiaRouter): void {
+    router.on('navigate', (event) => {
+        currentRole = userRoleOf(
+            event.detail.page.props.auth as Auth | undefined,
+        );
+    });
+}
+
 export function captureSilent(error: unknown, ctx: CaptureCtx): void {
     // Only ever touch named members of `Sentry`. Using the namespace as a value
     // (`typeof Sentry`) makes the bundler keep the whole SDK, Replay and Feedback
@@ -91,7 +118,7 @@ export function captureSilent(error: unknown, ctx: CaptureCtx): void {
                 component: ctx.component,
                 action: ctx.action,
                 surface: ctx.surface,
-                user_role: ctx.user_role ?? 'guest',
+                user_role: ctx.user_role ?? currentRole,
             },
             extra: sanitizedExtra,
         });

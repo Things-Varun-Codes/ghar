@@ -4,16 +4,6 @@ import { useState } from 'react';
 import type { FormEventHandler } from 'react';
 import { toast } from 'sonner';
 import {
-    AlertDialog,
-    AlertDialogAction,
-    AlertDialogCancel,
-    AlertDialogContent,
-    AlertDialogDescription,
-    AlertDialogFooter,
-    AlertDialogHeader,
-    AlertDialogTitle,
-} from '@/components/ui/alert-dialog';
-import {
     Dialog,
     DialogContent,
     DialogDescription,
@@ -32,6 +22,7 @@ import {
 import { mutationOptions } from '@/lib/mutation';
 import { cn } from '@/lib/utils';
 import * as shortlinksRoutes from '@/routes/admin/shortlinks';
+import ConfirmDialog from '@/Shell/Components/ConfirmDialog';
 import EmptyState from '@/Shell/Components/EmptyState';
 import FormField from '@/Shell/Components/FormField';
 import Page from '@/Shell/Components/Page';
@@ -409,35 +400,19 @@ export default function ShortLinks({ shortlinks }: Props) {
                     </div>
                 )}
 
-                <AlertDialog
+                <ConfirmDialog
                     open={pendingDelete !== null}
                     onOpenChange={(open) => {
                         if (!open) {
                             setPendingDelete(null);
                         }
                     }}
-                >
-                    <AlertDialogContent>
-                        <AlertDialogHeader>
-                            <AlertDialogTitle>
-                                Delete {pendingDelete?.label}?
-                            </AlertDialogTitle>
-                            <AlertDialogDescription>
-                                There's no undo. The tag stops working right
-                                away.
-                            </AlertDialogDescription>
-                        </AlertDialogHeader>
-                        <AlertDialogFooter>
-                            <AlertDialogCancel>Cancel</AlertDialogCancel>
-                            <AlertDialogAction
-                                onClick={confirmDelete}
-                                className="os-admin-fill-destructive"
-                            >
-                                Delete
-                            </AlertDialogAction>
-                        </AlertDialogFooter>
-                    </AlertDialogContent>
-                </AlertDialog>
+                    title={`Delete ${pendingDelete?.label ?? ''}?`}
+                    description="There's no undo. The tag stops working right away."
+                    confirmLabel="Delete"
+                    onConfirm={confirmDelete}
+                    classNames={{ action: 'os-admin-fill-destructive' }}
+                />
 
                 {/* Edit — repoint a shortlink's label/destination.
                     key={editing.id} is load-bearing: useForm

@@ -8,10 +8,8 @@ import {
     SheetDescription,
     SheetTitle,
 } from '@/components/ui/sheet';
-import { useBodyScrollLock } from '@/hooks/use-body-scroll-lock';
-import { useHasSidebar } from '@/hooks/use-breakpoint';
 import { useDraftCloseGate } from '@/hooks/use-draft-close-gate';
-import { useKeyboardViewport } from '@/hooks/use-keyboard-viewport';
+import { useResponsiveSheet } from '@/hooks/use-responsive-sheet';
 import { cn } from '@/lib/utils';
 import { MOMENT_PARAM } from '@/MiniApps/History/lib/momentUrl';
 import type { HistoryEvent } from '@/MiniApps/History/lib/types';
@@ -46,12 +44,7 @@ export default function EventSheet({
     const formRef = useRef<EventFormHandle>(null);
 
     // The phone pattern (bottom sheet) runs up to lg, like the shell's chrome.
-    const isDesktop = useHasSidebar();
-    const side = isDesktop ? 'right' : 'bottom';
-
-    const keyboard = useKeyboardViewport(open && side === 'bottom');
-
-    useBodyScrollLock(open);
+    const { side, style } = useResponsiveSheet({ open, panelFrom: 'lg' });
 
     useEffect(() => {
         if (open) {
@@ -102,15 +95,7 @@ export default function EventSheet({
                             'w-full max-w-[min(960px,80vw)] sm:max-w-[min(960px,80vw)]',
                         side === 'bottom' && 'h-[100dvh] pb-0',
                     )}
-                    style={
-                        keyboard
-                            ? {
-                                  top: `${keyboard.offsetTop}px`,
-                                  bottom: 'auto',
-                                  height: `${keyboard.height}px`,
-                              }
-                            : undefined
-                    }
+                    style={style}
                     onPointerDownOutside={keepForLightbox}
                     onInteractOutside={keepForLightbox}
                     onCloseAutoFocus={(e) => {
@@ -300,7 +285,7 @@ export default function EventSheet({
                 title="Discard unsaved changes?"
                 description="What you changed here won't be saved."
                 classNames={{
-                    content: 'history-alert-dialog history-discard-dialog',
+                    content: 'history-alert-dialog',
                     header: 'gap-0 text-left',
                     title: 'history-alert-title-lg',
                     description: 'history-alert-body',

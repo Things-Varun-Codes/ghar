@@ -5,7 +5,7 @@ import { Toaster } from '@/components/ui/sonner';
 import { installOverlayHistory } from '@/hooks/use-overlay-history';
 import { watchConnection } from '@/lib/connection';
 import { installNavigation } from '@/lib/navigation';
-import { captureSilent } from '@/lib/observability';
+import { captureSilent, installUserRole } from '@/lib/observability';
 import { installRouteFocus } from '@/lib/route-focus';
 import { installAfterWrite } from '@/lib/stale-history';
 import AppLayout from '@/Shell/Layouts/AppLayout';
@@ -52,6 +52,8 @@ if (import.meta.env.PROD && sentryDsn) {
 
 // Before createInertiaApp: its popstate listener must run after this one.
 installOverlayHistory();
+// Before createInertiaApp too, so the first page's navigate is heard.
+installUserRole(router);
 
 createInertiaApp({
     title: (title) => (title ? `${title} · ${appName}` : appName),

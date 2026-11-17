@@ -23,3 +23,6 @@ here only alias or mix `--shell-*`, never a literal. **Layer 3** `.<app>-*` comp
   with History's classes passed in `classNames`.
 - A room's layout wraps its pages in `RoomScope` (`slug` + the room's page classes), which sets
   `data-app` and the portal context once; its landing cards are `RoomDoor` with room classes.
+- The shell's form sheet (`FormSheet`, `.shell-form-sheet-*` in `app.css`) takes its colours and
+  title face from `--form-sheet-paper`, `-ink`, `-ink-soft`, `-border` and `-font-display`, which
+  each room aliases to its own tokens in its `[data-app]` block.
