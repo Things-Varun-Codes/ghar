@@ -116,11 +116,14 @@ final class HistoryData
     }
 
     /**
+     * The song, movie and place pills are the old kind (corner.song and an old id), as an
+     * upgraded install has them; the book is a link made since.
+     *
      * @param  array<string, array{id: int, title: string, type: string, slug: string}>  $links
      */
     private function linkToCorner(Household $h, Event $event, array $links): void
     {
-        $picked = array_intersect_key($links, array_flip(['song', 'movie', 'place']));
+        $picked = array_intersect_key($links, array_flip(['song', 'movie', 'place', 'book']));
 
         if ($picked === []) {
             return;

@@ -2,8 +2,8 @@
 
 **Ghar** is a private, auth-gated, self-hosted web platform for a family or household. A secure
 shell (dashboard + OS chrome) hosts self-contained mini apps.
-Installed today: **Our History** (timeline, gallery, calendar), **Our Corner** (shared lists — songs,
-movies, activities, places) and **Our Mailbox** (messages, flowers, citations, coupons). **The admin
+Installed today: **Our History** (timeline, gallery, calendar), **Our Corner** (lists the household
+defines: songs, films, places, books…) and **Our Mailbox** (messages, flowers, citations, coupons). **The admin
 chooses which rooms a home has** at Admin → Rooms (`/admin/rooms`); a fresh install starts with none on.
 
 **Core value:** new mini apps can be added — and existing ones updated — without touching the
@@ -36,7 +36,14 @@ Password for every account: `ghar-local-dev`. Mail lands in Mailpit at `http://1
 
 The seed has every state: moments by all four people (photos on the local media disk, Corner links, more
 than one Timeline and Gallery page), Corner items done and not done by different people, 62 Songs
-(past the 50-row page), single and multi-recipient notes and flowers read and unread, coupons
+(past the 50-row page), Corner lists as an upgraded install has them (Songs, Movies, Places and
+Activities: no maker, old ids in `legacy_id`, so `/apps/our-corner/songs/1` and the old-style pills
+on "Diwali on the terrace" resolve) plus Ravi's Books (only his items: he may delete it), Meera's
+long-named restaurants list (Kabir added to it: she may edit it, only an admin may delete it),
+Kabir's empty Board games with notifications off, and Meera's Weekend ideas (an icon from the full
+set). Between them the items cover a name alone, notes, links with and without pictures, a pasted
+picture, coordinates only, a map link only, a typed place, and link, picture and place together;
+pictures are https addresses primed into the picture cache, single and multi-recipient notes and flowers read and unread, coupons
 issued/requested/part-fulfilled/depleted/expired, citations issued/paid, short links `pantry23`,
 `garage23` and the disabled `bench789`, and a pending invite at
 `/invitations/dev-invite-token-for-local-testing-only`. Row ids are stable after a reset. Ravi and
@@ -158,7 +165,10 @@ PHP/TS identifiers say `ShortLink`.
   `lib/navigation.ts` turns a GET to the path already shown (filter, sort, search, tab, page
   number) into a replace, so back leaves the page instead of undoing the filter. Link to another
   page with Inertia's `Link`: a plain `<a>` reloads the document and the chevron forgets where
-  you came from. Every sheet and dialog that composes or shows an item
+  you came from. Back and forward restore a page from browser history without a request, so a page
+  last seen before a write asks for its props again when restored (`lib/stale-history.ts`, a
+  replacing visit: `router.reload()` always keeps component state).
+  Every sheet and dialog that composes or shows an item
   goes through `useOverlayHistory` (`resources/js/hooks/use-overlay-history.ts`), so the back
   gesture closes it instead of leaving the page. One with a draft uses `useDraftCloseGate` +
   `DiscardDraftDialog`, which own the "Discard?" prompt for every way of closing. `app.tsx` calls
@@ -174,7 +184,7 @@ PHP/TS identifiers say `ShortLink`.
   (`import { route as adminRoute } from '@/routes/admin'`). Ziggy is gone; a bare `route()` global
   call is a hard error.
 - **Prefetch only side-effect-free pages.** `<Link prefetch="mount">` is on the Home doors, the
-  Corner landing cards and the History tabs; `app.tsx` drops the prefetch cache after any non-GET
+  Corner landing cards (the first four) and the History tabs; `lib/stale-history.ts` drops the prefetch cache after any non-GET
   visit. Never prefetch a page whose GET changes something: Mailbox Messages and Flowers mark
   themselves read when fetched.
 - **Media URLs are stable for an hour.** `SignedUrls` signs from the top of a fixed window so the
@@ -322,11 +332,12 @@ the code:
 - **PhotoSwipe inside the EventSheet:** the Sheet's `onPointerDownOutside` / `onInteractOutside`
   must `preventDefault()` when `e.target.closest('.pswp')` (`EventSheet.tsx`), or the next-arrow
   click and mobile swipes close the Sheet.
-- **Our Corner** — a shelf of loved things. Its character is in its objects, not its type or
-  motion: `.corner-sticker` done flags (a fixed tilt, never animated), the CD frame, the poster, the
-  pin, and accent washes via `color-mix(in oklab, var(--shell-accent) N%, var(--shell-surface))` —
-  never hex. Identity changes
-  are CSS-only in `corner.css` over the shared components; don't fork Corner-specific React.
+- **Our Corner** — a shelf of loved things, one look for every list. Its character is in its
+  objects, not its type or motion: `.corner-sticker` done flags (a fixed tilt, never animated), each
+  item's picture in a rounded thumb (`ItemThumb`), and where there is no picture the list's own icon
+  on an accent wash via `color-mix(in oklab, var(--shell-accent) N%, var(--shell-surface))` — never
+  hex. Identity changes are CSS-only in `corner.css` over the shared components; don't fork
+  Corner-specific React.
 - **Our Mailbox** owns paper: ruled sheets with a red margin, the citation as an official form, the
   coupon as a voucher. A note's body and a coupon's title are in Patrick Hand; what was filled in on
   a form (names, offence, penalty, remarks) is Newsreader italic; the printed parts are the sans at
@@ -391,6 +402,7 @@ Every invited user is a household member (`App\Shell\Services\Household`: `membe
 | Surface                                | Who sees it        | Who may change it                                       |
 | -------------------------------------- | ------------------ | ------------------------------------------------------- |
 | History moments (`EventPolicy`)        | Everyone           | Edit, delete, media: creator or admin                   |
+| Corner lists (`CornerListPolicy`)      | Everyone           | Make: anyone. Edit: maker or admin. Delete: see below   |
 | Corner items (`ListItemPolicy`)        | Everyone           | Edit, delete: adder or admin. Mark done: anyone         |
 | Notes, flowers (`RecipientMailPolicy`) | Sender, recipients | Delete: sender                                          |
 | Coupons, citations (own policies)      | Issuer, recipient  | Request, cancel, pay: recipient. Fulfil, delete: issuer |
@@ -404,7 +416,7 @@ Every invited user is a household member (`App\Shell\Services\Household`: `membe
   (`ValidatesRecipients`). A coupon or citation has one recipient, so several ids issue one row each.
 - **Push:** `PushDispatcher::toHousehold($actor, …)` for new moments and Corner items;
   `toUsers($recipients, …)` for Mailbox. Never hand-roll a recipient query.
-- **Push timing — two accepted shapes, don't "harmonize" them.** Corner (`AddSong` etc.) dispatches
+- **Push timing — two accepted shapes, don't "harmonize" them.** Corner (`AddItem`) dispatches
   inside `DB::afterCommit(...)` within the transaction. Mailbox (`CreateMessage`, `IssueCitation`
   etc.) dispatches on the line after `DB::transaction(...)` returns. Both guarantee no push for a
   rolled-back write.
@@ -413,7 +425,7 @@ Every invited user is a household member (`App\Shell\Services\Household`: `membe
 
 Slug `our-mailbox`; `App\MiniApps\Mailbox\`; `resources/js/MiniApps/Mailbox/`; routes
 `apps.our-mailbox.*` at `/apps/our-mailbox/*`. Holds the directional, non-linkable comms surfaces;
-Our Corner keeps the four lists.
+Our Corner keeps the household's shared lists.
 
 - **Entry types switch individually.** `App\MiniApps\Mailbox\Support\EntryTypes` registers notes
   (`messages`), `flowers`, `citations` and `coupons` as options of the room through
@@ -435,17 +447,80 @@ Our Corner keeps the four lists.
   `our-mailbox:citations`; bodies never leak offence/penalty/remarks. Drawn as an "official form"
   (`--mailbox-citation-*` / `.mailbox-citation-*`, colours alias `--shell-*`).
 
+## Our Corner lists
+
+Slug `our-corner`; `App\MiniApps\Corner\`; `resources/js/MiniApps/Corner/`. The household makes
+its own lists; nothing about Songs or Movies is hard-coded any more.
+
+- **Two tables.** `corner_lists` (name, `slug`, `icon`, `done_label`, `todo_label`, `done_icon`
+  heart|check, `notify_on_add`, `position`, nullable `created_by_user_id`) and `corner_items`. A
+  list has no kind: every item has the same optional parts (`title`, `notes`, `url` with
+  `site_name`/`author`, `image_url` (the picture's source), and a place: `location_label`,
+  `location_url`, `lat`/`lng`, `address`). The same link twice in one list is refused through
+  `url_key` (`LinkKey`, the normalised link hashed), unique per list.
+- **No site is known by name.** `LinkPreview` reads a pasted page for its oEmbed (discovered from the
+  page's own `<link>`), then Open Graph, Twitter card, `<title>` and its largest icon. Don't add a
+  provider-specific fetcher, endpoint, allowlist, CSP host or label. The one place that knows URL
+  shapes is map links: `MapLink` (server) and `lib/maps.ts` ("Open in Maps": the saved link, else
+  the platform's maps address), each a small table.
+- **Every outbound fetch goes through `SafeFetcher`**: http/https only, never the app or a private,
+  loopback, link-local, CGNAT, reserved or metadata address (IPv4-in-IPv6 included), pinned to the
+  checked address, redirects re-checked (at most 3), short timeouts, byte caps. A refused or failed
+  fetch returns null and the item is saved with what was typed; it is never an error to the person.
+- **Pictures are served by Corner**, never loaded from their source by the browser, so CSP
+  `img-src` stays `'self' data: blob:` (plus the media bucket and maps origins when set). Pages draw
+  `picture_url` (`/apps/our-corner/items/{id}/picture?v=…`, private and immutable for a week); the
+  add sheet previews through `/api/corner/picture-preview`. `PictureCache` keeps the bytes under
+  `storage/framework/cache/data/corner-pictures`, at most 64 MB and safe to delete. The seed
+  primes it, so the dev database shows pictures offline.
+- **Icons** are any lucide name, validated against `Support/icon-names.json`. Every icon is drawn
+  from data by the shell's `LinkableIcon` (lucide's `Icon` + `Shell/linkables/lucide-paths.json`);
+  the picker also loads `lucide-index.json` (categories and tags). `scripts/lucide-icons.mjs` writes
+  all three from the installed lucide-react; a unit test fails when they drift. The picker
+  (`IconPicker`) is a popover (a sheet on a phone) with search, a virtualised grid and keyboard
+  use; it sits inside the list settings sheet and goes through `useOverlayHistory`.
+- **History pills** carry the list's icon in `data-corner-icon`, but draw the item's current picture
+  and icon from each moment's `links` (History's `LinkedThings` + the shell's
+  `LinkableEntities::snapshotsFor`: one query for the references, one per linked type). A pill
+  whose item is gone falls back to what was written into `body_html`.
+- **The slug never changes** after creation: notifications, History pills and NFC short links
+  point at it. `lists` and `items` are reserved (`CreateList::RESERVED_SLUGS`) because the
+  mutation routes use them at the same depth.
+- **Routes.** `/apps/our-corner/{slug}` is a list and `/apps/our-corner/{slug}/{id}` an item, both
+  looked up by hand so a missing one renders `EntityNotFound`. Mutations live at `lists/{id}`
+  and `items/{id}`; `POST /apps/our-corner/{slug}` adds to a list.
+- **Copy never needs a noun.** A list is named by the household, so copy reads "Add to Books",
+  "3 things · 1 read", "Ravi added to Books: The Salt Road". Don't add singular/plural fields.
+- **Who may delete a list:** an admin always; its maker only while every item in it is theirs
+  (`CornerListPolicy::mayDelete`), since deleting a list deletes other people's things. The
+  payload's `delete_needs_admin` lets the menu say so. The four lists the upgrade made have no
+  maker, so only an admin changes them.
+- **Lists from before custom lists.** The migration `2026_11_16_100000_…` moved the old four
+  tables into lists `songs`, `movies`, `activities`, `places`, kept each row's old type and id in
+  `legacy_type` / `legacy_id`, and started new ids above every old one. So
+  `/apps/our-corner/songs/5` finds id 5 in that list or, failing that, `legacy_id` 5. History
+  pills saved before then say `corner.song` (etc.) with the old id: those four types stay
+  registered in `LinkableEntities` as resolve-only aliases (`CornerLinks`), or History would drop
+  them on the next save. New pills use `corner.item`. Never rewrite History's `body_html` from
+  Corner.
+- **A fresh install has no lists.** The empty landing offers `SUGGESTED_LISTS`
+  (`lib/presets.ts`), one tap each through the normal create endpoint.
+- **While the room is off** its routes 404, Home shows no door, push is dropped by
+  `PushDispatcher` and every Corner linkable type is registered with `room: 'our-corner'`, so
+  the picker finds nothing. The types stay registered, so History keeps both old and new pills
+  (shown as plain text) when a moment is saved meanwhile.
+
 ## Our Corner item-actions contract
 
-Applies to Songs, Movies, Activities and Places.
+Applies to every list.
 
 - **`useItemActions`** (`resources/js/MiniApps/Corner/Hooks/useItemActions.ts`) is the sole source
   of Edit, Delete and Toggle-done. Don't hand-roll an Inertia mutation or a confirm dialog.
 - Call it **exactly once per rendered item, inside the card/tile** — never in an index page or the
   list primitive's render callback. Hoisting it hides every row on a single delete, silently.
 - **`DetailPage`** owns the frame (two-column grid, back-reference sidebar, meta, actions, done
-  control) and takes per-type render-props: Songs a CD frame, Movies a poster, Places a pin with
-  address/coordinates, Activities none.
+  control); `Pages/Item.tsx` fills it the same way for every item. `Pages/List.tsx` renders one
+  `ItemCard` per item. Adding and editing happen in `ItemSheet` (a sheet: up to seven fields).
 - **Delete is deferred, not soft:** the row hides, an Undo toast cancels, the real request fires
   after `DELETE_GRACE_PERIOD_MS` (5000 ms). Hard delete — no `deleted_at`, no restore route (see
   ROADMAP.md for the planned soft-delete work).

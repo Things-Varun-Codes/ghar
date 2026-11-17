@@ -68,9 +68,9 @@ class MiniAppGuestRedirectTest extends TestCase
         // Drift guard B (floor) — a discovery filter that silently starts  matching nothing
         // must fail instead of vacuously passing.
         $this->assertGreaterThanOrEqual(
-            29,
+            21,
             count($routes),
-            'Discovered mutating mini-app route count dropped below the floor of 29. This '.
+            'Discovered mutating mini-app route count dropped below the floor of 21. This '.
             'means the discovery filter in discoverMiniAppMutatingRoutes() broke (e.g. the '.
             'controller-namespace allowlist no longer matches), NOT that routes were '.
             'legitimately deleted. Investigate before ever lowering this floor.'

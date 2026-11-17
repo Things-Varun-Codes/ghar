@@ -1,2 +1,4 @@
 resources/js/components/ui/*
 resources/views/mail/*
+resources/js/Shell/linkables/lucide-paths.json
+resources/js/Shell/linkables/lucide-index.json

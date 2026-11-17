@@ -28,7 +28,7 @@ class LinkableEntities
         ];
     }
 
-    /** @return list<array{type: string, id: int, title: string, thumbnail_url?: ?string}> */
+    /** @return list<array{type: string, id: int, title: string, thumbnail_url?: ?string, icon?: string, deep_link_url?: string, group?: string}> */
     public function search(string $query, array $types = [], int $limit = 20): array
     {
         $types = empty($types) ? array_keys($this->registry) : $types;
@@ -161,6 +161,68 @@ class LinkableEntities
         $room = $this->registry[$type]['room'] ?? null;
 
         return $room !== null && ! $this->rooms->isOn($room);
+    }
+
+    /**
+     * What a page needs to draw many links at once: each "type:id" resolved to the thing as it
+     * is now, one resolveMany per type, however many links there are. A type whose room is off,
+     * or that isn't registered, resolves to nothing, as does a thing that no longer exists.
+     *
+     * @param  iterable<array{0: string, 1: int}>  $refs
+     * @return array<string, array<string, mixed>>
+     */
+    public function snapshotsFor(iterable $refs): array
+    {
+        $idsByType = [];
+        foreach ($refs as [$type, $id]) {
+            if ($this->available($type)) {
+                $idsByType[$type][$id] = $id;
+            }
+        }
+
+        $snapshots = [];
+        foreach ($idsByType as $type => $ids) {
+            foreach ($this->resolveMany($type, array_values($ids)) as $id => $snapshot) {
+                if ($snapshot !== null) {
+                    $snapshots["{$type}:{$id}"] = $snapshot;
+                }
+            }
+        }
+
+        return $snapshots;
+    }
+
+    /**
+     * What each of many things links to, as it is now: from id => "type:id" => snapshot. One
+     * query for the references and one per linked type, however many things there are.
+     *
+     * @param  list<int>  $fromIds
+     * @return array<int, array<string, array<string, mixed>>>
+     */
+    public function snapshotsFrom(string $fromType, array $fromIds): array
+    {
+        if ($fromIds === []) {
+            return [];
+        }
+
+        $refs = DB::table('entity_references')
+            ->where('from_type', $fromType)
+            ->whereIn('from_id', $fromIds)
+            ->get(['from_id', 'to_type', 'to_id']);
+
+        $snapshots = $this->snapshotsFor(
+            $refs->map(fn (object $ref): array => [(string) $ref->to_type, (int) $ref->to_id]),
+        );
+
+        $byFrom = [];
+        foreach ($refs as $ref) {
+            $key = "{$ref->to_type}:{$ref->to_id}";
+            if (isset($snapshots[$key])) {
+                $byFrom[(int) $ref->from_id][$key] = $snapshots[$key];
+            }
+        }
+
+        return $byFrom;
     }
 
     /** @return list<string> */

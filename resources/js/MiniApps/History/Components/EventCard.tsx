@@ -3,6 +3,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import BodyHtml from './BodyHtml';
+import type { LinkedThings } from './BodyHtml';
 import MediaGrid from './MediaGrid';
 import type { MediaItem } from './MediaGrid';
 import PhotoSwipeGallery from './PhotoSwipeGallery';
@@ -32,6 +33,7 @@ type HistoryEvent = {
     location_lat: number | null;
     location_lng: number | null;
     body_html: string | null;
+    links?: LinkedThings;
     created_at: string;
     updated_at: string;
     media: MediaItem[];
@@ -184,7 +186,11 @@ export default function EventCard({ event, onRead }: EventCardProps) {
                         ref={bodyClampRef}
                         className="history-event-body-clamp"
                     >
-                        <BodyHtml html={event.body_html} headingBase={3} />
+                        <BodyHtml
+                            html={event.body_html}
+                            headingBase={3}
+                            links={event.links}
+                        />
                     </div>
                     {isOverflowing && onRead && (
                         <div className="mt-2 flex justify-end">

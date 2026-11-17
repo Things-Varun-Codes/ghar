@@ -153,9 +153,9 @@ class SecurityHeadersTest extends TestCase
         $mediaSrc = $this->extractDirective($csp, 'media-src');
 
         $this->assertSame(
-            "'self' data: blob: https://i.ytimg.com https://i.scdn.co https://*.spotifycdn.com https://images.plex.tv",
+            "'self' data: blob:",
             trim($imgSrc),
-            'img-src must be the default (incl. YT/Spotify thumbnail + Plex poster CDNs) when no bucket is configured'
+            'img-src must be the default when no bucket is configured: Corner pictures come through this app, so no third-party image host is listed'
         );
         $this->assertSame("'self' blob:", trim($mediaSrc), 'media-src must be exactly the default when no bucket is configured');
 

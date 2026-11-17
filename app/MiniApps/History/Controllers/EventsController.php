@@ -9,6 +9,7 @@ use App\MiniApps\History\Http\Requests\StoreEventRequest;
 use App\MiniApps\History\Http\Requests\UpdateEventRequest;
 use App\MiniApps\History\Http\Resources\EventResource;
 use App\MiniApps\History\Models\Event;
+use App\MiniApps\History\Support\LinkedThings;
 use App\MiniApps\History\Support\RequestedMoment;
 use App\Shell\Services\PushDispatcher;
 use App\Shell\Support\CursorPayload;
@@ -36,10 +37,12 @@ class EventsController
             ->cursorPaginate(20)
             ->withQueryString();
 
+        $links = LinkedThings::forEvents($events->items());
+
         // yearCounts gives each YearBanner its true total, rather than what has scrolled in so
         // far.
         return Inertia::render('MiniApps/History/Pages/Timeline', [
-            'events' => CursorPayload::make($events, fn (Event $event) => app(EventResource::class)($event, $viewer)),
+            'events' => CursorPayload::make($events, fn (Event $event) => app(EventResource::class)($event, $viewer, $links[$event->id] ?? [])),
             'order' => $orderLabel,
             'eventsCount' => Event::query()->count(),
             'lastEventOccurredOn' => Event::query()->max('occurred_on'),

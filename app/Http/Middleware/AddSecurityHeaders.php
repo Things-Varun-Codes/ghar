@@ -30,7 +30,7 @@ class AddSecurityHeaders
         // style="" attributes, and React style props render as those.
         $styleSrc = "'self' 'unsafe-inline' https://fonts.googleapis.com";
         $connectSrc = "'self'".($isLocal ? ' ws://127.0.0.1:* http://127.0.0.1:* ws://localhost:* http://localhost:*' : '');
-        $imgSrc = "'self' data: blob: https://i.ytimg.com https://i.scdn.co https://*.spotifycdn.com https://images.plex.tv";
+        $imgSrc = "'self' data: blob:";
         $mediaSrc = "'self' blob:";
         $fontSrc = "'self' https://fonts.gstatic.com data:";
 

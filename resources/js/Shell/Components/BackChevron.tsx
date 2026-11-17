@@ -9,10 +9,6 @@ export type BackTarget = { href: string; label: string };
 
 // Mini-app paths are literals on purpose: the shell must build with any mini app disabled.
 const PARENT_LABELS: Record<string, string> = {
-    '/apps/our-corner/songs': 'Songs',
-    '/apps/our-corner/movies': 'Movies',
-    '/apps/our-corner/places': 'Places',
-    '/apps/our-corner/activities': 'Activities',
     '/apps/our-corner': 'Our Corner',
     // A parent with no entry here falls back to Home, so every Mailbox list needs one.
     '/apps/our-mailbox/citations': 'Citations',

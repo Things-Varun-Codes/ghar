@@ -141,5 +141,14 @@ export function useDebouncedPreview<TJson extends { ok: boolean }, T>(
         setPreview({ kind: 'idle' });
     }, [stop]);
 
-    return { preview, trigger, cancel, clear };
+    // Asks again for the same address, which trigger() alone would skip.
+    const retry = useCallback(
+        (url: string) => {
+            stop();
+            trigger(url);
+        },
+        [stop, trigger],
+    );
+
+    return { preview, trigger, cancel, clear, retry };
 }

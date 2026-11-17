@@ -8,22 +8,7 @@ import {
     transportFailureOptions,
 } from '@/lib/mutation';
 
-import {
-    destroy as activitiesDestroy,
-    toggleDone as activitiesToggleDone,
-} from '@/routes/apps/our-corner/activities';
-import {
-    destroy as moviesDestroy,
-    toggleDone as moviesToggleDone,
-} from '@/routes/apps/our-corner/movies';
-import {
-    destroy as placesDestroy,
-    toggleDone as placesToggleDone,
-} from '@/routes/apps/our-corner/places';
-import {
-    destroy as songsDestroy,
-    toggleDone as songsToggleDone,
-} from '@/routes/apps/our-corner/songs';
+import { destroy, toggleDone } from '@/routes/apps/our-corner/items';
 
 /* Our own timer: whether sonner fires onDismiss on an action click is unverified. */
 export const DELETE_GRACE_PERIOD_MS = 5000;
@@ -33,10 +18,7 @@ export type ItemPermissions = {
     delete: boolean;
 };
 
-export type CornerItemType = 'songs' | 'movies' | 'activities' | 'places';
-
 export type UseItemActionsOptions = {
-    type: CornerItemType;
     id: number;
     title: string | null;
     onOpenEdit?: () => void;
@@ -54,31 +36,6 @@ export type UseItemActionsReturn = {
     handleUndo: () => void;
 };
 
-const ROUTE_HELPERS: Record<
-    CornerItemType,
-    {
-        toggleDoneUrl: (id: number) => string;
-        destroyUrl: (id: number) => string;
-    }
-> = {
-    songs: {
-        toggleDoneUrl: (id) => songsToggleDone.url(id),
-        destroyUrl: (id) => songsDestroy.url(id),
-    },
-    movies: {
-        toggleDoneUrl: (id) => moviesToggleDone.url(id),
-        destroyUrl: (id) => moviesDestroy.url(id),
-    },
-    activities: {
-        toggleDoneUrl: (id) => activitiesToggleDone.url(id),
-        destroyUrl: (id) => activitiesDestroy.url(id),
-    },
-    places: {
-        toggleDoneUrl: (id) => placesToggleDone.url(id),
-        destroyUrl: (id) => placesDestroy.url(id),
-    },
-};
-
 const COMPONENT = 'Corner/useItemActions';
 
 type PendingDelete = {
@@ -87,7 +44,6 @@ type PendingDelete = {
 };
 
 export function useItemActions({
-    type,
     id,
     title,
     onOpenEdit,
@@ -113,7 +69,7 @@ export function useItemActions({
         setIsTogglePending(true);
 
         router.patch(
-            ROUTE_HELPERS[type].toggleDoneUrl(id),
+            toggleDone.url(id),
             {},
             {
                 preserveScroll: true,
@@ -159,7 +115,7 @@ export function useItemActions({
             // Still on the list, the row comes back; a detail page has already left.
             const restore = () => setIsPendingDelete(false);
 
-            router.delete(ROUTE_HELPERS[type].destroyUrl(id), {
+            router.delete(destroy.url(id), {
                 preserveScroll: true,
                 onError: (errors) => {
                     Sentry.captureException(new Error('delete rejected'), {

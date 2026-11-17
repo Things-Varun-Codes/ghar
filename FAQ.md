@@ -7,7 +7,7 @@ detail.
 
 Ghar is a private web app that one family or household runs for itself. Everyone signs in to the
 same place and finds the small apps the admin has turned on, out of three: Our History (a timeline, gallery and calendar of moments,
-with photos and videos), Our Corner (shared lists of songs, movies, places and things to do) and Our
+with photos and videos), Our Corner (shared lists you make yourselves: songs, films, places, books, anything) and Our
 Mailbox (notes, bouquets of flowers, coupons and joke traffic tickets, sent to one or more people).
 The admin chooses which of the three apps a home has, and which kinds of mail the Mailbox offers,
 at Admin → Rooms. A new install starts with none on. Ghar is open source under the MIT licence. There is no hosted version: you run it yourself with
@@ -22,6 +22,18 @@ to find as "Ghar, the self-hosted household app", or by its image name,
 A citation in Ghar is a joke traffic ticket: a mock official
 form that one person issues to another for an offence such as leaving wet towels on the bed, with a
 penalty the recipient can mark as paid.
+
+## Can we keep lists other than songs and movies?
+
+Yes. Our Corner holds whatever lists your household makes: books, restaurants, recipes, board
+games, anything. Each list has a name, an icon and its own word for done (read, cooked, played).
+Every item can have a name, notes, a link, a picture and a place. Paste a link to almost any page
+and its name and picture fill in, when the page offers them; paste a map link, coordinates or just
+a place's name, and "Open in Maps" opens it in your phone's maps app. Until the first list is made,
+Our Corner offers a few to add in one tap.
+
+Anyone can make a list. Its maker or an admin can change it. Its maker can delete it while
+everything in it is theirs; once someone else has added to it, deleting it takes an admin.
 
 ## Will Ghar run on a Raspberry Pi?
 
@@ -59,9 +71,10 @@ and a video up to 96 MB.
 
 No. Ghar's code has no analytics or telemetry, and the fonts are served by your own install rather
 than by Google. A running install does contact a few outside services to do its job: your mail
-provider, for invites and password resets; browser push services, to deliver Web Push; YouTube,
-Spotify or Plex when someone adds one of their links in Our Corner, to look up its title and
-artwork, which your browser then loads from them; and a breached-password list when someone sets a
+provider, for invites and password resets; browser push services, to deliver Web Push; the page
+behind a link someone adds in Our Corner, to read its name and picture (your install serves the
+picture itself, so browsers never contact that site, and it never fetches from addresses inside
+your own network); and a breached-password list when someone sets a
 password, to which only the first five characters of the password's hash are sent. Google Places,
 Cloudflare Workers AI, an S3 bucket and a Sentry-compatible error tracker are contacted only if you
 set them up.

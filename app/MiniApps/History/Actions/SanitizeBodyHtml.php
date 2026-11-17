@@ -34,7 +34,7 @@ class SanitizeBodyHtml
         $config->set(
             'HTML.Allowed',
             'p,br,strong,em,h1,h2,h3,a[href|title|rel|target],ul,ol,li,'
-            .'span[data-corner-type|data-corner-id|data-corner-title|data-corner-thumbnail|data-corner-href]'
+            .'span[data-corner-type|data-corner-id|data-corner-title|data-corner-thumbnail|data-corner-href|data-corner-icon]'
         );
 
         $config->set('URI.AllowedSchemes', [
@@ -54,7 +54,7 @@ class SanitizeBodyHtml
         // The ID and Rev namespace the cached definition. Bump Rev when the data-corner-*
         // attributes change.
         $config->set('HTML.DefinitionID', 'history-body');
-        $config->set('HTML.DefinitionRev', 2);
+        $config->set('HTML.DefinitionRev', 3);
 
         // This call finalizes the config: every set() must come before it.
         $def = $config->maybeGetRawHTMLDefinition();
@@ -64,6 +64,7 @@ class SanitizeBodyHtml
             $def->addAttribute('span', 'data-corner-title', 'Text');
             $def->addAttribute('span', 'data-corner-thumbnail', 'Text');
             $def->addAttribute('span', 'data-corner-href', 'Text');
+            $def->addAttribute('span', 'data-corner-icon', 'Text');
         }
 
         return self::$purifier = new HTMLPurifier($config);

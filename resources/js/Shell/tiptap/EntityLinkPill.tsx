@@ -10,22 +10,24 @@ import {
     SheetHeader,
     SheetTitle,
 } from '@/components/ui/sheet';
-import { entityIcon } from '@/Shell/linkables/entityIcon';
+import { EntityMark } from '@/Shell/linkables/LinkableIcon';
 
 export default function EntityLinkPill({
     node,
     editor,
     getPos,
 }: NodeViewProps) {
-    const { type, title, thumbnailUrl, deepLinkUrl } = node.attrs as {
+    const { type, title, thumbnailUrl, deepLinkUrl, icon } = node.attrs as {
         type: string | null;
         id: number | null;
         title: string;
         thumbnailUrl: string | null;
         deepLinkUrl: string | null;
+        icon: string | null;
     };
 
     const [touchMenuOpen, setTouchMenuOpen] = useState(false);
+    const [thumbnailBroken, setThumbnailBroken] = useState(false);
 
     const remove = () => {
         if (typeof getPos !== 'function') {
@@ -48,10 +50,7 @@ export default function EntityLinkPill({
     const safeHref = deepLinkUrl ?? '#';
     const label = title || 'Corner link';
 
-    const iconEl = React.createElement(entityIcon(type), {
-        size: 14,
-        'aria-hidden': true,
-    });
+    const iconEl = <EntityMark type={type} icon={icon} size={14} />;
 
     const handlePillClick = (e: React.MouseEvent) => {
         const isTouch =
@@ -77,8 +76,13 @@ export default function EntityLinkPill({
                 {iconEl}
             </span>
 
-            {thumbnailUrl && (
-                <img src={thumbnailUrl} alt="" className="shell-pill-thumb" />
+            {thumbnailUrl && !thumbnailBroken && (
+                <img
+                    src={thumbnailUrl}
+                    alt=""
+                    className="shell-pill-thumb"
+                    onError={() => setThumbnailBroken(true)}
+                />
             )}
 
             <a

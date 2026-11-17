@@ -26,8 +26,9 @@ it are a few small apps for the things families keep track of together:
 
 - **Our History**: a timeline, gallery and calendar of the moments you want to remember, with photos
   and videos.
-- **Our Corner**: shared lists of songs, movies, places and things to do, and a way to mark what
-  you've loved, watched or visited.
+- **Our Corner**: shared lists the household makes for itself (songs, films, places, books,
+  recipes, anything), each with its own icon and its own word for done: loved, watched, visited,
+  read.
 - **Our Mailbox**: notes and bouquets of flowers to one or more people, coupons someone can redeem,
   and citations. A citation is a joke traffic ticket, a mock
   official form for an offence such as leaving wet towels on the bed, with a penalty the recipient
@@ -102,8 +103,11 @@ for these:
   account you set up.
 - **Web Push**: notifications travel through each browser's own push service, once someone turns
   them on.
-- **Links in Our Corner**: for a YouTube, Spotify or Plex link, the server asks that site for the
-  title and artwork, and browsers load the artwork from it.
+- **Links in Our Corner**: when someone pastes a link, the server reads that page for its name and
+  picture (the page's own oEmbed, Open Graph or title tags), follows a short map link to find its
+  coordinates, and fetches the picture to show it. Browsers only ever talk to your install: Ghar
+  serves the picture itself, from a small cache that may be thrown away. These fetches go only to
+  public addresses, never into your own network.
 - **Password check**: when someone sets a password, it is checked against a public list of breached
   passwords. Only the first five characters of its hash are sent.
 
