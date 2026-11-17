@@ -15,7 +15,8 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  # First, so a tag without release notes fails in seconds and not after the builds.
+  # First, so a tag on the wrong commit or without release notes fails in seconds and
+  # publishes nothing.
   notes:
     runs-on: ubuntu-24.04
     timeout-minutes: 5
@@ -23,9 +24,18 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-      - name: Release notes from CHANGELOG.md
+          # The check below compares the tagged commit with its parent and with main.
+          fetch-depth: 0
+      - name: The tag is on the commit that released this version
         run: |
           # Node is on the runner; the command needs no npm install.
+          VERSION="${GITHUB_REF_NAME#v}"
+          if ! node scripts/release.mjs check-tag "$VERSION" HEAD; then
+            echo "::error::$GITHUB_REF_NAME is not on the commit that added [${VERSION%%-*}] to CHANGELOG.md. Nothing was published. See RELEASE.md, \"When something goes wrong\"."
+            exit 1
+          fi
+      - name: Release notes from CHANGELOG.md
+        run: |
           VERSION="${GITHUB_REF_NAME#v}"
           if ! node scripts/release.mjs section "$VERSION" > notes.md; then
             echo "::error::CHANGELOG.md has no section for [$VERSION]"

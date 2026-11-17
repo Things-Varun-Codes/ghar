@@ -281,6 +281,34 @@ export function sectionFor(changelog, version) {
     return find(version) ?? find(version.split('-')[0]);
 }
 
+// Why `changelog` (CHANGELOG.md at a commit, with `parentChangelog` the same file one commit
+// earlier) does not make that commit the release of `version`, or null when it does. The
+// release is the one commit that adds the dated heading: an earlier commit may carry a draft
+// of it, and every later commit on main still has it.
+export function releaseCommitProblem(version, changelog, parentChangelog) {
+    const base = version.split('-')[0];
+    const dated = (text) =>
+        text
+            .split('\n')
+            .some(
+                (line) =>
+                    line.startsWith(`## [${base}] - `) &&
+                    /^\d{4}-\d{2}-\d{2}$/.test(
+                        line.slice(`## [${base}] - `.length).trim(),
+                    ),
+            );
+
+    if (!dated(changelog)) {
+        return `CHANGELOG.md there has no dated section for [${base}]`;
+    }
+
+    if (dated(parentChangelog)) {
+        return `the section for [${base}] was already there one commit earlier, so a later commit than the release was picked`;
+    }
+
+    return null;
+}
+
 export function nextVersion(current, changes) {
     const [major, minor, patch] = current.split('.').map(Number);
 
