@@ -14,38 +14,12 @@ import { useDraftCloseGate } from '@/hooks/use-draft-close-gate';
 import { useKeyboardViewport } from '@/hooks/use-keyboard-viewport';
 import { cn } from '@/lib/utils';
 import { MOMENT_PARAM } from '@/MiniApps/History/lib/momentUrl';
+import type { HistoryEvent } from '@/MiniApps/History/lib/types';
 import DiscardDraftDialog from '@/Shell/Components/DiscardDraftDialog';
-import type { EventPermissions } from './CalendarMonth';
 import DeleteEventDialog from './DeleteEventDialog';
 import EventForm from './EventForm';
 import type { EventFormHandle } from './EventForm';
 import EventReadView from './EventReadView';
-import type { MediaItem } from './MediaGrid';
-
-type Change = {
-    id: number;
-    action: string;
-    summary: string;
-    user_name: string;
-    created_at: string;
-};
-
-type HistoryEvent = {
-    id: number;
-    date: string;
-    date_label: string;
-    title: string | null;
-    location_freetext: string | null;
-    location_place_id: string | null;
-    location_name: string | null;
-    location_address: string | null;
-    location_lat: number | null;
-    location_lng: number | null;
-    body_html: string | null;
-    media: MediaItem[];
-    changes: Change[];
-    can: EventPermissions;
-};
 
 type EventSheetProps = {
     open: boolean;

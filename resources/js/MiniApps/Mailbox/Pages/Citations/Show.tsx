@@ -1,7 +1,9 @@
 import CitationActions from '@/MiniApps/Mailbox/Components/CitationActions';
 import CitationArtifact from '@/MiniApps/Mailbox/Components/CitationArtifact';
 import type { CitationPayload } from '@/MiniApps/Mailbox/Components/CitationCard';
-import MailboxLayout from '@/MiniApps/Mailbox/Layouts/MailboxLayout';
+import MailboxLayout, {
+    MAILBOX_ROOM,
+} from '@/MiniApps/Mailbox/Layouts/MailboxLayout';
 import { index } from '@/routes/apps/our-mailbox/citations';
 import Page from '@/Shell/Components/Page';
 
@@ -16,7 +18,7 @@ export default function CitationsShow({ citation }: Props) {
                 tier="app"
                 className="mailbox-artifact-page"
                 title="Citation"
-                room="Our Mailbox"
+                room={MAILBOX_ROOM}
                 documentTitle={`Citation ${citation.ref_no ?? ''}`.trim()}
                 back={{ href: index.url(), label: 'Citations' }}
             >

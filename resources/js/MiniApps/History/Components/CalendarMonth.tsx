@@ -1,35 +1,6 @@
 import type { ReactNode } from 'react';
+import type { HistoryEvent } from '@/MiniApps/History/lib/types';
 import DayEventMenu from './DayEventMenu';
-import type { MediaItem } from './MediaGrid';
-
-export type CalendarEvent = {
-    id: number;
-    date: string; // 'YYYY-MM-DD'
-    date_label: string;
-    year: number;
-    title: string | null;
-    location_freetext: string | null;
-    location_place_id: string | null;
-    location_name: string | null;
-    location_address: string | null;
-    location_lat: number | null;
-    location_lng: number | null;
-    body_html: string | null;
-    media: MediaItem[];
-    changes: {
-        id: number;
-        action: string;
-        summary: string;
-        user_name: string;
-        created_at: string;
-    }[];
-    can: EventPermissions;
-};
-
-export type EventPermissions = {
-    update: boolean;
-    delete: boolean;
-};
 
 export const MONTH_NAMES = [
     'January',
@@ -55,7 +26,7 @@ const DOW = [
     'Saturday',
 ];
 
-export function firstThumb(event: CalendarEvent): string | null {
+export function firstThumb(event: HistoryEvent): string | null {
     const withImage = event.media.find((m) => m.thumb || m.poster);
 
     return withImage ? (withImage.thumb ?? withImage.poster) : null;
@@ -64,10 +35,10 @@ export function firstThumb(event: CalendarEvent): string | null {
 type Props = {
     year: number;
     month: number; // 1-12
-    eventsByDay: Map<number, CalendarEvent[]>;
+    eventsByDay: Map<number, HistoryEvent[]>;
     size: 'compact' | 'large';
     todayMonthDay: { month: number; day: number } | null;
-    onOpen: (event: CalendarEvent, triggerEl?: HTMLElement | null) => void;
+    onOpen: (event: HistoryEvent, triggerEl?: HTMLElement | null) => void;
 };
 
 export default function CalendarMonth({

@@ -1,13 +1,7 @@
 import { router } from '@inertiajs/react';
-import { Check, ChevronDown } from 'lucide-react';
 
-import {
-    DropdownMenu,
-    DropdownMenuContent,
-    DropdownMenuItem,
-    DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
 import { gallery } from '@/routes/apps/our-history';
+import ChoiceMenu from '@/Shell/Components/ChoiceMenu';
 
 type Filters = {
     type: string;
@@ -101,58 +95,27 @@ function YearDropdown({
     availableYears,
     onSelect,
 }: YearDropdownProps) {
-    const activeLabel = activeYear === null ? 'All' : String(activeYear);
-
-    const options: Array<{ key: string; label: string; year: number | null }> =
-        [
-            { key: 'all', label: 'All years', year: null },
-            ...availableYears.map((y) => ({
-                key: String(y),
-                label: String(y),
-                year: y,
-            })),
-        ];
-
     return (
-        <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-                <button
-                    type="button"
-                    className="history-year-trigger shell-press"
-                >
-                    <span>Year: {activeLabel}</span>
-                    <ChevronDown
-                        aria-hidden="true"
-                        size={14}
-                        strokeWidth={1.5}
-                        className="shrink-0 opacity-[0.6]"
-                    />
-                </button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="history-year-menu">
-                {options.map((opt) => {
-                    const isActive = opt.year === activeYear;
-
-                    return (
-                        <DropdownMenuItem
-                            key={opt.key}
-                            onSelect={() => onSelect(opt.year)}
-                            className="history-year-item"
-                            style={{ fontWeight: isActive ? 500 : 400 }}
-                        >
-                            <span>{opt.label}</span>
-                            {isActive && (
-                                <Check
-                                    aria-hidden="true"
-                                    size={14}
-                                    strokeWidth={1.5}
-                                    className="shrink-0 text-(--history-accent-ink-strong)"
-                                />
-                            )}
-                        </DropdownMenuItem>
-                    );
-                })}
-            </DropdownMenuContent>
-        </DropdownMenu>
+        <ChoiceMenu
+            label="Year"
+            value={activeYear === null ? 'all' : String(activeYear)}
+            valueLabel={activeYear === null ? 'All' : undefined}
+            items={[
+                { key: 'all', label: 'All years' },
+                ...availableYears.map((y) => ({
+                    key: String(y),
+                    label: String(y),
+                })),
+            ]}
+            onSelect={(key) => onSelect(key === 'all' ? null : Number(key))}
+            classNames={{
+                trigger: 'history-year-trigger shell-press',
+                menu: 'history-year-menu',
+                item: 'history-year-item',
+                itemLabel: '',
+                hint: '',
+                check: 'text-(--history-accent-ink-strong)',
+            }}
+        />
     );
 }

@@ -4,12 +4,9 @@ import { Toggle } from '@/components/ui/toggle';
 import { DoneGlyph } from '@/MiniApps/Corner/Components/DoneMark';
 import type { MentionedInRef } from '@/MiniApps/Corner/Components/MentionedInList';
 import MentionedInList from '@/MiniApps/Corner/Components/MentionedInList';
-import type {
-    ItemPermissions,
-    UseItemActionsReturn,
-} from '@/MiniApps/Corner/Hooks/useItemActions';
+import type { UseItemActionsReturn } from '@/MiniApps/Corner/Hooks/useItemActions';
 import { CORNER_ROOM } from '@/MiniApps/Corner/Layouts/CornerLayout';
-import type { DoneIcon } from '@/MiniApps/Corner/lib/types';
+import type { DoneIcon, ItemPermissions } from '@/MiniApps/Corner/lib/types';
 import type { BackTarget } from '@/Shell/Components/BackChevron';
 import Page from '@/Shell/Components/Page';
 
@@ -27,6 +24,7 @@ type DetailPageProps = {
     doneLabel: string;
     doneIcon: DoneIcon;
     itemActions: UseItemActionsReturn;
+    onEdit: () => void;
 };
 
 export default function DetailPage({
@@ -42,6 +40,7 @@ export default function DetailPage({
     doneLabel,
     doneIcon,
     itemActions,
+    onEdit,
 }: DetailPageProps) {
     return (
         <Page tier="app" title={title} room={CORNER_ROOM} back={back}>
@@ -81,7 +80,7 @@ export default function DetailPage({
                                     <button
                                         type="button"
                                         className="corner-detail-action shell-press"
-                                        onClick={itemActions.handleEdit}
+                                        onClick={onEdit}
                                     >
                                         Edit
                                     </button>

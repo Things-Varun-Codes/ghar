@@ -1,11 +1,13 @@
 import type { ReactNode } from 'react';
 
-import { AppAttrsProvider } from '@/hooks/use-app-attrs';
 import { dashboard } from '@/routes';
 import { calendar, gallery, timeline } from '@/routes/apps/our-history';
 import Page from '@/Shell/Components/Page';
+import RoomScope from '@/Shell/Components/RoomScope';
 import SegmentedTabs from '@/Shell/Components/SegmentedTabs';
 import Toolbar from '@/Shell/Components/Toolbar';
+
+export const HISTORY_ROOM = 'Our History';
 
 type HistoryViewTab = 'timeline' | 'gallery' | 'calendar';
 
@@ -52,31 +54,29 @@ export default function HistoryLayout({
         HISTORY_VIEW_TABS.find((t) => t.key === activeTab)?.label ?? 'Timeline';
 
     return (
-        <AppAttrsProvider app="our-history">
-            <div
-                data-app="our-history"
-                className="history-bleed bg-(--history-bg) text-(--history-ink)"
+        <RoomScope
+            slug="our-history"
+            className="history-bleed bg-(--history-bg) text-(--history-ink)"
+        >
+            <Page
+                title={HISTORY_ROOM}
+                room={HISTORY_ROOM}
+                documentTitle={tabLabel}
+                back={LEAVE_ROOM}
+                tabs={tabs}
+                pb="pb-0"
             >
-                <Page
-                    title="Our History"
-                    room="Our History"
-                    documentTitle={tabLabel}
-                    back={LEAVE_ROOM}
-                    tabs={tabs}
-                    pb="pb-0"
-                >
-                    {(count || controls) && (
-                        <Toolbar
-                            count={count}
-                            controls={controls}
-                            sticky
-                            heightVar="--history-subtoolbar-h"
-                            background="var(--history-bg)"
-                        />
-                    )}
-                    {children}
-                </Page>
-            </div>
-        </AppAttrsProvider>
+                {(count || controls) && (
+                    <Toolbar
+                        count={count}
+                        controls={controls}
+                        sticky
+                        heightVar="--history-subtoolbar-h"
+                        background="var(--history-bg)"
+                    />
+                )}
+                {children}
+            </Page>
+        </RoomScope>
     );
 }

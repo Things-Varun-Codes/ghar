@@ -1,6 +1,10 @@
-import type { ItemPermissions } from '@/MiniApps/Corner/Hooks/useItemActions';
-
 export type DoneIcon = 'check' | 'heart';
+
+/* What the viewer may do to a list or an item. */
+export type ItemPermissions = {
+    update: boolean;
+    delete: boolean;
+};
 
 export type CornerListInfo = {
     id: number;
@@ -12,7 +16,7 @@ export type CornerListInfo = {
     todo_label: string;
     done_icon: DoneIcon;
     notify_on_add: boolean;
-    can: { update: boolean; delete: boolean };
+    can: ItemPermissions;
     /* The viewer made this list, but someone else has added to it since. */
     delete_needs_admin: boolean;
 };

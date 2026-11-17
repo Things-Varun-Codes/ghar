@@ -13,10 +13,29 @@ export type CursorPaginator<T> = {
 // local round-trip shows neither, a slow one shows both.
 const NAVIGATING_DELAY_MS = 250;
 
+type VisitId = unknown;
+
+type VisitScope = { id: VisitId; only: string[]; except: string[] };
+
+type BeforeDetail = { visit: VisitScope };
+type SuccessDetail = {
+    page: { props: Record<string, unknown> };
+    visitId?: VisitId;
+};
+type FinishDetail = { visit: VisitScope };
+type NavigateDetail = {
+    page: { props: Record<string, unknown> };
+    type: string;
+};
+
 export interface UseCursorPaginationOptions<T> {
     initial: CursorPaginator<T>;
     propName: string;
-    resetKey: unknown[];
+    /**
+     * Also re-seed when these change. Rarely needed: any server response that carries the
+     * list, except the hook's own load-more, re-seeds it already.
+     */
+    resetKey?: unknown[];
 }
 
 export interface UseCursorPaginationReturn<T> {
@@ -27,9 +46,18 @@ export interface UseCursorPaginationReturn<T> {
     navigating: boolean;
     loadError: boolean;
     retryLoadMore: () => void;
+    /** Refetches the first page and updates the rows already shown, keeping later pages. */
+    refreshInPlace: () => void;
 }
 
-export function useCursorPagination<T>({
+function asksFor(visit: VisitScope, propName: string): boolean {
+    return (
+        (visit.only.length === 0 || visit.only.includes(propName)) &&
+        !visit.except.includes(propName)
+    );
+}
+
+export function useCursorPagination<T extends { id: number | string }>({
     initial,
     propName,
     resetKey,
@@ -48,6 +76,23 @@ export function useCursorPagination<T>({
     );
     const [navigating, setNavigating] = useState(false);
 
+    // Bumped on every re-seed, so a load-more answered afterwards can't append to the new list.
+    const seedRef = useRef(0);
+    // Visits this hook started: their responses extend the list instead of replacing it.
+    const ownVisitsRef = useRef(new Set<VisitId>());
+
+    const reseed = useCallback((paginator: CursorPaginator<T>) => {
+        seedRef.current += 1;
+        setItems(paginator.data);
+        setPaginatorMeta({ next_page_url: paginator.next_page_url });
+        // A fresh list means a stale load-more failure must not survive the re-seed.
+        setLoadError(false);
+    }, []);
+
+    const markOwn = useCallback((visit: { id: VisitId }) => {
+        ownVisitsRef.current.add(visit.id);
+    }, []);
+
     useEffect(() => {
         return () => {
             if (navigatingTimerRef.current !== null) {
@@ -58,18 +103,79 @@ export function useCursorPagination<T>({
 
     useEffect(() => {
         // eslint-disable-next-line react-hooks/set-state-in-effect -- re-seeds accumulated items from fresh Inertia props
-        setItems(initial.data);
-        setPaginatorMeta({ next_page_url: initial.next_page_url });
-        // A fresh list means a stale load-more failure must not survive the
-        // re-seed.
-        setLoadError(false);
+        reseed(initial);
         // eslint-disable-next-line react-hooks/exhaustive-deps -- the caller-supplied resetKey is the dependency list
-    }, resetKey);
+    }, resetKey ?? []);
+
+    // A mutation's redirect, a reload or a filter change can answer with a first page identical
+    // to the one shown (Inertia then keeps the old prop object), while the rows loaded below it
+    // have changed. So the list re-seeds on every response that asked for it, not on a new prop.
+    // The success event fires after the page has rendered with that response.
+    useEffect(() => {
+        const asked = new Map<VisitId, boolean>();
+
+        const onBefore = (event: Event) => {
+            const { visit } = (event as CustomEvent<BeforeDetail>).detail;
+            asked.set(visit.id, asksFor(visit, propName));
+        };
+
+        const reseedFrom = (props: Record<string, unknown>) => {
+            const next = props[propName] as CursorPaginator<T> | undefined;
+
+            if (next && Array.isArray(next.data)) {
+                reseed(next);
+            }
+        };
+
+        const onSuccess = (event: Event) => {
+            const { page, visitId } = (event as CustomEvent<SuccessDetail>)
+                .detail;
+            const askedForList = asked.get(visitId) ?? true;
+            asked.delete(visitId);
+
+            if (ownVisitsRef.current.delete(visitId) || !askedForList) {
+                return;
+            }
+
+            reseedFrom(page.props);
+        };
+
+        // Back or forward restores a page from browser history without a request.
+        const onNavigate = (event: Event) => {
+            const { page, type } = (event as CustomEvent<NavigateDetail>)
+                .detail;
+
+            if (type === 'history') {
+                reseedFrom(page.props);
+            }
+        };
+
+        const onFinish = (event: Event) => {
+            const { visit } = (event as CustomEvent<FinishDetail>).detail;
+            asked.delete(visit.id);
+            ownVisitsRef.current.delete(visit.id);
+        };
+
+        document.addEventListener('inertia:before', onBefore);
+        document.addEventListener('inertia:success', onSuccess);
+        document.addEventListener('inertia:finish', onFinish);
+        document.addEventListener('inertia:navigate', onNavigate);
+
+        return () => {
+            document.removeEventListener('inertia:before', onBefore);
+            document.removeEventListener('inertia:success', onSuccess);
+            document.removeEventListener('inertia:finish', onFinish);
+            document.removeEventListener('inertia:navigate', onNavigate);
+        };
+    }, [propName, reseed]);
 
     const loadMore = useCallback(() => {
         if (!paginatorMeta.next_page_url || loadingMore) {
             return;
         }
+
+        const seed = seedRef.current;
+        const current = () => seed === seedRef.current;
 
         const reportLoadMoreFailure = (reason: string, detail: unknown) => {
             captureSilent(new Error(`${propName}.load-more failed`), {
@@ -84,7 +190,10 @@ export function useCursorPagination<T>({
                     },
                 },
             });
-            setLoadError(true);
+
+            if (current()) {
+                setLoadError(true);
+            }
         };
 
         setLoadingMore(true);
@@ -94,9 +203,15 @@ export function useCursorPagination<T>({
             {
                 preserveScroll: true,
                 preserveState: true,
+                // A cursor URL in the address bar would make a hard refresh load only that slice.
                 preserveUrl: true,
                 only: [propName],
+                onBefore: markOwn,
                 onSuccess: (page) => {
+                    if (!current()) {
+                        return;
+                    }
+
                     const next = page.props[propName] as CursorPaginator<T>;
                     setItems((prev) => [...prev, ...next.data]);
                     setPaginatorMeta({
@@ -140,12 +255,26 @@ export function useCursorPagination<T>({
                 },
             },
         );
-    }, [paginatorMeta.next_page_url, loadingMore, propName]);
+    }, [paginatorMeta.next_page_url, loadingMore, propName, markOwn]);
 
     const retryLoadMore = useCallback(() => {
         setLoadError(false);
         loadMore();
     }, [loadMore]);
+
+    const refreshInPlace = useCallback(() => {
+        router.reload({
+            only: [propName],
+            onBefore: markOwn,
+            onSuccess: (page) => {
+                const fresh = (page.props[propName] as CursorPaginator<T>).data;
+                const byId = new Map(fresh.map((item) => [item.id, item]));
+                setItems((prev) =>
+                    prev.map((item) => byId.get(item.id) ?? item),
+                );
+            },
+        });
+    }, [propName, markOwn]);
 
     useEffect(() => {
         const sentinel = sentinelRef.current;
@@ -236,5 +365,6 @@ export function useCursorPagination<T>({
         navigating,
         loadError,
         retryLoadMore,
+        refreshInPlace,
     };
 }
