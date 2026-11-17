@@ -5,14 +5,30 @@ namespace App\MiniApps\Corner\Support;
 /** What an item may hold. Every part but a name (or a link to take one from) is optional. */
 final class ItemRules
 {
+    /** The validation rule for an http(s) address. */
+    public const WEB_URL = 'url:http,https';
+
+    public static function isWebUrl(string $value): bool
+    {
+        return preg_match('#^https?://#i', $value) === 1;
+    }
+
+    /** Trimmed, or null when nothing is left. */
+    public static function trimmed(mixed $value): ?string
+    {
+        $value = trim((string) $value);
+
+        return $value === '' ? null : $value;
+    }
+
     /** @return array<string, array<int, string>> */
     public static function all(): array
     {
         return [
             'title' => ['nullable', 'required_without:url', 'string', 'max:255'],
             'notes' => ['nullable', 'string', 'max:2000'],
-            'url' => ['nullable', 'string', 'url:http,https', 'max:2048'],
-            'image_url' => ['nullable', 'string', 'url:http,https', 'max:2048'],
+            'url' => ['nullable', 'string', self::WEB_URL, 'max:2048'],
+            'image_url' => ['nullable', 'string', self::WEB_URL, 'max:2048'],
             // The picture was taken away on purpose, so a link's own isn't put back.
             'no_picture' => ['nullable', 'boolean'],
             'location' => ['nullable', 'string', 'max:2048'],

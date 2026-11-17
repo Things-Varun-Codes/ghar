@@ -4,6 +4,7 @@ namespace App\MiniApps\Corner\Actions;
 
 use App\MiniApps\Corner\Models\CornerList;
 use App\MiniApps\Corner\Models\Item;
+use App\MiniApps\Corner\Providers\CornerServiceProvider;
 use App\MiniApps\Corner\Support\ItemDetails;
 use App\Shell\Models\User;
 use App\Shell\Services\PushDispatcher;
@@ -35,11 +36,11 @@ class AddItem
                 if ($list->notify_on_add) {
                     $body = "{$adder->firstName()} added to {$list->name}: {$item->title}";
                     $url = route('apps.our-corner.items.show', [$list->slug, $item->id], absolute: false);
-                    $tag = "our-corner:{$list->slug}";
+                    $tag = CornerServiceProvider::SLUG.':'.$list->slug;
 
                     // Inside afterCommit so a rolled-back row is never pushed.
                     DB::afterCommit(function () use ($adder, $body, $url, $tag): void {
-                        $this->dispatcher->toHousehold($adder, 'our-corner', $tag, $body, $url);
+                        $this->dispatcher->toHousehold($adder, CornerServiceProvider::SLUG, $tag, $body, $url);
                     });
                 }
 

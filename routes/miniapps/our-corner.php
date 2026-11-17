@@ -2,7 +2,6 @@
 
 use App\MiniApps\Corner\Controllers\CornerController;
 use App\MiniApps\Corner\Controllers\ItemsController;
-use App\MiniApps\Corner\Controllers\LinkablePickerController;
 use App\MiniApps\Corner\Controllers\LinkPreviewController;
 use App\MiniApps\Corner\Controllers\ListsController;
 use App\MiniApps\Corner\Controllers\PictureController;
@@ -44,11 +43,3 @@ Route::middleware('throttle:corner-mutations')
 Route::middleware('throttle:corner-mutations')
     ->get('/api/corner/picture-preview', [PictureController::class, 'preview'])
     ->name('apps.our-corner.picture.preview');
-
-/**
- * Outside the apps.our-corner prefix: this is a cross-app surface, since events live in Our
- * History.
- */
-Route::middleware('throttle:linkable-picker')
-    ->get('/api/linkable/search', [LinkablePickerController::class, 'search'])
-    ->name('apps.our-corner.linkable.search');

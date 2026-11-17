@@ -1,4 +1,3 @@
-import { Loader2 } from 'lucide-react';
 import type { ReactNode } from 'react';
 import {
     AlertDialog,
@@ -21,8 +20,17 @@ interface Props {
     confirmLabel?: string;
     cancelLabel?: string;
     onConfirm: () => void;
-    processing?: boolean;
     variant?: 'default' | 'destructive';
+    /* For a room or page that draws its own confirm dialogs. */
+    classNames?: {
+        content?: string;
+        header?: string;
+        title?: string;
+        description?: string;
+        footer?: string;
+        cancel?: string;
+        action?: string;
+    };
 }
 
 export default function ConfirmDialog({
@@ -33,38 +41,36 @@ export default function ConfirmDialog({
     confirmLabel = 'Confirm',
     cancelLabel = 'Cancel',
     onConfirm,
-    processing = false,
     variant = 'default',
+    classNames,
 }: Props) {
     return (
         <AlertDialog open={open} onOpenChange={onOpenChange}>
-            <AlertDialogContent>
-                <AlertDialogHeader>
-                    <AlertDialogTitle>{title}</AlertDialogTitle>
+            <AlertDialogContent className={classNames?.content}>
+                <AlertDialogHeader className={classNames?.header}>
+                    <AlertDialogTitle className={classNames?.title}>
+                        {title}
+                    </AlertDialogTitle>
                     {description && (
-                        <AlertDialogDescription>
+                        <AlertDialogDescription
+                            className={classNames?.description}
+                        >
                             {description}
                         </AlertDialogDescription>
                     )}
                 </AlertDialogHeader>
-                <AlertDialogFooter>
-                    <AlertDialogCancel disabled={processing}>
+                <AlertDialogFooter className={classNames?.footer}>
+                    <AlertDialogCancel className={classNames?.cancel}>
                         {cancelLabel}
                     </AlertDialogCancel>
                     <AlertDialogAction
                         onClick={onConfirm}
-                        disabled={processing}
                         className={cn(
                             variant === 'destructive' &&
                                 buttonVariants({ variant: 'destructive' }),
+                            classNames?.action,
                         )}
                     >
-                        {processing && (
-                            <Loader2
-                                className="mr-2 size-4 animate-spin"
-                                aria-hidden="true"
-                            />
-                        )}
                         {confirmLabel}
                     </AlertDialogAction>
                 </AlertDialogFooter>

@@ -3,14 +3,15 @@
 namespace App\MiniApps\Mailbox\Actions;
 
 use App\MiniApps\Mailbox\Models\Coupon;
+use App\MiniApps\Mailbox\Support\EntryTypes;
+use App\MiniApps\Mailbox\Support\MailboxPush;
 use App\Shell\Models\User;
-use App\Shell\Services\PushDispatcher;
 use Illuminate\Support\Facades\DB;
 
 class FulfillCoupon
 {
     public function __construct(
-        private readonly PushDispatcher $dispatcher,
+        private readonly MailboxPush $push,
     ) {}
 
     public function __invoke(Coupon $coupon, User $actor): Coupon
@@ -34,12 +35,11 @@ class FulfillCoupon
 
         $firstName = $actor->firstName();
 
-        $this->dispatcher->toUsers(
+        $this->push->toEntry(
             [$coupon->loadMissing('recipient')->recipient],
-            'our-mailbox',
-            'our-mailbox:coupons',
+            EntryTypes::COUPONS,
+            $coupon->id,
             "{$firstName} fulfilled your coupon",
-            "/apps/our-mailbox/coupons/{$coupon->id}",
         );
 
         return $coupon;

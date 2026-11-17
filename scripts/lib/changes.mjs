@@ -252,6 +252,35 @@ export function latestVersion(changelog) {
     return match[1];
 }
 
+// The body of the `## [version]` section, without its heading, or null when there is none. A
+// pre-release (1.2.0-rc.1) without a section of its own uses the one it leads up to.
+export function sectionFor(changelog, version) {
+    const find = (wanted) => {
+        const lines = changelog.split('\n');
+        const start = lines.findIndex((line) =>
+            line.startsWith(`## [${wanted}]`),
+        );
+
+        if (start === -1) {
+            return null;
+        }
+
+        const end = lines.findIndex(
+            (line, at) => at > start && line.startsWith('## ['),
+        );
+        const body = lines.slice(start + 1, end === -1 ? undefined : end);
+
+        // A final newline leaves an empty last element that is not a line of the section.
+        if (end === -1 && body.at(-1) === '') {
+            body.pop();
+        }
+
+        return /\S/.test(body.join('\n')) ? `${body.join('\n')}\n` : null;
+    };
+
+    return find(version) ?? find(version.split('-')[0]);
+}
+
 export function nextVersion(current, changes) {
     const [major, minor, patch] = current.split('.').map(Number);
 

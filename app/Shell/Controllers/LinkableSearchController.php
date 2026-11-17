@@ -1,13 +1,14 @@
 <?php
 
-namespace App\MiniApps\Corner\Controllers;
+namespace App\Shell\Controllers;
 
 use App\Shell\Services\LinkableEntities;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 
-class LinkablePickerController
+/** The link picker's search, across every type the rooms that are on have registered. */
+class LinkableSearchController
 {
     public function search(Request $request, LinkableEntities $linkable): JsonResponse
     {

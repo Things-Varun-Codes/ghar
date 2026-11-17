@@ -1,6 +1,6 @@
 <?php
 
-namespace App\MiniApps\Corner\Services;
+namespace App\Shell\Support\Http;
 
 final class FetchedResponse
 {

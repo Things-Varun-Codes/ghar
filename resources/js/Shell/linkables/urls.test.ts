@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { internalHref, thumbnailSrc } from './pillUrls';
+import { internalHref, thumbnailSrc } from './urls';
 
 const origin = 'https://ghar.example.com';
 

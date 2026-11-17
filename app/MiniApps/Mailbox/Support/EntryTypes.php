@@ -41,9 +41,17 @@ final class EntryTypes
         return app(Rooms::class)->optionOn(self::ROOM, $type);
     }
 
-    /** @return list<string> */
+    /** @return list<array{key: string, label: string}> */
     public static function enabled(): array
     {
-        return array_values(array_filter(array_keys(self::LABELS), self::on(...)));
+        $enabled = [];
+
+        foreach (self::LABELS as $type => [$label]) {
+            if (self::on($type)) {
+                $enabled[] = ['key' => $type, 'label' => $label];
+            }
+        }
+
+        return $enabled;
     }
 }

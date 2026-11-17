@@ -1,16 +1,9 @@
 import { useState } from 'react';
 import { formatDate } from '@/lib/dates';
-
-type Change = {
-    id: number;
-    action: string;
-    summary: string;
-    user_name: string;
-    created_at: string;
-};
+import type { EventChange } from '@/MiniApps/History/lib/types';
 
 type ActivityStripProps = {
-    changes: Change[];
+    changes: EventChange[];
 };
 
 function relativeTime(isoDate: string): string {

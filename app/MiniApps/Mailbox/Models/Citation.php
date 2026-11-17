@@ -2,14 +2,13 @@
 
 namespace App\MiniApps\Mailbox\Models;
 
+use App\MiniApps\Mailbox\Models\Concerns\IssuedToOne;
 use App\Shell\Models\User;
 use Carbon\CarbonImmutable;
 use Database\Factories\CitationFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
-use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Carbon;
 
 /**
@@ -41,29 +40,13 @@ use Illuminate\Support\Carbon;
 class Citation extends Model
 {
     use HasFactory;
+    use IssuedToOne;
 
     public const STATUS_ISSUED = 'issued';
 
     public const STATUS_PAID = 'paid';
 
     protected $table = 'mailbox_citations';
-
-    public function scopeVisibleTo(Builder $query, User $viewer): Builder
-    {
-        return $query->where(fn (Builder $q) => $q
-            ->where('issuer_id', $viewer->id)
-            ->orWhere('recipient_id', $viewer->id));
-    }
-
-    public function issuer(): BelongsTo
-    {
-        return $this->belongsTo(User::class, 'issuer_id');
-    }
-
-    public function recipient(): BelongsTo
-    {
-        return $this->belongsTo(User::class, 'recipient_id');
-    }
 
     protected static function newFactory(): CitationFactory
     {

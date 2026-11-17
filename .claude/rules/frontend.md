@@ -15,7 +15,11 @@ paths:
   (`back`) and the phone top bar's title. On a route change focus moves to the page's `h1`
   (`lib/route-focus.ts`), except for same-path visits such as filter, sort and search.
 - **Back goes back.** `BackChevron` steps through history when the parent is the page you came
-  from, and replaces the entry otherwise. A page owns one history entry:
+  from, and replaces the entry otherwise. The shell knows only one parent: a page inside a room goes
+  to the room's landing, named from the `miniApps` registry prop, and anything else goes Home
+  (`defaultParent` in `lib/back-navigation.ts`). A page whose parent is something else passes
+  `back` to `Page` (a Corner item to its list, a Mailbox citation or coupon to its list, History's
+  tabs to Home); the shell never names a room (`scripts/check-boundaries.sh`). A page owns one history entry:
   `lib/navigation.ts` turns a GET to the path already shown (filter, sort, search, tab, page
   number) into a replace, so back leaves the page instead of undoing the filter. Link to another
   page with Inertia's `Link`: a plain `<a>` reloads the document and the chevron forgets where
@@ -29,19 +33,37 @@ paths:
   `installOverlayHistory()` before `createInertiaApp`: `popstate` listeners run in the order they
   were added, and Inertia's would otherwise reload the page and drop the draft first. A History moment is addressable at
   `/apps/our-history?moment={id}`.
-- **Portal `data-app` propagation.** Radix Dialog / Sheet / AlertDialog / Popover / Select
-  portals render at `<body>`, outside the mini app's `[data-app]` scope. Spread
-  `{...useAppAttrs()}` (`resources/js/hooks/use-app-attrs.tsx`) onto every portaled root.
+- **Portal `data-app` propagation.** Radix portals render at `<body>`, outside the mini app's
+  `[data-app]` scope. The `components/ui` Dialog, Sheet, AlertDialog, Popover, Select and
+  DropdownMenu spread `useAppAttrs()` (`resources/js/hooks/use-app-attrs.tsx`) onto their
+  portaled content themselves, so use those rather than raw Radix primitives and don't spread it
+  again. A new portaled primitive in `components/ui` does the same.
+- **Shared overlays.** A sheet that holds a form is the shell's `FormSheet` (title, scrolling body,
+  footer above the keyboard, the draft gate); its side and keyboard handling are
+  `useResponsiveSheet`, which a sheet with its own frame (History's `EventSheet`) uses directly.
+  A "Delete this?" or "Pay this?" question is `ConfirmDialog`; a room keeps its look through
+  `classNames`, as History does (`MiniApps/History/lib/confirmDialog.ts`).
 - **Routing: Wayfinder only.** Import typed helpers from `resources/js/routes/**`
   (`import { route as adminRoute } from '@/routes/admin'`). Ziggy is gone; a bare `route()` global
   call is a hard error.
-- **Corner and Mailbox list rows:** a mutation that doesn't move the list's reset key must pass
-  `preserveState: false`, or the list shows a stale row. Mailbox create sheets use
-  `preserveState: 'errors'`.
+- **Cursor lists** (Corner, Mailbox, History's Timeline and Gallery) keep their loaded rows in
+  `useCursorPagination`, which re-seeds from any server response that carries the list (a
+  mutation's redirect, a reload, a filter, sort or search visit) and from a page restored from
+  history; only its own load-more appends, and `refreshInPlace()` updates the shown rows without
+  dropping later pages. So a mutation needs no `preserveState: false` to show fresh rows. A partial
+  reload whose `only` leaves the list out doesn't touch it. Mailbox create sheets use
+  `preserveState: 'errors'`; "Send & write another" keeps state, so the sheet stays open. The shared body (rows, empty and no-matches states, load-more
+  footer, pending dim) is `Shell/Components/CursorListBody`.
 - **Prefetch only side-effect-free pages.** `<Link prefetch="mount">` is on the Home doors, the
   Corner landing cards (the first four) and the History tabs; `lib/stale-history.ts` drops the prefetch cache after any non-GET
   visit. Never prefetch a page whose GET changes something: Mailbox Messages and Flowers mark
   themselves read when fetched.
+- **Links between rooms are the shell's.** The picker (`Shell/tiptap/EntityLinkPickerDialog`) and
+  the pill (`EntityLinkPill` in the editor, `Shell/linkables/EntityPillContent` wherever a pill is
+  read) take labels, groups and icons from the server and never name a room. Whether to offer or
+  draw a link comes from the shared `linking` prop (`useLinking()`, `useLinkTypeOn(type)`), not
+  `useRoomOn`. A pill's stored href and picture are free text: pass them through
+  `Shell/linkables/urls.ts` before use. The persisted format (`cornerLink`, `data-corner-*`) stays.
 
 ## State-adoption contract
 
@@ -63,14 +85,18 @@ hand-rolled pending string, an ad-hoc empty paragraph or an invisible failure.
 5. **Client-side fetch** (push subscribe, metadata lookup, bouquet generation) — `LoadingState`;
    failure `ErrorState` with `onRetry`.
 6. **Form submit** — `SubmitButton` `processing`; field errors via `FormField`; non-field failures
-   via toast. Conditions that outlive the request (pending email change) stay inline. `ErrorState`
-   is never used inside a form.
+   via toast. Spread `formSubmitOptions()` (`lib/mutation.ts`) into the submit: it toasts only the
+   errors the form has no field for, reports the rejected keys (never what was typed), and toasts
+   and reports transport and 5xx failures. Conditions that outlive the request (pending email
+   change) stay inline. `ErrorState` is never used inside a form.
 7. **Empty result** — `EmptyState`; `title` is a required prop (missing copy fails `tsc`). A search
    that finds nothing passes `query` + `onClearSearch` and titles itself with `noMatchesTitle()`.
 8. **One-tap mutation** (toggle, pay, request, delete) — spread `mutationOptions()`
    (`lib/mutation.ts`) into the visit and disable the control while pending; it toasts and reports
    transport and 5xx failures.
 
+- `captureSilent` tags `user_role` from the page Inertia last showed (`installUserRole` in
+  `app.tsx`); don't work the role out in the caller.
 - The Notifications device-status sub-label stays inline (a standing condition, not a request
   result); the subscribe/unsubscribe confirmation is a toast.
 - **Two different "flash" mechanisms.** Toasts go through `Inertia::flash('toast', …)` → heard by

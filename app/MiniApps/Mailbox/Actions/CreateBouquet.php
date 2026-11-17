@@ -4,8 +4,9 @@ namespace App\MiniApps\Mailbox\Actions;
 
 use App\MiniApps\Mailbox\Http\Requests\StoreBouquetRequest;
 use App\MiniApps\Mailbox\Models\Bouquet;
+use App\MiniApps\Mailbox\Support\EntryTypes;
+use App\MiniApps\Mailbox\Support\MailboxPush;
 use App\Shell\Models\User;
-use App\Shell\Services\PushDispatcher;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
@@ -13,7 +14,7 @@ use Illuminate\Support\Str;
 class CreateBouquet
 {
     public function __construct(
-        private readonly PushDispatcher $dispatcher,
+        private readonly MailboxPush $push,
     ) {}
 
     public function __invoke(StoreBouquetRequest $request, User $sender): Bouquet
@@ -59,12 +60,11 @@ class CreateBouquet
 
         $firstName = $sender->firstName();
 
-        $this->dispatcher->toUsers(
+        $this->push->toListAt(
             $bouquet->recipients()->get(),
-            'our-mailbox',
-            'our-mailbox:flowers',
+            EntryTypes::FLOWERS,
+            $bouquet->id,
             "You got a bouquet from {$firstName}",
-            "/apps/our-mailbox/flowers?focus={$bouquet->id}",
         );
 
         return $bouquet;

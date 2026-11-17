@@ -67,6 +67,8 @@ describe('CitationActions pay', () => {
 
         fireEvent.click(confirm);
 
+        // Confirming closes the dialog, so the pending state shows on the trigger.
+        expect(screen.queryByRole('alertdialog')).toBeNull();
         expect(routerPatch).toHaveBeenCalledTimes(1);
         const [url, , options] = routerPatch.mock.calls[0];
         expect(url).toContain('/citations/7');
@@ -81,6 +83,35 @@ describe('CitationActions pay', () => {
         expect(
             screen.getByRole('button', { name: 'Pay penalty' }),
         ).toBeTruthy();
+    });
+
+    it('withdraws only after "Withdraw" is confirmed', () => {
+        render(
+            <CitationActions
+                citation={{
+                    ...citation,
+                    is_mine: true,
+                    available_actions: ['delete'],
+                }}
+            />,
+        );
+        fireEvent.click(screen.getByRole('button', { name: 'Withdraw' }));
+
+        const dialog = screen.getByRole('alertdialog');
+        expect(dialog.textContent).toContain('Withdraw this citation?');
+
+        fireEvent.click(screen.getByRole('button', { name: 'Keep it' }));
+        expect(screen.queryByRole('alertdialog')).toBeNull();
+        expect(routerDelete).not.toHaveBeenCalled();
+
+        fireEvent.click(screen.getByRole('button', { name: 'Withdraw' }));
+        const confirm = Array.from(
+            screen.getByRole('alertdialog').querySelectorAll('button'),
+        ).find((b) => b.textContent === 'Withdraw')!;
+        fireEvent.click(confirm);
+
+        expect(routerDelete).toHaveBeenCalledTimes(1);
+        expect(routerDelete.mock.calls[0][0]).toContain('/citations/7');
     });
 
     it('offers no pay button when paying is not allowed', () => {

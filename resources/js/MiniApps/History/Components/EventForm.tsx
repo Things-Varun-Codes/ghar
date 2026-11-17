@@ -12,6 +12,7 @@ import {
 import type { ReactNode } from 'react';
 import { toast } from 'sonner';
 import { useDirtyFormGate } from '@/hooks/use-dirty-form-gate';
+import { count } from '@/lib/plural';
 import events from '@/routes/apps/our-history/events';
 import PlacesLocationField, {
     ManualLocationInput,
@@ -190,11 +191,8 @@ const EventForm = forwardRef<EventFormHandle, EventFormProps>(
             transform((d) => ({ ...d, body_html: bodyHtmlRef.current }));
 
             if (eventId !== null) {
-                // preserveState: false: a PATCH doesn't change the total, so Timeline only re-seeds
-                // on a remount.
                 patch(events.update({ event: eventId }).url, {
                     preserveScroll: true,
-                    preserveState: false,
                     onSuccess: () => {
                         reset();
                         toast.success('Changes saved.');
@@ -208,15 +206,9 @@ const EventForm = forwardRef<EventFormHandle, EventFormProps>(
                     preserveScroll: true,
                     preserveState: true,
                     onSuccess: (page: Page) => {
-                        const flash = (
-                            page.props as {
-                                flash?: { created_event_id?: unknown };
-                            }
-                        ).flash;
+                        const createdId = page.flash?.created_event_id;
                         const newId =
-                            typeof flash?.created_event_id === 'number'
-                                ? flash.created_event_id
-                                : null;
+                            typeof createdId === 'number' ? createdId : null;
 
                         if (newId !== null) {
                             // Seed from the ref: debounced data may still lag the last keystroke
@@ -232,9 +224,7 @@ const EventForm = forwardRef<EventFormHandle, EventFormProps>(
 
                             const stagedCount = stagedCountRef.current;
                             toast.success(
-                                `Saved. Uploading ${stagedCount} ${
-                                    stagedCount === 1 ? 'item' : 'items'
-                                }…`,
+                                `Saved. Uploading ${count(stagedCount, 'item')}…`,
                             );
 
                             setEventId(newId);

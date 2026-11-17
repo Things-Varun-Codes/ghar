@@ -105,12 +105,15 @@ class LinkableEntityRegistrationTest extends TestCase
 
     public function test_history_event_search_includes_events(): void
     {
-        Event::factory()->create(['title' => 'Anniversary dinner']);
+        $event = Event::factory()->create(['title' => 'Anniversary dinner']);
 
         $results = app(LinkableEntities::class)->search('Anniversary', ['history.event']);
 
         $this->assertNotEmpty($results);
         $this->assertSame('history.event', $results[0]['type']);
+        $this->assertSame('Moments', $results[0]['group']);
+        $this->assertSame('book-heart', $results[0]['icon']);
+        $this->assertSame("/apps/our-history?moment={$event->id}", $results[0]['deep_link_url']);
     }
 
     public function test_an_item_resolves_by_its_id(): void
@@ -165,6 +168,7 @@ class LinkableEntityRegistrationTest extends TestCase
 
         $this->assertIsArray($snapshot);
         $this->assertSame("/apps/our-history?moment={$event->id}", $snapshot['deep_link_url']);
+        $this->assertSame('book-heart', $snapshot['icon']);
     }
 
     // The picker endpoint

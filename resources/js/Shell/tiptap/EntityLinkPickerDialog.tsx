@@ -16,12 +16,16 @@ import {
     SheetHeader,
     SheetTitle,
 } from '@/components/ui/sheet';
-import { useMediaQuery } from '@/hooks/use-media-query';
-import { EntityMark } from '@/Shell/linkables/LinkableIcon';
+import { useAppAttrs } from '@/hooks/use-app-attrs';
+import { useIsPhone } from '@/hooks/use-breakpoint';
+import { useOverlayHistory } from '@/hooks/use-overlay-history';
+import { count } from '@/lib/plural';
+import { search as linkableSearch } from '@/routes/linkable';
+import LinkableIcon from '@/Shell/linkables/LinkableIcon';
 
-// A literal on purpose: Corner owns this route, and the shell must build with Corner disabled.
-const LINKABLE_SEARCH_URL = '/api/linkable/search';
 const SEARCH_DEBOUNCE_MS = 250;
+const TITLE = 'Link to something';
+const DESCRIPTION = 'Search everything this home keeps.';
 
 export type PickedEntity = {
     type: string;
@@ -38,8 +42,8 @@ type ApiResultRow = {
     title: string;
     thumbnail_url?: string | null;
     deep_link_url?: string | null;
-    /* The list it is in, named by the household. */
-    group?: string | null;
+    /* What to file it under in the results: its list, say, or its kind of thing. */
+    group: string;
     /* A lucide icon name, drawn when there is no picture. */
     icon?: string | null;
 };
@@ -55,7 +59,9 @@ export default function EntityLinkPickerDialog({
     onOpenChange,
     onSelect,
 }: Props) {
-    const isWide = useMediaQuery('(min-width: 720px)');
+    const isPhone = useIsPhone();
+    const appAttrs = useAppAttrs();
+    useOverlayHistory(open, () => onOpenChange(false));
 
     const [query, setQuery] = useState('');
     const [results, setResults] = useState<ApiResultRow[]>([]);
@@ -105,7 +111,7 @@ export default function EntityLinkPickerDialog({
 
         try {
             const res = await fetch(
-                `${LINKABLE_SEARCH_URL}?${params.toString()}`,
+                `${linkableSearch.url()}?${params.toString()}`,
                 {
                     signal: ctrl.signal,
                     credentials: 'same-origin',
@@ -205,7 +211,7 @@ export default function EntityLinkPickerDialog({
         }
     };
 
-    const matchesLabel = `${results.length} ${results.length === 1 ? 'match' : 'matches'}`;
+    const matchesLabel = count(results.length, 'match', 'matches');
 
     const pickerBody = (
         <div className="flex flex-col gap-3">
@@ -215,15 +221,15 @@ export default function EntityLinkPickerDialog({
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
                 onKeyDown={onKeyDown}
-                placeholder="Search Our Corner"
-                aria-label="Search Corner"
+                placeholder="Search"
+                aria-label="Search for something to link"
                 autoComplete="off"
                 className="shell-picker-input"
             />
 
             <div
                 role="listbox"
-                aria-label="Corner search results"
+                aria-label="Search results"
                 aria-busy={loading}
                 className="shell-picker-results"
             >
@@ -278,9 +284,8 @@ export default function EntityLinkPickerDialog({
                                         aria-hidden="true"
                                         className="shell-picker-icon"
                                     >
-                                        <EntityMark
-                                            type={row.type}
-                                            icon={row.icon}
+                                        <LinkableIcon
+                                            name={row.icon}
                                             size={18}
                                         />
                                     </span>
@@ -294,16 +299,12 @@ export default function EntityLinkPickerDialog({
                                             aria-hidden="true"
                                             className="mr-[3px] inline-flex align-middle"
                                         >
-                                            <EntityMark
-                                                type={row.type}
-                                                icon={row.icon}
+                                            <LinkableIcon
+                                                name={row.icon}
                                                 size={13}
                                             />
                                         </span>
-                                        {row.group ??
-                                            row.type
-                                                .replace('corner.', '')
-                                                .replace('history.', '')}
+                                        {row.group}
                                     </span>
                                 </span>
                             </button>
@@ -320,19 +321,17 @@ export default function EntityLinkPickerDialog({
         </div>
     );
 
-    if (!isWide) {
+    if (isPhone) {
         return (
             <Sheet open={open} onOpenChange={onOpenChange}>
                 <SheetContent
                     side="bottom"
-                    data-app="our-corner"
+                    {...appAttrs}
                     className="max-h-[85dvh] overflow-auto"
                 >
                     <SheetHeader>
-                        <SheetTitle>Link something from Our Corner</SheetTitle>
-                        <SheetDescription>
-                            Search everything on your lists.
-                        </SheetDescription>
+                        <SheetTitle>{TITLE}</SheetTitle>
+                        <SheetDescription>{DESCRIPTION}</SheetDescription>
                     </SheetHeader>
                     {pickerBody}
                 </SheetContent>
@@ -342,12 +341,10 @@ export default function EntityLinkPickerDialog({
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
-            <DialogContent data-app="our-corner" className="max-w-xl">
+            <DialogContent {...appAttrs} className="max-w-xl">
                 <DialogHeader>
-                    <DialogTitle>Link something from Our Corner</DialogTitle>
-                    <DialogDescription>
-                        Search everything on your lists.
-                    </DialogDescription>
+                    <DialogTitle>{TITLE}</DialogTitle>
+                    <DialogDescription>{DESCRIPTION}</DialogDescription>
                 </DialogHeader>
                 {pickerBody}
             </DialogContent>

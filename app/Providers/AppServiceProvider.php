@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use App\Shell\Support\Limits;
 use Carbon\CarbonImmutable;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Database\Eloquent\Model;
@@ -79,48 +80,17 @@ class AppServiceProvider extends ServiceProvider
             return Limit::perMinute(60)->by($request->ip());
         });
 
-        /**
-         * Keyed by user, since every caller is an authenticated admin; keying by IP would
-         * over-throttle admins sharing a home network.
-         */
-        RateLimiter::for('admin-mutations', function (Request $request) {
-            return Limit::perMinute(30)->by((string) ($request->user()?->id ?? $request->ip()));
-        });
+        RateLimiter::for('admin-mutations', Limits::perUser(30));
 
-        RateLimiter::for('invite-create', function (Request $request) {
-            return Limit::perMinute(10)->by((string) ($request->user()?->id ?? $request->ip()));
-        });
+        RateLimiter::for('invite-create', Limits::perUser(10));
 
-        RateLimiter::for('settings-profile', function (Request $request) {
-            return Limit::perMinute(30)->by((string) ($request->user()?->id ?? $request->ip()));
-        });
+        RateLimiter::for('settings-profile', Limits::perUser(30));
 
-        RateLimiter::for('password-change', function (Request $request) {
-            return Limit::perMinute(10)->by((string) ($request->user()?->id ?? $request->ip()));
-        });
+        RateLimiter::for('password-change', Limits::perUser(10));
 
-        RateLimiter::for('history-mutations', function (Request $request) {
-            return Limit::perMinute(30)->by((string) ($request->user()?->id ?? $request->ip()));
-        });
+        RateLimiter::for('linkable-picker', Limits::perUser(30));
 
-        RateLimiter::for('corner-mutations', function (Request $request) {
-            return Limit::perMinute(30)->by((string) ($request->user()?->id ?? $request->ip()));
-        });
-
-        RateLimiter::for('linkable-picker', function (Request $request) {
-            return Limit::perMinute(30)->by((string) ($request->user()?->id ?? $request->ip()));
-        });
-
-        RateLimiter::for('push-subscriptions', function (Request $request) {
-            return Limit::perMinute(10)->by((string) ($request->user()?->id ?? $request->ip()));
-        });
-
-        /**
-         * Tight because each call spends Cloudflare Workers AI quota.
-         */
-        RateLimiter::for('bouquet-generate', function (Request $request) {
-            return Limit::perMinute(3)->by((string) ($request->user()?->id ?? $request->ip()));
-        });
+        RateLimiter::for('push-subscriptions', Limits::perUser(10));
 
         RateLimiter::for('healthz', function (Request $request) {
             return Limit::perMinute(60)->by($request->ip());

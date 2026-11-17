@@ -21,9 +21,6 @@ parameters:
     # Fortify's PHPDoc doesn't match what Password::default() returns.
     - identifier: return.type
       path: app/Concerns/PasswordValidationRules.php
-    # Larastan narrows $request->user() to non-null; these run unauthenticated too.
-    - identifier: nullsafe.neverNull
-      path: app/Providers/AppServiceProvider.php
     # TestResponse proxies getSession() through __call().
     - identifier: method.notFound
       path: tests/Feature/Auth/PasswordResetTest.php

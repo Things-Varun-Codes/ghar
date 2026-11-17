@@ -2,7 +2,8 @@
 
 namespace App\MiniApps\Corner\Support;
 
-use App\MiniApps\Corner\Services\SafeFetcher;
+use App\Shell\Support\Http\SafeFetcher;
+use Illuminate\Support\Facades\Cache;
 
 /**
  * Reads where a pasted location points: a map link, a geo: address, bare coordinates, or just
@@ -28,6 +29,10 @@ final class MapLink
         '#/place/([^/@?]+)#',
         '#[?&](?:q|query|name)=([^&]+)#i',
     ];
+
+    private const FOLLOWED_SECONDS = 86400;
+
+    private const UNFOLLOWED_SECONDS = 600;
 
     private const BARE = '/^\s*(-?\d{1,2}(?:\.\d+)?)\s*[,;\s]\s*(-?\d{1,3}(?:\.\d+)?)\s*$/';
 
@@ -56,7 +61,7 @@ final class MapLink
             return ['label' => self::text($label), 'url' => $input] + self::point($m[1], $m[2]);
         }
 
-        if (preg_match('#^https?://#i', $input) !== 1) {
+        if (! ItemRules::isWebUrl($input)) {
             return ['label' => mb_substr($input, 0, 255)] + $none;
         }
 
@@ -64,7 +69,7 @@ final class MapLink
 
         // A short link only says where it goes once it is followed.
         if ($found['lat'] === null && $fetcher !== null) {
-            $final = $fetcher->finalUrl($input);
+            $final = self::followed($input, $fetcher);
             if ($final !== null && $final !== $input) {
                 $expanded = self::fromUrl($final);
                 $found = [
@@ -76,6 +81,22 @@ final class MapLink
         }
 
         return ['url' => mb_substr($input, 0, 2048)] + $found;
+    }
+
+    /** Remembered, so saving or editing the same pasted link doesn't walk its redirects again. */
+    private static function followed(string $url, SafeFetcher $fetcher): ?string
+    {
+        $key = 'corner:map-link:'.sha1($url);
+
+        $cached = Cache::get($key);
+        if (is_array($cached)) {
+            return $cached['final'];
+        }
+
+        $final = $fetcher->finalUrl($url);
+        Cache::put($key, ['final' => $final], $final !== null ? self::FOLLOWED_SECONDS : self::UNFOLLOWED_SECONDS);
+
+        return $final;
     }
 
     /** @return array{label: ?string, lat: ?float, lng: ?float} */
@@ -120,8 +141,8 @@ final class MapLink
 
     private static function text(?string $text): ?string
     {
-        $text = trim((string) $text);
+        $text = ItemRules::trimmed($text);
 
-        return $text === '' ? null : mb_substr($text, 0, 255);
+        return $text === null ? null : mb_substr($text, 0, 255);
     }
 }

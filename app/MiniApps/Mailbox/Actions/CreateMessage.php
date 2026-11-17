@@ -4,8 +4,9 @@ namespace App\MiniApps\Mailbox\Actions;
 
 use App\MiniApps\Mailbox\Http\Requests\StoreMessageRequest;
 use App\MiniApps\Mailbox\Models\MailboxMessage;
+use App\MiniApps\Mailbox\Support\EntryTypes;
+use App\MiniApps\Mailbox\Support\MailboxPush;
 use App\Shell\Models\User;
-use App\Shell\Services\PushDispatcher;
 use Illuminate\Support\Facades\DB;
 
 /**
@@ -14,7 +15,7 @@ use Illuminate\Support\Facades\DB;
 class CreateMessage
 {
     public function __construct(
-        private readonly PushDispatcher $dispatcher,
+        private readonly MailboxPush $push,
     ) {}
 
     public function __invoke(StoreMessageRequest $request, User $sender): MailboxMessage
@@ -36,12 +37,11 @@ class CreateMessage
 
         $firstName = $sender->firstName();
 
-        $this->dispatcher->toUsers(
+        $this->push->toListAt(
             $message->recipients()->get(),
-            'our-mailbox',
-            'our-mailbox:messages',
+            EntryTypes::MESSAGES,
+            $message->id,
             "You got a note from {$firstName}",
-            "/apps/our-mailbox/messages?focus={$message->id}",
         );
 
         return $message;

@@ -8,9 +8,8 @@ use App\MiniApps\Mailbox\Http\Requests\StoreMessageRequest;
 use App\MiniApps\Mailbox\Http\Resources\MessageResource;
 use App\MiniApps\Mailbox\Models\MailboxMessage;
 use App\Shell\Services\Household;
-use App\Shell\Support\CursorList;
 use App\Shell\Support\FlashToast;
-use App\Shell\Support\ResolvesListSort;
+use App\Shell\Support\ListPage;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
@@ -19,17 +18,6 @@ use Inertia\Response;
 
 class MessagesController
 {
-    use ResolvesListSort;
-
-    /** @return array<string, array<int, array{0: string, 1: 'asc'|'desc'}>> */
-    protected function sortOptions(): array
-    {
-        return [
-            'recent' => [['posted_at', 'desc'], ['id', 'desc']],
-            'oldest' => [['posted_at', 'asc'], ['id', 'asc']],
-        ];
-    }
-
     public function index(Request $request, MarkMessagesRead $markRead, Household $household): Response
     {
         $viewer = $request->user();
@@ -48,17 +36,11 @@ class MessagesController
             $base->where('sender_id', $viewer->id);
         }
 
-        $sort = $this->resolveSort($request);
-        $this->applyListOrder($base, $sort);
-        $q = trim((string) $request->query('q')) ?: null;
-
         return Inertia::render('MiniApps/Mailbox/Pages/Messages', [
-            'messages' => CursorList::make($base)
-                ->searchable(['body'], $q)
-                ->paginate('all', 50, fn (MailboxMessage $m) => app(MessageResource::class)($m, $viewer)),
+            ...ListPage::make($request, $base, ListPage::chronological('posted_at'))
+                ->searchable(['body'])
+                ->props('messages', 50, fn (MailboxMessage $m) => app(MessageResource::class)($m, $viewer)),
             'tab' => $tab,
-            'sort' => $sort,
-            'q' => $q,
             'members' => $household->optionsFor($viewer),
             'catalog' => config('mailbox-bouquets'),
         ]);

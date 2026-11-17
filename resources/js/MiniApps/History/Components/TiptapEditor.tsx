@@ -23,7 +23,7 @@ import {
 } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
-import { useRoomOn } from '@/hooks/use-room-on';
+import { useLinking } from '@/Shell/linkables/use-linking';
 import { EntityLinkNode } from '@/Shell/tiptap/EntityLinkNode';
 import EntityLinkPickerDialog from '@/Shell/tiptap/EntityLinkPickerDialog';
 import type { PickedEntity } from '@/Shell/tiptap/EntityLinkPickerDialog';
@@ -94,7 +94,7 @@ export default function TiptapEditor({
     } | null>(null);
 
     const [pickerOpen, setPickerOpen] = useState(false);
-    const cornerOn = useRoomOn('our-corner');
+    const canLink = useLinking().searchable;
 
     const placeholderText = placeholder ?? DEFAULT_PLACEHOLDER;
 
@@ -281,7 +281,7 @@ export default function TiptapEditor({
         closeLinkPopover();
     }, [editor, closeLinkPopover]);
 
-    const insertCornerLink = useCallback(
+    const insertEntityLink = useCallback(
         (entity: PickedEntity) => {
             if (!editor) {
                 return;
@@ -453,13 +453,13 @@ export default function TiptapEditor({
                         <ListOrdered size={18} strokeWidth={1.5} />
                     </ToolbarButton>
                 </ToolbarGroup>
-                {cornerOn && (
+                {canLink && (
                     <>
                         <ToolbarSeparator />
                         <ToolbarGroup>
                             <ToolbarButton
-                                label="Insert a link to an Our Corner item"
-                                title="Insert a link to an Our Corner item"
+                                label="Link to something"
+                                title="Link to something"
                                 active={false}
                                 onClick={() => setPickerOpen(true)}
                             >
@@ -473,7 +473,7 @@ export default function TiptapEditor({
             <EntityLinkPickerDialog
                 open={pickerOpen}
                 onOpenChange={setPickerOpen}
-                onSelect={insertCornerLink}
+                onSelect={insertEntityLink}
             />
 
             <EditorContent editor={editor} />

@@ -1,15 +1,15 @@
 <?php
 
-namespace Tests\Feature\Corner;
+namespace Tests\Feature\Shell;
 
-use App\MiniApps\Corner\Services\SafeFetcher;
+use App\Shell\Support\Http\SafeFetcher;
 use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Http\Client\Request;
 use Illuminate\Support\Facades\Http;
 use PHPUnit\Framework\Attributes\DataProvider;
 use Tests\TestCase;
 
-/** Every outbound fetch Corner makes. No test here touches the network or real DNS. */
+/** Every outbound fetch the app makes. No test here touches the network or real DNS. */
 class SafeFetcherTest extends TestCase
 {
     private const PUBLIC_IP = '93.184.216.34';

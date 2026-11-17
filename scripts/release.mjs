@@ -4,6 +4,8 @@
 //   check [--pr]   every change file parses; with --pr, the pull request in PR_TITLE,
 //                  BASE_SHA and HEAD_SHA also has the change file its title calls for
 //   notes          print the next version and its changelog section, change nothing
+//   section <version>
+//                  print that version's changelog section, for the release workflow
 //   prepare        write the section into CHANGELOG.md, delete the change files and open
 //                  the release pull request (--version 2.0.0 overrides the version;
 //                  --no-pr edits the files in place and stops)
@@ -31,6 +33,7 @@ import {
     parseChange,
     pullRequestProblems,
     renderSection,
+    sectionFor,
 } from './lib/changes.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
@@ -283,6 +286,18 @@ const commands = {
     notes: () => {
         const { version, section } = plan();
         console.log(`Next version: ${version}\n\n${section}`);
+    },
+    section: () => {
+        const version = flags[0]?.replace(/^v/, '');
+        const section = version
+            ? sectionFor(readFileSync(CHANGELOG, 'utf8'), version)
+            : null;
+
+        if (section === null) {
+            throw new Error(`CHANGELOG.md has no section for [${version}]`);
+        }
+
+        process.stdout.write(section);
     },
     prepare,
     tag,

@@ -6,7 +6,6 @@ use App\Shell\Models\ShortLink;
 use App\Shell\Support\FlashToast;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Gate;
 use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -15,8 +14,6 @@ class ShortLinksController
 {
     public function index(): Response
     {
-        Gate::authorize('admin');
-
         $shortlinks = ShortLink::with('creator')
             ->latest()
             ->get()
@@ -37,8 +34,6 @@ class ShortLinksController
 
     public function store(Request $request): RedirectResponse
     {
-        Gate::authorize('admin');
-
         $validated = $request->validate([
             'label' => ['required', 'string', 'max:80'],
             // The url:http,https rule is the security boundary: it blocks javascript: and
@@ -58,8 +53,6 @@ class ShortLinksController
 
     public function update(Request $request, ShortLink $shortlink): RedirectResponse
     {
-        Gate::authorize('admin');
-
         $validated = $request->validate([
             'label' => ['sometimes', 'required', 'string', 'max:80'],
             'destination' => ['sometimes', 'required', 'string', 'max:2048', 'url:http,https'],
@@ -87,8 +80,6 @@ class ShortLinksController
 
     public function destroy(ShortLink $shortlink): RedirectResponse
     {
-        Gate::authorize('admin');
-
         $shortlink->delete();
 
         FlashToast::success('Shortlink deleted.');

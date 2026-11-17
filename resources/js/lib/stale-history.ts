@@ -24,8 +24,9 @@ export function installAfterWrite(router: Router): void {
         const { page, type } = event.detail;
 
         if (type === 'history' && (seen.get(page.url) ?? -1) < writes) {
-            // Not router.reload(), which always keeps component state: a list keeps its rows in
-            // its own state, and only a remount takes the new ones.
+            // Not router.reload(), which always keeps component state: a page that copied its
+            // props into its own state would go on showing the old ones. Cursor lists re-seed
+            // from either.
             router.visit(window.location.href, {
                 replace: true,
                 preserveScroll: true,

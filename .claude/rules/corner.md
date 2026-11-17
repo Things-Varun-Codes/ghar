@@ -26,7 +26,7 @@ its own lists; nothing about Songs or Movies is hard-coded any more.
   provider-specific fetcher, endpoint, allowlist, CSP host or label. The one place that knows URL
   shapes is map links: `MapLink` (server) and `lib/maps.ts` ("Open in Maps": the saved link, else
   the platform's maps address), each a small table.
-- **Every outbound fetch goes through `SafeFetcher`**: http/https only, never the app or a private,
+- **Every outbound fetch goes through the shell's `SafeFetcher`** (`App\Shell\Support\Http`, for any room that fetches a pasted address; never copy it): http/https only, never the app or a private,
   loopback, link-local, CGNAT, reserved or metadata address (IPv4-in-IPv6 included), pinned to the
   checked address, redirects re-checked (at most 3), short timeouts, byte caps. A refused or failed
   fetch returns null and the item is saved with what was typed; it is never an error to the person.
@@ -63,15 +63,16 @@ its own lists; nothing about Songs or Movies is hard-coded any more.
   `legacy_type` / `legacy_id`, and started new ids above every old one. So
   `/apps/our-corner/songs/5` finds id 5 in that list or, failing that, `legacy_id` 5. History
   pills saved before then say `corner.song` (etc.) with the old id: those four types stay
-  registered in `LinkableEntities` as resolve-only aliases (`CornerLinks`), or History would drop
-  them on the next save. New pills use `corner.item`. Never rewrite History's `body_html` from
-  Corner.
+  registered in `LinkableEntities` as resolve-only aliases (no `listing`, see `CornerLinks`), or
+  History would drop them on the next save. New pills use `corner.item`. Never rewrite History's
+  `body_html` from Corner.
 - **A fresh install has no lists.** The empty landing offers `SUGGESTED_LISTS`
   (`lib/presets.ts`), one tap each through the normal create endpoint.
 - **While the room is off** its routes 404, Home shows no door, push is dropped by
   `PushDispatcher` and every Corner linkable type is registered with `room: 'our-corner'`, so
-  the picker finds nothing. The types stay registered, so History keeps both old and new pills
-  (shown as plain text) when a moment is saved meanwhile.
+  the picker finds none of its things (it still finds moments) and the shared `linking.types`
+  leaves them out. The types stay registered, so History keeps both old and new pills (shown as
+  plain text) when a moment is saved meanwhile.
 - **Our Corner** — a shelf of loved things, one look for every list. Its character is in its
   objects, not its type or motion: `.corner-sticker` done flags (a fixed tilt, never animated), each
   item's picture in a rounded thumb (`ItemThumb`), and where there is no picture the list's own icon
@@ -84,7 +85,8 @@ its own lists; nothing about Songs or Movies is hard-coded any more.
 Applies to every list.
 
 - **`useItemActions`** (`resources/js/MiniApps/Corner/Hooks/useItemActions.ts`) is the sole source
-  of Edit, Delete and Toggle-done. Don't hand-roll an Inertia mutation or a confirm dialog.
+  of Delete and Toggle-done (Edit only opens `ItemSheet`). Don't hand-roll an Inertia mutation
+  or a confirm dialog.
 - Call it **exactly once per rendered item, inside the card/tile** — never in an index page or the
   list primitive's render callback. Hoisting it hides every row on a single delete, silently.
 - **`DetailPage`** owns the frame (two-column grid, back-reference sidebar, meta, actions, done

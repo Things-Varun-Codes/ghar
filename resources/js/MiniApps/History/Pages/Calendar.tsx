@@ -2,11 +2,12 @@ import { router } from '@inertiajs/react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useIsPhone } from '@/hooks/use-breakpoint';
+import { count } from '@/lib/plural';
 import CalendarMonth from '@/MiniApps/History/Components/CalendarMonth';
-import type { CalendarEvent } from '@/MiniApps/History/Components/CalendarMonth';
 import EventSheet from '@/MiniApps/History/Components/EventSheet';
 import { useMomentFromUrl } from '@/MiniApps/History/Hooks/useMomentFromUrl';
 import HistoryLayout from '@/MiniApps/History/Layouts/HistoryLayout';
+import type { HistoryEvent } from '@/MiniApps/History/lib/types';
 import { calendar } from '@/routes/apps/our-history';
 import EmptyState from '@/Shell/Components/EmptyState';
 
@@ -26,20 +27,20 @@ const MONTH_ABBR = [
 ];
 
 type Props = {
-    events: CalendarEvent[];
-    onThisDay: CalendarEvent[];
+    events: HistoryEvent[];
+    onThisDay: HistoryEvent[];
     year: number;
     availableYears: number[];
     eventsCount: number;
-    moment?: CalendarEvent | null;
+    moment?: HistoryEvent | null;
 };
 
 /** Bucket events into month → day → events[], parsing the 'YYYY-MM-DD' string
  *  by splitting on '-' (never new Date(str) — UTC-parse off-by-one for users ahead of UTC). */
 function buildMonthMaps(
-    events: CalendarEvent[],
-): Map<number, Map<number, CalendarEvent[]>> {
-    const byMonth = new Map<number, Map<number, CalendarEvent[]>>();
+    events: HistoryEvent[],
+): Map<number, Map<number, HistoryEvent[]>> {
+    const byMonth = new Map<number, Map<number, HistoryEvent[]>>();
 
     for (const e of events) {
         const parts = e.date.split('-');
@@ -62,7 +63,7 @@ function buildMonthMaps(
     return byMonth;
 }
 
-const EMPTY_DAY_MAP = new Map<number, CalendarEvent[]>();
+const EMPTY_DAY_MAP = new Map<number, HistoryEvent[]>();
 
 export default function Calendar({
     events,
@@ -75,15 +76,12 @@ export default function Calendar({
 
     const lastTriggerRef = useRef<HTMLElement | null>(null);
     const [sheetOpen, setSheetOpen] = useState(false);
-    const [selectedEvent, setSelectedEvent] = useState<CalendarEvent | null>(
+    const [selectedEvent, setSelectedEvent] = useState<HistoryEvent | null>(
         null,
     );
     // The menu row unmounts on close, so multi-event days return focus to the day cell passed in
     // here.
-    const openEvent = (
-        event: CalendarEvent,
-        triggerEl?: HTMLElement | null,
-    ) => {
+    const openEvent = (event: HistoryEvent, triggerEl?: HTMLElement | null) => {
         lastTriggerRef.current =
             triggerEl !== undefined
                 ? triggerEl
@@ -145,10 +143,7 @@ export default function Calendar({
     const hasAnyEvents = availableYears.length > 0;
     const yearIsEmpty = events.length === 0;
 
-    const momentCount =
-        events.length > 0
-            ? `${events.length} ${events.length === 1 ? 'moment' : 'moments'}`
-            : '';
+    const momentCount = events.length > 0 ? count(events.length, 'moment') : '';
 
     return (
         <HistoryLayout

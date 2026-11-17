@@ -9,6 +9,7 @@ import {
     parseChange,
     pullRequestProblems,
     renderSection,
+    sectionFor,
 } from '../lib/changes.mjs';
 
 const file = (front, body) => `---\n${front}\n---\n${body}\n`;
@@ -181,4 +182,21 @@ test('a feat or fix pull request needs a change file', () => {
     assert.equal(pullRequestProblems('Fix the filter', []).length, 1);
     assert.equal(pullRequestProblems('feat!: drop themes', [fixed]).length, 1);
     assert.deepEqual(pullRequestProblems('feat!: drop themes', [breaking]), []);
+});
+
+const LOG =
+    '# Changelog\n\n## [1.3.0] - 2026-02-01\n\n### Added\n\n- New.\n\n## [1.2.0] - 2026-01-01\n\n### Fixed\n\n- Old.\n';
+
+test('sectionFor returns the body under the version heading', () => {
+    assert.equal(sectionFor(LOG, '1.3.0'), '\n### Added\n\n- New.\n\n');
+    assert.equal(sectionFor(LOG, '1.2.0'), '\n### Fixed\n\n- Old.\n');
+});
+
+test('sectionFor gives a pre-release the section it leads up to', () => {
+    assert.equal(sectionFor(LOG, '1.3.0-rc.1'), sectionFor(LOG, '1.3.0'));
+});
+
+test('sectionFor returns null for a missing version', () => {
+    assert.equal(sectionFor(LOG, '2.0.0'), null);
+    assert.equal(sectionFor(LOG, '2.0.0-rc.1'), null);
 });

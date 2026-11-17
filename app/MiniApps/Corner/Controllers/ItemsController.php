@@ -12,9 +12,8 @@ use App\MiniApps\Corner\Models\CornerList;
 use App\MiniApps\Corner\Models\Item;
 use App\MiniApps\Corner\Support\CornerLinks;
 use App\Shell\Services\LinkableEntities;
-use App\Shell\Support\CursorList;
 use App\Shell\Support\FlashToast;
-use App\Shell\Support\ResolvesListSort;
+use App\Shell\Support\ListPage;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
@@ -23,20 +22,14 @@ use Inertia\Response;
 
 class ItemsController
 {
-    use ResolvesListSort;
-
     private const PER_PAGE = 50;
 
     private const SEARCH_COLUMNS = ['title', 'notes', 'author', 'site_name', 'location_label', 'address'];
 
-    /** @return array<string, array<int, array{0: string, 1: 'asc'|'desc'}>> */
-    protected function sortOptions(): array
-    {
-        return [
-            'recent' => [['added_at', 'desc'], ['id', 'desc']],
-            'title' => [['title', 'asc'], ['id', 'asc']],
-        ];
-    }
+    private const SORTS = [
+        'recent' => [['added_at', 'desc'], ['id', 'desc']],
+        'title' => [['title', 'asc'], ['id', 'asc']],
+    ];
 
     public function index(Request $request, string $list): Response
     {
@@ -46,25 +39,15 @@ class ItemsController
             return Inertia::render('MiniApps/Corner/Pages/EntityNotFound', ['kind' => 'list']);
         }
 
-        $sort = $this->resolveSort($request);
-        $filter = in_array($request->query('filter'), ['active', 'done'], true)
-            ? $request->query('filter')
-            : 'all';
-        $q = trim((string) $request->query('q')) ?: null;
-
-        $base = $model->items()->getQuery()->with('addedBy');
-        $this->applyListOrder($base, $sort);
+        $page = ListPage::make($request, $model->items()->getQuery()->with('addedBy'), self::SORTS)
+            ->status('done_at')
+            ->searchable(self::SEARCH_COLUMNS);
 
         return Inertia::render('MiniApps/Corner/Pages/List', [
-            'list' => $this->listPayload($request, $model),
-            'items' => CursorList::make($base)
-                ->status('done_at')
-                ->searchable(self::SEARCH_COLUMNS, $q)
-                ->paginate($filter, self::PER_PAGE, fn (Item $i) => app(ItemResource::class)($i)),
-            'filter' => $filter,
-            'sort' => $sort,
-            'sorts' => array_keys($this->sortOptions()),
-            'q' => $q,
+            // A closure, so loading more items (`only: ['items']`) doesn't recount the list.
+            'list' => fn () => $this->listPayload($request, $model),
+            ...$page->props('items', self::PER_PAGE, fn (Item $i) => app(ItemResource::class)($i)),
+            'sorts' => $page->sortKeys(),
         ]);
     }
 
@@ -91,7 +74,7 @@ class ItemsController
         $found->setRelation('list', $model);
 
         return Inertia::render('MiniApps/Corner/Pages/Item', [
-            'list' => $this->listPayload($request, $model),
+            'list' => fn () => $this->listPayload($request, $model),
             'item' => app(ItemResource::class)($found),
             'mentioned_in' => CornerLinks::mentionsOf($found, $linkable),
         ]);

@@ -6,17 +6,18 @@ import {
     DropdownMenuLabel,
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { count } from '@/lib/plural';
 import { cn } from '@/lib/utils';
-import type { CalendarEvent } from './CalendarMonth';
+import type { HistoryEvent } from '@/MiniApps/History/lib/types';
 import { firstThumb, MONTH_NAMES } from './CalendarMonth';
 
 type Props = {
     month: number; // 1-12
     day: number;
-    events: CalendarEvent[]; // length >= 2
+    events: HistoryEvent[]; // length >= 2
     size: 'compact' | 'large';
     todayClass: string; // '' or ' history-cal-today'
-    onOpen: (event: CalendarEvent, triggerEl?: HTMLElement | null) => void;
+    onOpen: (event: HistoryEvent, triggerEl?: HTMLElement | null) => void;
 };
 
 export default function DayEventMenu({
@@ -67,7 +68,8 @@ export default function DayEventMenu({
                 className="history-cal-daymenu"
             >
                 <DropdownMenuLabel className="history-cal-daymenu-head">
-                    {day} {MONTH_NAMES[month - 1]} · {events.length} moments
+                    {day} {MONTH_NAMES[month - 1]} ·{' '}
+                    {count(events.length, 'moment')}
                 </DropdownMenuLabel>
                 {events.map((event) => {
                     const t = firstThumb(event);
@@ -75,7 +77,7 @@ export default function DayEventMenu({
                     const sub = event.location_name
                         ? event.location_name
                         : event.media.length > 0
-                          ? `${event.media.length} ${event.media.length === 1 ? 'photo' : 'photos'}`
+                          ? count(event.media.length, 'photo')
                           : 'no photos or videos';
 
                     return (

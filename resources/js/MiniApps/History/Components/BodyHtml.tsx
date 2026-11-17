@@ -1,8 +1,8 @@
-import React, { useState } from 'react';
+import React from 'react';
 
-import { useRoomOn } from '@/hooks/use-room-on';
-import { internalHref, thumbnailSrc } from '@/MiniApps/History/lib/pillUrls';
-import { EntityMark } from '@/Shell/linkables/LinkableIcon';
+import EntityPillContent from '@/Shell/linkables/EntityPillContent';
+import { internalHref } from '@/Shell/linkables/urls';
+import { useLinkTypeOn } from '@/Shell/linkables/use-linking';
 
 /* A linked thing as it is now (LinkedThings on the server), keyed "type:id". */
 export type LinkedThing = {
@@ -38,7 +38,7 @@ const ALLOWED_TAGS = new Set([
     'li',
 ]);
 
-function CornerLinkRead({
+function LinkPillRead({
     type,
     title,
     thumbnail,
@@ -53,34 +53,20 @@ function CornerLinkRead({
     icon: string | null;
     current: LinkedThing | undefined;
 }) {
-    const label = title || 'Corner link';
-    const cornerOn = useRoomOn('our-corner');
-    const safeHref = cornerOn ? internalHref(href) : null;
-    const [thumbnailBroken, setThumbnailBroken] = useState(false);
-    // Corner's pictures are served by Corner, so they go with it when the room is off.
+    const typeOn = useLinkTypeOn(type);
+    const safeHref = typeOn ? internalHref(href) : null;
+    // A room serves its things' pictures, so they go with it when the room is off.
     // The thing's picture now, not the one written into the story, which may since have
     // changed, gone, or come from a site the page may no longer load from.
-    const picture = current ? (current.thumbnail_url ?? '') : thumbnail;
-    const mark = current?.icon ?? icon;
-    const safeThumbnail =
-        cornerOn && !thumbnailBroken ? thumbnailSrc(picture) : null;
-    const iconEl = <EntityMark type={type} icon={mark} size={14} />;
+    const picture = current ? current.thumbnail_url : thumbnail;
 
     const inner = (
-        <>
-            <span className="tt-pill-glyph" aria-hidden="true">
-                {iconEl}
-            </span>
-            {safeThumbnail ? (
-                <img
-                    src={safeThumbnail}
-                    alt=""
-                    className="history-body-pill-thumb"
-                    onError={() => setThumbnailBroken(true)}
-                />
-            ) : null}
-            {label}
-        </>
+        <EntityPillContent
+            title={title}
+            icon={current?.icon ?? icon}
+            thumbnail={typeOn ? picture : null}
+            thumbClassName="history-body-pill-thumb"
+        />
     );
 
     if (safeHref) {
@@ -117,7 +103,7 @@ function renderNode(
 
     if (tag === 'span' && el.hasAttribute('data-corner-type')) {
         return (
-            <CornerLinkRead
+            <LinkPillRead
                 key={key}
                 type={el.getAttribute('data-corner-type')}
                 title={el.getAttribute('data-corner-title') ?? ''}

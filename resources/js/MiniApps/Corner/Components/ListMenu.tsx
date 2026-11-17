@@ -11,7 +11,6 @@ import {
 import { useMenuAction } from '@/hooks/use-menu-action';
 import { mutationOptions } from '@/lib/mutation';
 import ListSettingsSheet from '@/MiniApps/Corner/Components/ListSettingsSheet';
-import { thingsCount } from '@/MiniApps/Corner/lib/copy';
 import type { CornerListInfo } from '@/MiniApps/Corner/lib/types';
 import { destroy, move } from '@/routes/apps/our-corner/lists';
 import ConfirmDialog from '@/Shell/Components/ConfirmDialog';
@@ -73,7 +72,7 @@ export default function ListMenu({ list, count, reorder }: Props) {
     const warning =
         count === 0
             ? "It's empty, so nothing else goes with it."
-            : `${count === 1 ? 'The one thing in it goes' : `All ${thingsCount(count)} in it go`} too, for everyone. Links to them from Our History will show as removed.`;
+            : `${count === 1 ? 'The one thing in it goes' : `All ${count} things in it go`} too, for everyone. Links to them from Our History will show as removed.`;
 
     return (
         <>
@@ -145,7 +144,6 @@ export default function ListMenu({ list, count, reorder }: Props) {
                 description={warning}
                 confirmLabel="Delete list"
                 variant="destructive"
-                processing={pending}
                 onConfirm={deleteList}
             />
         </>

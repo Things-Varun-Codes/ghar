@@ -1,3 +1,5 @@
+import { count } from '@/lib/plural';
+
 type Props = {
     length: number;
     max: number;
@@ -13,9 +15,7 @@ export default function CharCount({ length, max }: Props) {
     const left = Math.max(0, max - length);
     const tone = left === 0 ? 'limit' : left <= 20 ? 'warn' : undefined;
     const text =
-        left === 0
-            ? 'No characters left'
-            : `${left} character${left === 1 ? '' : 's'} left`;
+        left === 0 ? 'No characters left' : `${count(left, 'character')} left`;
 
     return (
         <>

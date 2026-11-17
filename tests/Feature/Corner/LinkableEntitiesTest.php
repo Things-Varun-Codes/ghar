@@ -6,6 +6,7 @@ use App\MiniApps\Corner\Models\CornerList;
 use App\MiniApps\Corner\Models\Item;
 use App\Shell\Models\User;
 use App\Shell\Services\LinkableEntities;
+use App\Shell\Services\Rooms;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use Tests\TestCase;
@@ -19,11 +20,12 @@ class LinkableEntitiesTest extends TestCase
         $linkable = app(LinkableEntities::class);
         $linkable->register(
             'foo.bar',
+            label: 'Foos',
+            resolveMany: fn (array $ids) => [],
             listing: fn (string $q, int $limit) => [
                 ['id' => 1, 'title' => 'Foo One', 'thumbnail_url' => null],
-                ['id' => 2, 'title' => 'Foo Two', 'thumbnail_url' => null],
+                ['id' => 2, 'title' => 'Foo Two', 'thumbnail_url' => null, 'group' => 'Special foos'],
             ],
-            resolve: fn (int $id) => ['id' => $id, 'title' => "Foo {$id}"],
         );
 
         $results = $linkable->search('q', ['foo.bar']);
@@ -31,6 +33,22 @@ class LinkableEntitiesTest extends TestCase
         $this->assertCount(2, $results);
         $this->assertSame('foo.bar', $results[0]['type']);
         $this->assertSame('Foo One', $results[0]['title']);
+        // A row without a group of its own is filed under the type's label.
+        $this->assertSame('Foos', $results[0]['group']);
+        $this->assertSame('Special foos', $results[1]['group']);
+    }
+
+    public function test_a_type_without_a_listing_only_resolves(): void
+    {
+        $linkable = app(LinkableEntities::class);
+        $linkable->register(
+            'foo.old',
+            label: 'Old foos',
+            resolveMany: fn (array $ids) => array_fill_keys($ids, ['title' => 'Old foo']),
+        );
+
+        $this->assertSame([], $linkable->search('q', ['foo.old']));
+        $this->assertSame(['title' => 'Old foo'], $linkable->resolve('foo.old', 3));
     }
 
     public function test_search_returns_empty_for_unknown_type(): void
@@ -48,11 +66,12 @@ class LinkableEntitiesTest extends TestCase
         // the default limit (20).
         $linkable->register(
             'big.set',
+            label: 'Big set',
+            resolveMany: fn (array $ids) => [],
             listing: fn (string $q, int $limit) => array_map(
                 fn (int $i) => ['id' => $i, 'title' => "Item {$i}", 'thumbnail_url' => null],
                 range(1, 30),
             ),
-            resolve: fn (int $id) => ['id' => $id, 'title' => "Item {$id}"],
         );
 
         $results = $linkable->search('q', ['big.set']);
@@ -70,18 +89,45 @@ class LinkableEntitiesTest extends TestCase
         $this->assertNull($linkable->resolve('unknown', 1));
     }
 
-    public function test_resolve_invokes_resolve_closure(): void
+    public function test_resolve_asks_the_batch_resolver_for_one_id(): void
     {
         $linkable = app(LinkableEntities::class);
+        $asked = [];
         $linkable->register(
             'foo.bar',
-            listing: fn () => [],
-            resolve: fn (int $id) => ['id' => $id, 'title' => "Foo {$id}", 'href' => "/foo/{$id}"],
+            label: 'Foos',
+            resolveMany: function (array $ids) use (&$asked) {
+                $asked[] = $ids;
+
+                return collect($ids)->mapWithKeys(fn (int $id) => [$id => ['id' => $id, 'title' => "Foo {$id}", 'href' => "/foo/{$id}"]])->all();
+            },
         );
 
         $resolved = $linkable->resolve('foo.bar', 42);
 
         $this->assertSame(['id' => 42, 'title' => 'Foo 42', 'href' => '/foo/42'], $resolved);
+        $this->assertSame([[42]], $asked);
+    }
+
+    public function test_a_type_whose_room_is_off_neither_resolves_nor_counts_for_the_page(): void
+    {
+        $linkable = app(LinkableEntities::class);
+        $linkable->register(
+            'foo.roomed',
+            label: 'Foos',
+            resolveMany: fn (array $ids) => array_fill_keys($ids, ['title' => 'Foo']),
+            listing: fn () => [['id' => 1, 'title' => 'Foo']],
+            room: 'our-corner',
+        );
+
+        $this->assertNotNull($linkable->resolve('foo.roomed', 1));
+        $this->assertContains('foo.roomed', $linkable->forPage()['types']);
+
+        app(Rooms::class)->set('our-corner', false);
+
+        $this->assertNull($linkable->resolve('foo.roomed', 1));
+        $this->assertSame([], $linkable->resolveMany('foo.roomed', [1]));
+        $this->assertNotContains('foo.roomed', $linkable->forPage()['types']);
     }
 
     public function test_record_reference_upserts_row(): void
@@ -122,8 +168,8 @@ class LinkableEntitiesTest extends TestCase
         $linkable = app(LinkableEntities::class);
         $linkable->register(
             'history.event',
-            listing: fn () => [],
-            resolve: fn (int $id) => ['id' => $id, 'title' => "Event {$id}"],
+            label: 'Moments',
+            resolveMany: fn (array $ids) => collect($ids)->mapWithKeys(fn (int $id) => [$id => ['id' => $id, 'title' => "Event {$id}"]])->all(),
         );
 
         $linkable->recordReference('history.event', 1, 'corner.song', 7);
@@ -145,11 +191,11 @@ class LinkableEntitiesTest extends TestCase
     public function test_references_to_returns_null_snapshot_for_deleted_from_entity(): void
     {
         $linkable = app(LinkableEntities::class);
-        // Resolve closure returns null for missing from-entity — graceful  degradation.
+        // A from-entity that no longer exists is left out by the resolver.
         $linkable->register(
             'history.event',
-            listing: fn () => [],
-            resolve: fn (int $id) => $id === 99 ? null : ['id' => $id, 'title' => "Event {$id}"],
+            label: 'Moments',
+            resolveMany: fn (array $ids) => collect($ids)->reject(fn (int $id) => $id === 99)->mapWithKeys(fn (int $id) => [$id => ['id' => $id, 'title' => "Event {$id}"]])->all(),
         );
 
         $linkable->recordReference('history.event', 99, 'corner.song', 7);
@@ -168,8 +214,7 @@ class LinkableEntitiesTest extends TestCase
         foreach (['fixture.alpha', 'fixture.beta', 'fixture.gamma'] as $type) {
             $linkable->register(
                 $type,
-                listing: fn () => [],
-                resolve: fn (int $id) => $this->fixtureResolveOne($type, $id),
+                label: $type,
                 resolveMany: fn (array $ids) => $this->fixtureResolveMany($type, $ids),
             );
 
@@ -186,39 +231,6 @@ class LinkableEntitiesTest extends TestCase
             $this->fixtureExpectedTitles(['fixture.alpha', 'fixture.beta', 'fixture.gamma']),
             $refs->pluck('snapshot.title')->sort()->values()->all(),
         );
-    }
-
-    public function test_references_to_falls_back_to_per_id_resolve_when_no_batch_closure_registered(): void
-    {
-        $linkable = app(LinkableEntities::class);
-
-        foreach (['fixture.alpha', 'fixture.beta', 'fixture.gamma'] as $type) {
-            $linkable->register(
-                $type,
-                listing: fn () => [],
-                resolve: fn (int $id) => $this->fixtureResolveOne($type, $id),
-            );
-
-            $linkable->recordReference($type, 1, 'corner.song', 7);
-            $linkable->recordReference($type, 2, 'corner.song', 7);
-        }
-
-        $this->expectsDatabaseQueryCount(7);
-
-        $refs = $linkable->referencesTo('corner.song', 7);
-
-        $this->assertCount(6, $refs);
-        $this->assertSame(
-            $this->fixtureExpectedTitles(['fixture.alpha', 'fixture.beta', 'fixture.gamma']),
-            $refs->pluck('snapshot.title')->sort()->values()->all(),
-        );
-    }
-
-    private function fixtureResolveOne(string $type, int $id): array
-    {
-        DB::table('users')->where('id', $id)->first();
-
-        return ['id' => $id, 'title' => "{$type} {$id}"];
     }
 
     /**
@@ -260,15 +272,15 @@ class LinkableEntitiesTest extends TestCase
 
         $baseline = $linkable->registeredTypes();
 
-        $linkable->register('foo.bar', fn () => [], fn () => null);
-        $linkable->register('baz.qux', fn () => [], fn () => null);
+        $linkable->register('foo.bar', 'Foos', fn () => []);
+        $linkable->register('baz.qux', 'Bazzes', fn () => []);
 
         $types = $linkable->registeredTypes();
         $newTypes = array_values(array_diff($types, $baseline));
         sort($newTypes);
         $this->assertSame(['baz.qux', 'foo.bar'], $newTypes);
 
-        $linkable->register('zee.zee', fn () => [], fn () => null);
+        $linkable->register('zee.zee', 'Zees', fn () => []);
         $this->assertContains('zee.zee', $linkable->registeredTypes());
     }
 

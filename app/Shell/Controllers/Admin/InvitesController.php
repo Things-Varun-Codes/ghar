@@ -10,7 +10,6 @@ use App\Shell\Support\FlashToast;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Gate;
 use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -19,8 +18,6 @@ class InvitesController
 {
     public function index(): Response
     {
-        Gate::authorize('admin');
-
         $invites = Invitation::with('invitedBy')
             ->orderByDesc('created_at')
             ->paginate(25)
@@ -45,8 +42,6 @@ class InvitesController
 
     public function store(Request $request, InviteUser $inviteUser): RedirectResponse
     {
-        Gate::authorize('admin');
-
         $validated = $request->validate([
             'email' => ['required', 'email', 'max:255', 'unique:users,email'],
             'role' => ['required', 'string', Rule::in(array_column(UserRole::cases(), 'value'))],
@@ -65,8 +60,6 @@ class InvitesController
 
     public function resend(Request $request, Invitation $invite, InviteUser $inviteUser): RedirectResponse
     {
-        Gate::authorize('admin');
-
         // One transaction so a failure can't leave the old token revoked with no replacement;
         // the row lock stops a double click from sending two.
         $refusal = DB::transaction(function () use ($request, $invite, $inviteUser): ?string {
@@ -105,8 +98,6 @@ class InvitesController
 
     public function destroy(Invitation $invite): RedirectResponse
     {
-        Gate::authorize('admin');
-
         $invite->revoked_at = now();
         $invite->save();
 

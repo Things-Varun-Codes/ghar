@@ -1,20 +1,10 @@
 import { router } from '@inertiajs/react';
 import { useState } from 'react';
 
-import {
-    AlertDialog,
-    AlertDialogAction,
-    AlertDialogCancel,
-    AlertDialogContent,
-    AlertDialogDescription,
-    AlertDialogFooter,
-    AlertDialogHeader,
-    AlertDialogTitle,
-} from '@/components/ui/alert-dialog';
-import { buttonVariants } from '@/components/ui/button';
 import { mutationOptions } from '@/lib/mutation';
 import type { CitationPayload } from '@/MiniApps/Mailbox/Components/CitationCard';
 import { destroy, pay } from '@/routes/apps/our-mailbox/citations';
+import ConfirmDialog from '@/Shell/Components/ConfirmDialog';
 import SubmitButton from '@/Shell/Components/SubmitButton';
 
 type Pending = 'pay' | 'delete' | null;
@@ -51,7 +41,6 @@ export default function CitationActions({
             {},
             {
                 preserveScroll: true,
-                preserveState: false,
                 ...mutationOptions({
                     component: 'Mailbox/CitationActions',
                     action: 'citation.pay',
@@ -68,7 +57,6 @@ export default function CitationActions({
 
         router.delete(destroy.url(citation.id), {
             preserveScroll: true,
-            preserveState: false,
             ...mutationOptions({
                 component: 'Mailbox/CitationActions',
                 action: 'citation.delete',
@@ -129,48 +117,26 @@ export default function CitationActions({
                 )}
             </div>
 
-            <AlertDialog open={payOpen} onOpenChange={setPayOpen}>
-                <AlertDialogContent>
-                    <AlertDialogHeader>
-                        <AlertDialogTitle>Pay this penalty?</AlertDialogTitle>
-                        <AlertDialogDescription>
-                            The penalty is “{citation.penalty}”. Once it's paid,
-                            this citation is settled for good.
-                        </AlertDialogDescription>
-                    </AlertDialogHeader>
-                    <AlertDialogFooter>
-                        <AlertDialogCancel>Not yet</AlertDialogCancel>
-                        <AlertDialogAction disabled={busy} onClick={handlePay}>
-                            Pay penalty
-                        </AlertDialogAction>
-                    </AlertDialogFooter>
-                </AlertDialogContent>
-            </AlertDialog>
+            <ConfirmDialog
+                open={payOpen}
+                onOpenChange={setPayOpen}
+                title="Pay this penalty?"
+                description={`The penalty is “${citation.penalty}”. Once it's paid, this citation is settled for good.`}
+                cancelLabel="Not yet"
+                confirmLabel="Pay penalty"
+                onConfirm={handlePay}
+            />
 
-            <AlertDialog open={confirmOpen} onOpenChange={setConfirmOpen}>
-                <AlertDialogContent>
-                    <AlertDialogHeader>
-                        <AlertDialogTitle>
-                            Withdraw this citation?
-                        </AlertDialogTitle>
-                        <AlertDialogDescription>
-                            This removes it for them too. There's no undo.
-                        </AlertDialogDescription>
-                    </AlertDialogHeader>
-                    <AlertDialogFooter>
-                        <AlertDialogCancel>Keep it</AlertDialogCancel>
-                        <AlertDialogAction
-                            className={buttonVariants({
-                                variant: 'destructive',
-                            })}
-                            disabled={busy}
-                            onClick={handleDelete}
-                        >
-                            Withdraw
-                        </AlertDialogAction>
-                    </AlertDialogFooter>
-                </AlertDialogContent>
-            </AlertDialog>
+            <ConfirmDialog
+                open={confirmOpen}
+                onOpenChange={setConfirmOpen}
+                title="Withdraw this citation?"
+                description="This removes it for them too. There's no undo."
+                cancelLabel="Keep it"
+                confirmLabel="Withdraw"
+                variant="destructive"
+                onConfirm={handleDelete}
+            />
         </>
     );
 }

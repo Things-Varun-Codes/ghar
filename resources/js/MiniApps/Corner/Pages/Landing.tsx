@@ -1,22 +1,23 @@
-import { Link, router } from '@inertiajs/react';
+import { router } from '@inertiajs/react';
 import { Plus } from 'lucide-react';
-import { useId, useState } from 'react';
+import { useState } from 'react';
 
 import { Button } from '@/components/ui/button';
 import { mutationOptions } from '@/lib/mutation';
+import { count } from '@/lib/plural';
 import { DoneSticker } from '@/MiniApps/Corner/Components/DoneMark';
 import ItemThumb from '@/MiniApps/Corner/Components/ItemThumb';
 import ListMenu from '@/MiniApps/Corner/Components/ListMenu';
 import ListSettingsSheet from '@/MiniApps/Corner/Components/ListSettingsSheet';
 import CornerLayout from '@/MiniApps/Corner/Layouts/CornerLayout';
-import { thingsCount } from '@/MiniApps/Corner/lib/copy';
-import { ListIcon } from '@/MiniApps/Corner/lib/list-icons';
 import type { ListSettings } from '@/MiniApps/Corner/lib/presets';
 import { SUGGESTED_LISTS } from '@/MiniApps/Corner/lib/presets';
 import type { CornerListInfo } from '@/MiniApps/Corner/lib/types';
 import { show } from '@/routes/apps/our-corner/lists';
 import { store } from '@/routes/apps/our-corner/lists';
 import Page from '@/Shell/Components/Page';
+import RoomDoor from '@/Shell/Components/RoomDoor';
+import LinkableIcon from '@/Shell/linkables/LinkableIcon';
 
 type PeekItem = { title: string; done: boolean; picture_url: string | null };
 
@@ -42,7 +43,7 @@ function liveLine(door: Door): string {
         return 'Nothing yet';
     }
 
-    const total = thingsCount(door.count);
+    const total = count(door.count, 'thing');
 
     return door.done > 0
         ? `${total} · ${door.done} ${door.done_label.toLowerCase()}`
@@ -60,7 +61,7 @@ function DoorPeek({ door }: { door: Door }) {
     if (peek.length === 0) {
         return (
             <span className="corner-door-empty">
-                <ListIcon name={door.icon} size={28} strokeWidth={1.5} />
+                <LinkableIcon name={door.icon} size={28} strokeWidth={1.5} />
             </span>
         );
     }
@@ -110,40 +111,34 @@ function CornerDoor({
     last: boolean;
     prefetchOnMount: boolean;
 }) {
-    const liveId = useId();
-
     return (
-        <article className="corner-card corner-door shell-card-stretch shell-lift">
-            <div className="corner-door-peek" aria-hidden="true">
-                <DoorPeek door={door} />
-            </div>
-            <div className="corner-door-head">
-                <h2 className="corner-door-name">
-                    <ListIcon
-                        name={door.icon}
-                        size={18}
-                        strokeWidth={1.5}
-                        className="corner-door-icon"
-                    />
-                    <Link
-                        href={show.url(door.slug)}
-                        prefetch={prefetchOnMount ? 'mount' : 'hover'}
-                        aria-describedby={liveId}
-                        className="shell-card-link"
-                    >
-                        {door.name}
-                    </Link>
-                </h2>
+        <RoomDoor
+            href={show.url(door.slug)}
+            prefetch={prefetchOnMount ? 'mount' : 'hover'}
+            name={door.name}
+            peek={<DoorPeek door={door} />}
+            live={liveLine(door)}
+            className="corner-card corner-door"
+            peekClassName="corner-door-peek"
+            nameClassName="corner-door-name"
+            liveClassName="corner-door-live"
+            nameBefore={
+                <LinkableIcon
+                    name={door.icon}
+                    size={18}
+                    strokeWidth={1.5}
+                    className="corner-door-icon"
+                />
+            }
+            headClassName="corner-door-head"
+            aside={
                 <ListMenu
                     list={door}
                     count={door.count}
                     reorder={{ first, last }}
                 />
-            </div>
-            <p id={liveId} className="corner-door-live">
-                {liveLine(door)}
-            </p>
-        </article>
+            }
+        />
     );
 }
 
@@ -192,7 +187,7 @@ function Suggestions({ onCustom }: { onCustom: () => void }) {
                                 aria-busy={pending === preset.name}
                                 onClick={() => make(preset)}
                             >
-                                <ListIcon
+                                <LinkableIcon
                                     name={preset.icon}
                                     size={22}
                                     strokeWidth={1.5}

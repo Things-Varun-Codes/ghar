@@ -226,6 +226,28 @@ class CornerItemsEditTest extends TestCase
         Http::assertNothingSent();
     }
 
+    public function test_an_upgraded_places_id_survives_a_new_or_cleared_location(): void
+    {
+        Http::fake();
+        $place = Item::factory()->create([
+            'list_id' => $this->places()->id,
+            'added_by_user_id' => $this->adder->id,
+            'title' => 'Lalbagh',
+            'location_label' => 'Lalbagh',
+            'place_id' => 'ChIJlalbagh',
+        ]);
+
+        $this->actingAs($this->adder)
+            ->patch("/apps/our-corner/items/{$place->id}", ['title' => 'Lalbagh', 'location' => 'Cubbon Park'])
+            ->assertSessionHasNoErrors();
+        $this->assertSame('ChIJlalbagh', $place->fresh()->place_id);
+
+        $this->actingAs($this->adder)
+            ->patch("/apps/our-corner/items/{$place->id}", ['title' => 'Lalbagh'])
+            ->assertSessionHasNoErrors();
+        $this->assertSame('ChIJlalbagh', $place->fresh()->place_id);
+    }
+
     public function test_an_edit_never_moves_an_item_to_another_list_or_rewrites_who_added_it(): void
     {
         $list = $this->activities();

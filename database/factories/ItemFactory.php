@@ -35,12 +35,7 @@ class ItemFactory extends Factory
         return $this->state(function () use ($url) {
             $url ??= 'https://example.com/'.fake()->unique()->slug(3);
 
-            return [
-                'url' => $url,
-                'url_key' => LinkKey::for($url),
-                'site_name' => LinkKey::siteOf($url),
-                'author' => fake()->name(),
-            ];
+            return LinkKey::columnsFor($url) + ['author' => fake()->name()];
         });
     }
 

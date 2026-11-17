@@ -25,18 +25,9 @@ jobs:
           persist-credentials: false
       - name: Release notes from CHANGELOG.md
         run: |
+          # Node is on the runner; the command needs no npm install.
           VERSION="${GITHUB_REF_NAME#v}"
-          section() {
-            awk -v v="$1" '
-              index($0, "## [" v "]") == 1 { on = 1; next }
-              on && /^## \[/ { exit }
-              on { print }
-            ' CHANGELOG.md
-          }
-          section "$VERSION" > notes.md
-          # A pre-release (v1.2.0-rc.1) without its own section uses the one it leads up to.
-          if ! grep -q '[^[:space:]]' notes.md; then section "${VERSION%%-*}" > notes.md; fi
-          if ! grep -q '[^[:space:]]' notes.md; then
+          if ! node scripts/release.mjs section "$VERSION" > notes.md; then
             echo "::error::CHANGELOG.md has no section for [$VERSION]"
             exit 1
           fi

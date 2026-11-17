@@ -37,17 +37,11 @@ function firstLine(notes: string | null): string | null {
 /* The one card every item gets, whatever it holds. */
 export default function ItemCard({ list, item, onEdit }: Props) {
     const menu = useMenuAction();
-    const {
-        isPendingDelete,
-        isTogglePending,
-        handleEdit,
-        handleToggleDone,
-        handleDelete,
-    } = useItemActions({
-        id: item.id,
-        title: item.title,
-        onOpenEdit: onEdit,
-    });
+    const { isPendingDelete, isTogglePending, handleToggleDone, handleDelete } =
+        useItemActions({
+            id: item.id,
+            title: item.title,
+        });
 
     if (isPendingDelete) {
         return null;
@@ -59,6 +53,7 @@ export default function ItemCard({ list, item, onEdit }: Props) {
 
     return (
         <AppCard
+            base="corner-card"
             variant="list"
             data-app="our-corner"
             className="corner-item shell-card-stretch shell-lift"
@@ -149,7 +144,7 @@ export default function ItemCard({ list, item, onEdit }: Props) {
                             >
                                 {onEdit && item.can.update && (
                                     <DropdownMenuItem
-                                        onSelect={menu.defer(handleEdit)}
+                                        onSelect={menu.defer(onEdit)}
                                     >
                                         Edit
                                     </DropdownMenuItem>

@@ -4,12 +4,13 @@ import { describe, expect, it, vi } from 'vitest';
 import { useCursorPagination } from './useCursorPagination';
 import type { CursorPaginator } from './useCursorPagination';
 
-const { routerGet } = vi.hoisted(() => ({
+const { routerGet, routerReload } = vi.hoisted(() => ({
     routerGet: vi.fn(),
+    routerReload: vi.fn(),
 }));
 
 vi.mock('@inertiajs/react', () => ({
-    router: { get: routerGet },
+    router: { get: routerGet, reload: routerReload },
 }));
 
 const { captureSilent } = vi.hoisted(() => ({
@@ -32,6 +33,7 @@ type GetOptions = {
     onNetworkError?: (error: { message: string }) => boolean;
     onHttpException?: (response: { status: number }) => boolean;
     onFinish?: () => void;
+    onBefore?: (visit: { id: unknown }) => void;
 };
 
 function lastCall() {
@@ -411,5 +413,170 @@ describe('useCursorPagination', () => {
         });
 
         expect(routerGet).not.toHaveBeenCalled();
+    });
+
+    describe('re-seeding from responses', () => {
+        const page1: CursorPaginator<Item> = {
+            data: [{ id: 1 }],
+            next_page_url: 'https://x.test/page2',
+        };
+        const page2: CursorPaginator<Item> = {
+            data: [{ id: 2 }],
+            next_page_url: null,
+        };
+
+        function respond(
+            visitId: string,
+            songs: CursorPaginator<Item>,
+            scope: { only?: string[]; except?: string[] } = {},
+        ) {
+            act(() => {
+                document.dispatchEvent(
+                    new CustomEvent('inertia:before', {
+                        detail: {
+                            visit: {
+                                id: visitId,
+                                only: scope.only ?? [],
+                                except: scope.except ?? [],
+                            },
+                        },
+                    }),
+                );
+                document.dispatchEvent(
+                    new CustomEvent('inertia:success', {
+                        detail: { page: { props: { songs } }, visitId },
+                    }),
+                );
+            });
+        }
+
+        function renderWithTwoPages() {
+            const hook = renderHook(() =>
+                useCursorPagination<Item>({
+                    initial: page1,
+                    propName: 'songs',
+                }),
+            );
+
+            act(() => {
+                hook.result.current.retryLoadMore();
+            });
+            const options = lastCall()[2];
+            act(() => {
+                options.onBefore?.({ id: 'load-more' });
+            });
+            respond('load-more', page2, { only: ['songs'] });
+            act(() => {
+                options.onSuccess?.({ props: { songs: page2 } });
+            });
+
+            return hook;
+        }
+
+        it('a load-more appends: its own response does not re-seed the list', () => {
+            const { result } = renderWithTwoPages();
+
+            expect(result.current.items).toEqual([{ id: 1 }, { id: 2 }]);
+        });
+
+        it('a mutation`s response re-seeds, even when its first page is the one already shown', () => {
+            const { result } = renderWithTwoPages();
+
+            respond('mutation', page1);
+
+            expect(result.current.items).toEqual([{ id: 1 }]);
+        });
+
+        it('a partial reload that leaves the list out does not re-seed it', () => {
+            const { result } = renderWithTwoPages();
+
+            respond(
+                'other',
+                { data: [], next_page_url: null },
+                {
+                    only: ['notifications'],
+                },
+            );
+            respond(
+                'except',
+                { data: [], next_page_url: null },
+                {
+                    except: ['songs'],
+                },
+            );
+
+            expect(result.current.items).toEqual([{ id: 1 }, { id: 2 }]);
+        });
+
+        it('a load-more that finishes after a re-seed neither appends its stale rows nor flags an error', () => {
+            const { result } = renderHook(() =>
+                useCursorPagination<Item>({
+                    initial: page1,
+                    propName: 'songs',
+                }),
+            );
+
+            act(() => {
+                result.current.retryLoadMore();
+            });
+            const options = lastCall()[2];
+
+            respond('mutation', { data: [{ id: 9 }], next_page_url: null });
+
+            act(() => {
+                options.onSuccess?.({ props: { songs: page2 } });
+            });
+            expect(result.current.items).toEqual([{ id: 9 }]);
+
+            act(() => {
+                options.onNetworkError?.({ message: 'offline' });
+            });
+            expect(result.current.loadError).toBe(false);
+        });
+
+        it('a page restored from browser history re-seeds', () => {
+            const { result } = renderWithTwoPages();
+
+            act(() => {
+                document.dispatchEvent(
+                    new CustomEvent('inertia:navigate', {
+                        detail: {
+                            page: { props: { songs: page1 } },
+                            type: 'history',
+                        },
+                    }),
+                );
+            });
+
+            expect(result.current.items).toEqual([{ id: 1 }]);
+        });
+
+        it('refreshInPlace updates the rows shown and keeps the later pages', () => {
+            const { result } = renderWithTwoPages();
+
+            act(() => {
+                result.current.refreshInPlace();
+            });
+
+            const options = routerReload.mock.calls[0][0] as GetOptions;
+            expect(options.only).toEqual(['songs']);
+
+            const fresh = {
+                data: [{ id: 1, fresh: true }],
+                next_page_url: 'https://x.test/page2',
+            };
+            act(() => {
+                options.onBefore?.({ id: 'refresh' });
+            });
+            respond('refresh', fresh, { only: ['songs'] });
+            act(() => {
+                options.onSuccess?.({ props: { songs: fresh } });
+            });
+
+            expect(result.current.items).toEqual([
+                { id: 1, fresh: true },
+                { id: 2 },
+            ]);
+        });
     });
 });

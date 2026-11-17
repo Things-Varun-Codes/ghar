@@ -4,15 +4,16 @@ namespace App\MiniApps\Mailbox\Actions;
 
 use App\MiniApps\Mailbox\Http\Requests\IssueCitationRequest;
 use App\MiniApps\Mailbox\Models\Citation;
+use App\MiniApps\Mailbox\Support\EntryTypes;
+use App\MiniApps\Mailbox\Support\MailboxPush;
 use App\Shell\Models\User;
-use App\Shell\Services\PushDispatcher;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 
 class IssueCitation
 {
     public function __construct(
-        private readonly PushDispatcher $dispatcher,
+        private readonly MailboxPush $push,
     ) {}
 
     /** @return Collection<int, Citation> */
@@ -29,12 +30,11 @@ class IssueCitation
         $firstName = $issuer->firstName();
 
         foreach ($citations as $citation) {
-            $this->dispatcher->toUsers(
+            $this->push->toEntry(
                 [$citation->loadMissing('recipient')->recipient],
-                'our-mailbox',
-                'our-mailbox:citations',
+                EntryTypes::CITATIONS,
+                $citation->id,
                 "{$firstName} issued you a citation",
-                "/apps/our-mailbox/citations/{$citation->id}",
             );
         }
 

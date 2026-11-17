@@ -8,9 +8,8 @@ use App\MiniApps\Mailbox\Http\Requests\IssueCitationRequest;
 use App\MiniApps\Mailbox\Http\Resources\CitationResource;
 use App\MiniApps\Mailbox\Models\Citation;
 use App\Shell\Services\Household;
-use App\Shell\Support\CursorList;
 use App\Shell\Support\FlashToast;
-use App\Shell\Support\ResolvesListSort;
+use App\Shell\Support\ListPage;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
@@ -19,40 +18,25 @@ use Inertia\Response;
 
 class CitationsController
 {
-    use ResolvesListSort;
-
-    /** @return array<string, array<int, array{0: string, 1: 'asc'|'desc'}>> */
-    protected function sortOptions(): array
-    {
-        return [
-            'recent' => [['issued_at', 'desc'], ['id', 'desc']],
-            'oldest' => [['issued_at', 'asc'], ['id', 'asc']],
-        ];
-    }
-
     public function index(Request $request, Household $household): Response
     {
         $viewer = $request->user();
 
         $tab = $request->query('tab') === 'issued' ? 'issued' : 'received';
-        $sideColumn = $tab === 'issued' ? 'issuer_id' : 'recipient_id';
 
-        $base = Citation::query()
-            ->visibleTo($viewer)
-            ->where($sideColumn, $viewer->id)
-            ->with(['issuer', 'recipient']);
+        $base = Citation::query()->with(['issuer', 'recipient']);
 
-        $sort = $this->resolveSort($request);
-        $this->applyListOrder($base, $sort);
-        $q = trim((string) $request->query('q')) ?: null;
+        if ($tab === 'issued') {
+            $base->issuedBy($viewer);
+        } else {
+            $base->receivedBy($viewer);
+        }
 
         return Inertia::render('MiniApps/Mailbox/Pages/Citations/Index', [
-            'citations' => CursorList::make($base)
-                ->searchable(['offence', 'penalty', 'incident_place', 'remarks'], $q)
-                ->paginate('all', 50, fn (Citation $c) => app(CitationResource::class)($c)),
+            ...ListPage::make($request, $base, ListPage::chronological('issued_at'))
+                ->searchable(['offence', 'penalty', 'incident_place', 'remarks'])
+                ->props('citations', 50, fn (Citation $c) => app(CitationResource::class)($c)),
             'tab' => $tab,
-            'sort' => $sort,
-            'q' => $q,
             'members' => $household->optionsFor($viewer),
         ]);
     }

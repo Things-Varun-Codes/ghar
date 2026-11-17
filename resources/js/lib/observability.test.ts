@@ -1,6 +1,10 @@
 import { describe, expect, it, vi } from 'vitest';
 
-import { captureSilent, sanitizePayload } from './observability';
+import {
+    captureSilent,
+    installUserRole,
+    sanitizePayload,
+} from './observability';
 
 const { sentryCaptureException } = vi.hoisted(() => ({
     sentryCaptureException: vi.fn(),
@@ -98,6 +102,59 @@ describe('captureSilent', () => {
                 },
             }),
         );
+    });
+
+    it("tags the role from the page last shown when the caller doesn't pass one", () => {
+        let onNavigate: (event: unknown) => void = () => {};
+        const router = {
+            on: (_name: string, handler: (event: unknown) => void) => {
+                onNavigate = handler;
+            },
+        };
+        installUserRole(
+            router as unknown as Parameters<typeof installUserRole>[0],
+        );
+
+        const show = (roles: string[] | null) =>
+            onNavigate({
+                detail: {
+                    page: {
+                        props: {
+                            auth: {
+                                user: roles ? { id: 1, roles } : null,
+                            },
+                        },
+                    },
+                },
+            });
+        const lastRole = () =>
+            (
+                sentryCaptureException.mock.lastCall?.[1] as {
+                    tags: { user_role: string };
+                }
+            ).tags.user_role;
+        const capture = () =>
+            captureSilent(new Error('boom'), {
+                component: 'C',
+                action: 'a.b',
+                surface: 'frontend',
+            });
+
+        show(['admin']);
+        capture();
+        expect(lastRole()).toBe('admin');
+
+        show(['user']);
+        capture();
+        expect(lastRole()).toBe('user');
+
+        show(['gardener']);
+        capture();
+        expect(lastRole()).toBe('user');
+
+        show(null);
+        capture();
+        expect(lastRole()).toBe('guest');
     });
 
     it('honors an explicit user_role when supplied', () => {

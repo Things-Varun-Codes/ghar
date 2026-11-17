@@ -419,7 +419,7 @@ final class CornerData
     /** @return array{url: string, url_key: ?string, site_name: ?string} */
     private function linkTo(string $url): array
     {
-        return ['url' => $url, 'url_key' => LinkKey::for($url), 'site_name' => LinkKey::siteOf($url)];
+        return LinkKey::columnsFor($url);
     }
 
     /** A picture's web address, its bytes already in the picture cache. */

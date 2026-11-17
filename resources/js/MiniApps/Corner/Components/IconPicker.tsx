@@ -25,6 +25,7 @@ import {
 } from '@/components/ui/sheet';
 import { useIsPhone } from '@/hooks/use-breakpoint';
 import { useOverlayHistory } from '@/hooks/use-overlay-history';
+import { count } from '@/lib/plural';
 import { cn } from '@/lib/utils';
 import type { Row, Section } from '@/MiniApps/Corner/lib/icon-picker';
 import {
@@ -41,9 +42,9 @@ import {
     sectionAt,
     visibleRows,
 } from '@/MiniApps/Corner/lib/icon-picker';
-import { ListIcon } from '@/MiniApps/Corner/lib/list-icons';
 import ErrorState from '@/Shell/Components/ErrorState';
 import LoadingState from '@/Shell/Components/LoadingState';
+import LinkableIcon from '@/Shell/linkables/LinkableIcon';
 import type { IconIndex, IconPaths } from '@/Shell/linkables/lucide';
 import {
     iconLabel,
@@ -108,7 +109,7 @@ export default function IconPicker({
             className="corner-icon-trigger shell-press"
         >
             <span className="corner-icon-trigger-mark">
-                <ListIcon name={value} size={22} strokeWidth={1.5} />
+                <LinkableIcon name={value} size={22} strokeWidth={1.5} />
             </span>
             <span className="corner-icon-trigger-name">{iconLabel(value)}</span>
             <span className="corner-icon-trigger-action">
@@ -300,7 +301,7 @@ function IconBrowser({
             return [
                 {
                     key: 'results',
-                    title: `${found.length} ${found.length === 1 ? 'icon' : 'icons'}`,
+                    title: count(found.length, 'icon'),
                     icons: found,
                 },
             ];
@@ -589,7 +590,7 @@ function GridRow({
                         className="corner-icon-option"
                         style={{ width: CELL, height: CELL }}
                     >
-                        <ListIcon name={icon} size={20} strokeWidth={1.5} />
+                        <LinkableIcon name={icon} size={20} strokeWidth={1.5} />
                     </div>
                 );
             })}

@@ -57,4 +57,25 @@ class CitationModelTest extends TestCase
         $this->assertTrue(Citation::query()->visibleTo($recipient)->whereKey($citation->id)->exists());
         $this->assertFalse(Citation::query()->visibleTo($bystander)->whereKey($citation->id)->exists());
     }
+
+    public function test_each_side_and_party_check(): void
+    {
+        $issuer = User::factory()->create();
+        $recipient = User::factory()->create();
+        $bystander = User::factory()->create();
+
+        $citation = Citation::factory()->create([
+            'issuer_id' => $issuer->id,
+            'recipient_id' => $recipient->id,
+        ]);
+
+        $this->assertSame([$citation->id], Citation::query()->issuedBy($issuer)->pluck('id')->all());
+        $this->assertSame([], Citation::query()->issuedBy($recipient)->pluck('id')->all());
+        $this->assertSame([$citation->id], Citation::query()->receivedBy($recipient)->pluck('id')->all());
+        $this->assertSame([], Citation::query()->receivedBy($issuer)->pluck('id')->all());
+
+        $this->assertTrue($citation->isParty($issuer));
+        $this->assertTrue($citation->isParty($recipient));
+        $this->assertFalse($citation->isParty($bystander));
+    }
 }

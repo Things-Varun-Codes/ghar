@@ -35,6 +35,6 @@ class EventPolicy
 
     private function manages(User $user, Event $event): bool
     {
-        return $event->creator_id === $user->id || $user->can('admin');
+        return $user->makerOrAdmin($event->creator_id);
     }
 }

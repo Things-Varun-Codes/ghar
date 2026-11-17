@@ -12,18 +12,9 @@ class MiniAppRegistry
      *
      * @return list<array<string, mixed>>
      */
-    public static function visibleFor(?User $user, ?bool $isAdmin = null): array
+    public static function visibleFor(?User $user): array
     {
-        if ($isAdmin === null) {
-            $user?->loadMissing('roles');
-            $isAdmin = (bool) $user?->hasRole('admin');
-        }
-
-        $rooms = app(Rooms::class);
-
-        return collect($rooms->installed())
-            ->filter(fn (array $app): bool => $rooms->isOn($app['slug']))
-            ->reject(fn (array $app): bool => ! empty($app['admin_only']) && ! $isAdmin)
+        return collect(app(Rooms::class)->enterableBy($user))
             ->map(fn (array $app): array => collect($app)->except('provider')->all())
             ->values()
             ->all();

@@ -101,7 +101,8 @@ class CornerListPageTest extends TestCase
                 ->where('item.location_label', null)
                 ->where('item.lat', null)
                 ->where('item.is_done', false)
-                ->where('item.added_by_user_id', $this->user->id)
+                ->missing('item.added_by_user_id')
+                ->missing('item.added_at')
                 ->where('item.addedBy', ['id' => $this->user->id, 'name' => $this->user->name])
                 ->missing('item.provider')
                 ->missing('item.provider_id')
@@ -112,12 +113,12 @@ class CornerListPageTest extends TestCase
             ->assertInertia(fn (AssertableInertia $page) => $page
                 ->where('item.location_label', 'The bakery')
                 ->where('item.location_url', 'https://maps.example.com/?q=12.3456789,-98.7654321')
-                ->where('item.place_id', 'ChIJbakery')
+                ->missing('item.place_id')
                 ->where('item.lat', 12.3456789)
                 ->where('item.lng', -98.7654321)
                 ->where('item.address', '1 High St')
                 ->where('item.is_done', true)
-                ->where('item.done_at', fn ($at) => is_string($at))
+                ->missing('item.done_at')
                 ->where('item.url', null)
                 ->where('item.picture_url', null));
     }

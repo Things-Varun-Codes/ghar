@@ -3,19 +3,13 @@ import { MailPlus } from 'lucide-react';
 import { useState } from 'react';
 import type { FormEventHandler } from 'react';
 import { Badge } from '@/components/ui/badge';
-import {
-    Table,
-    TableBody,
-    TableCell,
-    TableHead,
-    TableHeader,
-    TableRow,
-} from '@/components/ui/table';
 import { formatDate } from '@/lib/dates';
 import { roleLabel } from '@/lib/roles';
 import { cn } from '@/lib/utils';
 import * as invitesRoutes from '@/routes/admin/invites';
 import * as users from '@/routes/admin/users';
+import AdminCollection from '@/Shell/Components/AdminCollection';
+import type { AdminColumn } from '@/Shell/Components/AdminCollection';
 import ConfirmDialog from '@/Shell/Components/ConfirmDialog';
 import FormField from '@/Shell/Components/FormField';
 import Page from '@/Shell/Components/Page';
@@ -143,6 +137,63 @@ export default function InvitesIndex({ invites }: Props) {
             </div>
         ) : null;
 
+    const roleBadge = (invite: Invitation) => (
+        <Badge variant="outline">{roleLabel(invite.role_name)}</Badge>
+    );
+
+    const statusBadge = (invite: Invitation) => {
+        const status = inviteStatus(invite);
+
+        return <Badge variant={status.variant}>{status.label}</Badge>;
+    };
+
+    const columns: AdminColumn<Invitation>[] = [
+        {
+            header: 'Email',
+            cell: (invite) => invite.email,
+            className: 'os-admin-strong',
+            card: { as: 'title', className: 'break-all' },
+        },
+        {
+            header: 'Role',
+            cell: roleBadge,
+            card: {
+                as: 'block',
+                className: 'mt-2 flex flex-wrap items-center gap-2',
+                render: (invite) => (
+                    <>
+                        {roleBadge(invite)}
+                        {statusBadge(invite)}
+                    </>
+                ),
+            },
+        },
+        { header: 'Status', cell: statusBadge, card: 'hidden' },
+        {
+            header: 'Expires',
+            cell: (invite) => formatDate(invite.expires_at),
+            className: 'os-admin-meta',
+            card: {
+                as: 'meta',
+                className: 'mt-2',
+                render: (invite) => (
+                    <>
+                        Expires {formatDate(invite.expires_at)}
+                        {invite.invited_by &&
+                            ` · invited by ${invite.invited_by.name}`}
+                    </>
+                ),
+            },
+        },
+        {
+            header: 'Invited by',
+            cell: (invite) =>
+                invite.invited_by?.name ?? 'Someone since removed',
+            className: 'os-admin-meta',
+            card: 'hidden',
+        },
+    ];
+
     return (
         <>
             <Page
@@ -251,99 +302,23 @@ export default function InvitesIndex({ invites }: Props) {
                         </button>
                     </div>
                 ) : (
-                    <div className="@container">
-                        <div className="os-admin-surface hidden overflow-x-auto border @min-[760px]:block">
-                            <Table className="min-w-[720px]">
-                                <TableHeader>
-                                    <TableRow>
-                                        <TableHead>Email</TableHead>
-                                        <TableHead>Role</TableHead>
-                                        <TableHead>Status</TableHead>
-                                        <TableHead>Expires</TableHead>
-                                        <TableHead>Invited by</TableHead>
-                                        <TableHead className="os-admin-sticky-actions text-right">
-                                            Actions
-                                        </TableHead>
-                                    </TableRow>
-                                </TableHeader>
-                                <TableBody>
-                                    {invites.data.map((invite) => {
-                                        const status = inviteStatus(invite);
-
-                                        return (
-                                            <TableRow key={invite.id}>
-                                                <TableCell className="os-admin-strong">
-                                                    {invite.email}
-                                                </TableCell>
-                                                <TableCell>
-                                                    <Badge variant="outline">
-                                                        {roleLabel(
-                                                            invite.role_name,
-                                                        )}
-                                                    </Badge>
-                                                </TableCell>
-                                                <TableCell>
-                                                    <Badge
-                                                        variant={status.variant}
-                                                    >
-                                                        {status.label}
-                                                    </Badge>
-                                                </TableCell>
-                                                <TableCell className="os-admin-meta">
-                                                    {formatDate(
-                                                        invite.expires_at,
-                                                    )}
-                                                </TableCell>
-                                                <TableCell className="os-admin-meta">
-                                                    {invite.invited_by?.name ??
-                                                        'Someone since removed'}
-                                                </TableCell>
-                                                <TableCell className="os-admin-sticky-actions text-right">
-                                                    {renderActions(invite)}
-                                                </TableCell>
-                                            </TableRow>
-                                        );
-                                    })}
-                                </TableBody>
-                            </Table>
-                        </div>
-
-                        <ul className="flex flex-col gap-3 @min-[760px]:hidden">
-                            {invites.data.map((invite) => {
-                                const status = inviteStatus(invite);
-
-                                return (
-                                    <li
-                                        key={invite.id}
-                                        className="os-admin-surface border p-4"
-                                    >
-                                        <p className="os-admin-strong break-all">
-                                            {invite.email}
-                                        </p>
-                                        <div className="mt-2 flex flex-wrap items-center gap-2">
-                                            <Badge variant="outline">
-                                                {roleLabel(invite.role_name)}
-                                            </Badge>
-                                            <Badge variant={status.variant}>
-                                                {status.label}
-                                            </Badge>
-                                        </div>
-                                        <p className="os-admin-meta mt-2">
-                                            Expires{' '}
-                                            {formatDate(invite.expires_at)}
-                                            {invite.invited_by &&
-                                                ` · invited by ${invite.invited_by.name}`}
-                                        </p>
-                                        {status.label === 'Pending' && (
-                                            <div className="mt-3">
-                                                {renderActions(invite, true)}
-                                            </div>
-                                        )}
-                                    </li>
-                                );
-                            })}
-                        </ul>
-                    </div>
+                    <AdminCollection
+                        columns={columns}
+                        rows={invites.data}
+                        rowKey={(invite) => invite.id}
+                        actions={{
+                            cell: (invite) => renderActions(invite),
+                            cellClassName: 'text-right',
+                            card: (invite) =>
+                                inviteStatus(invite).label === 'Pending' && (
+                                    <div className="mt-3">
+                                        {renderActions(invite, true)}
+                                    </div>
+                                ),
+                        }}
+                        tableClassName="min-w-[720px]"
+                        cardsAs="ul"
+                    />
                 )}
 
                 <ConfirmDialog

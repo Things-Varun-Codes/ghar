@@ -7,7 +7,7 @@ import ListPage from '@/MiniApps/Corner/Components/ListPage';
 import CornerLayout from '@/MiniApps/Corner/Layouts/CornerLayout';
 import type { CornerItem, CornerListInfo } from '@/MiniApps/Corner/lib/types';
 import EmptyState from '@/Shell/Components/EmptyState';
-import type { SortItem } from '@/Shell/Components/ListSortControl';
+import type { SortItem } from '@/Shell/Components/ListNavBand';
 import type { Paginated } from '@/types/paginated';
 
 type Props = {
@@ -41,23 +41,15 @@ export default function List({ list, items, filter, sort, sorts, q }: Props) {
             <ListPage
                 // A list's own key: moving between two lists keeps nothing of the other.
                 key={list.id}
-                title={list.name}
+                list={list}
                 paginator={items}
-                propName="items"
                 counts={items.counts}
                 filter={filter}
-                activeLabel={list.todo_label}
-                doneLabel={list.done_label}
-                addCtaLabel={addLabel}
-                onOpenAddDialog={() => setAddOpen(true)}
                 query={q ?? ''}
-                searchPlaceholder={
-                    list.name.length <= 20
-                        ? `Search ${list.name}`
-                        : 'Search this list'
-                }
                 sort={sort}
                 sortItems={sortItems}
+                addLabel={addLabel}
+                onAdd={() => setAddOpen(true)}
                 actions={<ListMenu list={list} count={items.counts.all} />}
                 renderItem={(item) => {
                     const onEdit = item.can.update

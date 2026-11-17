@@ -1,107 +1,77 @@
 import { Plus } from 'lucide-react';
 import type { ReactNode } from 'react';
 
-import { cn } from '@/lib/utils';
+import { count } from '@/lib/plural';
 import { CORNER_ROOM } from '@/MiniApps/Corner/Layouts/CornerLayout';
-import type { CornerItem } from '@/MiniApps/Corner/lib/types';
-import EmptyState, { noMatchesTitle } from '@/Shell/Components/EmptyState';
+import type { CornerItem, CornerListInfo } from '@/MiniApps/Corner/lib/types';
+import CursorListBody from '@/Shell/Components/CursorListBody';
 import Fab from '@/Shell/Components/Fab';
-import ListLoadMoreState from '@/Shell/Components/ListLoadMoreState';
 import ListNavBand from '@/Shell/Components/ListNavBand';
-import type { SortItem } from '@/Shell/Components/ListSortControl';
+import type { SortItem } from '@/Shell/Components/ListNavBand';
 import Page from '@/Shell/Components/Page';
 import SegmentedTabs from '@/Shell/Components/SegmentedTabs';
 import { useCursorPagination } from '@/Shell/Hooks/useCursorPagination';
 import type { Paginated } from '@/types/paginated';
 
-type FilterMode = 'all' | 'active' | 'done';
+export type FilterMode = 'all' | 'active' | 'done';
 
 type ListPageProps = {
-    title: string;
+    list: CornerListInfo;
     paginator: Paginated<CornerItem>;
-    propName: string;
-    /**
-     * Server-authoritative {all,active,done} counts — drive the
-     * SegmentedTabs counts. NEVER recompute these from loaded rows; that is
-     * gives wrong counts once only some pages are loaded.
+    /*
+     * From the server, for the whole list: recounting the loaded rows would be wrong once only
+     * some pages are loaded.
      */
-    counts: { all: number; active: number; done: number };
+    counts: Record<FilterMode, number>;
     filter: FilterMode;
-    activeLabel: string;
-    doneLabel: string;
-    addCtaLabel: string;
-    onOpenAddDialog: () => void;
+    query: string;
+    sort: string;
+    sortItems: SortItem[];
+    addLabel: string;
+    onAdd: () => void;
     renderItem: (item: CornerItem) => ReactNode;
     emptyState: Record<FilterMode, ReactNode>;
-    query?: string;
-    searchPlaceholder?: string;
-    sort?: string;
-    sortItems?: SortItem[];
     /* Beside the title: the list's own menu. */
-    actions?: ReactNode;
+    actions: ReactNode;
 };
 
 export default function ListPage({
-    title,
+    list,
     paginator,
-    propName,
     counts,
     filter,
-    activeLabel,
-    doneLabel,
-    addCtaLabel,
-    onOpenAddDialog,
-    renderItem,
-    emptyState,
     query,
-    searchPlaceholder,
     sort,
     sortItems,
+    addLabel,
+    onAdd,
+    renderItem,
+    emptyState,
     actions,
 }: ListPageProps) {
-    const searching = (query ?? '').trim() !== '';
-
-    // The reset key needs the counts too: toggle-done moves a row between tabs without changing
-    // `all`.
-    const {
-        items,
-        sentinelRef,
-        loadingMore,
-        navigate,
-        navigating,
-        loadError,
-        retryLoadMore,
-    } = useCursorPagination<CornerItem>({
+    const pagination = useCursorPagination<CornerItem>({
         initial: paginator,
-        propName,
-        resetKey: [
-            filter,
-            sort ?? '',
-            query ?? '',
-            `${counts.all}-${counts.active}-${counts.done}`,
-        ],
+        propName: 'items',
     });
+    const { navigate } = pagination;
+    const searching = query.trim() !== '';
 
-    const tabs: Array<{
-        id: FilterMode;
-        label: string;
-        count: number;
-    }> = [
-        { id: 'all', label: 'All', count: counts.all },
-        { id: 'active', label: activeLabel, count: counts.active },
-        { id: 'done', label: doneLabel, count: counts.done },
+    const tabs: Array<{ key: FilterMode; label: string; count: number }> = [
+        { key: 'all', label: 'All', count: counts.all },
+        { key: 'active', label: list.todo_label, count: counts.active },
+        { key: 'done', label: list.done_label, count: counts.done },
     ];
 
     return (
         <Page
-            title={title}
+            title={list.name}
             room={CORNER_ROOM}
             backChevron
             actions={actions}
             fab={
                 <Fab
-                    onClick={onOpenAddDialog}
-                    ariaLabel={addCtaLabel}
+                    onClick={onAdd}
+                    ariaLabel={addLabel}
                     icon={
                         <Plus aria-hidden="true" size={24} strokeWidth={2.5} />
                     }
@@ -109,76 +79,50 @@ export default function ListPage({
             }
         >
             <ListNavBand
-                navigating={navigating}
+                navigating={pagination.navigating}
                 count={
                     // Search narrows the counts too, so while searching they read as matches.
                     <span className="text-(length:--text-meta) font-medium text-(--corner-ink-soft) tabular-nums">
-                        {counts.all}{' '}
                         {searching
-                            ? counts.all === 1
-                                ? 'match'
-                                : 'matches'
-                            : counts.all === 1
-                              ? 'thing'
-                              : 'things'}
+                            ? count(counts.all, 'match', 'matches')
+                            : count(counts.all, 'thing')}
                     </span>
                 }
                 sort={sort}
                 sortItems={sortItems}
                 onSortSelect={(k) => navigate({ sort: k })}
                 query={query}
-                searchPlaceholder={searchPlaceholder}
+                searchPlaceholder={
+                    list.name.length <= 20
+                        ? `Search ${list.name}`
+                        : 'Search this list'
+                }
                 onSearch={(v) => navigate({ q: v })}
                 tabs={
                     <SegmentedTabs
                         mode="tablist-client"
-                        ariaLabel={`Filter ${title}`}
+                        ariaLabel={`Filter ${list.name}`}
                         active={filter}
                         panelId="corner-list-panel"
-                        items={tabs.map((t) => ({
-                            key: t.id,
-                            label: t.label,
-                            count: t.count,
-                        }))}
+                        items={tabs}
                         onChange={(k) => navigate({ filter: k })}
                     />
                 }
             />
 
-            <div
+            <CursorListBody
                 id="corner-list-panel"
                 role="tabpanel"
-                className={cn(
-                    navigating && 'shell-list-pending',
-                    'corner-item-grid grid [align-items:start] gap-4',
+                list={pagination}
+                query={query}
+                noMatchesNoun="things"
+                empty={emptyState[filter]}
+                renderItem={(item) => (
+                    <div key={item.id}>{renderItem(item)}</div>
                 )}
-                aria-busy={navigating}
-            >
-                {items.length === 0 ? (
-                    <div className="[grid-column:1_/_-1]">
-                        {searching ? (
-                            <EmptyState
-                                title={noMatchesTitle('things', query!.trim())}
-                                query={query}
-                                onClearSearch={() => navigate({ q: undefined })}
-                            />
-                        ) : (
-                            emptyState[filter]
-                        )}
-                    </div>
-                ) : (
-                    items.map((item) => (
-                        <div key={item.id}>{renderItem(item)}</div>
-                    ))
-                )}
-
-                <ListLoadMoreState
-                    loadingMore={loadingMore}
-                    loadError={loadError}
-                    onRetry={retryLoadMore}
-                    sentinelRef={sentinelRef}
-                />
-            </div>
+                listClassName="corner-item-grid grid [align-items:start] gap-4"
+                footerWhenEmpty
+            />
         </Page>
     );
 }

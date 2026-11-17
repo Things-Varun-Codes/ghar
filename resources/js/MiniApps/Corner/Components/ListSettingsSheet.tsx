@@ -6,7 +6,7 @@ import { useId } from 'react';
 import { Input } from '@/components/ui/input';
 import { Switch } from '@/components/ui/switch';
 import { useDirtyFormGate } from '@/hooks/use-dirty-form-gate';
-import CornerSheet from '@/MiniApps/Corner/Components/CornerSheet';
+import { formSubmitOptions } from '@/lib/mutation';
 import IconPicker from '@/MiniApps/Corner/Components/IconPicker';
 import type { ListSettings } from '@/MiniApps/Corner/lib/presets';
 import {
@@ -17,6 +17,7 @@ import {
 import type { CornerListInfo } from '@/MiniApps/Corner/lib/types';
 import { store, update } from '@/routes/apps/our-corner/lists';
 import FormField from '@/Shell/Components/FormField';
+import FormSheet from '@/Shell/Components/FormSheet';
 import HeartMark from '@/Shell/Components/HeartMark';
 import SubmitButton from '@/Shell/Components/SubmitButton';
 
@@ -26,6 +27,8 @@ type Props = {
     /* The list being changed; without one the sheet makes a new list. */
     list?: CornerListInfo;
 };
+
+const SHOWN_FIELDS = ['name', 'icon', 'done_label', 'todo_label'];
 
 function settingsOf(list: CornerListInfo): ListSettings {
     return {
@@ -63,15 +66,19 @@ export default function ListSettingsSheet({ open, onOpenChange, list }: Props) {
 
         const options = {
             preserveScroll: true,
-            onSuccess: () => {
-                gateReset();
-                onOpenChange(false);
-            },
+            ...formSubmitOptions({
+                component: 'Corner/ListSettingsSheet',
+                action: isEdit ? 'list.update' : 'list.create',
+                isShownField: (key) => SHOWN_FIELDS.includes(key),
+                onSuccess: () => {
+                    gateReset();
+                    onOpenChange(false);
+                },
+            }),
         };
 
         if (isEdit) {
-            // The page's own props carry the list, so it must be re-read rather than kept.
-            patch(update.url(list.id), { ...options, preserveState: false });
+            patch(update.url(list.id), options);
         } else {
             post(store.url(), options);
         }
@@ -80,7 +87,7 @@ export default function ListSettingsSheet({ open, onOpenChange, list }: Props) {
     const doneIsPreset = DONE_WORDS.includes(data.done_label);
 
     return (
-        <CornerSheet
+        <FormSheet
             open={open}
             onOpenChange={onOpenChange}
             title={isEdit ? `${list.name} settings` : 'New list'}
@@ -235,6 +242,6 @@ export default function ListSettingsSheet({ open, onOpenChange, list }: Props) {
                     }
                 />
             </div>
-        </CornerSheet>
+        </FormSheet>
     );
 }

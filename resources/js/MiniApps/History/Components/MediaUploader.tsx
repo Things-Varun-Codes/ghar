@@ -1,11 +1,10 @@
-import { router, usePage } from '@inertiajs/react';
+import { router } from '@inertiajs/react';
 import { AlertCircle, Check, Play, X } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { readXsrfToken } from '@/lib/csrf';
 import { captureSilent } from '@/lib/observability';
 import media from '@/routes/apps/our-history/media';
-import type { Auth } from '@/types/auth';
 import { captureVideoPoster } from './VideoPosterCapture';
 
 type FileState = 'staged' | 'queued' | 'uploading' | 'done' | 'failed';
@@ -180,17 +179,6 @@ function readUploadErrorMessage(err: unknown): string {
 }
 
 export default function MediaUploader({ eventId, onStagedCountChange }: Props) {
-    const { auth } = usePage<{ auth: Auth }>().props;
-    const userRole: 'admin' | 'user' | 'guest' = auth.user
-        ? auth.user.roles?.[0] === 'admin'
-            ? 'admin'
-            : 'user'
-        : 'guest';
-    const userRoleRef = useRef(userRole);
-
-    useEffect(() => {
-        userRoleRef.current = userRole;
-    }, [userRole]);
     const [files, setFiles] = useState<FileEntry[]>([]);
     const [dragOver, setDragOver] = useState(false);
     const inputRef = useRef<HTMLInputElement>(null);
@@ -242,7 +230,6 @@ export default function MediaUploader({ eventId, onStagedCountChange }: Props) {
                                 component: 'History/MediaUploader',
                                 action: 'media.upload',
                                 surface: 'frontend',
-                                user_role: userRoleRef.current,
                                 extra: {
                                     payload: {
                                         eventId: targetEventId,
@@ -387,7 +374,6 @@ export default function MediaUploader({ eventId, onStagedCountChange }: Props) {
                             component: 'History/MediaUploader',
                             action: 'media.upload.retry',
                             surface: 'frontend',
-                            user_role: userRoleRef.current,
                             extra: {
                                 payload: {
                                     eventId,

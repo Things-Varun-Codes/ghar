@@ -1,17 +1,6 @@
 import { MoreHorizontal } from 'lucide-react';
 import { useState } from 'react';
 import {
-    AlertDialog,
-    AlertDialogAction,
-    AlertDialogCancel,
-    AlertDialogContent,
-    AlertDialogDescription,
-    AlertDialogFooter,
-    AlertDialogHeader,
-    AlertDialogTitle,
-} from '@/components/ui/alert-dialog';
-import { buttonVariants } from '@/components/ui/button';
-import {
     DropdownMenu,
     DropdownMenuContent,
     DropdownMenuItem,
@@ -20,6 +9,7 @@ import {
 import { useMenuAction } from '@/hooks/use-menu-action';
 import { cn } from '@/lib/utils';
 import AppCard from '@/Shell/Components/AppCard';
+import ConfirmDialog from '@/Shell/Components/ConfirmDialog';
 
 export type FlowerEntry = { key: string; name: string; meaning: string };
 
@@ -105,32 +95,19 @@ export default function NoteCard({ message, onDelete, isFocused }: Props) {
             </div>
 
             {message.is_mine && onDelete && (
-                <AlertDialog open={confirmOpen} onOpenChange={setConfirmOpen}>
-                    <AlertDialogContent>
-                        <AlertDialogHeader>
-                            <AlertDialogTitle>
-                                Delete this note?
-                            </AlertDialogTitle>
-                            <AlertDialogDescription>
-                                This can&apos;t be undone.
-                            </AlertDialogDescription>
-                        </AlertDialogHeader>
-                        <AlertDialogFooter>
-                            <AlertDialogCancel>Keep it</AlertDialogCancel>
-                            <AlertDialogAction
-                                className={buttonVariants({
-                                    variant: 'destructive',
-                                })}
-                                onClick={() => {
-                                    setConfirmOpen(false);
-                                    onDelete?.();
-                                }}
-                            >
-                                Delete
-                            </AlertDialogAction>
-                        </AlertDialogFooter>
-                    </AlertDialogContent>
-                </AlertDialog>
+                <ConfirmDialog
+                    open={confirmOpen}
+                    onOpenChange={setConfirmOpen}
+                    title="Delete this note?"
+                    description="This can't be undone."
+                    cancelLabel="Keep it"
+                    confirmLabel="Delete"
+                    variant="destructive"
+                    onConfirm={() => {
+                        setConfirmOpen(false);
+                        onDelete();
+                    }}
+                />
             )}
         </AppCard>
     );

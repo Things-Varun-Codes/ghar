@@ -1,0 +1,77 @@
+import { Link } from '@inertiajs/react';
+import type { ComponentProps, ReactNode } from 'react';
+import { useId } from 'react';
+
+import { cn } from '@/lib/utils';
+
+type Props = {
+    href: string;
+    prefetch: ComponentProps<typeof Link>['prefetch'];
+    /* The link's text: the door's name. */
+    name: ReactNode;
+    /* What the room shows of what's behind the door; hidden from assistive tech. */
+    peek: ReactNode;
+    /* The line under the name, which the link points to as its description. */
+    live: ReactNode;
+    /* Room classes for the card, the peek box, the heading and the live line. */
+    className: string;
+    peekClassName: string;
+    nameClassName: string;
+    liveClassName: string;
+    /* Inside the heading, before the link: an icon. */
+    nameBefore?: ReactNode;
+    /* Beside the heading, wrapped with it in `headClassName`: a menu. */
+    aside?: ReactNode;
+    headClassName?: string;
+};
+
+/* A card on a room's landing that opens one of its pages from anywhere on it. */
+export default function RoomDoor({
+    href,
+    prefetch,
+    name,
+    peek,
+    live,
+    className,
+    peekClassName,
+    nameClassName,
+    liveClassName,
+    nameBefore,
+    aside,
+    headClassName,
+}: Props) {
+    const liveId = useId();
+
+    const heading = (
+        <h2 className={nameClassName}>
+            {nameBefore}
+            <Link
+                href={href}
+                prefetch={prefetch}
+                aria-describedby={liveId}
+                className="shell-card-link"
+            >
+                {name}
+            </Link>
+        </h2>
+    );
+
+    return (
+        <article className={cn(className, 'shell-card-stretch shell-lift')}>
+            <div className={peekClassName} aria-hidden="true">
+                {peek}
+            </div>
+            {aside === undefined ? (
+                heading
+            ) : (
+                <div className={headClassName}>
+                    {heading}
+                    {aside}
+                </div>
+            )}
+            <p id={liveId} className={liveClassName}>
+                {live}
+            </p>
+        </article>
+    );
+}

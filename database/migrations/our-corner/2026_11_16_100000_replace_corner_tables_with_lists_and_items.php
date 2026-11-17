@@ -1,6 +1,5 @@
 <?php
 
-use App\MiniApps\Corner\Support\LinkKey;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\DB;
@@ -190,7 +189,7 @@ return new class extends Migration
             ->orderBy('id')
             ->get(['id', 'url'])
             ->each(function (object $row) use (&$seen): void {
-                $key = LinkKey::for((string) $row->url);
+                $key = self::linkKey((string) $row->url);
                 $unique = $key !== null && ! isset($seen[$key]);
                 if ($unique) {
                     $seen[$key] = true;
@@ -198,9 +197,58 @@ return new class extends Migration
 
                 DB::table('corner_items')->where('id', $row->id)->update([
                     'url_key' => $unique ? $key : null,
-                    'site_name' => LinkKey::siteOf((string) $row->url),
+                    'site_name' => self::siteOf((string) $row->url),
                 ]);
             });
+    }
+
+    // Frozen copies of the link-key rules as of this migration, so a later change to the
+    // application's LinkKey cannot change what a fresh migrate writes.
+    private static function linkKey(string $url): ?string
+    {
+        $normal = self::normalise($url);
+
+        return $normal === null ? null : hash('sha256', $normal);
+    }
+
+    private static function normalise(string $url): ?string
+    {
+        $parts = parse_url(trim($url));
+        $scheme = strtolower($parts['scheme'] ?? '');
+        $host = strtolower($parts['host'] ?? '');
+
+        if (! in_array($scheme, ['http', 'https'], true) || $host === '') {
+            return null;
+        }
+
+        $port = $parts['port'] ?? null;
+        $port = ($port === null || ($scheme === 'http' && $port === 80) || ($scheme === 'https' && $port === 443))
+            ? ''
+            : ':'.$port;
+
+        $path = rtrim($parts['path'] ?? '', '/');
+
+        parse_str($parts['query'] ?? '', $query);
+        $query = array_filter(
+            $query,
+            fn (mixed $value, int|string $key): bool => preg_match('/^(utm_[a-z]+|fbclid|gclid|mc_cid|mc_eid|igshid|si)$/i', (string) $key) !== 1,
+            ARRAY_FILTER_USE_BOTH,
+        );
+        ksort($query);
+        $query = $query === [] ? '' : '?'.http_build_query($query);
+
+        return "{$scheme}://{$host}{$port}{$path}{$query}";
+    }
+
+    private static function siteOf(string $url): ?string
+    {
+        $host = strtolower((string) parse_url(trim($url), PHP_URL_HOST));
+
+        if ($host === '') {
+            return null;
+        }
+
+        return mb_substr(preg_replace('/^www\./', '', $host) ?? $host, 0, 120);
     }
 
     private function assertMoved(string $table, int $listId): void

@@ -2,8 +2,8 @@ import { ArrowRight, MapPin } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
+import type { HistoryEvent } from '@/MiniApps/History/lib/types';
 import BodyHtml from './BodyHtml';
-import type { LinkedThings } from './BodyHtml';
 import MediaGrid from './MediaGrid';
 import type { MediaItem } from './MediaGrid';
 import PhotoSwipeGallery from './PhotoSwipeGallery';
@@ -11,34 +11,6 @@ import type {
     GalleryMediaItem,
     PhotoSwipeGalleryHandle,
 } from './PhotoSwipeGallery';
-
-type Change = {
-    id: number;
-    action: string;
-    summary: string;
-    user_name: string;
-    created_at: string;
-};
-
-type HistoryEvent = {
-    id: number;
-    date: string; // 'Y-m-d' format — EventResource
-    date_label: string; // e.g. "4 Jun 2024"
-    year: number;
-    title: string | null;
-    location_freetext: string | null;
-    location_place_id: string | null;
-    location_name: string | null;
-    location_address: string | null;
-    location_lat: number | null;
-    location_lng: number | null;
-    body_html: string | null;
-    links?: LinkedThings;
-    created_at: string;
-    updated_at: string;
-    media: MediaItem[];
-    changes: Change[];
-};
 
 type EventCardProps = {
     event: HistoryEvent;

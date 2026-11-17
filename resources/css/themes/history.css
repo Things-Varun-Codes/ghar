@@ -1619,27 +1619,14 @@
 
 /* ---- Confirm dialogs ---- */
 
-[data-app='our-history'].history-alert-overlay,
-[data-app='our-history'].history-delete-overlay {
-    position: fixed;
-    inset: 0;
-    background-color: var(--history-overlay);
-}
-
-[data-app='our-history'].history-alert-overlay {
-    z-index: var(--z-overlay-raised);
-}
-
-[data-app='our-history'].history-delete-overlay {
-    z-index: var(--z-overlay);
-}
-
-[data-app='our-history'].history-alert-dialog,
-[data-app='our-history'].history-delete-dialog {
+/* On the shell's AlertDialog, which centres and animates with translate. */
+[data-app='our-history'].history-alert-dialog {
     position: fixed;
     top: 50%;
     left: 50%;
-    transform: translate(-50%, -50%);
+    z-index: calc(var(--z-overlay-raised) + 1);
+    display: block;
+    transform: none;
     background-color: var(--history-card);
     border: 1px solid var(--history-rule);
     border-radius: var(--history-radius-card);
@@ -1649,30 +1636,13 @@
     width: calc(100% - 2rem);
 }
 
-[data-app='our-history'].history-alert-dialog {
-    z-index: calc(var(--z-overlay-raised) + 1);
-}
-
-[data-app='our-history'].history-delete-dialog {
-    z-index: calc(var(--z-overlay) + 1);
-}
-
-/* The discard prompt is the shell's AlertDialog, which centres and animates with translate. */
-[data-app='our-history'].history-discard-dialog {
-    display: block;
-    transform: none;
-}
-
 @variant md {
-    [data-app='our-history'].history-alert-dialog,
-    [data-app='our-history'].history-delete-dialog {
+    [data-app='our-history'].history-alert-dialog {
         padding: 32px;
     }
 }
 
-[data-app='our-history'] .history-alert-title,
-[data-app='our-history'] .history-alert-title-lg,
-[data-app='our-history'] .history-delete-title {
+[data-app='our-history'] .history-alert-title-lg {
     font-family: var(--history-font-display);
     font-size: var(--text-title);
     font-weight: 400;
@@ -1683,8 +1653,7 @@
     margin: 0 0 8px 0;
 }
 
-[data-app='our-history'] .history-alert-body,
-[data-app='our-history'] .history-delete-body {
+[data-app='our-history'] .history-alert-body {
     font-family: var(--history-font-sans);
     font-size: var(--text-body);
     font-weight: 400;

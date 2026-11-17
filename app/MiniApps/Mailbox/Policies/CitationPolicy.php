@@ -9,7 +9,7 @@ class CitationPolicy
 {
     public function view(User $user, Citation $citation): bool
     {
-        return $user->id === $citation->issuer_id || $user->id === $citation->recipient_id;
+        return $citation->isParty($user);
     }
 
     public function pay(User $user, Citation $citation): bool

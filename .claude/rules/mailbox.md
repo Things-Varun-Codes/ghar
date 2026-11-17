@@ -19,15 +19,21 @@ Our Corner keeps the household's shared lists.
   (`messages`), `flowers`, `citations` and `coupons` as options of the room through
   `Rooms::registerOption()` from `MailboxServiceProvider::boot()`; an option with no row is on.
   Routes sit behind `room:our-mailbox,{type}`, so an off type 404s and its writes (and so its push)
-  cannot happen; the landing gets a `types` prop and `MailboxSummary` / `MailboxPeeks` skip it. Rows
-  are kept. The old `/apps/our-mailbox/challans/{id?}` addresses 301 to `citations`, because
+  cannot happen; `MailboxSummary` / `MailboxPeeks` skip it. Rows are kept. `EntryTypes` holds
+  each type's label and the landing order, and sends the landing the types that are on as
+  `types` (`key`, `label`); `Pages/Landing.tsx` draws each door from its `DOORS` map (href, live
+  line, peek). A new type is one `EntryTypes` entry and one `DOORS` entry. The old `/apps/our-mailbox/challans/{id?}` addresses 301 to `citations`, because
   delivered push notifications and bookmarks hold them.
 
-- Messages, Flowers, Citations and Coupons all resolve through `App\Shell\Support\CursorList` with
-  free-text `?q` and whitelisted `?sort` (`recent`/`oldest`, server-authoritative). No status
-  column, so `counts` arrive degraded (`active` = `all`, `done` = 0). Each renders `ListNavBand`
+- Messages, Flowers, Citations and Coupons all resolve through `App\Shell\Support\ListPage` (over
+  `CursorList`) with free-text `?q` and whitelisted `?sort` (`ListPage::chronological()`:
+  `recent`/`oldest`, server-authoritative). No status column, so `counts` arrive degraded
+  (`active` = `all`, `done` = 0). Each renders `ListNavBand`
   with the server count ("3 notes") left of Sort. Search columns: Messages `body`; Flowers `note`;
   Citations `offence`/`penalty`/`incident_place`/`remarks`; Coupons `title`/`description`.
+- Writes are throttled by Mailbox's own `mailbox-mutations` limiter, and bouquet generation by
+  `bouquet-generate` (3 a minute, each call spends Workers AI quota); both are defined in
+  `MailboxServiceProvider::boot()`.
 - **Citations** — mock traffic tickets. `mailbox_citations`.
   `ref_no` = `OC/{year}/{padded id}` (`OC` frozen). `ref_no`/`status`/`issuer_id` guarded;
   `offence` (≤120) and `penalty` (≤80) fillable. Lifecycle `issued → paid` only: recipient-only

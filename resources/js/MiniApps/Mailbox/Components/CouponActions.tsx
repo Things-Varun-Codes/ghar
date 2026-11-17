@@ -1,17 +1,6 @@
 import { router } from '@inertiajs/react';
 import { useState } from 'react';
 
-import {
-    AlertDialog,
-    AlertDialogAction,
-    AlertDialogCancel,
-    AlertDialogContent,
-    AlertDialogDescription,
-    AlertDialogFooter,
-    AlertDialogHeader,
-    AlertDialogTitle,
-} from '@/components/ui/alert-dialog';
-import { buttonVariants } from '@/components/ui/button';
 import { mutationOptions } from '@/lib/mutation';
 import type { CouponPayload } from '@/MiniApps/Mailbox/Components/CouponCard';
 import {
@@ -20,6 +9,7 @@ import {
     fulfill,
     request,
 } from '@/routes/apps/our-mailbox/coupons';
+import ConfirmDialog from '@/Shell/Components/ConfirmDialog';
 import SubmitButton from '@/Shell/Components/SubmitButton';
 
 type Pending = 'request' | 'fulfill' | 'cancel' | 'delete' | null;
@@ -62,7 +52,6 @@ export default function CouponActions({
             {},
             {
                 preserveScroll: true,
-                preserveState: false,
                 ...mutationOptions({
                     component: 'Mailbox/CouponActions',
                     action: `coupon.${kind}`,
@@ -79,7 +68,6 @@ export default function CouponActions({
 
         router.delete(destroy.url(coupon.id), {
             preserveScroll: true,
-            preserveState: false,
             ...mutationOptions({
                 component: 'Mailbox/CouponActions',
                 action: 'coupon.delete',
@@ -157,30 +145,16 @@ export default function CouponActions({
                 )}
             </div>
 
-            <AlertDialog open={confirmOpen} onOpenChange={setConfirmOpen}>
-                <AlertDialogContent>
-                    <AlertDialogHeader>
-                        <AlertDialogTitle>
-                            Withdraw this coupon?
-                        </AlertDialogTitle>
-                        <AlertDialogDescription>
-                            This removes it for them too. There's no undo.
-                        </AlertDialogDescription>
-                    </AlertDialogHeader>
-                    <AlertDialogFooter>
-                        <AlertDialogCancel>Keep it</AlertDialogCancel>
-                        <AlertDialogAction
-                            className={buttonVariants({
-                                variant: 'destructive',
-                            })}
-                            disabled={busy}
-                            onClick={handleDelete}
-                        >
-                            Withdraw
-                        </AlertDialogAction>
-                    </AlertDialogFooter>
-                </AlertDialogContent>
-            </AlertDialog>
+            <ConfirmDialog
+                open={confirmOpen}
+                onOpenChange={setConfirmOpen}
+                title="Withdraw this coupon?"
+                description="This removes it for them too. There's no undo."
+                cancelLabel="Keep it"
+                confirmLabel="Withdraw"
+                variant="destructive"
+                onConfirm={handleDelete}
+            />
         </>
     );
 }

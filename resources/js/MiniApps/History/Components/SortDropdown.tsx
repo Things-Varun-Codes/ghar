@@ -1,34 +1,25 @@
 import { router } from '@inertiajs/react';
-import { Check, ChevronDown } from 'lucide-react';
 
-import {
-    DropdownMenu,
-    DropdownMenuContent,
-    DropdownMenuItem,
-    DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
 import { buildSortHref } from '@/MiniApps/History/lib/sortUrl';
+import type { ChoiceItem } from '@/Shell/Components/ChoiceMenu';
+import ChoiceMenu from '@/Shell/Components/ChoiceMenu';
+
+type Order = 'newest-first' | 'oldest-first';
 
 type Props = {
-    currentOrder: 'newest-first' | 'oldest-first';
+    currentOrder: Order;
     basePath: string;
     extraParams?: Record<string, string | number>;
 };
 
-type SortOption = {
-    order: 'newest-first' | 'oldest-first';
-    label: string;
-    hint: string;
-};
-
-const SORT_OPTIONS: SortOption[] = [
+const SORT_OPTIONS: ChoiceItem[] = [
     {
-        order: 'newest-first',
+        key: 'newest-first',
         label: 'Newest first',
         hint: 'most recent at top',
     },
     {
-        order: 'oldest-first',
+        key: 'oldest-first',
         label: 'From the beginning',
         hint: 'oldest first',
     },
@@ -39,67 +30,26 @@ export default function SortDropdown({
     basePath,
     extraParams = {},
 }: Props) {
-    const activeLabel =
-        currentOrder === 'newest-first' ? 'Newest first' : 'From the beginning';
-
-    function handleSelect(targetOrder: 'newest-first' | 'oldest-first') {
-        if (targetOrder === currentOrder) {
-            return;
-        }
-
-        const href = buildSortHref(targetOrder, basePath, extraParams);
-        router.get(href, {}, { preserveScroll: true, preserveState: true });
-    }
-
     return (
-        <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-                <button
-                    type="button"
-                    className="history-sort-trigger shell-press"
-                >
-                    <span>Sort: {activeLabel}</span>
-                    <ChevronDown
-                        aria-hidden="true"
-                        size={14}
-                        strokeWidth={1.5}
-                        className="shrink-0 opacity-[0.6]"
-                    />
-                </button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="history-sort-menu">
-                {SORT_OPTIONS.map(({ order, label, hint }) => {
-                    const isActive = order === currentOrder;
-
-                    return (
-                        <DropdownMenuItem
-                            key={order}
-                            onSelect={() => handleSelect(order)}
-                            className="history-sort-item"
-                        >
-                            <span>
-                                <span
-                                    className="block font-sans text-(length:--text-small)"
-                                    style={{ fontWeight: isActive ? 500 : 400 }}
-                                >
-                                    {label}
-                                </span>
-                                <span className="history-sort-hint">
-                                    {hint}
-                                </span>
-                            </span>
-                            {isActive && (
-                                <Check
-                                    aria-hidden="true"
-                                    size={14}
-                                    strokeWidth={1.5}
-                                    className="shrink-0 text-(--history-accent-ink-strong)"
-                                />
-                            )}
-                        </DropdownMenuItem>
-                    );
-                })}
-            </DropdownMenuContent>
-        </DropdownMenu>
+        <ChoiceMenu
+            label="Sort"
+            value={currentOrder}
+            items={SORT_OPTIONS}
+            onSelect={(order) => {
+                router.get(
+                    buildSortHref(order as Order, basePath, extraParams),
+                    {},
+                    { preserveScroll: true, preserveState: true },
+                );
+            }}
+            classNames={{
+                trigger: 'history-sort-trigger shell-press',
+                menu: 'history-sort-menu',
+                item: 'history-sort-item',
+                itemLabel: 'font-sans text-(length:--text-small)',
+                hint: 'history-sort-hint',
+                check: 'text-(--history-accent-ink-strong)',
+            }}
+        />
     );
 }

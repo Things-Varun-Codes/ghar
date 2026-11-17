@@ -1,24 +1,15 @@
-import { useForm } from '@inertiajs/react';
 import type { FormEvent } from 'react';
 import { useEffect, useId, useState } from 'react';
-import { useDirtyFormGate } from '@/hooks/use-dirty-form-gate';
 import { readXsrfToken } from '@/lib/csrf';
-import { transportFailureOptions } from '@/lib/mutation';
 import { captureSilent } from '@/lib/observability';
 import CharCount from '@/MiniApps/Mailbox/Components/CharCount';
-import ComposeSheet from '@/MiniApps/Mailbox/Components/ComposeSheet';
 import type { FlowerEntry } from '@/MiniApps/Mailbox/Components/NoteCard';
 import type { HouseholdMember } from '@/MiniApps/Mailbox/Components/RecipientPicker';
-import RecipientPicker, {
-    defaultRecipientIds,
-} from '@/MiniApps/Mailbox/Components/RecipientPicker';
-import {
-    reportRejected,
-    SEND_FAILED_MESSAGE,
-    toastUnshownErrors,
-} from '@/MiniApps/Mailbox/lib/visitFailure';
+import RecipientPicker from '@/MiniApps/Mailbox/Components/RecipientPicker';
+import { useComposeForm } from '@/MiniApps/Mailbox/Hooks/useComposeForm';
 import { generate, store } from '@/routes/apps/our-mailbox/bouquets';
 import FormField from '@/Shell/Components/FormField';
+import FormSheet from '@/Shell/Components/FormSheet';
 import SubmitButton from '@/Shell/Components/SubmitButton';
 
 type BouquetFormShape = {
@@ -38,11 +29,6 @@ type Props = {
 
 const MAX_FLOWERS = 5;
 const NOTE_MAX = 600;
-
-const isShownField = (key: string) =>
-    key === 'note' ||
-    key.startsWith('flowers') ||
-    key.startsWith('recipient_ids');
 
 /* An object URL, not a data: URI: ~1.4 MB of base64 in the DOM freezes iOS Safari scrolling. */
 function base64ToObjectUrl(base64: string, mime: string): string | null {
@@ -67,7 +53,6 @@ export default function BouquetSheet({
     flowers,
     members,
 }: Props) {
-    const hintId = useId();
     const flowersNoteId = useId();
     const [generating, setGenerating] = useState(false);
     const [genError, setGenError] = useState<string | null>(null);
@@ -85,23 +70,33 @@ export default function BouquetSheet({
         };
     }, [previewUrl]);
 
-    const form = useForm<BouquetFormShape>({
-        recipient_ids: defaultRecipientIds(members),
-        flowers: [],
-        note: '',
-        image: null,
-        mime: '',
+    const compose = useComposeForm<BouquetFormShape>({
+        component: 'Mailbox/BouquetSheet',
+        action: 'bouquet.create',
+        members,
+        fields: {
+            flowers: [],
+            note: '',
+            image: null,
+            mime: '',
+        },
+        dirtyFields: ['note'],
+        shownFields: ['note', 'flowers'],
+        noRecipientHint: 'Choose who they’re for.',
+        missing: (data) =>
+            data.flowers.length === 0
+                ? 'Pick at least one flower.'
+                : generating
+                  ? null
+                  : data.image === null || genError !== null
+                    ? 'Arrange the bouquet first.'
+                    : null,
     });
-    const { data, setData, post, processing, errors, reset } = form;
-
-    const { isDirty: noteIsDirty, reset: gateReset } = useDirtyFormGate(form, {
-        fields: ['note'],
-    });
-    const isDirty = noteIsDirty || data.image !== null;
+    const { data, setData, processing, errors } = compose.form;
+    const isDirty = compose.isDirty || data.image !== null;
 
     const handleReset = () => {
-        reset();
-        gateReset();
+        compose.reset();
         setRefine('');
         setGenerating(false);
         setGenError(null);
@@ -182,17 +177,7 @@ export default function BouquetSheet({
         }
     };
 
-    const hint =
-        data.recipient_ids.length === 0
-            ? 'Choose who they’re for.'
-            : data.flowers.length === 0
-              ? 'Pick at least one flower.'
-              : generating
-                ? null
-                : data.image === null || genError !== null
-                  ? 'Arrange the bouquet first.'
-                  : null;
-    const sendDisabled = processing || generating || hint !== null;
+    const sendDisabled = processing || generating || compose.hint !== null;
 
     const handleSend = (event: FormEvent<HTMLFormElement>) => {
         event.preventDefault();
@@ -201,22 +186,11 @@ export default function BouquetSheet({
             return;
         }
 
-        post(store.url(), {
-            preserveScroll: true,
-            preserveState: 'errors',
+        compose.send(store.url(), {
             onSuccess: () => {
                 handleReset();
                 onOpenChange(false);
             },
-            onError: (errs) => {
-                toastUnshownErrors(errs, isShownField, SEND_FAILED_MESSAGE);
-                reportRejected('Mailbox/BouquetSheet', 'bouquet.create', errs);
-            },
-            ...transportFailureOptions({
-                component: 'Mailbox/BouquetSheet',
-                action: 'bouquet.create',
-                message: SEND_FAILED_MESSAGE,
-            }),
         });
     };
 
@@ -225,7 +199,7 @@ export default function BouquetSheet({
     )?.[1];
 
     return (
-        <ComposeSheet
+        <FormSheet
             open={open}
             onOpenChange={(next) => {
                 if (!next) {
@@ -238,17 +212,18 @@ export default function BouquetSheet({
             description="Pick flowers, arrange a bouquet and choose who it goes to."
             isDirty={isDirty}
             discardTitle="Discard this bouquet?"
-            discardBody="Your flower selection and preview will be lost."
+            discardDescription="Your flower selection and preview will be lost."
             onDiscard={handleReset}
             onSubmit={handleSend}
-            hint={processing ? null : hint}
-            hintId={hintId}
-            actions={
+            hint={compose.sheetHint}
+            hintId={compose.hintId}
+            width={640}
+            footer={
                 <SubmitButton
                     processing={processing}
                     disabled={sendDisabled}
                     busyText="Sending…"
-                    aria-describedby={hint ? hintId : undefined}
+                    aria-describedby={compose.describedBy}
                 >
                     Send bouquet
                 </SubmitButton>
@@ -397,6 +372,6 @@ export default function BouquetSheet({
                 </FormField>
                 <CharCount length={data.note.length} max={NOTE_MAX} />
             </div>
-        </ComposeSheet>
+        </FormSheet>
     );
 }

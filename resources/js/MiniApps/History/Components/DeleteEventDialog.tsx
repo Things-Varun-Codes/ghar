@@ -1,17 +1,13 @@
-import { router, usePage } from '@inertiajs/react';
-import * as DialogPrimitive from '@radix-ui/react-dialog';
-import { toast } from 'sonner';
-import { Button } from '@/components/ui/button';
-import { useAppAttrs } from '@/hooks/use-app-attrs';
-import { captureSilent } from '@/lib/observability';
+import { router } from '@inertiajs/react';
+import { mutationOptions } from '@/lib/mutation';
+import { HISTORY_CONFIRM_CLASSES } from '@/MiniApps/History/lib/confirmDialog';
 import events from '@/routes/apps/our-history/events';
-import type { Auth } from '@/types/auth';
+import ConfirmDialog from '@/Shell/Components/ConfirmDialog';
 
 type Props = {
     open: boolean;
     onOpenChange: (open: boolean) => void;
     eventId: number;
-    onDeleting?: (deleting: boolean) => void;
     onDeleted?: () => void;
 };
 
@@ -19,85 +15,36 @@ export default function DeleteEventDialog({
     open,
     onOpenChange,
     eventId,
-    onDeleting,
     onDeleted,
 }: Props) {
-    const appAttrs = useAppAttrs();
-    const { auth } = usePage<{ auth: Auth }>().props;
-    const userRole: 'admin' | 'user' | 'guest' = auth.user
-        ? auth.user.roles?.[0] === 'admin'
-            ? 'admin'
-            : 'user'
-        : 'guest';
-
     function handleDelete() {
-        onDeleting?.(true);
         router.delete(events.destroy(eventId).url, {
             onSuccess: () => {
                 onOpenChange(false);
                 onDeleted?.();
             },
-            onError: (errors) => {
-                captureSilent(new Error('event.delete failed'), {
-                    component: 'History/DeleteEventDialog',
-                    action: 'event.delete',
-                    surface: 'frontend',
-                    user_role: userRole,
-                    extra: {
-                        payload: { eventId, errors },
-                        http_status: 422,
-                    },
-                });
-                onOpenChange(false);
-                toast.error("Couldn't delete this moment. Try again.");
-            },
-            onFinish: () => {
-                onDeleting?.(false);
-            },
+            ...mutationOptions({
+                component: 'History/DeleteEventDialog',
+                action: 'event.delete',
+                message: "Couldn't delete this moment. Try again.",
+            }),
         });
     }
 
     return (
-        <DialogPrimitive.Root open={open} onOpenChange={onOpenChange}>
-            <DialogPrimitive.Portal>
-                <DialogPrimitive.Overlay
-                    className="history-delete-overlay"
-                    {...appAttrs}
-                />
-                <DialogPrimitive.Content
-                    {...appAttrs}
-                    className="history-delete-dialog"
-                >
-                    <DialogPrimitive.Title className="history-delete-title">
-                        Delete this moment?
-                    </DialogPrimitive.Title>
-                    <DialogPrimitive.Description className="history-delete-body">
-                        This removes the moment and its photos and videos.
-                        There's no undo.
-                    </DialogPrimitive.Description>
-
-                    <div className="flex justify-end gap-3">
-                        <DialogPrimitive.Close asChild>
-                            <Button
-                                type="button"
-                                variant="outline"
-                                className="history-btn-keep-event h-auto shadow-none"
-                            >
-                                Keep it
-                            </Button>
-                        </DialogPrimitive.Close>
-
-                        <Button
-                            type="button"
-                            variant="destructive"
-                            onClick={handleDelete}
-                            className="history-btn-destructive h-auto shadow-none"
-                        >
-                            Delete moment
-                        </Button>
-                    </div>
-                </DialogPrimitive.Content>
-            </DialogPrimitive.Portal>
-        </DialogPrimitive.Root>
+        <ConfirmDialog
+            open={open}
+            onOpenChange={onOpenChange}
+            title="Delete this moment?"
+            description="This removes the moment and its photos and videos. There's no undo."
+            cancelLabel="Keep it"
+            confirmLabel="Delete moment"
+            variant="destructive"
+            onConfirm={handleDelete}
+            classNames={{
+                ...HISTORY_CONFIRM_CLASSES,
+                cancel: 'history-btn-keep-event h-auto shadow-none',
+            }}
+        />
     );
 }

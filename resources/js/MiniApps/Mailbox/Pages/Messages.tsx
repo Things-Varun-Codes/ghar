@@ -28,7 +28,6 @@ export default function Messages({ messages, tab, sort, q, members }: Props) {
     const handleDelete = (id: number) => {
         router.delete(destroy.url(id), {
             preserveScroll: true,
-            preserveState: false,
             ...mutationOptions({
                 component: 'Mailbox/Messages',
                 action: 'message.delete',
