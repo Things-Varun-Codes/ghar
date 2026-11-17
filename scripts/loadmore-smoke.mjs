@@ -157,8 +157,13 @@ async function installFaultRoute(page, handler) {
 
 const songTileSelector =
     '#corner-list-panel a[href^="/apps/our-corner/songs/"]';
-const pendingRowSelector = '#corner-list-panel [role="status"]';
-const alertRowSelector = '#corner-list-panel [role="alert"]';
+// Reassigned for the History case: the failure helpers read whichever list is under test.
+let pendingRowSelector = '#corner-list-panel [role="status"]';
+let alertRowSelector = '#corner-list-panel [role="alert"]';
+
+const TIMELINE_PAGE_SIZE = 20;
+const momentCardSelector =
+    '.history-timeline-body article.history-event-card';
 const errorDialogSelector = 'dialog#inertia-error-dialog';
 
 async function assertNoErrorDialog(page, caseLabel) {
@@ -366,6 +371,61 @@ async function main() {
             pass('Case C (recovery): alert row cleared after recovery');
         } catch (err) {
             fail('Case C (recovery)', err.message);
+        }
+
+        console.log(
+            '\n[loadmore-smoke] === Case D: History timeline, failure then retry ===',
+        );
+        pendingRowSelector = '.history-timeline-body [role="status"]';
+        alertRowSelector = '.history-timeline-body [role="alert"]';
+
+        try {
+            await page.goto(`${BASE_URL}/apps/our-history`, {
+                waitUntil: 'networkidle',
+            });
+
+            const firstPage = await page.locator(momentCardSelector).count();
+
+            if (firstPage !== TIMELINE_PAGE_SIZE) {
+                throw new Error(
+                    `expected ${TIMELINE_PAGE_SIZE} moments on the initial page, found ${firstPage} — fixture or selector mismatch, not a pagination defect`,
+                );
+            }
+
+            const caseD = await installFaultRoute(page, (route) =>
+                route.abort('connectionrefused'),
+            );
+
+            try {
+                await triggerLoadMoreAndAssertFailure(
+                    page,
+                    'Case D (History transport failure)',
+                    caseD.signal,
+                );
+            } finally {
+                await caseD.uninstall();
+            }
+
+            await page.getByRole('button', { name: RETRY_BUTTON_NAME }).click();
+            await page
+                .locator(momentCardSelector)
+                .nth(TIMELINE_PAGE_SIZE)
+                .waitFor({ state: 'visible', timeout: 10_000 });
+            pass('Case D (History recovery): retry appends moments past first page');
+
+            const remainingAlerts = await page
+                .locator(alertRowSelector)
+                .count();
+
+            if (remainingAlerts > 0) {
+                throw new Error(
+                    `expected the alert row to be gone after recovery, found ${remainingAlerts}`,
+                );
+            }
+
+            pass('Case D (History recovery): alert row cleared after recovery');
+        } catch (err) {
+            fail('Case D (History)', err.message);
         }
 
         if (pageErrorCount > 0 || consoleFailures.length > 0) {
