@@ -19,8 +19,8 @@ import {
 import { useAppAttrs } from '@/hooks/use-app-attrs';
 import { useIsPhone } from '@/hooks/use-breakpoint';
 import { useOverlayHistory } from '@/hooks/use-overlay-history';
-import LinkableIcon from '@/Shell/linkables/LinkableIcon';
 import { search as linkableSearch } from '@/routes/linkable';
+import LinkableIcon from '@/Shell/linkables/LinkableIcon';
 
 const SEARCH_DEBOUNCE_MS = 250;
 const TITLE = 'Link to something';
