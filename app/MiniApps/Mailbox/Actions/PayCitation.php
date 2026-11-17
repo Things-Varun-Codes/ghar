@@ -3,14 +3,15 @@
 namespace App\MiniApps\Mailbox\Actions;
 
 use App\MiniApps\Mailbox\Models\Citation;
+use App\MiniApps\Mailbox\Support\EntryTypes;
+use App\MiniApps\Mailbox\Support\MailboxPush;
 use App\Shell\Models\User;
-use App\Shell\Services\PushDispatcher;
 use Illuminate\Support\Facades\DB;
 
 class PayCitation
 {
     public function __construct(
-        private readonly PushDispatcher $dispatcher,
+        private readonly MailboxPush $push,
     ) {}
 
     public function __invoke(Citation $citation, User $actor): Citation
@@ -30,12 +31,11 @@ class PayCitation
 
         $firstName = $actor->firstName();
 
-        $this->dispatcher->toUsers(
+        $this->push->toEntry(
             [$citation->loadMissing('issuer')->issuer],
-            'our-mailbox',
-            'our-mailbox:citations',
+            EntryTypes::CITATIONS,
+            $citation->id,
             "{$firstName} paid your citation",
-            "/apps/our-mailbox/citations/{$citation->id}",
         );
 
         return $citation;

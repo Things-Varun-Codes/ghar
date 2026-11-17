@@ -1,0 +1,129 @@
+<?php
+
+namespace App\Shell\Support;
+
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Http\Request;
+
+/**
+ * A searchable, sortable cursor list page: the request's `sort`, `q` and (with a status column)
+ * `filter`, resolved against what the controller allows, and the page built from them.
+ */
+final class ListPage
+{
+    /** @var array<int, string> */
+    private array $searchColumns = [];
+
+    private ?string $statusColumn = null;
+
+    /** @param  array<string, array<int, array{0: string, 1: 'asc'|'desc'}>>  $sorts */
+    private function __construct(
+        private readonly Request $request,
+        private readonly Builder $base,
+        private readonly array $sorts,
+    ) {}
+
+    /**
+     * $sorts maps a slug to ordered [column, direction] pairs. It must include `recent`, and
+     * every sort must end in an `id` tiebreaker or the keyset cursor is unstable.
+     *
+     * @param  array<string, array<int, array{0: string, 1: 'asc'|'desc'}>>  $sorts
+     */
+    public static function make(Request $request, Builder $base, array $sorts): self
+    {
+        return new self($request, $base, $sorts);
+    }
+
+    /**
+     * Newest first (`recent`) and oldest first (`oldest`) on one timestamp.
+     *
+     * @return array{recent: array<int, array{0: string, 1: 'asc'|'desc'}>, oldest: array<int, array{0: string, 1: 'asc'|'desc'}>}
+     */
+    public static function chronological(string $column): array
+    {
+        return [
+            'recent' => [[$column, 'desc'], ['id', 'desc']],
+            'oldest' => [[$column, 'asc'], ['id', 'asc']],
+        ];
+    }
+
+    /** @param  array<int, string>  $columns */
+    public function searchable(array $columns): self
+    {
+        $this->searchColumns = $columns;
+
+        return $this;
+    }
+
+    /** A nullable timestamp that splits the list into active and done, and enables `?filter`. */
+    public function status(string $column): self
+    {
+        $this->statusColumn = $column;
+
+        return $this;
+    }
+
+    public function sort(): string
+    {
+        $sort = $this->request->query('sort');
+
+        return is_string($sort) && array_key_exists($sort, $this->sorts) ? $sort : 'recent';
+    }
+
+    /** @return list<string> */
+    public function sortKeys(): array
+    {
+        return array_keys($this->sorts);
+    }
+
+    public function q(): ?string
+    {
+        return trim((string) $this->request->query('q')) ?: null;
+    }
+
+    public function filter(): string
+    {
+        $filter = $this->request->query('filter');
+
+        return $this->statusColumn !== null && in_array($filter, ['active', 'done'], true)
+            ? $filter
+            : 'all';
+    }
+
+    /**
+     * The page under $key, with `sort` and `q`, and `filter` when the list has a status.
+     *
+     * @param  callable(mixed): mixed  $transform
+     * @return array<string, mixed>
+     */
+    public function props(string $key, int $perPage, callable $transform): array
+    {
+        $sort = $this->sort();
+        $q = $this->q();
+        $filter = $this->filter();
+
+        $query = clone $this->base;
+
+        foreach ($this->sorts[$sort] as [$column, $direction]) {
+            $query->orderBy($column, $direction);
+        }
+
+        $list = CursorList::make($query)->searchable($this->searchColumns, $q);
+
+        if ($this->statusColumn !== null) {
+            $list->status($this->statusColumn);
+        }
+
+        $props = [
+            $key => $list->paginate($filter, $perPage, $transform),
+            'sort' => $sort,
+            'q' => $q,
+        ];
+
+        if ($this->statusColumn !== null) {
+            $props['filter'] = $filter;
+        }
+
+        return $props;
+    }
+}

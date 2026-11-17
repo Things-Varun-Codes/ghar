@@ -68,16 +68,20 @@ class CursorList
      */
     public function paginate(string $filter, int $perPage, callable $transform): array
     {
-        // Before cursorPaginate touches its clone: a Builder is stateful.
-        $countsBase = clone $this->base;
+        $countsQuery = (clone $this->base)->toBase()->reorder();
 
-        $all = (clone $countsBase)->count();
-        $active = $this->statusColumn !== null
-            ? (clone $countsBase)->whereNull($this->statusColumn)->count()
-            : $all;
-        $done = $this->statusColumn !== null
-            ? (clone $countsBase)->whereNotNull($this->statusColumn)->count()
-            : 0;
+        if ($this->statusColumn !== null) {
+            $row = $countsQuery
+                ->selectRaw('count(*) as total, count('.$countsQuery->getGrammar()->wrap($this->statusColumn).') as done')
+                ->first();
+            $all = (int) $row->total;
+            $done = (int) $row->done;
+            $active = $all - $done;
+        } else {
+            $all = $countsQuery->count();
+            $active = $all;
+            $done = 0;
+        }
 
         $query = clone $this->base;
 

@@ -35,13 +35,17 @@ Every invited user is a household member (`App\Shell\Services\Household`: `membe
   `PushDispatcher` all ask it.
 - **Enforcement is server-side;** the `can` flags on History and Corner payloads only decide which
   buttons render.
-- **Mailbox visibility:** viewer-reachable queries start with `visibleTo($user)` or (notes and
-  flowers) `receivedBy($user)`. Notes and flowers keep recipients and per-recipient `read_at` in
-  `mailbox_message_recipients` / `mailbox_bouquet_recipients` (`HasRecipients`).
+- **Mailbox visibility:** viewer-reachable queries start with `visibleTo($user)`, `receivedBy($user)`
+  or (coupons and citations) `issuedBy($user)`. Notes and flowers keep recipients and per-recipient
+  `read_at` in `mailbox_message_recipients` / `mailbox_bouquet_recipients` (`HasRecipients`);
+  coupons and citations keep `issuer_id` and `recipient_id` on the row (`IssuedToOne`, whose
+  `isParty()` is their policies' `view`). Mailbox checks abilities with `Gate::authorize` in the
+  controller, as Corner and History do, not with a route `->can()`.
 - **Recipients** arrive as `recipient_ids`: one or more other members, never yourself
   (`ValidatesRecipients`). A coupon or citation has one recipient, so several ids issue one row each.
 - **Push:** `PushDispatcher::toHousehold($actor, …)` for new moments and Corner items;
-  `toUsers($recipients, …)` for Mailbox. Never hand-roll a recipient query.
+  `toUsers($recipients, …)` for Mailbox, through `MailboxPush`, which builds the `our-mailbox:{type}`
+  tag and the link. Never hand-roll a recipient query.
 - **Push timing — two accepted shapes, don't "harmonize" them.** Corner (`AddItem`) dispatches
   inside `DB::afterCommit(...)` within the transaction. Mailbox (`CreateMessage`, `IssueCitation`
   etc.) dispatches on the line after `DB::transaction(...)` returns. Both guarantee no push for a

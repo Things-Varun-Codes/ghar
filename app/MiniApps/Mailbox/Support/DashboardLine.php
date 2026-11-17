@@ -8,7 +8,7 @@ final class DashboardLine
 {
     public static function forUser(User $user): string
     {
-        $summary = MailboxSummary::forUser($user);
+        $summary = MailboxSummary::needsAttention($user);
 
         $unread = $summary['unread_messages'];
         $citations = $summary['citations_action_needed'];

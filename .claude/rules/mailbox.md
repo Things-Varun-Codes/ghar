@@ -23,11 +23,15 @@ Our Corner keeps the household's shared lists.
   are kept. The old `/apps/our-mailbox/challans/{id?}` addresses 301 to `citations`, because
   delivered push notifications and bookmarks hold them.
 
-- Messages, Flowers, Citations and Coupons all resolve through `App\Shell\Support\CursorList` with
-  free-text `?q` and whitelisted `?sort` (`recent`/`oldest`, server-authoritative). No status
-  column, so `counts` arrive degraded (`active` = `all`, `done` = 0). Each renders `ListNavBand`
+- Messages, Flowers, Citations and Coupons all resolve through `App\Shell\Support\ListPage` (over
+  `CursorList`) with free-text `?q` and whitelisted `?sort` (`ListPage::chronological()`:
+  `recent`/`oldest`, server-authoritative). No status column, so `counts` arrive degraded
+  (`active` = `all`, `done` = 0). Each renders `ListNavBand`
   with the server count ("3 notes") left of Sort. Search columns: Messages `body`; Flowers `note`;
   Citations `offence`/`penalty`/`incident_place`/`remarks`; Coupons `title`/`description`.
+- Writes are throttled by Mailbox's own `mailbox-mutations` limiter, and bouquet generation by
+  `bouquet-generate` (3 a minute, each call spends Workers AI quota); both are defined in
+  `MailboxServiceProvider::boot()`.
 - **Citations** — mock traffic tickets. `mailbox_citations`.
   `ref_no` = `OC/{year}/{padded id}` (`OC` frozen). `ref_no`/`status`/`issuer_id` guarded;
   `offence` (≤120) and `penalty` (≤80) fillable. Lifecycle `issued → paid` only: recipient-only

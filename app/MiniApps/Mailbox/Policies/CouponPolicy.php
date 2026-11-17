@@ -9,7 +9,7 @@ class CouponPolicy
 {
     public function view(User $user, Coupon $coupon): bool
     {
-        return $user->id === $coupon->issuer_id || $user->id === $coupon->recipient_id;
+        return $coupon->isParty($user);
     }
 
     public function request(User $user, Coupon $coupon): bool
