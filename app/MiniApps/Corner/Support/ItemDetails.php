@@ -4,7 +4,7 @@ namespace App\MiniApps\Corner\Support;
 
 use App\MiniApps\Corner\Models\Item;
 use App\MiniApps\Corner\Services\LinkPreview;
-use App\MiniApps\Corner\Services\SafeFetcher;
+use App\Shell\Support\Http\SafeFetcher;
 
 /**
  * Turns what was typed into the columns an item stores. A new or changed link is read for a
@@ -26,7 +26,7 @@ class ItemDetails
     public function for(array $data, ?Item $existing = null): array
     {
         return $this->link($data, $existing) + $this->location($data, $existing) + [
-            'notes' => self::text($data['notes'] ?? null),
+            'notes' => ItemRules::trimmed($data['notes'] ?? null),
         ];
     }
 
@@ -36,9 +36,9 @@ class ItemDetails
      */
     private function link(array $data, ?Item $existing): array
     {
-        $url = self::text($data['url'] ?? null);
-        $typedTitle = self::text($data['title'] ?? null);
-        $typedPicture = self::text($data['image_url'] ?? null);
+        $url = ItemRules::trimmed($data['url'] ?? null);
+        $typedTitle = ItemRules::trimmed($data['title'] ?? null);
+        $typedPicture = ItemRules::trimmed($data['image_url'] ?? null);
         $noPicture = (bool) ($data['no_picture'] ?? false);
 
         if ($url === null) {
@@ -55,8 +55,7 @@ class ItemDetails
             : $this->preview->lookup($url);
 
         return [
-            'url' => $url,
-            'url_key' => LinkKey::for($url),
+            ...LinkKey::columnsFor($url),
             'author' => $read['author'],
             'site_name' => $read['site_name'],
             // A link nobody could read is at least itself.
@@ -71,12 +70,12 @@ class ItemDetails
      */
     private function location(array $data, ?Item $existing): array
     {
-        $input = self::text($data['location'] ?? null);
-        $address = self::text($data['address'] ?? null);
+        $input = ItemRules::trimmed($data['location'] ?? null);
+        $address = ItemRules::trimmed($data['address'] ?? null);
 
         if ($input === null) {
             return [
-                'location_label' => null, 'location_url' => null, 'place_id' => null,
+                'location_label' => null, 'location_url' => null,
                 'lat' => null, 'lng' => null, 'address' => $address,
             ];
         }
@@ -87,7 +86,6 @@ class ItemDetails
             return [
                 'location_label' => $existing->location_label,
                 'location_url' => $existing->location_url,
-                'place_id' => $existing->place_id,
                 'lat' => $existing->lat,
                 'lng' => $existing->lng,
                 'address' => $address,
@@ -99,17 +97,9 @@ class ItemDetails
         return [
             'location_label' => $read['label'],
             'location_url' => $read['url'],
-            'place_id' => null,
             'lat' => $read['lat'],
             'lng' => $read['lng'],
             'address' => $address,
         ];
-    }
-
-    private static function text(mixed $value): ?string
-    {
-        $value = trim((string) $value);
-
-        return $value === '' ? null : $value;
     }
 }

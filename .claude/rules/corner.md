@@ -26,7 +26,7 @@ its own lists; nothing about Songs or Movies is hard-coded any more.
   provider-specific fetcher, endpoint, allowlist, CSP host or label. The one place that knows URL
   shapes is map links: `MapLink` (server) and `lib/maps.ts` ("Open in Maps": the saved link, else
   the platform's maps address), each a small table.
-- **Every outbound fetch goes through `SafeFetcher`**: http/https only, never the app or a private,
+- **Every outbound fetch goes through the shell's `SafeFetcher`** (`App\Shell\Support\Http`, for any room that fetches a pasted address; never copy it): http/https only, never the app or a private,
   loopback, link-local, CGNAT, reserved or metadata address (IPv4-in-IPv6 included), pinned to the
   checked address, redirects re-checked (at most 3), short timeouts, byte caps. A refused or failed
   fetch returns null and the item is saved with what was typed; it is never an error to the person.

@@ -3,8 +3,8 @@
 namespace Tests\Feature\Corner;
 
 use App\MiniApps\Corner\Services\LinkPreview;
-use App\MiniApps\Corner\Services\SafeFetcher;
 use App\Shell\Models\User;
+use App\Shell\Support\Http\SafeFetcher;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Support\Facades\Http;
