@@ -1,4 +1,3 @@
-import { router } from '@inertiajs/react';
 import type { FormEvent } from 'react';
 import { useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/button';
@@ -23,8 +22,6 @@ type FormShape = { recipient_ids: number[]; body: string };
 
 export default function ComposerSheet({ open, onOpenChange, members }: Props) {
     const textareaRef = useRef<HTMLTextAreaElement | null>(null);
-    // "Send & write another" keeps the page mounted, so the list is refreshed on close.
-    const sentWhileOpen = useRef(false);
 
     const compose = useComposeForm<FormShape>({
         component: 'Mailbox/ComposerSheet',
@@ -50,19 +47,6 @@ export default function ComposerSheet({ open, onOpenChange, members }: Props) {
         return undefined;
     }, [open]);
 
-    const close = () => {
-        onOpenChange(false);
-
-        if (sentWhileOpen.current) {
-            sentWhileOpen.current = false;
-            router.visit(window.location.href, {
-                preserveScroll: true,
-                preserveState: false,
-                replace: true,
-            });
-        }
-    };
-
     const disabled = processing || compose.hint !== null;
 
     const submit = (event?: FormEvent<HTMLFormElement>) => {
@@ -74,7 +58,6 @@ export default function ComposerSheet({ open, onOpenChange, members }: Props) {
 
         compose.send(store.url(), {
             onSuccess: () => {
-                sentWhileOpen.current = false;
                 compose.reset();
                 onOpenChange(false);
             },
@@ -88,11 +71,12 @@ export default function ComposerSheet({ open, onOpenChange, members }: Props) {
 
         compose.send(store.url(), {
             action: 'message.create-another',
-            preserveState: false,
+            // Kept mounted so the sheet stays open; the list behind it re-seeds from the response.
+            preserveState: true,
             onSuccess: () => {
-                sentWhileOpen.current = true;
                 reset('body');
-                compose.gateReset();
+                // form.data still holds the sent body until the reset renders.
+                compose.gateReset({ body: '' });
                 textareaRef.current?.focus();
             },
         });
@@ -101,7 +85,7 @@ export default function ComposerSheet({ open, onOpenChange, members }: Props) {
     return (
         <FormSheet
             open={open}
-            onOpenChange={(next) => (next ? onOpenChange(true) : close())}
+            onOpenChange={onOpenChange}
             title="Write a note"
             description="Write a note and choose who it goes to."
             isDirty={compose.isDirty}

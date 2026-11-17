@@ -140,8 +140,7 @@ export default function ItemSheet({ list, open, onOpenChange, item }: Props) {
         };
 
         if (isEdit) {
-            // An edit doesn't move the list's reset key, so force a remount or the row stays stale.
-            patch(update.url(item.id), { ...options, preserveState: false });
+            patch(update.url(item.id), options);
         } else {
             post(store.url(list.slug), options);
         }

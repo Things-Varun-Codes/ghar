@@ -78,8 +78,7 @@ export default function ListSettingsSheet({ open, onOpenChange, list }: Props) {
         };
 
         if (isEdit) {
-            // The page's own props carry the list, so it must be re-read rather than kept.
-            patch(update.url(list.id), { ...options, preserveState: false });
+            patch(update.url(list.id), options);
         } else {
             post(store.url(), options);
         }

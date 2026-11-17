@@ -41,7 +41,6 @@ export default function CitationActions({
             {},
             {
                 preserveScroll: true,
-                preserveState: false,
                 ...mutationOptions({
                     component: 'Mailbox/CitationActions',
                     action: 'citation.pay',
@@ -58,7 +57,6 @@ export default function CitationActions({
 
         router.delete(destroy.url(citation.id), {
             preserveScroll: true,
-            preserveState: false,
             ...mutationOptions({
                 component: 'Mailbox/CitationActions',
                 action: 'citation.delete',
@@ -126,7 +124,6 @@ export default function CitationActions({
                 description={`The penalty is “${citation.penalty}”. Once it's paid, this citation is settled for good.`}
                 cancelLabel="Not yet"
                 confirmLabel="Pay penalty"
-                processing={busy}
                 onConfirm={handlePay}
             />
 
@@ -138,7 +135,6 @@ export default function CitationActions({
                 cancelLabel="Keep it"
                 confirmLabel="Withdraw"
                 variant="destructive"
-                processing={busy}
                 onConfirm={handleDelete}
             />
         </>
