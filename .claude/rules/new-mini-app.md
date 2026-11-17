@@ -73,8 +73,12 @@ its provider's `boot()`. Everything else is a hand edit:
    `DashboardSummaries::register(self::SLUG, fn (User $u): ?string => …)` and a glimpse with
    `registerPreview(self::SLUG, fn (User $u): ?array => …)` (`images`, or `note` + `note_from`).
    Must return only rows the viewer may see; a throwing resolver just shows nothing.
-10. If other rooms can link to yours, pass `room: '{slug}'` to `LinkableEntities::register()`: while
-    your room is off its type is not searchable and links to it drop out of other rooms' pages.
+10. If other rooms can link to yours, call `LinkableEntities::register()` from `boot()` with a
+    `label` (how the picker files your results), a `resolveMany` (ids → `title`, `thumbnail_url`,
+    `icon` as a lucide name, `deep_link_url`), a `listing` if the picker should find them, and
+    `room: '{slug}'`: while your room is off its type is not searchable or resolvable and links to it
+    drop out of other rooms' pages. The picker (`/api/linkable/search`) and the pill belong to the
+    shell, so nothing else needs to know your room.
 11. If a table's foreign key to `users` restricts deletes, `UserOwnedContent::register()` it from the
     provider's `boot()`, so the admin delete can say what blocks it.
 

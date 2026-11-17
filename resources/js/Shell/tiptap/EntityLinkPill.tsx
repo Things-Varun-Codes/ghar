@@ -10,7 +10,13 @@ import {
     SheetHeader,
     SheetTitle,
 } from '@/components/ui/sheet';
-import { EntityMark } from '@/Shell/linkables/LinkableIcon';
+import { useAppAttrs } from '@/hooks/use-app-attrs';
+import { useOverlayHistory } from '@/hooks/use-overlay-history';
+import EntityPillContent, {
+    PILL_FALLBACK_LABEL,
+} from '@/Shell/linkables/EntityPillContent';
+import { internalHref } from '@/Shell/linkables/urls';
+import { useLinkTypeOn } from '@/Shell/linkables/use-linking';
 
 export default function EntityLinkPill({
     node,
@@ -26,8 +32,13 @@ export default function EntityLinkPill({
         icon: string | null;
     };
 
+    const appAttrs = useAppAttrs();
     const [touchMenuOpen, setTouchMenuOpen] = useState(false);
-    const [thumbnailBroken, setThumbnailBroken] = useState(false);
+    useOverlayHistory(touchMenuOpen, () => setTouchMenuOpen(false));
+
+    const typeOn = useLinkTypeOn(type);
+    const safeHref = typeOn && deepLinkUrl ? internalHref(deepLinkUrl) : null;
+    const label = title || PILL_FALLBACK_LABEL;
 
     const remove = () => {
         if (typeof getPos !== 'function') {
@@ -47,19 +58,17 @@ export default function EntityLinkPill({
             .run();
     };
 
-    const safeHref = deepLinkUrl ?? '#';
-    const label = title || 'Corner link';
-
-    const iconEl = <EntityMark type={type} icon={icon} size={14} />;
-
     const handlePillClick = (e: React.MouseEvent) => {
         const isTouch =
             typeof window !== 'undefined' &&
             window.matchMedia &&
             window.matchMedia('(pointer: coarse)').matches;
 
-        if (isTouch) {
+        if (isTouch || !safeHref) {
             e.preventDefault();
+        }
+
+        if (isTouch) {
             setTouchMenuOpen(true);
         }
     };
@@ -72,28 +81,23 @@ export default function EntityLinkPill({
             data-corner-type={type ?? ''}
             data-corner-title={title}
         >
-            <span className="tt-pill-glyph" aria-hidden="true">
-                {iconEl}
-            </span>
-
-            {thumbnailUrl && !thumbnailBroken && (
-                <img
-                    src={thumbnailUrl}
-                    alt=""
-                    className="shell-pill-thumb"
-                    onError={() => setThumbnailBroken(true)}
-                />
-            )}
-
-            <a
-                href={safeHref}
-                target="_self"
-                onClick={handlePillClick}
-                aria-label={`Open ${label} in Our Corner`}
-                className="shell-pill-link"
-            >
-                {label}
-            </a>
+            <EntityPillContent
+                title={title}
+                icon={icon}
+                thumbnail={typeOn ? thumbnailUrl : null}
+                thumbClassName="shell-pill-thumb"
+                label={
+                    <a
+                        href={safeHref ?? '#'}
+                        target="_self"
+                        onClick={handlePillClick}
+                        aria-label={safeHref ? `Open ${label}` : label}
+                        className="shell-pill-link"
+                    >
+                        {label}
+                    </a>
+                }
+            />
 
             <button
                 type="button"
@@ -109,27 +113,29 @@ export default function EntityLinkPill({
             </button>
 
             <Sheet open={touchMenuOpen} onOpenChange={setTouchMenuOpen}>
-                <SheetContent side="bottom" data-app="our-corner">
+                <SheetContent side="bottom" {...appAttrs}>
                     <SheetHeader>
                         <SheetTitle>{label}</SheetTitle>
                         <SheetDescription>
-                            Choose an action for this Corner link.
+                            Open it, or take the link out of this story.
                         </SheetDescription>
                     </SheetHeader>
                     <div className="shell-pill-actions">
-                        <a
-                            href={safeHref}
-                            target="_self"
-                            onClick={() => setTouchMenuOpen(false)}
-                            className="shell-pill-open inline-flex items-center gap-1.5"
-                        >
-                            Open in Corner
-                            <ArrowUpRight
-                                size={16}
-                                strokeWidth={1.5}
-                                aria-hidden="true"
-                            />
-                        </a>
+                        {safeHref && (
+                            <a
+                                href={safeHref}
+                                target="_self"
+                                onClick={() => setTouchMenuOpen(false)}
+                                className="shell-pill-open inline-flex items-center gap-1.5"
+                            >
+                                Open
+                                <ArrowUpRight
+                                    size={16}
+                                    strokeWidth={1.5}
+                                    aria-hidden="true"
+                                />
+                            </a>
+                        )}
                         <button
                             type="button"
                             onClick={() => {

@@ -24,23 +24,24 @@ final class CornerLinks
 
     public const LEGACY_TYPES = ['corner.song', 'corner.movie', 'corner.activity', 'corner.place'];
 
+    private const LABEL = 'Our Corner';
+
     private const PICKER_LIMIT = 20;
 
     public static function register(LinkableEntities $linkable): void
     {
         $linkable->register(
             self::TYPE,
-            listing: fn (string $q, int $limit): array => self::search($q, $limit),
-            resolve: fn (int $id): ?array => self::resolveMany([$id], 'id')[$id] ?? null,
+            label: self::LABEL,
             resolveMany: fn (array $ids): array => self::resolveMany($ids, 'id'),
+            listing: fn (string $q, int $limit): array => self::search($q, $limit),
             room: self::ROOM,
         );
 
         foreach (self::LEGACY_TYPES as $type) {
             $linkable->register(
                 $type,
-                listing: fn (): array => [],
-                resolve: fn (int $id): ?array => self::resolveMany([$id], 'legacy_id', $type)[$id] ?? null,
+                label: self::LABEL,
                 resolveMany: fn (array $ids): array => self::resolveMany($ids, 'legacy_id', $type),
                 room: self::ROOM,
             );
@@ -80,14 +81,7 @@ final class CornerLinks
             ->orderByDesc('id')
             ->limit(min($limit, self::PICKER_LIMIT))
             ->get()
-            ->map(fn (Item $item): array => [
-                'id' => $item->id,
-                'title' => $item->title,
-                'group' => $item->list->name,
-                'thumbnail_url' => $item->pictureUrl(),
-                'icon' => $item->list->icon,
-                'deep_link_url' => self::urlFor($item->list->slug, $item->id),
-            ])
+            ->map(fn (Item $item): array => ['id' => $item->id, 'group' => $item->list->name] + self::snapshot($item))
             ->all();
     }
 
@@ -97,23 +91,23 @@ final class CornerLinks
      */
     private static function resolveMany(array $ids, string $column, ?string $legacyType = null): array
     {
-        if ($ids === []) {
-            return [];
-        }
-
         return Item::query()
             ->with('list:id,slug,icon')
             ->whereIn($column, $ids)
             ->when($legacyType !== null, fn ($query) => $query->where('legacy_type', $legacyType))
             ->get()
-            ->mapWithKeys(fn (Item $item): array => [
-                (int) $item->{$column} => [
-                    'title' => $item->title,
-                    'thumbnail_url' => $item->pictureUrl(),
-                    'icon' => $item->list->icon,
-                    'deep_link_url' => self::urlFor($item->list->slug, $item->id),
-                ],
-            ])
+            ->mapWithKeys(fn (Item $item): array => [(int) $item->{$column} => self::snapshot($item)])
             ->all();
+    }
+
+    /** @return array{title: string, thumbnail_url: ?string, icon: string, deep_link_url: string} */
+    private static function snapshot(Item $item): array
+    {
+        return [
+            'title' => $item->title,
+            'thumbnail_url' => $item->pictureUrl(),
+            'icon' => $item->list->icon,
+            'deep_link_url' => self::urlFor($item->list->slug, $item->id),
+        ];
     }
 }

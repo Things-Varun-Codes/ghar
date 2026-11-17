@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Shell\Services\LinkableEntities;
 use App\Shell\Support\AppVersion;
 use App\Shell\Support\MiniAppRegistry;
 use Illuminate\Http\Request;
@@ -40,6 +41,7 @@ class HandleInertiaRequests extends Middleware
                 ] : null,
             ],
             'miniApps' => $miniApps,
+            'linking' => fn () => $user ? app(LinkableEntities::class)->forPage() : null,
             'today' => now()->toDateString(),
             'flash' => [
                 'success' => fn () => $request->session()->get('success'),

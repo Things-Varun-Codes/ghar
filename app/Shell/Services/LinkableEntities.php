@@ -8,40 +8,44 @@ use Illuminate\Support\Facades\DB;
 
 class LinkableEntities
 {
-    /** @var array<string, array{listing: Closure, resolve: Closure, resolveMany: ?Closure, room: ?string}> */
+    /** @var array<string, array{label: string, resolveMany: Closure, listing: ?Closure, room: ?string}> */
     private array $registry = [];
 
     public function __construct(private readonly Rooms $rooms) {}
 
     /**
+     * `resolveMany` takes ids and returns id => snapshot (`title`, `thumbnail_url`, `icon`,
+     * `deep_link_url`) for the ones that exist; `icon` is a lucide icon name. `listing` answers
+     * the picker with `id` plus a snapshot and optionally a `group`, which defaults to `label`.
+     * A type without a listing only resolves.
+     *
      * Pass `room` (the registry slug) when the type's pages belong to a room: while that room is
-     * off the type can't be searched and references from it are left out, so nothing links to a
-     * page that answers 404.
+     * off the type can't be searched or resolved and references from it are left out, so nothing
+     * links to a page that answers 404.
      */
-    public function register(string $type, Closure $listing, Closure $resolve, ?Closure $resolveMany = null, ?string $room = null): void
+    public function register(string $type, string $label, Closure $resolveMany, ?Closure $listing = null, ?string $room = null): void
     {
         $this->registry[$type] = [
-            'room' => $room,
-            'listing' => $listing,
-            'resolve' => $resolve,
+            'label' => $label,
             'resolveMany' => $resolveMany,
+            'listing' => $listing,
+            'room' => $room,
         ];
     }
 
-    /** @return list<array{type: string, id: int, title: string, thumbnail_url?: ?string, icon?: string, deep_link_url?: string, group?: string}> */
+    /** @return list<array{type: string, id: int, title: string, group: string, thumbnail_url?: ?string, icon?: string, deep_link_url?: string}> */
     public function search(string $query, array $types = [], int $limit = 20): array
     {
         $types = empty($types) ? array_keys($this->registry) : $types;
         $results = [];
 
         foreach ($types as $type) {
-            if (! $this->available($type)) {
+            $listing = $this->available($type) ? $this->registry[$type]['listing'] : null;
+            if ($listing === null) {
                 continue;
             }
-            $listing = $this->registry[$type]['listing'];
-            $items = $listing($query, $limit);
-            foreach ($items as $item) {
-                $results[] = ['type' => $type] + $item;
+            foreach ($listing($query, $limit) as $item) {
+                $results[] = ['type' => $type] + $item + ['group' => $this->registry[$type]['label']];
                 if (count($results) >= $limit) {
                     break 2;
                 }
@@ -51,13 +55,10 @@ class LinkableEntities
         return $results;
     }
 
+    /** @return array<string, mixed>|null */
     public function resolve(string $type, int $id): ?array
     {
-        if (! isset($this->registry[$type])) {
-            return null;
-        }
-
-        return ($this->registry[$type]['resolve'])($id);
+        return $this->resolveMany($type, [$id])[$id] ?? null;
     }
 
     /**
@@ -66,22 +67,30 @@ class LinkableEntities
      */
     public function resolveMany(string $type, array $ids): array
     {
-        if (! isset($this->registry[$type])) {
+        if ($ids === [] || ! $this->available($type)) {
             return [];
         }
 
-        $batch = $this->registry[$type]['resolveMany'];
+        return ($this->registry[$type]['resolveMany'])($ids);
+    }
 
-        if ($batch !== null) {
-            return $batch($ids);
-        }
+    /**
+     * What a page needs before it draws or offers links: the types it may link to now, and
+     * whether any of them can be searched.
+     *
+     * @return array{types: list<string>, searchable: bool}
+     */
+    public function forPage(): array
+    {
+        $types = array_values(array_filter(
+            array_keys($this->registry),
+            fn (string $type): bool => $this->available($type),
+        ));
 
-        $results = [];
-        foreach ($ids as $id) {
-            $results[$id] = $this->resolve($type, $id);
-        }
-
-        return $results;
+        return [
+            'types' => $types,
+            'searchable' => collect($types)->contains(fn (string $type): bool => $this->registry[$type]['listing'] !== null),
+        ];
     }
 
     /**

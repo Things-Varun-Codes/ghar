@@ -1,3 +1,4 @@
+import type { Linking } from '@/Shell/linkables/use-linking';
 import type { Auth } from '@/types/auth';
 import type { MiniApp } from '@/types/miniapp';
 
@@ -19,6 +20,7 @@ declare module '@inertiajs/core' {
             version: { label: string; url: string | null } | null;
             auth: Auth;
             miniApps: MiniApp[];
+            linking: Linking | null;
             [key: string]: unknown;
         };
     }
