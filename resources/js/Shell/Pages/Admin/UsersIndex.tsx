@@ -11,18 +11,12 @@ import {
     AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { Badge } from '@/components/ui/badge';
-import {
-    Table,
-    TableBody,
-    TableCell,
-    TableHead,
-    TableHeader,
-    TableRow,
-} from '@/components/ui/table';
 import { formatDate } from '@/lib/dates';
 import { roleLabel } from '@/lib/roles';
 import * as invites from '@/routes/admin/invites';
 import * as usersRoutes from '@/routes/admin/users';
+import AdminCollection from '@/Shell/Components/AdminCollection';
+import type { AdminColumn } from '@/Shell/Components/AdminCollection';
 import Page from '@/Shell/Components/Page';
 import Pagination from '@/Shell/Components/Pagination';
 import type { PaginationLink } from '@/Shell/Components/Pagination';
@@ -113,6 +107,33 @@ export default function UsersIndex({ users }: Props) {
         </div>
     );
 
+    const columns: AdminColumn<User>[] = [
+        {
+            header: 'Name',
+            cell: (user) => user.name,
+            className: 'os-admin-strong',
+            card: { as: 'title' },
+        },
+        {
+            header: 'Email',
+            cell: (user) => user.email,
+            className: 'os-admin-muted',
+            card: { as: 'subtitle' },
+        },
+        {
+            header: 'Role',
+            cell: renderRoleBadges,
+            card: { as: 'block', className: 'mb-3' },
+        },
+        {
+            header: 'Last login',
+            cell: (user) =>
+                formatDate(user.last_login_at, { fallback: 'Never' }),
+            className: 'os-admin-meta',
+            card: { as: 'meta', label: 'Last login', className: 'mb-3' },
+        },
+    ];
+
     return (
         <>
             <Page
@@ -128,76 +149,20 @@ export default function UsersIndex({ users }: Props) {
                     </Link>
                 }
             >
-                <div className="@container">
-                    <div className="os-admin-surface hidden overflow-x-auto border @min-[760px]:block">
-                        <Table className="min-w-[640px]">
-                            <TableHeader>
-                                <TableRow>
-                                    <TableHead>Name</TableHead>
-                                    <TableHead>Email</TableHead>
-                                    <TableHead>Role</TableHead>
-                                    <TableHead>Last login</TableHead>
-                                    <TableHead className="os-admin-sticky-actions text-right">
-                                        Actions
-                                    </TableHead>
-                                </TableRow>
-                            </TableHeader>
-                            <TableBody>
-                                {users.data.map((user) => (
-                                    <TableRow key={user.id}>
-                                        <TableCell className="os-admin-strong">
-                                            {user.name}
-                                        </TableCell>
-                                        <TableCell className="os-admin-muted">
-                                            {user.email}
-                                        </TableCell>
-                                        <TableCell>
-                                            {renderRoleBadges(user)}
-                                        </TableCell>
-                                        <TableCell className="os-admin-meta">
-                                            {formatDate(user.last_login_at, {
-                                                fallback: 'Never',
-                                            })}
-                                        </TableCell>
-                                        <TableCell className="os-admin-sticky-actions">
-                                            <div className="flex justify-end">
-                                                {renderActions(user)}
-                                            </div>
-                                        </TableCell>
-                                    </TableRow>
-                                ))}
-                            </TableBody>
-                        </Table>
-                    </div>
-
-                    <div className="flex flex-col gap-3 @min-[760px]:hidden">
-                        {users.data.map((user) => (
-                            <div
-                                key={user.id}
-                                className="os-admin-surface border p-4"
-                            >
-                                <div className="mb-3">
-                                    <p className="os-admin-strong">
-                                        {user.name}
-                                    </p>
-                                    <p className="os-admin-meta">
-                                        {user.email}
-                                    </p>
-                                </div>
-                                <div className="mb-3">
-                                    {renderRoleBadges(user)}
-                                </div>
-                                <p className="os-admin-meta mb-3">
-                                    Last login:{' '}
-                                    {formatDate(user.last_login_at, {
-                                        fallback: 'Never',
-                                    })}
-                                </p>
+                <AdminCollection
+                    columns={columns}
+                    rows={users.data}
+                    rowKey={(user) => user.id}
+                    actions={{
+                        cell: (user) => (
+                            <div className="flex justify-end">
                                 {renderActions(user)}
                             </div>
-                        ))}
-                    </div>
-                </div>
+                        ),
+                        card: renderActions,
+                    }}
+                    tableClassName="min-w-[640px]"
+                />
 
                 <AlertDialog
                     open={pendingDelete !== null}
