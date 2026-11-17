@@ -8,6 +8,7 @@ use App\Http\Middleware\HandleInertiaRequests;
 use App\Http\Middleware\ThrottleHealthProbe;
 use App\Shell\Controllers\Admin\InvitesController;
 use App\Shell\Controllers\Admin\NotificationsController as AdminNotificationsController;
+use App\Shell\Controllers\Admin\RoomsController;
 use App\Shell\Controllers\Admin\ShortLinksController;
 use App\Shell\Controllers\Admin\UsersController;
 use App\Shell\Controllers\DashboardController;
@@ -88,6 +89,11 @@ Route::middleware(['auth', 'can:admin'])->prefix('admin')->name('admin.')->group
     Route::post('/notifications', [AdminNotificationsController::class, 'send'])
         ->middleware('throttle:admin-mutations')
         ->name('notifications.send');
+
+    Route::get('/rooms', [RoomsController::class, 'index'])->name('rooms.index');
+    Route::patch('/rooms/{room}', [RoomsController::class, 'update'])
+        ->middleware('throttle:admin-mutations')
+        ->name('rooms.update');
 
     Route::get('/users', [UsersController::class, 'index'])->name('users.index');
     Route::get('/users/{user}/edit', [UsersController::class, 'edit'])->name('users.edit');

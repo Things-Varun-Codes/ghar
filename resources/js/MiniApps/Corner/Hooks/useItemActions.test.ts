@@ -4,7 +4,6 @@ import type { Mock } from 'vitest';
 
 import { MUTATION_FAILED_MESSAGE } from '@/lib/mutation';
 import { DELETE_GRACE_PERIOD_MS, useItemActions } from './useItemActions';
-import type { CornerItemType } from './useItemActions';
 
 const { routerPatch, routerDelete } = vi.hoisted(() => ({
     routerPatch: vi.fn(),
@@ -61,7 +60,7 @@ describe('useItemActions', () => {
 
     it('hides the row immediately, issues no request before the grace period, and fires exactly at it', () => {
         const { result } = renderHook(() =>
-            useItemActions({ type: 'songs', id: 7, title: 'Yellow' }),
+            useItemActions({ id: 7, title: 'Yellow' }),
         );
 
         act(() => {
@@ -81,14 +80,14 @@ describe('useItemActions', () => {
         });
         expect(routerDelete).toHaveBeenCalledTimes(1);
         expect(routerDelete).toHaveBeenCalledWith(
-            '/apps/our-corner/songs/7',
+            '/apps/our-corner/items/7',
             expect.objectContaining({ preserveScroll: true }),
         );
     });
 
     it('undo inside the window cancels entirely — no network request ever fires', () => {
         const { result } = renderHook(() =>
-            useItemActions({ type: 'songs', id: 7, title: 'Yellow' }),
+            useItemActions({ id: 7, title: 'Yellow' }),
         );
 
         act(() => {
@@ -112,7 +111,7 @@ describe('useItemActions', () => {
 
     it('the toast Undo action is wired to the real undo path, not just the exported handleUndo', () => {
         const { result } = renderHook(() =>
-            useItemActions({ type: 'songs', id: 7, title: 'Yellow' }),
+            useItemActions({ id: 7, title: 'Yellow' }),
         );
 
         act(() => {
@@ -140,7 +139,7 @@ describe('useItemActions', () => {
 
     it('falls back to the generic item wording when title is null', () => {
         const { result } = renderHook(() =>
-            useItemActions({ type: 'songs', id: 7, title: null }),
+            useItemActions({ id: 7, title: null }),
         );
 
         act(() => {
@@ -155,7 +154,6 @@ describe('useItemActions', () => {
         const onDeleted = vi.fn();
         const { result } = renderHook(() =>
             useItemActions({
-                type: 'songs',
                 id: 7,
                 title: 'Yellow',
                 onDeleted,
@@ -174,7 +172,7 @@ describe('useItemActions', () => {
 
     it('does NOT cancel the deferred delete on unmount (no teardown)', () => {
         const { result, unmount } = renderHook(() =>
-            useItemActions({ type: 'songs', id: 7, title: 'Yellow' }),
+            useItemActions({ id: 7, title: 'Yellow' }),
         );
 
         act(() => {
@@ -189,19 +187,15 @@ describe('useItemActions', () => {
 
         expect(routerDelete).toHaveBeenCalledTimes(1);
         expect(routerDelete).toHaveBeenCalledWith(
-            '/apps/our-corner/songs/7',
+            '/apps/our-corner/items/7',
             expect.objectContaining({ preserveScroll: true }),
         );
     });
 
-    it.each<[CornerItemType, string]>([
-        ['songs', '/apps/our-corner/songs/7/toggle-done'],
-        ['movies', '/apps/our-corner/movies/7/toggle-done'],
-        ['activities', '/apps/our-corner/activities/7/toggle-done'],
-        ['places', '/apps/our-corner/places/7/toggle-done'],
-    ])('routes toggle-done for %s to the correct URL', (type, expectedUrl) => {
+    it('routes toggle-done to the item URL', () => {
+        const expectedUrl = '/apps/our-corner/items/7/toggle-done';
         const { result } = renderHook(() =>
-            useItemActions({ type, id: 7, title: 'Item' }),
+            useItemActions({ id: 7, title: 'Item' }),
         );
 
         act(() => {
@@ -217,7 +211,7 @@ describe('useItemActions', () => {
 
     it('ignores a second tap while the toggle is in flight, and accepts one after it settles', () => {
         const { result } = renderHook(() =>
-            useItemActions({ type: 'songs', id: 7, title: 'Yellow' }),
+            useItemActions({ id: 7, title: 'Yellow' }),
         );
 
         act(() => {
@@ -245,7 +239,7 @@ describe('useItemActions', () => {
 
     it('a failed toggle toasts, reports, and suppresses the Inertia error surface', () => {
         const { result } = renderHook(() =>
-            useItemActions({ type: 'songs', id: 7, title: 'Yellow' }),
+            useItemActions({ id: 7, title: 'Yellow' }),
         );
 
         act(() => {
@@ -266,7 +260,7 @@ describe('useItemActions', () => {
 
     it('a failed deferred delete brings the row back and says so', () => {
         const { result } = renderHook(() =>
-            useItemActions({ type: 'songs', id: 7, title: 'Yellow' }),
+            useItemActions({ id: 7, title: 'Yellow' }),
         );
 
         act(() => {

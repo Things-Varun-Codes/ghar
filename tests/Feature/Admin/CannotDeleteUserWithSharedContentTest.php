@@ -2,7 +2,7 @@
 
 namespace Tests\Feature\Admin;
 
-use App\MiniApps\Corner\Models\Song;
+use App\MiniApps\Corner\Models\Item;
 use App\MiniApps\Mailbox\Models\MailboxMessage;
 use App\Shell\Models\User;
 use Database\Seeders\RoleSeeder;
@@ -25,7 +25,7 @@ class CannotDeleteUserWithSharedContentTest extends TestCase
         $target = User::factory()->create();
         $other = User::factory()->create();
 
-        $song = Song::factory()->create(['added_by_user_id' => $target->id]);
+        $item = Item::factory()->create(['added_by_user_id' => $target->id]);
         $message = MailboxMessage::factory()->to($other)->create(['sender_id' => $target->id]);
 
         $response = $this->actingAs($admin)
@@ -36,11 +36,11 @@ class CannotDeleteUserWithSharedContentTest extends TestCase
 
         // The refusal names what is in the way.
         $refusal = session('errors')->getBag('default')->first('delete');
-        $this->assertStringContainsString('Corner songs', $refusal);
+        $this->assertStringContainsString('Corner items', $refusal);
         $this->assertStringContainsString('Mailbox messages', $refusal);
 
         $this->assertDatabaseHas('users', ['id' => $target->id]);
-        $this->assertDatabaseHas('corner_songs', ['id' => $song->id]);
+        $this->assertDatabaseHas('corner_items', ['id' => $item->id]);
         $this->assertDatabaseHas('mailbox_messages', ['id' => $message->id]);
     }
 
@@ -66,7 +66,7 @@ class CannotDeleteUserWithSharedContentTest extends TestCase
     public function test_database_refuses_the_delete_even_when_the_controller_is_bypassed(): void
     {
         $target = User::factory()->create();
-        Song::factory()->create(['added_by_user_id' => $target->id]);
+        Item::factory()->create(['added_by_user_id' => $target->id]);
 
         $this->expectException(\Illuminate\Database\QueryException::class);
 

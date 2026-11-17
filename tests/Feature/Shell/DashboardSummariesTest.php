@@ -2,10 +2,10 @@
 
 namespace Tests\Feature\Shell;
 
-use App\MiniApps\Corner\Models\Place;
-use App\MiniApps\Corner\Models\Song;
+use App\MiniApps\Corner\Models\CornerList;
+use App\MiniApps\Corner\Models\Item;
 use App\MiniApps\History\Models\Event;
-use App\MiniApps\Mailbox\Models\Challan;
+use App\MiniApps\Mailbox\Models\Citation;
 use App\MiniApps\Mailbox\Models\MailboxMessage;
 use App\Shell\Models\User;
 use App\Shell\Services\DashboardSummaries;
@@ -83,8 +83,8 @@ class DashboardSummariesTest extends TestCase
     public function test_corner_line_is_latest_added_across_lists(): void
     {
         $user = User::factory()->create();
-        Song::factory()->create(['added_by_user_id' => $user->id, 'title' => 'Old song', 'added_at' => '2026-10-01 10:00:00']);
-        Place::factory()->create(['added_by_user_id' => $user->id, 'title' => 'Blue Tokai', 'added_at' => '2026-10-20 10:00:00']);
+        Item::factory()->create(['list_id' => CornerList::factory()->create()->id, 'added_by_user_id' => $user->id, 'title' => 'Old song', 'added_at' => '2026-10-01 10:00:00']);
+        Item::factory()->create(['list_id' => CornerList::factory()->create()->id, 'added_by_user_id' => $user->id, 'title' => 'Blue Tokai', 'added_at' => '2026-10-20 10:00:00']);
 
         $this->actingAs($user)->get('/dashboard')
             ->assertInertia(fn ($p) => $p->where('summaries.our-corner', 'Latest: Blue Tokai'));
@@ -102,13 +102,13 @@ class DashboardSummariesTest extends TestCase
     {
         $adder = User::factory()->create();
         $reader = User::factory()->create();
-        Place::factory()->create(['added_by_user_id' => $adder->id, 'title' => 'Blue Tokai', 'added_at' => '2026-10-21 10:00:00']);
+        Item::factory()->create(['list_id' => CornerList::factory()->create()->id, 'added_by_user_id' => $adder->id, 'title' => 'Blue Tokai', 'added_at' => '2026-10-21 10:00:00']);
 
         $this->actingAs($reader)->get('/dashboard')
             ->assertInertia(fn ($p) => $p->where('summaries.our-corner', 'Latest: Blue Tokai'));
     }
 
-    public function test_mailbox_line_counts_unread_notes_and_challans_to_pay(): void
+    public function test_mailbox_line_counts_unread_notes_and_citations_to_pay(): void
     {
         $viewer = User::factory()->create();
         $other = User::factory()->create();
@@ -116,10 +116,10 @@ class DashboardSummariesTest extends TestCase
         // Read + other-recipient rows must not count.
         MailboxMessage::factory()->to($viewer, read: true)->create(['sender_id' => $other->id]);
         MailboxMessage::factory()->to($other)->create(['sender_id' => $viewer->id]);
-        Challan::factory()->create(['issuer_id' => $other->id, 'recipient_id' => $viewer->id]);
+        Citation::factory()->create(['issuer_id' => $other->id, 'recipient_id' => $viewer->id]);
 
         $this->actingAs($viewer)->get('/dashboard')
-            ->assertInertia(fn ($p) => $p->where('summaries.our-mailbox', '3 unread notes · 1 challan to pay'));
+            ->assertInertia(fn ($p) => $p->where('summaries.our-mailbox', '3 unread notes · 1 citation to pay'));
     }
 
     public function test_mailbox_line_grammar(): void
@@ -135,9 +135,9 @@ class DashboardSummariesTest extends TestCase
             ->assertInertia(fn ($p) => $p->where('summaries.our-mailbox', '1 unread note'));
 
         MailboxMessage::query()->delete();
-        Challan::factory()->count(2)->create(['issuer_id' => $other->id, 'recipient_id' => $viewer->id]);
+        Citation::factory()->count(2)->create(['issuer_id' => $other->id, 'recipient_id' => $viewer->id]);
         $this->actingAs($viewer)->get('/dashboard')
-            ->assertInertia(fn ($p) => $p->where('summaries.our-mailbox', '2 challans to pay'));
+            ->assertInertia(fn ($p) => $p->where('summaries.our-mailbox', '2 citations to pay'));
     }
 
     public function test_a_throwing_resolver_is_omitted_and_dashboard_still_renders(): void

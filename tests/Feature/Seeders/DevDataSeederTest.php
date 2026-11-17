@@ -2,21 +2,28 @@
 
 namespace Tests\Feature\Seeders;
 
-use App\MiniApps\Corner\Models\Song;
+use App\MiniApps\Corner\Models\CornerList;
+use App\MiniApps\Corner\Models\Item;
+use App\MiniApps\Corner\Policies\CornerListPolicy;
+use App\MiniApps\Corner\Support\ListIcon;
+use App\MiniApps\Corner\Support\PictureCache;
 use App\MiniApps\History\Models\Event;
 use App\MiniApps\Mailbox\Models\Bouquet;
-use App\MiniApps\Mailbox\Models\Challan;
+use App\MiniApps\Mailbox\Models\Citation;
 use App\MiniApps\Mailbox\Models\Coupon;
 use App\MiniApps\Mailbox\Models\MailboxMessage;
 use App\Shell\Models\Invitation;
 use App\Shell\Models\ShortLink;
 use App\Shell\Models\User;
+use App\Shell\Services\LinkableEntities;
 use Database\Seeders\DatabaseSeeder;
 use Database\Seeders\DevDataSeeder;
 use Database\Seeders\RoleSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Storage;
 use RuntimeException;
 use Spatie\MediaLibrary\MediaCollections\Models\Media;
@@ -26,13 +33,27 @@ class DevDataSeederTest extends TestCase
 {
     use RefreshDatabase;
 
+    private string $storage;
+
     protected function setUp(): void
     {
         parent::setUp();
 
+        // The seeder primes Corner's picture cache under storage/; keep it out of the real one.
+        $this->storage = sys_get_temp_dir().'/ghar-seed-test-'.bin2hex(random_bytes(4));
+        File::ensureDirectoryExists($this->storage);
+        $this->app->useStoragePath($this->storage);
+
         config(['shell.media_disk' => 'local', 'services.bouquet.disk' => 'local', 'media-library.disk_name' => 'local']);
         Storage::fake('local');
         (new RoleSeeder)->run();
+    }
+
+    protected function tearDown(): void
+    {
+        File::deleteDirectory($this->storage);
+
+        parent::tearDown();
     }
 
     private function user(string $email): User
@@ -60,13 +81,78 @@ class DevDataSeederTest extends TestCase
         }
 
         // Past one page of Songs, the Timeline and the Gallery.
-        $this->assertGreaterThan(50, Song::count());
+        $songs = CornerList::query()->where('slug', 'songs')->firstOrFail();
+        $this->assertGreaterThan(50, $songs->items()->count());
         $this->assertGreaterThan(20, Event::count());
         $this->assertGreaterThan(24, Media::where('collection_name', 'photos')->count());
 
         $this->assertGreaterThan(1, Event::query()->distinct()->count('creator_id'));
-        $this->assertGreaterThan(1, Song::query()->whereNotNull('done_at')->distinct()->count('done_by_user_id'));
+        $this->assertGreaterThan(1, $songs->items()->whereNotNull('done_at')->distinct()->count('done_by_user_id'));
         $this->assertGreaterThan(0, DB::table('entity_references')->where('from_type', 'history.event')->count());
+
+        // The four lists an upgrade leaves, then the household's own.
+        $this->assertSame(
+            ['songs', 'movies', 'places', 'activities'],
+            CornerList::query()->whereNull('created_by_user_id')->orderBy('position')->pluck('slug')->all(),
+        );
+        $this->assertSame(
+            CornerList::query()->count(),
+            CornerList::query()->distinct()->count('position'),
+        );
+        $this->assertSame(0, DB::table('corner_items')
+            ->join('corner_lists', 'corner_lists.id', '=', 'corner_items.list_id')
+            ->whereNull('corner_lists.created_by_user_id')
+            ->whereNull('corner_items.legacy_id')
+            ->count());
+        $this->assertLessThan(
+            (int) DB::table('corner_items')->whereNull('legacy_id')->min('id'),
+            (int) DB::table('corner_items')->max('legacy_id'),
+        );
+
+        // A list only its creator added to, one others added to, and an empty quiet one.
+        $books = CornerList::query()->where('slug', 'books')->firstOrFail();
+        $this->assertSame($ravi->id, $books->created_by_user_id);
+        $this->assertTrue((new CornerListPolicy)->delete($ravi, $books));
+        $shared = CornerList::query()->where('slug', 'restaurants-we-keep-meaning-to-try-on-a-slow-sunday')->firstOrFail();
+        $this->assertSame($meera->id, $shared->created_by_user_id);
+        $this->assertGreaterThan(40, mb_strlen($shared->name));
+        $this->assertFalse((new CornerListPolicy)->delete($meera, $shared));
+        $this->assertTrue((new CornerListPolicy)->update($meera, $shared));
+        $quiet = CornerList::query()->where('created_by_user_id', $kabir->id)->firstOrFail();
+        $this->assertFalse($quiet->notify_on_add);
+        $this->assertSame(0, $quiet->items()->count());
+
+        // Every icon is one the page can draw, and the ids the docs name stay put.
+        foreach (CornerList::all() as $list) {
+            $this->assertTrue(ListIcon::isValid($list->icon), "{$list->slug} icon {$list->icon}");
+        }
+        $this->assertSame(range(100, 161), $songs->items()->orderBy('id')->pluck('id')->all());
+        $this->assertSame([185, 186], $shared->items()->orderBy('id')->pluck('id')->all());
+        $weekend = CornerList::query()->where('slug', 'weekend-ideas')->firstOrFail();
+        $this->assertSame('sailboat', $weekend->icon);
+        $this->assertSame($meera->id, $weekend->created_by_user_id);
+        $this->assertSame(range(187, 191), $weekend->items()->orderBy('id')->pluck('id')->all());
+
+        // Every web picture is already in the cache: pages show them without the network.
+        Http::fake();
+        $pictures = Item::query()->where('image_url', 'like', 'http%')->pluck('image_url')->unique();
+        $this->assertNotEmpty($pictures);
+        foreach ($pictures as $picture) {
+            $this->assertNotNull(app(PictureCache::class)->get($picture), "{$picture} is not primed");
+        }
+        Http::assertNothingSent();
+
+        // Every link carries the key a new one would, so pasting it again is a duplicate.
+        $this->assertSame(0, Item::query()->whereNotNull('url')->whereNull('url_key')->count());
+
+        // Every Corner link a moment holds, old-style or new, resolves.
+        $linkable = app(LinkableEntities::class);
+        $refs = DB::table('entity_references')->where('to_type', 'like', 'corner.%')->get();
+        $this->assertContains('corner.item', $refs->pluck('to_type')->all());
+        $this->assertContains('corner.song', $refs->pluck('to_type')->all());
+        foreach ($refs as $ref) {
+            $this->assertNotNull($linkable->resolve($ref->to_type, (int) $ref->to_id), "{$ref->to_type}:{$ref->to_id} does not resolve");
+        }
 
         // Every generated file exists, so nothing 404s in the browser.
         $media = Media::where('collection_name', 'photos')->firstOrFail();
@@ -80,7 +166,7 @@ class DevDataSeederTest extends TestCase
             $this->assertSame([$meera->id], $mail->recipients()->pluck('users.id')->all());
         }
 
-        foreach ([Coupon::query()->orderBy('id')->firstOrFail(), Challan::query()->orderBy('id')->firstOrFail()] as $slip) {
+        foreach ([Coupon::query()->orderBy('id')->firstOrFail(), Citation::query()->orderBy('id')->firstOrFail()] as $slip) {
             $this->assertSame([$ravi->id, $meera->id], [$slip->issuer_id, $slip->recipient_id]);
         }
 
@@ -101,8 +187,8 @@ class DevDataSeederTest extends TestCase
         $this->assertTrue(Coupon::where('status', Coupon::STATUS_REQUESTED)->exists());
         $this->assertTrue(Coupon::where('status', Coupon::STATUS_ISSUED)->where('redeemed_count', '>', 0)->exists());
         $this->assertTrue(Coupon::where('status', Coupon::STATUS_DEPLETED)->exists());
-        $this->assertTrue(Challan::where('status', Challan::STATUS_ISSUED)->exists());
-        $this->assertTrue(Challan::where('status', Challan::STATUS_PAID)->exists());
+        $this->assertTrue(Citation::where('status', Citation::STATUS_ISSUED)->exists());
+        $this->assertTrue(Citation::where('status', Citation::STATUS_PAID)->exists());
 
         $this->assertSame(2, ShortLink::where('enabled', true)->count());
         $this->assertSame(1, ShortLink::where('enabled', false)->count());

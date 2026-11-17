@@ -236,15 +236,13 @@ async function main() {
     );
 
 
-    // The walk logs in as the admin, so the challan and coupon must be ones the
+    // The walk logs in as the admin, so the citation and coupon must be ones the
     // admin received, or `view` would 403.
     const fixturesPhp = `
 use App\\Shell\\Models\\User;
-use App\\MiniApps\\Corner\\Models\\Song;
-use App\\MiniApps\\Corner\\Models\\Movie;
-use App\\MiniApps\\Corner\\Models\\Activity;
-use App\\MiniApps\\Corner\\Models\\Place;
-use App\\MiniApps\\Mailbox\\Models\\Challan;
+use App\\MiniApps\\Corner\\Models\\CornerList;
+use App\\MiniApps\\Corner\\Models\\Item;
+use App\\MiniApps\\Mailbox\\Models\\Citation;
 use App\\MiniApps\\Mailbox\\Models\\Coupon;
 use Illuminate\\Support\\Facades\\Password;
 
@@ -253,11 +251,18 @@ $kabir = User::where('email', '${DEV_ACCOUNTS.kabir}')->firstOrFail();
 
 echo json_encode([
     'resetToken'        => Password::broker()->createToken($kabir),
-    'cornerSongId'      => Song::query()->min('id'),
-    'cornerMovieId'     => Movie::query()->min('id'),
-    'cornerActivityId'  => Activity::query()->min('id'),
-    'cornerPlaceId'     => Place::query()->min('id'),
-    'mailboxChallanId'  => Challan::where('recipient_id', $admin->id)->firstOrFail()->id,
+    // An item of each sort, as [list slug, item id]: one with a link, a picture and a place
+    // together, a place with only coordinates, a name and nothing else, and an old id that
+    // History links still use.
+    'corner' => collect([
+        'everything' => Item::query()->whereNotNull('url')->whereNotNull('image_url')->whereNotNull('location_url'),
+        'place' => Item::query()->whereNull('url')->whereNull('location_url')->whereNotNull('lat'),
+        'nameOnly' => Item::query()->whereNull('url')->whereNull('image_url')->whereNull('notes')->whereNull('location_label'),
+    ])->map(fn ($q) => (fn ($i) => ['slug' => $i->list->slug, 'item' => $i->id])($q->with('list')->orderBy('id')->firstOrFail()))
+        ->put('legacy', (fn ($i) => ['slug' => $i->list->slug, 'item' => $i->legacy_id])(Item::query()->with('list')->whereNotNull('legacy_id')->orderBy('id')->firstOrFail()))
+        ->put('longName', ['slug' => CornerList::query()->orderByRaw('length(name) desc')->value('slug')]),
+    'cornerEmptyList'   => CornerList::query()->whereDoesntHave('items')->value('slug'),
+    'mailboxCitationId'  => Citation::where('recipient_id', $admin->id)->firstOrFail()->id,
     'mailboxCouponId'   => Coupon::where('recipient_id', $admin->id)->firstOrFail()->id,
     // A plain member, never the logged-in account, so no self-edit or
     // last-admin guard gets in the way of the edit page.
@@ -326,6 +331,11 @@ echo json_encode([
             description: '/admin/users',
         },
         {
+            path: '/admin/rooms',
+            auth: true,
+            description: '/admin/rooms (rooms the admin chooses)',
+        },
+        {
             path: '/admin/invites',
             auth: true,
             description: '/admin/invites',
@@ -389,49 +399,51 @@ echo json_encode([
             description: '/apps/our-corner (Our Corner landing)',
         },
         {
-            path: '/apps/our-corner/songs',
-            auth: true,
-            description: '/apps/our-corner/songs (Songs list)',
-        },
-        {
-            path: `/apps/our-corner/songs/${fixtures.cornerSongId}`,
+            path: `/apps/our-corner/${fixtures.corner.legacy.slug}`,
             auth: true,
             description:
-                '/apps/our-corner/songs/{song} (Song detail)',
+                '/apps/our-corner/{list} (a list past one page)',
         },
         {
-            path: '/apps/our-corner/movies',
-            auth: true,
-            description: '/apps/our-corner/movies (Movies list)',
-        },
-        {
-            path: `/apps/our-corner/movies/${fixtures.cornerMovieId}`,
+            path: `/apps/our-corner/${fixtures.corner.longName.slug}`,
             auth: true,
             description:
-                '/apps/our-corner/movies/{movie} (Movie detail)',
+                '/apps/our-corner/{list} (a list with a long name)',
         },
         {
-            path: '/apps/our-corner/activities',
+            path: `/apps/our-corner/${fixtures.corner.everything.slug}`,
             auth: true,
             description:
-                '/apps/our-corner/activities (Activities list)',
+                '/apps/our-corner/{list} (links, pictures and places)',
         },
         {
-            path: `/apps/our-corner/activities/${fixtures.cornerActivityId}`,
+            path: `/apps/our-corner/${fixtures.corner.everything.slug}/${fixtures.corner.everything.item}`,
             auth: true,
             description:
-                '/apps/our-corner/activities/{activity} (Activity detail)',
+                '/apps/our-corner/{list}/{item} (a link, a picture and a place)',
         },
         {
-            path: '/apps/our-corner/places',
-            auth: true,
-            description: '/apps/our-corner/places (Places list)',
-        },
-        {
-            path: `/apps/our-corner/places/${fixtures.cornerPlaceId}`,
+            path: `/apps/our-corner/${fixtures.corner.place.slug}/${fixtures.corner.place.item}`,
             auth: true,
             description:
-                '/apps/our-corner/places/{place} (Place detail)',
+                '/apps/our-corner/{list}/{item} (a place with coordinates only)',
+        },
+        {
+            path: `/apps/our-corner/${fixtures.corner.nameOnly.slug}/${fixtures.corner.nameOnly.item}`,
+            auth: true,
+            description:
+                '/apps/our-corner/{list}/{item} (a name and nothing else)',
+        },
+        {
+            path: `/apps/our-corner/${fixtures.corner.legacy.slug}/${fixtures.corner.legacy.item}`,
+            auth: true,
+            description:
+                '/apps/our-corner/{list}/{item} (an old link, by the id it had before lists)',
+        },
+        {
+            path: `/apps/our-corner/${fixtures.cornerEmptyList}`,
+            auth: true,
+            description: '/apps/our-corner/{list} (an empty list)',
         },
         {
             path: '/apps/our-mailbox',
@@ -444,16 +456,16 @@ echo json_encode([
             description: '/apps/our-mailbox/messages (Messages)',
         },
         {
-            path: '/apps/our-mailbox/challans',
+            path: '/apps/our-mailbox/citations',
             auth: true,
             description:
-                '/apps/our-mailbox/challans (Challans index)',
+                '/apps/our-mailbox/citations (Citations index)',
         },
         {
-            path: `/apps/our-mailbox/challans/${fixtures.mailboxChallanId}`,
+            path: `/apps/our-mailbox/citations/${fixtures.mailboxCitationId}`,
             auth: true,
             description:
-                '/apps/our-mailbox/challans/{challan} (Challan artifact/show)',
+                '/apps/our-mailbox/citations/{citation} (Citation artifact/show)',
         },
         {
             path: '/apps/our-mailbox/coupons',

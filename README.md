@@ -14,7 +14,7 @@ your own disk. It is open source under the MIT licence. "Ghar" is the Hindi and 
   <img src="docs/screenshots/dashboard.webp" alt="Ghar's Home screen, with a door for each app showing its latest photos, songs and notes" width="49%">
   <img src="docs/screenshots/timeline.webp" alt="Our History timeline with a moment, its photos and the songs and places linked to it" width="49%">
   <img src="docs/screenshots/mailbox.webp" alt="Our Mailbox notes, handwritten on ruled paper" width="49%">
-  <img src="docs/screenshots/challan.webp" alt="A joke traffic ticket for leaving wet towels on the bed" width="49%">
+  <img src="docs/screenshots/citation.webp" alt="A joke traffic ticket for leaving wet towels on the bed" width="49%">
 </p>
 
 <sub>The screenshots show the sample household that <code>npm run dev-setup</code> creates.</sub>
@@ -26,10 +26,11 @@ it are a few small apps for the things families keep track of together:
 
 - **Our History**: a timeline, gallery and calendar of the moments you want to remember, with photos
   and videos.
-- **Our Corner**: shared lists of songs, movies, places and things to do, and a way to mark what
-  you've loved, watched or visited.
+- **Our Corner**: shared lists the household makes for itself (songs, films, places, books,
+  recipes, anything), each with its own icon and its own word for done: loved, watched, visited,
+  read.
 - **Our Mailbox**: notes and bouquets of flowers to one or more people, coupons someone can redeem,
-  and challans. A challan is what a traffic ticket is called in India; here it is a joke one, a mock
+  and citations. A citation is a joke traffic ticket, a mock
   official form for an offence such as leaving wet towels on the bed, with a penalty the recipient
   can mark as paid.
 
@@ -48,7 +49,7 @@ you can write to NFC tags.
 - **Where photos go:** your own disk by default, or any S3-compatible bucket. They are private
   either way, behind signed links that expire within two hours.
 - **Who sees what:** moments and lists are shared by everyone in the household. Notes, flowers,
-  coupons and challans are seen only by the sender and the recipients, not by admins.
+  coupons and citations are seen only by the sender and the recipients, not by admins.
 - **Who maintains it:** one person, in spare time.
 
 ## What it isn't
@@ -102,8 +103,11 @@ for these:
   account you set up.
 - **Web Push**: notifications travel through each browser's own push service, once someone turns
   them on.
-- **Links in Our Corner**: for a YouTube, Spotify or Plex link, the server asks that site for the
-  title and artwork, and browsers load the artwork from it.
+- **Links in Our Corner**: when someone pastes a link, the server reads that page for its name and
+  picture (the page's own oEmbed, Open Graph or title tags), follows a short map link to find its
+  coordinates, and fetches the picture to show it. Browsers only ever talk to your install: Ghar
+  serves the picture itself, from a small cache that may be thrown away. These fetches go only to
+  public addresses, never into your own network.
 - **Password check**: when someone sets a password, it is checked against a public list of breached
   passwords. Only the first five characters of its hash are sent.
 
@@ -151,8 +155,8 @@ npm run smoke-loadmore   # breaks pagination on purpose and checks the recovery
 npm run smoke-mcp        # serves the sample data for testing by hand
 ```
 
-CI runs the first three on every pull request. [`CONTRIBUTING.md`](./CONTRIBUTING.md) explains what
-each one is for.
+CI runs the first four on every pull request, and `npm run verify` runs everything CI checks in
+one go. [`CONTRIBUTING.md`](./CONTRIBUTING.md) explains what each one is for.
 
 ## Contributing
 

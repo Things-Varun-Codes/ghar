@@ -57,19 +57,6 @@ function run(file, ...args) {
     execFileSync(file, args, { cwd: ROOT, stdio: 'inherit' });
 }
 
-// A push runs the pre-push checks with the connection already open, and GitHub closes one
-// that stays silent for the minutes they take.
-function push(...args) {
-    execFileSync('git', ['push', ...args], {
-        cwd: ROOT,
-        stdio: 'inherit',
-        env: {
-            GIT_SSH_COMMAND: 'ssh -o ServerAliveInterval=15',
-            ...process.env,
-        },
-    });
-}
-
 function readChange(name) {
     return parseChange(
         name,
@@ -220,7 +207,7 @@ function prepare() {
     git('switch', '--quiet', '-c', branch);
     git('add', '--all', 'CHANGELOG.md', '.changes');
     run('git', 'commit', '--quiet', '-m', title);
-    push('--set-upstream', 'origin', branch);
+    run('git', 'push', '--set-upstream', 'origin', branch);
 
     const body = [
         '## What this changes and why',
@@ -285,7 +272,7 @@ function tag() {
 
     console.log(`Tagging ${commit.slice(0, 7)} as ${name} and pushing it.`);
     git('tag', name, commit);
-    push('origin', name);
+    run('git', 'push', 'origin', name);
     console.log(
         `\n${name} is pushed. The Release workflow builds and publishes it.`,
     );

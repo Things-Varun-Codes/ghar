@@ -100,8 +100,8 @@ class SanitizeBodyHtmlTest extends TestCase
     {
         $input = '<p>before '
             .'<span data-corner-type="corner.song" data-corner-id="42"'
-            .' data-corner-title="Test track" data-corner-thumbnail="https://i.ytimg.com/x.jpg"'
-            .' data-corner-href="/apps/our-corner/songs/42">Test track</span>'
+            .' data-corner-title="Test track" data-corner-thumbnail="/apps/our-corner/items/42/picture?v=abc123"'
+            .' data-corner-href="/apps/our-corner/songs/42" data-corner-icon="music">Test track</span>'
             .' after</p>';
 
         $output = ($this->action)($input);
@@ -110,9 +110,10 @@ class SanitizeBodyHtmlTest extends TestCase
         $this->assertStringContainsString('data-corner-id="42"', $output);
         $this->assertStringContainsString('data-corner-title="Test track"', $output);
         $this->assertStringContainsString(
-            'data-corner-thumbnail="https://i.ytimg.com/x.jpg"',
+            'data-corner-thumbnail="/apps/our-corner/items/42/picture?v=abc123"',
             $output,
         );
+        $this->assertStringContainsString('data-corner-icon="music"', $output);
         $this->assertStringContainsString(
             'data-corner-href="/apps/our-corner/songs/42"',
             $output,

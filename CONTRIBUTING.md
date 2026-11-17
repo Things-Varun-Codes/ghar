@@ -27,12 +27,8 @@ If `.env` already exists, `dev-setup` shows what differs from the local values a
 back. Test against these accounts instead of making your own, so that a bug report means the same
 thing on everyone's machine. They all use the password `ghar-local-dev`.
 
-| Account              | Who                     | Use it to check                                                                                                                       |
-| -------------------- | ----------------------- | ------------------------------------------------------------------------------------------------------------------------------------- |
-| `admin@example.test` | Asha, the only admin    | Admin pages; editing anyone's moment or Corner item; last-admin guards. Has no special access to other people's mail.                 |
-| `ravi@example.test`  | Ravi, adult             | **Non-admin creator**: can edit "Monsoon drive to the coast" (his), can't edit "Meera's first pottery class". Sender of the fixtures. |
-| `meera@example.test` | Meera, adult            | **Recipient**: note 1, bouquet 1, coupon 1 and challan 1 are Ravi's to her alone. Can request the coupon and pay the challan.         |
-| `kabir@example.test` | Kabir, younger, no push | **Non-recipient**: `/apps/our-mailbox/challans/1` and `coupons/1` must 403; note 1 and bouquet 1 must not be listed.                  |
+The accounts and what each one is for are in the table under
+[How to test locally](./CLAUDE.md#how-to-test-locally) in `CLAUDE.md`.
 
 If your scenario isn't covered, extend `database/seeders/DevDataSeeder.php`.
 
@@ -54,12 +50,14 @@ multi-step form. Add every new page to `scripts/smoke.mjs`; a check fails if a r
 ## The hooks and CI
 
 `npm run dev-setup` installs [lefthook](https://lefthook.dev). `pre-commit` lints the staged files;
-`pre-push` runs the full set in order and stops at the first failure: clean working tree, env docs,
-dependency audits, types, lint, formatting, static analysis, every test tier above. Don't skip it
-with `--no-verify`.
+`pre-push` is a quick gate, usually well under a minute: a clean working tree, then in parallel the
+repository checks in `scripts/`, formatting of the files being pushed, and lint and types across the
+repo. Don't skip it with `--no-verify`. To run everything CI runs before you open a pull request,
+use `npm run verify` (several minutes; it stops at the first failure).
 
-GitHub Actions runs types, lint, formatting, static analysis, the tests and the headless smoke on
-every pull request. It also builds the production image and starts it with
+GitHub Actions runs the full set on every pull request: the repository checks, dependency audits,
+formatting, types, lint, static analysis, every automated test tier above and both headless smoke
+runs. It also builds the production image and starts it with
 `docker-compose.selfhost.yml`, so a change to the Dockerfile or the entrypoint is tested before a
 release. A pull request that adds a dependency with a known vulnerability, or under a GPL or AGPL
 licence, fails the dependency review. The "Change file" check fails a pull request whose title isn't
@@ -87,44 +85,10 @@ contributor wait for a maintainer to start them.
 ## Adding a mini app
 
 A mini app is a self-contained module: no imports from another app, and no database foreign keys to
-another app's tables. For each `enabled` entry in `config/miniapps.php`, the shell registers its
-service provider and loads `routes/miniapps/{slug}.php` and `database/migrations/{slug}/`. The rest
-is by hand:
-
-1. Add the entry to `config/miniapps.php`:
-
-    ```php
-    [
-        'name' => 'Our Recipes',
-        'slug' => 'our-recipes',
-        'route' => '/apps/our-recipes',
-        'description' => 'Recipes, including the ones nobody wrote down.',
-        'enabled' => true,
-        'provider' => RecipesServiceProvider::class,
-        'admin_only' => false,
-        'component_prefix' => 'MiniApps/Recipes/',
-    ],
-    ```
-
-2. Write the provider. Console commands and scheduled tasks are registered from its `boot()`.
-3. Add `resources/css/themes/{slug}.css` and its `@import` in `resources/css/app.css`.
-4. If the app uses a font, register it in `vite.config.ts` under `fonts:`.
-5. Put the frontend in `resources/js/MiniApps/{App}/`.
-6. Add every new page to `scripts/smoke.mjs`, and sample data to `DevDataSeeder`.
-7. Optionally, show a live line and a glimpse on the home screen through `DashboardSummaries`,
-   returning only rows the viewer may see.
-8. If a table's foreign key to `users` restricts deletes, register it with `UserOwnedContent` from
-   the provider's `boot()`, so the admin screen can say what blocks deleting that user.
-
-## Theme layers
-
-- **Layer 1, `--shell-*`:** the colours of the whole app, set once in `resources/css/app.css`.
-  Mini apps use these and never define them.
-- **Layer 2, `--<app>-*`:** an app's identity: fonts, radii, easing, textures. Colours here only
-  alias or mix `--shell-*`.
-- **Layer 3, `.<app>-*`:** classes scoped under `[data-app='<slug>']`.
-
-An app never references another app's tokens. `resources/css/themes/history.css` is a full example.
+another app's tables. The steps to add one, with an example registry entry, are in
+[`.claude/rules/new-mini-app.md`](./.claude/rules/new-mini-app.md); its stylesheet follows the three
+layers in [`.claude/rules/themes.md`](./.claude/rules/themes.md). Each room's own rules are in the
+same folder.
 
 ## Reporting bugs
 

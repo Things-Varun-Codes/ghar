@@ -4,9 +4,9 @@ namespace Tests\Feature\Mailbox;
 
 use App\MiniApps\Mailbox\Actions\CancelRequest;
 use App\MiniApps\Mailbox\Actions\FulfillCoupon;
-use App\MiniApps\Mailbox\Actions\PayChallan;
+use App\MiniApps\Mailbox\Actions\PayCitation;
 use App\MiniApps\Mailbox\Actions\RequestCoupon;
-use App\MiniApps\Mailbox\Models\Challan;
+use App\MiniApps\Mailbox\Models\Citation;
 use App\MiniApps\Mailbox\Models\Coupon;
 use App\Shell\Models\User;
 use App\Shell\Notifications\GenericPushNotification;
@@ -92,12 +92,12 @@ class MailboxAtomicTransitionsTest extends TestCase
 
     public function test_pay_cannot_push_twice(): void
     {
-        $challan = Challan::factory()->create();
-        $stale = Challan::findOrFail($challan->id);
+        $citation = Citation::factory()->create();
+        $stale = Citation::findOrFail($citation->id);
 
-        $this->assertStaleReplayRejected(app(PayChallan::class), $challan, $stale);
+        $this->assertStaleReplayRejected(app(PayCitation::class), $citation, $stale);
 
-        $this->assertSame(Challan::STATUS_PAID, $challan->fresh()->status);
+        $this->assertSame(Citation::STATUS_PAID, $citation->fresh()->status);
         Notification::assertSentTimes(GenericPushNotification::class, 1);
     }
 }

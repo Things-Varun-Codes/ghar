@@ -42,7 +42,9 @@ docker compose -f docker-compose.selfhost.yml logs app | grep -A1 "Admin account
 ```
 
 The log shows the admin's password once. Log in at <http://localhost:8080> (change the port with
-`GHAR_PORT`), change the password under Settings, and invite your family from Admin, Invites.
+`GHAR_PORT`), change the password under Settings, turn on the rooms you want under Admin, Rooms
+(a new install has none on, so Home is empty until you do), and invite your family from Admin,
+Invites.
 
 ### What the first start does
 
@@ -278,8 +280,9 @@ than 90 days are pruned weekly.
 - **Web Push** works once the site is on HTTPS, using the keys made on first start.
   `VAPID_SUBJECT` defaults to `APP_URL`; a `mailto:` address works too. On iOS, push needs the app
   added to the Home Screen first (Share, Add to Home Screen).
-- **Location search** in Our History and Our Corner uses Google Places when `GOOGLE_MAPS_API_KEY`
-  is set. Without it, people type places in by hand. To set it up, enable **Places API (New)** and
+- **Location search** in Our History uses Google Places when `GOOGLE_MAPS_API_KEY` is set. Without
+  it, people type places in by hand. Our Corner never needs it: a place there is a pasted map link,
+  coordinates or a typed name. To set it up, enable **Places API (New)** and
   **Maps JavaScript API** in Google Cloud (billing must be linked), create an API key restricted to
   your site's URL and to those two APIs, then set it and restart.
 - **AI flower pictures** in Our Mailbox use Cloudflare Workers AI:

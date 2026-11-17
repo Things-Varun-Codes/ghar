@@ -29,7 +29,6 @@ edits the file in `.changes/` (title it `docs: …`). Don't edit `CHANGELOG.md`.
 ## Cut a release
 
 You need a clean working tree, `gh` signed in, and a checkout that has had `npm run dev-setup`.
-Each push below runs the pre-push checks, which take several minutes.
 
 1. **Preview.** `npm run release:notes` prints the next version and its section. The types decide
    the version: only `fixed` or `security` is a patch, any `added` or `changed` is a minor, and any

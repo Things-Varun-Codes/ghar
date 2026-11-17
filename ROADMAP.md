@@ -10,9 +10,13 @@ when work lands, delete lines when they stop being true.
   Sentry-compatible error reporting.
 - **Our History** — timeline, gallery (PhotoSwipe), calendar view, TipTap editor with Corner
   cross-link pills, media on local disk or any S3 bucket, typed or Google Places locations.
-- **Our Corner** — Songs / Movies / Activities / Places lists, detail pages, deferred-delete
-  Undo, metadata lookup.
-- **Our Mailbox** — messages, AI bouquets (Cloudflare Workers AI), challans, coupons.
+- **Our Corner** — lists the household makes itself (name, any lucide icon, done word), items
+  with a name, notes, link, picture and place, generic link previews behind fetch guards, a picture
+  proxy, Open in Maps, deferred-delete Undo.
+- **Our Mailbox** — messages, AI bouquets (Cloudflare Workers AI), citations, coupons.
+- **Rooms the admin chooses** — Admin → Rooms turns History, Corner and Mailbox on or off at runtime
+  (data kept), and Mailbox's four entry types individually. A fresh install starts with none on; an
+  upgrade keeps what it had.
 - **Quality gates** — Eloquent strict mode, GitHub Actions CI, lefthook hooks, route-drift check,
   Vitest unit tier, headless and fault-injection smoke, restrictive user-FK offboarding.
 - **Development** — one-command seeded environment on PostgreSQL with a sample household.
@@ -39,15 +43,17 @@ A branching question game: one member authors, another plays.
 Today Undo is a 5000 ms client-side deferral over a hard delete — close the tab mid-window and the
 row is gone. Plan:
 
-1. `SoftDeletes` + `deleted_at` on `Song`, `Movie`, `Activity`, `Place`.
-2. Restore route + policy method per type, reusing `ListItemPolicy`.
+1. `SoftDeletes` + `deleted_at` on `Item` (`corner_items`), and decide whether a deleted list
+   (which cascades its items today) is soft-deleted too.
+2. One restore route + a `restore` policy method on `ListItemPolicy`.
 3. List queries and `CursorList` exclude trashed rows; All/Active/Done counts stay correct.
 4. Re-decide `useItemActions`' delete path, then update the CLAUDE.md item-actions contract and the
    unit tests.
 5. Pick and document a purge policy.
 
 Must hold: a restore keeps the original id (History `body_html` bakes `/apps/our-corner/{slug}/{id}`
-into stored pills); non-owner restore → 403.
+into stored pills, and pills from before custom lists find an item by its `legacy_id`); non-owner
+restore → 403.
 
 ### Our History inline GIFs
 

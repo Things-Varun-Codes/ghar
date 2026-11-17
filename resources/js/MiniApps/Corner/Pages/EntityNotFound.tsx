@@ -7,19 +7,10 @@ import CornerLayout, {
 import { landing } from '@/routes/apps/our-corner';
 
 interface Props {
-    kind: 'song' | 'movie' | 'activity' | 'place';
+    kind: 'list' | 'item';
 }
 
-const KIND_LABEL: Record<Props['kind'], string> = {
-    song: 'song',
-    movie: 'movie',
-    activity: 'activity',
-    place: 'place',
-};
-
 export default function EntityNotFound({ kind }: Props) {
-    const label = KIND_LABEL[kind] ?? 'thing';
-
     return (
         <>
             <Head title={pageTitle('No longer here', CORNER_ROOM)} />
@@ -27,7 +18,9 @@ export default function EntityNotFound({ kind }: Props) {
                 <div className="corner-not-found">
                     <article className="corner-not-found-card">
                         <h1 className="corner-not-found-title">
-                            This {label} isn't here anymore.
+                            {kind === 'list'
+                                ? "This list isn't here anymore."
+                                : "This isn't here anymore."}
                         </h1>
                         <p className="corner-not-found-body">
                             Someone may have removed it. An old link or

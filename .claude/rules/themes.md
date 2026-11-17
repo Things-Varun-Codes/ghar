@@ -1,0 +1,22 @@
+---
+paths:
+    - 'resources/css/**'
+    - 'resources/js/MiniApps/**'
+    - 'vite.config.ts'
+---
+
+## Mini-app theme architecture
+
+Three layers. **Layer 1** `--shell-*` OS tokens — one palette (sage on white), defined only in
+`resources/css/app.css` on `:root`; mini apps never define them. **Layer 2** `--<app>-*` motif tokens — identity (fonts, radii, easing, textures); colours
+here only alias or mix `--shell-*`, never a literal. **Layer 3** `.<app>-*` composition classes scoped under `[data-app='<slug>']`; a class on a portaled root that carries `data-app` itself needs the compound form `[data-app='<slug>'].<class>`. Static styles belong here or in Tailwind; keep `style={{…}}` for values computed at runtime.
+
+> Mini apps consume `--shell-*` for colour, define `--<app>-*` for identity, and never reference
+> another app's tokens.
+
+- Register fonts through the Vite plugin `fonts:` array, not `@import url(…)`.
+- Exemplars: `themes/history.css` (full three-layer), `themes/mailbox.css` (notebook + citation
+  motif), `themes/corner.css` (objects on shared chrome).
+- Shared list band (`ListNavBand` / `ListSortControl`, used by Corner and Mailbox) takes app
+  identity via `--list-nav-font` and `--list-nav-radius` declared in the app's `[data-app]` scope —
+  never by editing the shared component.

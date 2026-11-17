@@ -2,4 +2,4 @@
 type: changed
 ---
 
-Paying a challan asks you to confirm first.
+Paying a citation asks you to confirm first.
