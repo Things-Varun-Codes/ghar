@@ -2,6 +2,7 @@ import { router } from '@inertiajs/react';
 import { Images } from 'lucide-react';
 import { useRef } from 'react';
 
+import { count } from '@/lib/plural';
 import FilterRail from '@/MiniApps/History/Components/FilterRail';
 import FilterSegmented from '@/MiniApps/History/Components/FilterSegmented';
 import MasonryGrid from '@/MiniApps/History/Components/MasonryGrid';
@@ -81,7 +82,7 @@ export default function Gallery({
         extraParams.year = filters.year;
     }
 
-    const galleryCountLine = `${counts.photos} photo${counts.photos !== 1 ? 's' : ''} · ${counts.videos} video${counts.videos !== 1 ? 's' : ''} across ${counts.events} moment${counts.events !== 1 ? 's' : ''}`;
+    const galleryCountLine = `${count(counts.photos, 'photo')} · ${count(counts.videos, 'video')} across ${count(counts.events, 'moment')}`;
 
     return (
         <HistoryLayout

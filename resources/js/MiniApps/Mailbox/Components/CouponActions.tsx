@@ -52,7 +52,6 @@ export default function CouponActions({
             {},
             {
                 preserveScroll: true,
-                preserveState: false,
                 ...mutationOptions({
                     component: 'Mailbox/CouponActions',
                     action: `coupon.${kind}`,
@@ -69,7 +68,6 @@ export default function CouponActions({
 
         router.delete(destroy.url(coupon.id), {
             preserveScroll: true,
-            preserveState: false,
             ...mutationOptions({
                 component: 'Mailbox/CouponActions',
                 action: 'coupon.delete',
@@ -155,7 +153,6 @@ export default function CouponActions({
                 cancelLabel="Keep it"
                 confirmLabel="Withdraw"
                 variant="destructive"
-                processing={busy}
                 onConfirm={handleDelete}
             />
         </>

@@ -12,6 +12,7 @@ import {
 import type { ReactNode } from 'react';
 import { toast } from 'sonner';
 import { useDirtyFormGate } from '@/hooks/use-dirty-form-gate';
+import { count } from '@/lib/plural';
 import events from '@/routes/apps/our-history/events';
 import PlacesLocationField, {
     ManualLocationInput,
@@ -223,9 +224,7 @@ const EventForm = forwardRef<EventFormHandle, EventFormProps>(
 
                             const stagedCount = stagedCountRef.current;
                             toast.success(
-                                `Saved. Uploading ${stagedCount} ${
-                                    stagedCount === 1 ? 'item' : 'items'
-                                }…`,
+                                `Saved. Uploading ${count(stagedCount, 'item')}…`,
                             );
 
                             setEventId(newId);

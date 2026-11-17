@@ -4,12 +4,12 @@ import { useState } from 'react';
 
 import { Button } from '@/components/ui/button';
 import { mutationOptions } from '@/lib/mutation';
+import { count } from '@/lib/plural';
 import { DoneSticker } from '@/MiniApps/Corner/Components/DoneMark';
 import ItemThumb from '@/MiniApps/Corner/Components/ItemThumb';
 import ListMenu from '@/MiniApps/Corner/Components/ListMenu';
 import ListSettingsSheet from '@/MiniApps/Corner/Components/ListSettingsSheet';
 import CornerLayout from '@/MiniApps/Corner/Layouts/CornerLayout';
-import { thingsCount } from '@/MiniApps/Corner/lib/copy';
 import type { ListSettings } from '@/MiniApps/Corner/lib/presets';
 import { SUGGESTED_LISTS } from '@/MiniApps/Corner/lib/presets';
 import type { CornerListInfo } from '@/MiniApps/Corner/lib/types';
@@ -43,7 +43,7 @@ function liveLine(door: Door): string {
         return 'Nothing yet';
     }
 
-    const total = thingsCount(door.count);
+    const total = count(door.count, 'thing');
 
     return door.done > 0
         ? `${total} · ${door.done} ${door.done_label.toLowerCase()}`

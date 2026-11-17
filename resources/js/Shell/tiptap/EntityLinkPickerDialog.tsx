@@ -19,6 +19,7 @@ import {
 import { useAppAttrs } from '@/hooks/use-app-attrs';
 import { useIsPhone } from '@/hooks/use-breakpoint';
 import { useOverlayHistory } from '@/hooks/use-overlay-history';
+import { count } from '@/lib/plural';
 import { search as linkableSearch } from '@/routes/linkable';
 import LinkableIcon from '@/Shell/linkables/LinkableIcon';
 
@@ -210,7 +211,7 @@ export default function EntityLinkPickerDialog({
         }
     };
 
-    const matchesLabel = `${results.length} ${results.length === 1 ? 'match' : 'matches'}`;
+    const matchesLabel = count(results.length, 'match', 'matches');
 
     const pickerBody = (
         <div className="flex flex-col gap-3">

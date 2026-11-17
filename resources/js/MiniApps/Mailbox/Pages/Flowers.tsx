@@ -37,7 +37,6 @@ export default function Flowers({
     const handleDelete = (id: number) => {
         router.delete(destroy.url(id), {
             preserveScroll: true,
-            preserveState: false,
             ...mutationOptions({
                 component: 'Mailbox/Flowers',
                 action: 'bouquet.delete',

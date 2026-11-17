@@ -4,6 +4,7 @@ import type { ComponentProps, ReactNode } from 'react';
 import { useEffect, useMemo } from 'react';
 
 import { scrollBehavior } from '@/lib/motion';
+import { count } from '@/lib/plural';
 import { MAILBOX_ROOM } from '@/MiniApps/Mailbox/Layouts/MailboxLayout';
 import CursorListBody from '@/Shell/Components/CursorListBody';
 import EmptyState from '@/Shell/Components/EmptyState';
@@ -114,7 +115,6 @@ export default function MailboxListPage<
     }, [focusedId]);
 
     const searching = Boolean(query && query.trim() !== '');
-    const noun = countAll === 1 ? countNoun.one : countNoun.other;
 
     return (
         <>
@@ -140,7 +140,7 @@ export default function MailboxListPage<
                     navigating={pagination.navigating}
                     count={
                         <span className="text-(length:--text-eyebrow) text-(--mailbox-ink-soft)">
-                            {countAll} {noun}
+                            {count(countAll, countNoun.one, countNoun.other)}
                             {searching &&
                                 (countAll === 1 ? ' matches' : ' match')}
                         </span>

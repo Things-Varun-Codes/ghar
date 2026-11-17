@@ -52,7 +52,7 @@ paths:
   history; only its own load-more appends, and `refreshInPlace()` updates the shown rows without
   dropping later pages. So a mutation needs no `preserveState: false` to show fresh rows. A partial
   reload whose `only` leaves the list out doesn't touch it. Mailbox create sheets use
-  `preserveState: 'errors'`. The shared body (rows, empty and no-matches states, load-more
+  `preserveState: 'errors'`; "Send & write another" keeps state, so the sheet stays open. The shared body (rows, empty and no-matches states, load-more
   footer, pending dim) is `Shell/Components/CursorListBody`.
 - **Prefetch only side-effect-free pages.** `<Link prefetch="mount">` is on the Home doors, the
   Corner landing cards (the first four) and the History tabs; `lib/stale-history.ts` drops the prefetch cache after any non-GET
