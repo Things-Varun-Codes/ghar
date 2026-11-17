@@ -8,6 +8,11 @@
 // Drawings come from lucide-react itself. Tags and categories are not in that package, so they
 // are read from the lucide repository at the same version (a one-off download). Re-run after
 // upgrading lucide-react; a unit test fails while the files and the package disagree.
+//
+// Usage: node scripts/lucide-icons.mjs <version>, the installed lucide-react version, e.g.
+//   node scripts/lucide-icons.mjs 1.72.0
+// The version to download is the one given here. The installed package is only checked against
+// it, so a mismatch stops the script instead of writing data for the wrong icons.
 import { execFileSync } from 'node:child_process';
 import { mkdtempSync, readFileSync, readdirSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
@@ -15,9 +20,21 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
-const version = JSON.parse(
+const version = process.argv[2] ?? '';
+
+if (!/^\d+\.\d+\.\d+$/.test(version)) {
+    console.error('[lucide-icons] Give the lucide-react version, e.g. node scripts/lucide-icons.mjs 1.72.0');
+    process.exit(1);
+}
+
+const installed = JSON.parse(
     readFileSync(path.join(root, 'node_modules/lucide-react/package.json'), 'utf8'),
 ).version;
+
+if (installed !== version) {
+    console.error(`[lucide-icons] lucide-react ${installed} is installed, not ${version}.`);
+    process.exit(1);
+}
 
 const { default: imports } = await import('lucide-react/dynamicIconImports');
 const names = Object.keys(imports).sort();
