@@ -42,6 +42,7 @@ class CreateEvent
                 'location_lng' => $validated['location_lng'] ?? null,
                 'body_html' => $bodyHtml,
                 'creator_id' => $actor->id,
+                'birthday_user_id' => $validated['birthday_user_id'] ?? null,
             ]);
 
             ($this->logEventChange)($event, 'create', [
