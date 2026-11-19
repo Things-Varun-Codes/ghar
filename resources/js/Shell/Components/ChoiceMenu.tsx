@@ -1,4 +1,4 @@
-import { Check, ChevronDown } from 'lucide-react';
+import { ChevronDown } from 'lucide-react';
 
 import {
     DropdownMenu,
@@ -89,12 +89,8 @@ export default function ChoiceMenu({
                             key={key}
                             value={key}
                             closeOnClick
-                            className={cn(
-                                'group/choice',
-                                // The tick is drawn here, in the room's colour.
-                                '[&_[data-slot=dropdown-menu-radio-item-indicator]]:hidden',
-                                classNames.item,
-                            )}
+                            className={cn('group/choice', classNames.item)}
+                            indicatorClassName={classNames.check}
                         >
                             <span>
                                 <span
@@ -111,14 +107,6 @@ export default function ChoiceMenu({
                                     </span>
                                 )}
                             </span>
-                            {key === value && (
-                                <Check
-                                    aria-hidden="true"
-                                    size={14}
-                                    strokeWidth={1.5}
-                                    className={cn('shrink-0', classNames.check)}
-                                />
-                            )}
                         </DropdownMenuRadioItem>
                     ))}
                 </DropdownMenuRadioGroup>

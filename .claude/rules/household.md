@@ -22,6 +22,7 @@ Every invited user is a household member (`App\Shell\Services\Household`: `membe
 | History moments (`EventPolicy`)        | Everyone           | Edit, delete, media: creator or admin                       |
 | Corner lists (`CornerListPolicy`)      | Everyone           | Make: anyone. Edit: maker or admin. Delete: see `corner.md` |
 | Corner items (`ListItemPolicy`)        | Everyone           | Edit, delete: adder or admin. Mark done: anyone             |
+| Profile picture, birthday              | Everyone           | Picture: own; an admin may remove. Birthday: own or admin   |
 | Notes, flowers (`RecipientMailPolicy`) | Sender, recipients | Delete: sender                                              |
 | Coupons, citations (own policies)      | Issuer, recipient  | Request, cancel, pay: recipient. Fulfil, delete: issuer     |
 

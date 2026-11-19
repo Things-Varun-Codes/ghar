@@ -150,11 +150,13 @@ function DropdownMenuRadioGroup({ ...props }: MenuPrimitive.RadioGroup.Props) {
 
 function DropdownMenuRadioItem({
   className,
+  indicatorClassName,
   children,
   inset,
   ...props
 }: MenuPrimitive.RadioItem.Props & {
   inset?: boolean
+  indicatorClassName?: string
 }) {
   return (
     <MenuPrimitive.RadioItem
@@ -164,7 +166,10 @@ function DropdownMenuRadioItem({
       {...props}
     >
       <span
-        className="pointer-events-none absolute right-2 flex items-center justify-center"
+        className={cn(
+          "pointer-events-none absolute right-2 flex items-center justify-center",
+          indicatorClassName
+        )}
         data-slot="dropdown-menu-radio-item-indicator"
       >
         <MenuPrimitive.RadioItemIndicator>
