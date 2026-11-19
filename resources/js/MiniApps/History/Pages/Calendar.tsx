@@ -7,7 +7,10 @@ import CalendarMonth from '@/MiniApps/History/Components/CalendarMonth';
 import EventSheet from '@/MiniApps/History/Components/EventSheet';
 import { useMomentFromUrl } from '@/MiniApps/History/Hooks/useMomentFromUrl';
 import HistoryLayout from '@/MiniApps/History/Layouts/HistoryLayout';
-import type { HistoryEvent } from '@/MiniApps/History/lib/types';
+import type {
+    HistoryEvent,
+    MemberBirthday,
+} from '@/MiniApps/History/lib/types';
 import { calendar } from '@/routes/apps/our-history';
 import EmptyState from '@/Shell/Components/EmptyState';
 
@@ -32,6 +35,7 @@ type Props = {
     year: number;
     availableYears: number[];
     eventsCount: number;
+    birthdays: MemberBirthday[];
     moment?: HistoryEvent | null;
 };
 

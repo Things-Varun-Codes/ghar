@@ -4,11 +4,19 @@ namespace App\MiniApps\History\Http\Resources;
 
 use App\MiniApps\History\Models\Event;
 use App\MiniApps\History\Models\EventChange;
+use App\MiniApps\History\Models\EventComment;
+use App\MiniApps\History\Models\EventReaction;
 use App\MiniApps\History\Support\VideoPosterResolver;
 use App\Shell\Models\User;
+use App\Shell\Support\Person;
 use App\Shell\Support\SignedUrls;
 use Spatie\MediaLibrary\MediaCollections\Models\Media;
 
+/**
+ * @phpstan-type PersonShape array{id: int, name: string, avatar_url: string|null}
+ * @phpstan-type ReactionShape array{key: string, emoji: string, count: int, mine: bool, people: list<PersonShape>}
+ * @phpstan-type CommentShape array{id: int, body: string, author: PersonShape|null, created_at: string, can: array{delete: bool}}
+ */
 class EventResource
 {
     public function __construct(
@@ -16,6 +24,8 @@ class EventResource
     ) {}
 
     /**
+     * The moment must come from a query that started with Event::forResource().
+     *
      * @param  array<string, array<string, mixed>>  $links  what the story's links point at now (LinkedThings)
      * @return array{
      *     id: int,
@@ -35,6 +45,10 @@ class EventResource
      *     updated_at: string|null,
      *     media: array,
      *     changes: array,
+     *     creator: PersonShape|null,
+     *     birthday_of: PersonShape|null,
+     *     reactions: list<ReactionShape>,
+     *     comments: list<CommentShape>,
      *     can: array{update: bool, delete: bool},
      * }
      */
@@ -89,10 +103,57 @@ class EventResource
             'updated_at' => $event->updated_at->toIso8601String(),
             'media' => $media,
             'changes' => $changes,
+            'creator' => $event->creator !== null ? Person::of($event->creator) : null,
+            'birthday_of' => $event->birthdayOf !== null ? Person::of($event->birthdayOf) : null,
+            'reactions' => $this->reactions($event, $viewer),
+            'comments' => $this->comments($event, $viewer),
             'can' => [
                 'update' => (bool) $viewer?->can('update', $event),
                 'delete' => (bool) $viewer?->can('delete', $event),
             ],
         ];
+    }
+
+    /**
+     * Every emoji of the set, in its order, with a count of 0 when nobody has used it, so the
+     * sheet draws its toggles straight from the payload.
+     *
+     * @return list<ReactionShape>
+     */
+    private function reactions(Event $event, ?User $viewer): array
+    {
+        $byKey = $event->reactions->groupBy('reaction');
+
+        return array_map(function (string $key, string $emoji) use ($byKey, $viewer): array {
+            $people = $byKey->get($key, collect())
+                ->map(fn (EventReaction $reaction): array => Person::of($reaction->user))
+                ->values()
+                ->all();
+
+            return [
+                'key' => $key,
+                'emoji' => $emoji,
+                'count' => count($people),
+                'mine' => $viewer !== null && in_array($viewer->id, array_column($people, 'id'), true),
+                'people' => $people,
+            ];
+        }, array_keys(EventReaction::EMOJI), EventReaction::EMOJI);
+    }
+
+    /** @return list<CommentShape> */
+    private function comments(Event $event, ?User $viewer): array
+    {
+        return $event->comments
+            ->map(fn (EventComment $comment): array => [
+                'id' => $comment->id,
+                'body' => $comment->body,
+                'author' => $comment->author !== null ? Person::of($comment->author) : null,
+                'created_at' => $comment->created_at->toIso8601String(),
+                'can' => [
+                    'delete' => (bool) $viewer?->can('delete', $comment),
+                ],
+            ])
+            ->values()
+            ->all();
     }
 }

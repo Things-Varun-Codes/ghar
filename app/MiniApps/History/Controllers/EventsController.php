@@ -11,7 +11,10 @@ use App\MiniApps\History\Http\Resources\EventResource;
 use App\MiniApps\History\Models\Event;
 use App\MiniApps\History\Providers\HistoryServiceProvider;
 use App\MiniApps\History\Support\LinkedThings;
+use App\MiniApps\History\Support\MemberBirthdays;
+use App\MiniApps\History\Support\OnThisDay;
 use App\MiniApps\History\Support\RequestedMoment;
+use App\Shell\Models\User;
 use App\Shell\Services\PushDispatcher;
 use App\Shell\Support\CursorPayload;
 use Illuminate\Http\RedirectResponse;
@@ -31,7 +34,7 @@ class EventsController
         // aren't unique.
         $viewer = $request->user();
         $events = Event::query()
-            ->with(['media', 'changes.user'])
+            ->forResource()
             ->orderBy('occurred_on', $direction)
             ->orderBy('created_at', $direction)
             ->orderBy('id', $direction)
@@ -52,9 +55,23 @@ class EventsController
                 ->pluck('occurred_on')
                 ->groupBy(fn (string $date) => (int) substr($date, 0, 4))
                 ->map->count(),
-            // A closure, so the load-more and polling partial reloads skip it.
+            // Closures, so the load-more, polling and sheet partial reloads skip them.
+            'onThisDay' => fn () => self::onThisDay($viewer),
+            'birthdays' => fn () => MemberBirthdays::forForm(),
             'moment' => fn () => RequestedMoment::from($request),
         ]);
+    }
+
+    /** @return list<array<string, mixed>> */
+    private static function onThisDay(?User $viewer): array
+    {
+        $events = OnThisDay::query()->forResource()->get();
+        $links = LinkedThings::forEvents($events);
+
+        return $events
+            ->map(fn (Event $event) => app(EventResource::class)($event, $viewer, $links[$event->id] ?? []))
+            ->values()
+            ->all();
     }
 
     public function store(StoreEventRequest $request, CreateEvent $action): RedirectResponse

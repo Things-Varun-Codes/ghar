@@ -5,6 +5,8 @@ namespace App\MiniApps\History\Controllers;
 use App\MiniApps\History\Http\Resources\EventResource;
 use App\MiniApps\History\Models\Event;
 use App\MiniApps\History\Support\LinkedThings;
+use App\MiniApps\History\Support\MemberBirthdays;
+use App\MiniApps\History\Support\OnThisDay;
 use App\MiniApps\History\Support\RequestedMoment;
 use App\Shell\Models\User;
 use Illuminate\Database\Eloquent\Collection;
@@ -33,19 +35,13 @@ class CalendarController
             : ($availableYears[0] ?? (int) now()->year);
 
         $events = Event::query()
-            ->with(['media', 'changes.user'])
+            ->forResource()
             ->whereYear('occurred_on', $year)
             ->orderBy('occurred_on')
             ->orderBy('created_at')
             ->get();
 
-        $today = now();
-        $onThisDay = Event::query()
-            ->with(['media', 'changes.user'])
-            ->whereMonth('occurred_on', $today->month)
-            ->whereDay('occurred_on', $today->day)
-            ->orderByDesc('occurred_on')
-            ->get();
+        $onThisDay = OnThisDay::query()->forResource()->get();
 
         // One lookup for both: a moment on this day is often also in this year.
         $links = LinkedThings::forEvents($events->concat($onThisDay));
@@ -58,6 +54,7 @@ class CalendarController
             'year' => $year,
             'availableYears' => $availableYears,
             'eventsCount' => count($events),
+            'birthdays' => fn () => MemberBirthdays::forForm(),
             'moment' => fn () => RequestedMoment::from($request),
         ]);
     }

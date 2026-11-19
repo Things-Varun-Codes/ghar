@@ -8,7 +8,10 @@ import YearJumpRail from '@/MiniApps/History/Components/YearJumpRail';
 import { useConversionPolling } from '@/MiniApps/History/Hooks/useConversionPolling';
 import { useMomentFromUrl } from '@/MiniApps/History/Hooks/useMomentFromUrl';
 import HistoryLayout from '@/MiniApps/History/Layouts/HistoryLayout';
-import type { HistoryEvent } from '@/MiniApps/History/lib/types';
+import type {
+    HistoryEvent,
+    MemberBirthday,
+} from '@/MiniApps/History/lib/types';
 import { timeline } from '@/routes/apps/our-history';
 import EmptyState from '@/Shell/Components/EmptyState';
 import Fab from '@/Shell/Components/Fab';
@@ -24,6 +27,9 @@ type Props = {
     eventsCount: number;
     lastEventOccurredOn: string | null;
     yearCounts: Record<number, number>;
+    /* Moments from today's date in earlier years, newest first. */
+    onThisDay: HistoryEvent[];
+    birthdays: MemberBirthday[];
     moment?: HistoryEvent | null;
 };
 
