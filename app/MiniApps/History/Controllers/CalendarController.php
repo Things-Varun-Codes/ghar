@@ -9,6 +9,7 @@ use App\MiniApps\History\Support\MemberBirthdays;
 use App\MiniApps\History\Support\OnThisDay;
 use App\MiniApps\History\Support\RequestedMoment;
 use App\Shell\Models\User;
+use App\Shell\Support\Region;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -32,7 +33,7 @@ class CalendarController
         // backfilled history.
         $year = $request->query('year')
             ? (int) $request->query('year')
-            : ($availableYears[0] ?? (int) now()->year);
+            : ($availableYears[0] ?? Region::today()->year);
 
         $events = Event::query()
             ->forResource()
