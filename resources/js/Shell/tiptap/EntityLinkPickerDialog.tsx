@@ -1,7 +1,14 @@
 /* A Dialog, not a Popover: on iOS an anchored Popover collapses the TipTap selection. */
 
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
+import {
+    Command,
+    CommandGroup,
+    CommandInput,
+    CommandItem,
+    CommandList,
+} from '@/components/ui/command';
 import {
     Dialog,
     DialogContent,
@@ -65,7 +72,6 @@ export default function EntityLinkPickerDialog({
 
     const [query, setQuery] = useState('');
     const [results, setResults] = useState<ApiResultRow[]>([]);
-    const [highlightIdx, setHighlightIdx] = useState(0);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
@@ -81,7 +87,6 @@ export default function EntityLinkPickerDialog({
         /* eslint-disable react-hooks/set-state-in-effect -- One-shot reset on the open→true transition; props -> internal session state sync, not cascading renders. */
         setQuery('');
         setResults([]);
-        setHighlightIdx(0);
         setError(null);
         /* eslint-enable react-hooks/set-state-in-effect */
 
@@ -135,7 +140,6 @@ export default function EntityLinkPickerDialog({
 
             const body = (await res.json()) as { results?: ApiResultRow[] };
             setResults(body.results ?? []);
-            setHighlightIdx(0);
             setLoading(false);
             // eslint-disable-next-line local/no-silent-error -- AbortError is a normal cancellation signal (we abort in-flight requests on each new keystroke + dialog close). All other errors surface via the setError banner.
         } catch (err: unknown) {
@@ -186,56 +190,43 @@ export default function EntityLinkPickerDialog({
         onOpenChange(false);
     };
 
-    const onKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-        if (e.key === 'ArrowDown') {
-            e.preventDefault();
-            setHighlightIdx((i) => Math.min(i + 1, results.length - 1));
-        } else if (e.key === 'ArrowUp') {
-            e.preventDefault();
-            setHighlightIdx((i) => Math.max(i - 1, 0));
-        } else if (e.key === 'Enter') {
-            const row = results[highlightIdx];
-
-            if (row) {
-                e.preventDefault();
-                pick(row);
-            }
-        } else if (/^[1-9]$/.test(e.key)) {
-            const idx = parseInt(e.key, 10) - 1;
-            const row = results[idx];
-
-            if (row) {
-                e.preventDefault();
-                pick(row);
-            }
-        }
-    };
-
     const matchesLabel = count(results.length, 'match', 'matches');
 
+    // In the order the server ranked them, filed under the first group each one names.
+    const groups = useMemo(() => {
+        const byGroup = new Map<string, ApiResultRow[]>();
+
+        for (const row of results) {
+            byGroup.set(row.group, [...(byGroup.get(row.group) ?? []), row]);
+        }
+
+        return Array.from(byGroup.entries());
+    }, [results]);
+
+    // cmdk moves through the results with the arrow keys and picks with Enter; the server has
+    // already matched them, so it doesn't filter.
     const pickerBody = (
-        <div className="flex flex-col gap-3">
-            <input
+        <Command
+            shouldFilter={false}
+            loop
+            label="Search for something to link"
+            className="gap-3 overflow-visible rounded-none bg-transparent p-0 [&_[data-slot=command-input-wrapper]]:p-0"
+        >
+            {/* The group draws the focus state for an input it holds. */}
+            <CommandInput
                 ref={inputRef}
-                type="search"
+                data-slot="input-group-control"
+                className="pr-3 pl-2"
                 value={query}
-                onChange={(e) => setQuery(e.target.value)}
-                onKeyDown={onKeyDown}
+                onValueChange={setQuery}
                 placeholder="Search"
-                aria-label="Search for something to link"
-                autoComplete="off"
-                className="shell-picker-input"
             />
 
-            <div
-                role="listbox"
+            <CommandList
                 aria-label="Search results"
                 aria-busy={loading}
-                className="shell-picker-results"
+                className="shell-picker-results max-h-[360px] p-1"
             >
-                <span className="sr-only" role="status">
-                    Use up and down arrows to navigate; press Enter to select.
-                </span>
                 {error && (
                     <p role="alert" className="shell-picker-error">
                         {error}
@@ -251,74 +242,52 @@ export default function EntityLinkPickerDialog({
                 )}
 
                 {!error &&
-                    results.map((row, idx) => {
-                        const isActive = idx === highlightIdx;
-
-                        return (
-                            <button
-                                key={`${row.type}-${row.id}`}
-                                role="option"
-                                aria-selected={isActive}
-                                type="button"
-                                onMouseEnter={() => setHighlightIdx(idx)}
-                                onClick={() => pick(row)}
-                                className="shell-picker-row"
-                                style={{
-                                    background: isActive
-                                        ? 'color-mix(in oklch, var(--shell-accent) 12%, transparent)'
-                                        : 'transparent',
-                                }}
-                            >
-                                {row.thumbnail_url ? (
-                                    <img
-                                        src={row.thumbnail_url}
-                                        alt=""
-                                        onError={(e) => {
-                                            e.currentTarget.style.display =
-                                                'none';
-                                        }}
-                                        className="shell-picker-thumb"
-                                    />
-                                ) : (
-                                    <span
-                                        aria-hidden="true"
-                                        className="shell-picker-icon"
-                                    >
-                                        <LinkableIcon
-                                            name={row.icon}
-                                            size={18}
+                    groups.map(([group, rows]) => (
+                        <CommandGroup key={group} heading={group}>
+                            {rows.map((row) => (
+                                <CommandItem
+                                    key={`${row.type}-${row.id}`}
+                                    value={`${row.type}:${row.id}`}
+                                    onSelect={() => pick(row)}
+                                    className="gap-3"
+                                >
+                                    {row.thumbnail_url ? (
+                                        <img
+                                            src={row.thumbnail_url}
+                                            alt=""
+                                            onError={(e) => {
+                                                e.currentTarget.style.display =
+                                                    'none';
+                                            }}
+                                            className="shell-picker-thumb"
                                         />
-                                    </span>
-                                )}
-                                <span className="flex min-w-0 flex-col">
-                                    <span className="overflow-hidden text-ellipsis whitespace-nowrap">
-                                        {row.title}
-                                    </span>
-                                    <span className="text-[13px] text-(--shell-text-muted)">
+                                    ) : (
                                         <span
                                             aria-hidden="true"
-                                            className="mr-[3px] inline-flex align-middle"
+                                            className="shell-picker-icon"
                                         >
                                             <LinkableIcon
                                                 name={row.icon}
-                                                size={13}
+                                                size={18}
                                             />
                                         </span>
-                                        {row.group}
+                                    )}
+                                    <span className="min-w-0 overflow-hidden text-ellipsis whitespace-nowrap">
+                                        {row.title}
                                     </span>
-                                </span>
-                            </button>
-                        );
-                    })}
-            </div>
+                                </CommandItem>
+                            ))}
+                        </CommandGroup>
+                    ))}
+            </CommandList>
 
             <div className="shell-picker-footer">
                 <span aria-hidden="true">
                     ↑↓ to move, Enter to choose, Esc to close
                 </span>
-                <span>{matchesLabel}</span>
+                <span role="status">{matchesLabel}</span>
             </div>
-        </div>
+        </Command>
     );
 
     if (isPhone) {
