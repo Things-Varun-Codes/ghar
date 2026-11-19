@@ -7,6 +7,7 @@ use App\Shell\Actions\InviteUser;
 use App\Shell\Models\Invitation;
 use App\Shell\Models\User;
 use App\Shell\Support\FlashToast;
+use App\Shell\Support\Person;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -29,10 +30,7 @@ class InvitesController
                 'accepted_at' => $invite->accepted_at,
                 'revoked_at' => $invite->revoked_at,
                 'created_at' => $invite->created_at,
-                'invited_by' => $invite->invitedBy === null ? null : [
-                    'id' => $invite->invitedBy->id,
-                    'name' => $invite->invitedBy->name,
-                ],
+                'invited_by' => $invite->invitedBy === null ? null : Person::of($invite->invitedBy),
             ]);
 
         return Inertia::render('Shell/Pages/Admin/InvitesIndex', [
