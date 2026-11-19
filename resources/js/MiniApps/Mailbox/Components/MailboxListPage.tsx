@@ -42,7 +42,6 @@ type MailboxListPageProps<TItem extends ItemConstraint, TTab extends string> = {
     emptyIcon: ComponentProps<typeof EmptyState>['icon'];
     emptyTitle: string;
     emptyBody: string;
-    /* The returned element must carry key={item.id}. */
     renderItem: (item: TItem, focusedId: number | null) => ReactNode;
     children?: ReactNode;
 };

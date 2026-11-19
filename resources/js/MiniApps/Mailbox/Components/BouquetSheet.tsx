@@ -1,5 +1,22 @@
 import type { FormEvent } from 'react';
 import { useEffect, useId, useState } from 'react';
+import { Fade, Reveal } from '@/components/motion';
+import { Button } from '@/components/ui/button';
+import {
+    FieldDescription,
+    FieldError,
+    FieldLegend,
+    FieldSet,
+} from '@/components/ui/field';
+import { Input } from '@/components/ui/input';
+import { Skeleton } from '@/components/ui/skeleton';
+import { Textarea } from '@/components/ui/textarea';
+import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
+import {
+    Tooltip,
+    TooltipContent,
+    TooltipTrigger,
+} from '@/components/ui/tooltip';
 import { readXsrfToken } from '@/lib/csrf';
 import { captureSilent } from '@/lib/observability';
 import CharCount from '@/MiniApps/Mailbox/Components/CharCount';
@@ -54,6 +71,7 @@ export default function BouquetSheet({
     members,
 }: Props) {
     const flowersNoteId = useId();
+    const meaningsId = useId();
     const [generating, setGenerating] = useState(false);
     const [genError, setGenError] = useState<string | null>(null);
     const [refine, setRefine] = useState('');
@@ -101,16 +119,6 @@ export default function BouquetSheet({
         setGenerating(false);
         setGenError(null);
         setPreviewUrl(null); // effect cleanup revokes the prior blob URL
-    };
-
-    const toggleFlower = (key: string) => {
-        const current = data.flowers;
-        const next = current.includes(key)
-            ? current.filter((k) => k !== key)
-            : current.length < MAX_FLOWERS
-              ? [...current, key]
-              : current;
-        setData('flowers', next);
     };
 
     const generateDisabled =
@@ -197,6 +205,9 @@ export default function BouquetSheet({
     const flowersError = Object.entries(errors).find(([key]) =>
         key.startsWith('flowers'),
     )?.[1];
+    const chosen = data.flowers
+        .map((key) => flowers.find((flower) => flower.key === key))
+        .filter((flower): flower is FlowerEntry => flower !== undefined);
 
     return (
         <FormSheet
@@ -236,54 +247,83 @@ export default function BouquetSheet({
                 errors={errors}
             />
 
-            <fieldset
-                className="mailbox-recipients"
-                aria-describedby={flowersError ? flowersNoteId : undefined}
+            <FieldSet
+                className="mailbox-recipients gap-0"
+                aria-describedby={
+                    [
+                        chosen.length > 0 && meaningsId,
+                        flowersError && flowersNoteId,
+                    ]
+                        .filter(Boolean)
+                        .join(' ') || undefined
+                }
             >
-                <legend className="mailbox-recipients-legend">
+                <FieldLegend className="mailbox-recipients-legend">
                     Pick up to {MAX_FLOWERS} flowers
                     <span aria-hidden="true" className="mailbox-required">
                         *
                     </span>
-                </legend>
-                <div className="flex flex-wrap gap-2">
+                </FieldLegend>
+                <ToggleGroup
+                    multiple
+                    value={data.flowers}
+                    onValueChange={(next: string[]) => {
+                        if (next.length <= MAX_FLOWERS) {
+                            setData('flowers', next);
+                        }
+                    }}
+                    disabled={generating || processing}
+                    className="w-full"
+                >
                     {flowers.map((flower) => {
-                        const selected = data.flowers.includes(flower.key);
                         const atMax =
-                            data.flowers.length >= MAX_FLOWERS && !selected;
+                            data.flowers.length >= MAX_FLOWERS &&
+                            !data.flowers.includes(flower.key);
 
                         return (
-                            <button
-                                key={flower.key}
-                                type="button"
-                                disabled={atMax || generating || processing}
-                                aria-pressed={selected}
-                                title={flower.meaning}
-                                onClick={() => toggleFlower(flower.key)}
-                                className="mailbox-flower-chip shell-press"
-                            >
-                                {flower.name}
-                            </button>
+                            <Tooltip key={flower.key}>
+                                <TooltipTrigger
+                                    render={
+                                        <ToggleGroupItem
+                                            value={flower.key}
+                                            disabled={atMax}
+                                            className="mailbox-flower-chip shell-press"
+                                        />
+                                    }
+                                >
+                                    {flower.name}
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                    {flower.meaning}
+                                </TooltipContent>
+                            </Tooltip>
                         );
                     })}
-                </div>
-                {flowersError && (
-                    <p
-                        id={flowersNoteId}
-                        role="alert"
-                        className="mailbox-field-error"
+                </ToggleGroup>
+                {/* What each chosen flower says, printed: a tooltip never reaches a touch screen. */}
+                <Reveal show={chosen.length > 0}>
+                    <FieldDescription
+                        id={meaningsId}
+                        className="mailbox-field-helper"
                     >
-                        {flowersError}
-                    </p>
-                )}
-            </fieldset>
+                        {chosen
+                            .map(
+                                (flower) => `${flower.name}: ${flower.meaning}`,
+                            )
+                            .join(' · ')}
+                    </FieldDescription>
+                </Reveal>
+                <FieldError id={flowersNoteId} className="mailbox-field-error">
+                    {flowersError}
+                </FieldError>
+            </FieldSet>
 
             <FormField
                 label="Style or mood (optional)"
                 name="bouquet-refine"
                 className="mailbox-form-field"
             >
-                <input
+                <Input
                     id="bouquet-refine"
                     type="text"
                     value={refine}
@@ -297,7 +337,7 @@ export default function BouquetSheet({
                     }}
                     disabled={generating || processing}
                     placeholder="e.g. wild meadow, bright and cheerful…"
-                    className="mailbox-bouquet-mood-input shell-field"
+                    className="mailbox-bouquet-mood-input"
                 />
             </FormField>
 
@@ -321,10 +361,16 @@ export default function BouquetSheet({
                             role="status"
                             aria-busy="true"
                             aria-label="Arranging your bouquet…"
-                            className="shell-skeleton h-full w-full"
-                        />
+                            className="h-full w-full"
+                        >
+                            <Skeleton className="h-full w-full" />
+                        </div>
                     )}
-                    {!generating && !genError && data.image && (
+                    <Fade
+                        show={!generating && !genError && data.image !== null}
+                        media
+                        className="h-full w-full"
+                    >
                         <img
                             src={
                                 previewUrl ??
@@ -334,20 +380,21 @@ export default function BouquetSheet({
                             decoding="async"
                             className="block h-full w-full object-cover"
                         />
-                    )}
+                    </Fade>
                     {!generating && genError && (
                         <div role="alert" className="p-4 text-center">
                             <p className="mx-0 mt-0 mb-2 text-(length:--text-small) text-(--mailbox-destructive)">
                                 {genError}
                             </p>
-                            <button
+                            <Button
                                 type="button"
+                                variant="link"
                                 onClick={handleGenerate}
                                 disabled={generateDisabled}
                                 className="mailbox-link-retry"
                             >
                                 Try again
-                            </button>
+                            </Button>
                         </div>
                     )}
                 </div>
@@ -360,9 +407,9 @@ export default function BouquetSheet({
                     error={errors.note}
                     className="mailbox-form-field"
                 >
-                    <textarea
+                    <Textarea
                         id="bouquet-note"
-                        className="mailbox-hand mailbox-bouquet-note-input shell-field"
+                        className="mailbox-hand mailbox-bouquet-note-input"
                         value={data.note}
                         onChange={(e) => setData('note', e.target.value)}
                         rows={4}

@@ -1,8 +1,13 @@
 import { Link } from '@inertiajs/react';
+import type { ComponentProps } from 'react';
 
+import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 import CouponActions from '@/MiniApps/Mailbox/Components/CouponActions';
 import { show } from '@/routes/apps/our-exchange/coupons';
+import type { Person } from '@/types/person';
+
+type BadgeVariant = ComponentProps<typeof Badge>['variant'];
 
 type CouponStatus = 'issued' | 'requested' | 'depleted';
 
@@ -23,15 +28,18 @@ export type CouponPayload = {
     issued_at_human: string | null;
     last_fulfilled_at: string | null;
     is_mine: boolean;
-    issuer: { id: number; name: string };
-    recipient: { id: number; name: string };
+    issuer: Person;
+    recipient: Person;
     available_actions: string[];
 };
 
-const STATUS_META: Record<CouponStatus, { label: string; color: string }> = {
-    issued: { label: 'Ready', color: 'var(--mailbox-accent-text)' },
-    requested: { label: 'Requested', color: 'var(--mailbox-accent-text)' },
-    depleted: { label: 'Redeemed', color: 'var(--mailbox-ink-soft)' },
+const STATUS_META: Record<
+    CouponStatus,
+    { label: string; variant: BadgeVariant }
+> = {
+    issued: { label: 'Ready', variant: 'default' },
+    requested: { label: 'Requested', variant: 'default' },
+    depleted: { label: 'Redeemed', variant: 'outline' },
 };
 
 const MAX_PIPS = 10;
@@ -40,7 +48,7 @@ export default function CouponCard({ coupon }: { coupon: CouponPayload }) {
     // An expired coupon is still status=issued, so the chip has to check expiry.
     const isExpiredView = coupon.is_expired && coupon.status === 'issued';
     const status = isExpiredView
-        ? { label: 'Expired', color: 'var(--mailbox-ink-soft)' }
+        ? { label: 'Expired', variant: 'outline' as const }
         : STATUS_META[coupon.status];
     const pipCount = Math.min(coupon.quantity, MAX_PIPS);
 
@@ -50,15 +58,7 @@ export default function CouponCard({ coupon }: { coupon: CouponPayload }) {
                 <span className="font-(family-name:--mailbox-coupon-font-mono) text-(length:--text-meta) text-(--mailbox-ink-soft) tabular-nums">
                     {coupon.code ?? '—'}
                 </span>
-                <span
-                    className="mailbox-status-pill"
-                    style={{
-                        color: status.color,
-                        border: `1px solid ${status.color}`,
-                    }}
-                >
-                    {status.label}
-                </span>
+                <Badge variant={status.variant}>{status.label}</Badge>
             </div>
 
             <Link

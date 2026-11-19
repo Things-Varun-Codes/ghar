@@ -4,6 +4,7 @@ namespace Tests\Feature\Mailbox;
 
 use App\MiniApps\Mailbox\Models\Coupon;
 use App\Shell\Models\User;
+use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\MassAssignmentException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -22,6 +23,25 @@ class CouponModelTest extends TestCase
 
         $noExpiry = Coupon::factory()->create(['expires_at' => null]);
         $this->assertFalse($noExpiry->isExpired());
+    }
+
+    public function test_expiry_follows_the_households_day_not_the_servers(): void
+    {
+        // 20:00 UTC on 3 March is 01:30 on 4 March in Kolkata.
+        $this->travelTo(CarbonImmutable::parse('2026-03-03 20:00:00', 'UTC'));
+        $coupon = Coupon::factory()->create(['expires_at' => '2026-03-03']);
+
+        config(['shell.timezone' => 'UTC']);
+        $this->assertFalse($coupon->isExpired(), 'still 3 March on a UTC household');
+
+        config(['shell.timezone' => 'Asia/Kolkata']);
+        $this->assertTrue($coupon->isExpired(), 'already 4 March in Kolkata');
+
+        // 23:00 UTC on 3 March is 15:00 on 3 March in Los Angeles: a coupon valid through the
+        // 3rd stays redeemable there even though the server's 3rd is about to end.
+        config(['shell.timezone' => 'America/Los_Angeles']);
+        $this->travelTo(CarbonImmutable::parse('2026-03-04 05:00:00', 'UTC'));
+        $this->assertFalse($coupon->isExpired(), 'still 3 March in Los Angeles');
     }
 
     public function test_code_status_issuer_and_redeemed_count_are_not_mass_assignable(): void

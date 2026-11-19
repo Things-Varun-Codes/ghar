@@ -52,6 +52,8 @@ export default function CouponActions({
             {},
             {
                 preserveScroll: true,
+                // Kept mounted, so the form's stamp sees its status change and scales in.
+                preserveState: true,
                 ...mutationOptions({
                     component: 'Mailbox/CouponActions',
                     action: `coupon.${kind}`,

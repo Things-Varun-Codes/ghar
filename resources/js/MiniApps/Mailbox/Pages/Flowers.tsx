@@ -80,7 +80,6 @@ export default function Flowers({
                 emptyBody={emptyCopy.body}
                 renderItem={(m, focusedId) => (
                     <BouquetCard
-                        key={m.id}
                         message={m}
                         onDelete={
                             m.is_mine ? () => handleDelete(m.id) : undefined

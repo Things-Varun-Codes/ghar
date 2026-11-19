@@ -1,3 +1,4 @@
+import { Fade } from '@/components/motion';
 import { count } from '@/lib/plural';
 
 type Props = {
@@ -8,10 +9,7 @@ type Props = {
 /* A field's maxLength stops typing at the limit; this says so before it happens. */
 export default function CharCount({ length, max }: Props) {
     // Stays out of the way until the writer is near the limit.
-    if (length < Math.floor(max * 0.8)) {
-        return null;
-    }
-
+    const shown = length >= Math.floor(max * 0.8);
     const left = Math.max(0, max - length);
     const tone = left === 0 ? 'limit' : left <= 20 ? 'warn' : undefined;
     const text =
@@ -19,16 +17,18 @@ export default function CharCount({ length, max }: Props) {
 
     return (
         <>
-            <p
-                aria-hidden="true"
-                className="mailbox-char-count"
-                data-tone={tone}
-            >
-                {text}
-            </p>
+            <Fade show={shown}>
+                <p
+                    aria-hidden="true"
+                    className="mailbox-char-count"
+                    data-tone={tone}
+                >
+                    {text}
+                </p>
+            </Fade>
             {/* Announced only near the end, so typing isn't read out key by key. */}
             <span role="status" aria-live="polite" className="sr-only">
-                {left <= 20 ? text : ''}
+                {shown && left <= 20 ? text : ''}
             </span>
         </>
     );

@@ -1,6 +1,7 @@
 import type { FormEvent } from 'react';
 import { useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/button';
+import { Textarea } from '@/components/ui/textarea';
 import CharCount from '@/MiniApps/Mailbox/Components/CharCount';
 import type { HouseholdMember } from '@/MiniApps/Mailbox/Components/RecipientPicker';
 import RecipientPicker from '@/MiniApps/Mailbox/Components/RecipientPicker';
@@ -134,10 +135,10 @@ export default function ComposerSheet({ open, onOpenChange, members }: Props) {
                     required
                     className="mailbox-form-field"
                 >
-                    <textarea
+                    <Textarea
                         id="mailbox-composer-body"
                         ref={textareaRef}
-                        className="mailbox-hand mailbox-composer-paper mailbox-note-input shell-field"
+                        className="mailbox-hand mailbox-composer-paper mailbox-note-input"
                         value={data.body}
                         onChange={(e) => setData('body', e.target.value)}
                         maxLength={BODY_MAX}

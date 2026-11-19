@@ -1,5 +1,6 @@
 import { Check, Hourglass } from 'lucide-react';
 
+import { Pop } from '@/components/motion';
 import { cn } from '@/lib/utils';
 import type { CouponPayload } from '@/MiniApps/Mailbox/Components/CouponCard';
 import { formatPlainDay } from '@/MiniApps/Mailbox/lib/formatDay';
@@ -22,6 +23,14 @@ export default function CouponArtifact({ coupon }: { coupon: CouponPayload }) {
 
         return 'open' as const;
     });
+
+    const stamp = isRequested
+        ? { tone: 'requested', label: 'Requested' }
+        : isDepleted
+          ? { tone: 'depleted', label: 'Fully redeemed' }
+          : isExpiredView
+            ? { tone: 'expired', label: 'Expired' }
+            : null;
 
     const awaitText = coupon.is_mine
         ? `${coupon.recipient.name} asked for this. Fulfil it when it's done.`
@@ -62,14 +71,14 @@ export default function CouponArtifact({ coupon }: { coupon: CouponPayload }) {
                                 <span className="mailbox-coupon-box-n">
                                     {i + 1}
                                 </span>
-                                {kind === 'checked' && (
+                                <Pop show={kind === 'checked'}>
                                     <span
                                         className="mailbox-coupon-check"
                                         aria-hidden="true"
                                     >
                                         <Check size={24} strokeWidth={2} />
                                     </span>
-                                )}
+                                </Pop>
                                 {kind === 'next' && (
                                     <Hourglass
                                         size={20}
@@ -84,21 +93,19 @@ export default function CouponArtifact({ coupon }: { coupon: CouponPayload }) {
                     <div className="mailbox-coupon-remaining">
                         <b>{coupon.remaining}</b> of <b>{coupon.quantity}</b>{' '}
                         left
-                        {isRequested && (
-                            <span className="mailbox-coupon-stamp mailbox-coupon-stamp--requested">
-                                Requested
-                            </span>
-                        )}
-                        {isDepleted && (
-                            <span className="mailbox-coupon-stamp mailbox-coupon-stamp--depleted">
-                                Fully redeemed
-                            </span>
-                        )}
-                        {isExpiredView && (
-                            <span className="mailbox-coupon-stamp mailbox-coupon-stamp--expired">
-                                Expired
-                            </span>
-                        )}
+                        <Pop
+                            show={stamp !== null}
+                            changeKey={stamp?.tone}
+                            className="mailbox-coupon-stamp-slot"
+                        >
+                            {stamp && (
+                                <span
+                                    className={`mailbox-coupon-stamp mailbox-coupon-stamp--${stamp.tone}`}
+                                >
+                                    {stamp.label}
+                                </span>
+                            )}
+                        </Pop>
                     </div>
                 </div>
 

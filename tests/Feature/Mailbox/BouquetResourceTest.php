@@ -45,9 +45,8 @@ class BouquetResourceTest extends TestCase
         $this->assertArrayNotHasKey('type', $payload);
         $this->assertTrue($payload['is_unread']);
         $this->assertFalse($payload['is_mine']);
-        $this->assertSame($sender->id, $payload['sender']['id']);
-        $this->assertSame($sender->name, $payload['sender']['name']);
-        $this->assertSame([['id' => $recipient->id, 'name' => $recipient->name]], $payload['recipients']);
+        $this->assertSame(['id' => $sender->id, 'name' => $sender->name, 'avatar_url' => null], $payload['sender']);
+        $this->assertSame([['id' => $recipient->id, 'name' => $recipient->name, 'avatar_url' => null]], $payload['recipients']);
     }
 
     public function test_bouquet_resource_is_mine_true_for_sender(): void

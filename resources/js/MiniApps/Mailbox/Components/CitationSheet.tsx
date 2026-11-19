@@ -1,4 +1,7 @@
 import type { FormEvent } from 'react';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
 import CharCount from '@/MiniApps/Mailbox/Components/CharCount';
 import type { HouseholdMember } from '@/MiniApps/Mailbox/Components/RecipientPicker';
 import RecipientPicker from '@/MiniApps/Mailbox/Components/RecipientPicker';
@@ -116,7 +119,7 @@ export default function CitationSheet({ open, onOpenChange, members }: Props) {
                     required
                     className="mailbox-form-field"
                 >
-                    <input
+                    <Input
                         id="citation-offence"
                         type="text"
                         maxLength={OFFENCE_MAX}
@@ -124,7 +127,7 @@ export default function CitationSheet({ open, onOpenChange, members }: Props) {
                         onChange={(e) => setData('offence', e.target.value)}
                         aria-required="true"
                         placeholder="e.g. Replied with just 'k' to a whole paragraph"
-                        className="mailbox-field shell-field"
+                        className="mailbox-field"
                     />
                 </FormField>
                 <CharCount length={data.offence.length} max={OFFENCE_MAX} />
@@ -137,14 +140,14 @@ export default function CitationSheet({ open, onOpenChange, members }: Props) {
                     error={errors.incident_date}
                     className="mailbox-form-field"
                 >
-                    <input
+                    <Input
                         id="citation-date"
                         type="date"
                         value={data.incident_date}
                         onChange={(e) =>
                             setData('incident_date', e.target.value)
                         }
-                        className="mailbox-field shell-field"
+                        className="mailbox-field"
                     />
                 </FormField>
                 <div>
@@ -154,7 +157,7 @@ export default function CitationSheet({ open, onOpenChange, members }: Props) {
                         error={errors.incident_place}
                         className="mailbox-form-field"
                     >
-                        <input
+                        <Input
                             id="citation-place"
                             type="text"
                             maxLength={PLACE_MAX}
@@ -163,7 +166,7 @@ export default function CitationSheet({ open, onOpenChange, members }: Props) {
                                 setData('incident_place', e.target.value)
                             }
                             placeholder="e.g. the group chat"
-                            className="mailbox-field shell-field"
+                            className="mailbox-field"
                         />
                     </FormField>
                     <CharCount
@@ -174,10 +177,9 @@ export default function CitationSheet({ open, onOpenChange, members }: Props) {
             </div>
 
             <label className="mailbox-check-label">
-                <input
-                    type="checkbox"
+                <Checkbox
                     checked={data.is_repeat}
-                    onChange={(e) => setData('is_repeat', e.target.checked)}
+                    onCheckedChange={(checked) => setData('is_repeat', checked)}
                 />
                 Repeat offender
             </label>
@@ -190,7 +192,7 @@ export default function CitationSheet({ open, onOpenChange, members }: Props) {
                     required
                     className="mailbox-form-field"
                 >
-                    <input
+                    <Input
                         id="citation-penalty"
                         type="text"
                         maxLength={PENALTY_MAX}
@@ -198,7 +200,7 @@ export default function CitationSheet({ open, onOpenChange, members }: Props) {
                         onChange={(e) => setData('penalty', e.target.value)}
                         aria-required="true"
                         placeholder="e.g. 3 hugs, payable on demand"
-                        className="mailbox-field shell-field"
+                        className="mailbox-field"
                     />
                 </FormField>
                 <CharCount length={data.penalty.length} max={PENALTY_MAX} />
@@ -211,9 +213,9 @@ export default function CitationSheet({ open, onOpenChange, members }: Props) {
                     error={errors.remarks}
                     className="mailbox-form-field"
                 >
-                    <textarea
+                    <Textarea
                         id="citation-remarks"
-                        className="mailbox-field shell-field"
+                        className="mailbox-field"
                         value={data.remarks}
                         onChange={(e) => setData('remarks', e.target.value)}
                         rows={3}

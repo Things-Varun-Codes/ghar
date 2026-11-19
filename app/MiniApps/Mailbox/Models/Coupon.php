@@ -4,6 +4,7 @@ namespace App\MiniApps\Mailbox\Models;
 
 use App\MiniApps\Mailbox\Models\Concerns\IssuedToOne;
 use App\Shell\Models\User;
+use App\Shell\Support\Region;
 use Carbon\CarbonImmutable;
 use Database\Factories\CouponFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
@@ -58,10 +59,14 @@ class Coupon extends Model
         return $this->status === self::STATUS_REQUESTED;
     }
 
+    /**
+     * Valid through its last day on the household's calendar. `expires_at` is a plain date, so it
+     * is compared as one: a Carbon comparison would put it at midnight on the server's clock.
+     */
     public function isExpired(): bool
     {
         return $this->expires_at !== null
-            && $this->expires_at->lt(now()->startOfDay());
+            && $this->expires_at->toDateString() < Region::today()->toDateString();
     }
 
     protected static function newFactory(): CouponFactory
