@@ -7,6 +7,7 @@ use App\MiniApps\Corner\Models\Item;
 use App\Shell\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Storage;
 use Inertia\Testing\AssertableInertia;
 use PHPUnit\Framework\Attributes\DataProvider;
 use Tests\Feature\Corner\Concerns\MakesCornerLists;
@@ -69,6 +70,29 @@ class CornerListPageTest extends TestCase
                 ->where('q', null));
     }
 
+    public function test_the_person_who_added_an_item_comes_with_their_picture(): void
+    {
+        config(['shell.media_disk' => 'local']);
+        Storage::fake('local', ['serve' => true]);
+        Storage::disk('local')->put('avatars/adder.jpg', 'jpeg');
+        $adder = User::factory()->withAvatar('avatars/adder.jpg')->create();
+        $list = $this->songs();
+        $item = $this->itemIn($list, $adder);
+
+        $this->actingAs($this->user)
+            ->get("/apps/our-shelf/{$list->slug}")
+            ->assertInertia(fn (AssertableInertia $page) => $page
+                ->where('items.data.0.addedBy.id', $adder->id)
+                ->where('items.data.0.addedBy.name', $adder->name)
+                ->where('items.data.0.addedBy.avatar_url', fn ($url) => str_contains((string) $url, 'avatars/adder.jpg'))
+                ->missing('items.data.0.addedBy.avatar_key'));
+
+        $this->actingAs($this->user)
+            ->get("/apps/our-shelf/{$list->slug}/{$item->id}")
+            ->assertInertia(fn (AssertableInertia $page) => $page
+                ->where('item.addedBy.avatar_url', fn ($url) => str_contains((string) $url, 'avatars/adder.jpg')));
+    }
+
     public function test_the_item_payload_carries_every_part_an_item_can_have(): void
     {
         $songs = $this->songs();
@@ -103,7 +127,7 @@ class CornerListPageTest extends TestCase
                 ->where('item.is_done', false)
                 ->missing('item.added_by_user_id')
                 ->missing('item.added_at')
-                ->where('item.addedBy', ['id' => $this->user->id, 'name' => $this->user->name])
+                ->where('item.addedBy', ['id' => $this->user->id, 'name' => $this->user->name, 'avatar_url' => null])
                 ->missing('item.provider')
                 ->missing('item.provider_id')
                 ->missing('item.url_key'));
