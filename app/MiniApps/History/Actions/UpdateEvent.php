@@ -5,6 +5,7 @@ namespace App\MiniApps\History\Actions;
 use App\MiniApps\History\Actions\Concerns\ExtractsCornerLinks;
 use App\MiniApps\History\Http\Requests\UpdateEventRequest;
 use App\MiniApps\History\Models\Event;
+use App\MiniApps\History\Support\OnThisDay;
 use App\Shell\Models\User;
 use App\Shell\Services\LinkableEntities;
 use Illuminate\Support\Facades\DB;
@@ -40,16 +41,26 @@ class UpdateEvent
                 ->all();
 
             $event->fill($validated);
+
+            if (! array_key_exists('birthday_user_id', $validated) && $event->isDirty('occurred_on') && ! $this->stillBirthday($event)) {
+                $event->birthday_user_id = null;
+            }
+
             $changed = array_map(
-                fn (string $field): string => $field === 'body_html' ? 'body' : $field,
+                fn (string $field): string => match ($field) {
+                    'body_html' => 'body',
+                    'birthday_user_id' => 'birthday',
+                    default => $field,
+                },
                 array_keys($event->getDirty()),
             );
+            $summary = $this->summary($event, $changed);
             $event->save();
 
             if ($changed !== []) {
                 ($this->logEventChange)($event, 'edit', [
                     'user_id' => $actor->id,
-                    'summary' => 'Updated '.implode(', ', $changed),
+                    'summary' => $summary,
                     'changes' => $changed,
                     'created_at' => now(),
                 ]);
@@ -99,5 +110,46 @@ class UpdateEvent
 
             return $event->fresh();
         });
+    }
+
+    /** A moment moved to another date stays someone's birthday only if it still falls on it. */
+    private function stillBirthday(Event $event): bool
+    {
+        if ($event->birthday_user_id === null) {
+            return true;
+        }
+
+        $birthday = User::query()->find($event->birthday_user_id)?->birthday;
+
+        return $birthday !== null && OnThisDay::sameDayOfYear($birthday, $event->occurred_on);
+    }
+
+    /**
+     * "Updated date, place and linked to Meera's birthday", in words rather than columns.
+     * Before save(), while the original birthday is still there to name.
+     *
+     * @param  list<string>  $changed
+     */
+    private function summary(Event $event, array $changed): string
+    {
+        $fields = collect($changed)
+            ->reject(fn (string $field): bool => $field === 'birthday')
+            ->map(fn (string $field): string => match (true) {
+                $field === 'occurred_on' => 'date',
+                str_starts_with($field, 'location_') => 'place',
+                default => $field,
+            })
+            ->unique()
+            ->values();
+        $parts = $fields->isEmpty() ? [] : ['updated '.$fields->implode(', ')];
+
+        if (in_array('birthday', $changed, true)) {
+            $linked = $event->birthday_user_id;
+            $member = User::query()->find($linked ?? $event->getOriginal('birthday_user_id'));
+            $whose = $member === null ? 'a birthday' : "{$member->firstName()}'s birthday";
+            $parts[] = $linked !== null ? "linked to {$whose}" : "unlinked from {$whose}";
+        }
+
+        return ucfirst(implode(' and ', $parts));
     }
 }

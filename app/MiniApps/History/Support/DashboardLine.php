@@ -4,6 +4,7 @@ namespace App\MiniApps\History\Support;
 
 use App\MiniApps\History\Models\Event;
 use App\Shell\Models\User;
+use App\Shell\Support\Region;
 use Illuminate\Support\Str;
 
 final class DashboardLine
@@ -12,15 +13,9 @@ final class DashboardLine
 
     public static function forUser(User $user): ?string
     {
-        $today = now();
+        $today = Region::today();
 
-        $anniversary = Event::query()
-            ->whereMonth('occurred_on', $today->month)
-            ->whereDay('occurred_on', $today->day)
-            ->whereYear('occurred_on', '<', $today->year)
-            ->orderByDesc('occurred_on')
-            ->orderByDesc('id')
-            ->first();
+        $anniversary = OnThisDay::query($today)->first();
 
         if ($anniversary !== null) {
             $years = $today->year - $anniversary->occurred_on->year;
