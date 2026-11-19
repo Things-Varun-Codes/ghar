@@ -1,3 +1,4 @@
+import type { Region } from '@/lib/dates';
 import type { Linking } from '@/Shell/linkables/use-linking';
 import type { Auth } from '@/types/auth';
 import type { MiniApp } from '@/types/miniapp';
@@ -21,6 +22,9 @@ declare module '@inertiajs/core' {
             auth: Auth;
             miniApps: MiniApp[];
             linking: Linking | null;
+            /* The household's date (GHAR_TIMEZONE), as YYYY-MM-DD. */
+            today: string;
+            region: Region;
             [key: string]: unknown;
         };
     }

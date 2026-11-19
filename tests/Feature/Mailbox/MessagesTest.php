@@ -260,7 +260,7 @@ class MessagesTest extends TestCase
         $this->actingAs($me)
             ->get('/apps/our-exchange/messages')
             ->assertInertia(fn ($page) => $page
-                ->where('members', [['id' => $other->id, 'name' => 'Kabir']]));
+                ->where('members', [['id' => $other->id, 'name' => 'Kabir', 'avatar_url' => null]]));
     }
 
     public function test_notify_send_called_with_correct_url_focus_query(): void

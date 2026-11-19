@@ -3,6 +3,7 @@
 namespace App\Shell\Services;
 
 use App\Shell\Models\User;
+use App\Shell\Support\Person;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 
@@ -29,11 +30,11 @@ class Household
         return $this->query()->whereKeyNot($user->id)->orderBy('name')->orderBy('id')->get();
     }
 
-    /** @return list<array{id: int, name: string}> */
+    /** @return list<array{id: int, name: string, avatar_url: string|null}> */
     public function optionsFor(User $user): array
     {
         return $this->othersThan($user)
-            ->map(fn (User $member): array => ['id' => $member->id, 'name' => $member->name])
+            ->map(fn (User $member): array => Person::of($member))
             ->values()
             ->all();
     }

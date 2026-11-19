@@ -6,6 +6,7 @@ import {
     PopoverContent,
     PopoverTrigger,
 } from '@/components/ui/popover';
+import { initials } from '@/lib/initials';
 import { logout } from '@/routes';
 import type { ShellNavItem } from '@/Shell/Components/shell-nav';
 import {
@@ -13,16 +14,9 @@ import {
     SETTINGS_ITEMS,
     isRouteActive,
 } from '@/Shell/Components/shell-nav';
+import type { Auth } from '@/types/auth';
 
-type SharedProps = {
-    auth: { user: { name: string; email: string; roles: string[] } | null };
-};
-
-function initials(name: string): string {
-    const parts = name.trim().split(/\s+/).slice(0, 2);
-
-    return parts.map((p) => p.charAt(0).toUpperCase()).join('') || '?';
-}
+type SharedProps = { auth: Auth };
 
 /**
  * `withNav` is the phone menu: below `lg` there is no sidebar, so Settings and Admin live here.

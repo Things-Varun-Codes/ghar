@@ -2035,3 +2035,17 @@ button[type='submit'][data-slot='button'] {
         padding-right: 64px;
     }
 }
+
+/*
+ * A person's face (PersonAvatar): their picture, or their initials on the accent wash, one tone
+ * for everyone. The size utilities set the box and the initials' type size.
+ */
+.shell-avatar {
+    background-color: var(--accent);
+}
+
+.shell-avatar-initials {
+    color: var(--foreground);
+    font-weight: 500;
+    line-height: 1;
+}

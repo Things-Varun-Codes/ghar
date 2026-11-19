@@ -92,6 +92,10 @@ services:
       GHAR_ADMIN_EMAIL: ${GHAR_ADMIN_EMAIL:-}
       GHAR_ADMIN_NAME: ${GHAR_ADMIN_NAME:-}
 
+      # The household's timezone and, optionally, the locale its dates read in.
+      GHAR_TIMEZONE: ${GHAR_TIMEZONE:-UTC}
+      GHAR_LOCALE: ${GHAR_LOCALE:-}
+
       # Web Push. Empty keys are generated on first start; the subject defaults to APP_URL.
       VAPID_PUBLIC_KEY: ${VAPID_PUBLIC_KEY:-}
       VAPID_PRIVATE_KEY: ${VAPID_PRIVATE_KEY:-}
