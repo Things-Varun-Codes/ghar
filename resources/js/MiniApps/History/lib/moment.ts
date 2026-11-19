@@ -33,9 +33,16 @@ export function storyText(html: string | null): string {
 
     const doc = new DOMParser().parseFromString(html, 'text/html');
 
+    // A heading has no full stop, so it gets a dot or it runs into the sentence after it.
     doc.body
-        .querySelectorAll('p, h1, h2, h3, h4, li, blockquote, br')
+        .querySelectorAll('h1, h2, h3, h4')
+        .forEach((el) => el.after(' · '));
+    doc.body
+        .querySelectorAll('p, li, blockquote, br')
         .forEach((el) => el.after(' '));
 
-    return (doc.body.textContent ?? '').replace(/\s+/g, ' ').trim();
+    return (doc.body.textContent ?? '')
+        .replace(/\s+/g, ' ')
+        .replace(/^[\s·]+|[\s·]+$/g, '')
+        .replace(/(?: ·)+ ·/g, ' ·');
 }

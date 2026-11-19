@@ -4,7 +4,6 @@ import { useId, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { formSubmitOptions } from '@/lib/mutation';
-import { count } from '@/lib/plural';
 import { MOMENT_ONLY } from '@/MiniApps/History/lib/momentVisit';
 import { relativeTime } from '@/MiniApps/History/lib/relativeTime';
 import type { EventComment, HistoryEvent } from '@/MiniApps/History/lib/types';
@@ -73,7 +72,7 @@ export default function CommentsSection({
                 {event.comments.length > 0 && (
                     <span className="history-section-count">
                         {' · '}
-                        {count(event.comments.length, 'comment')}
+                        {event.comments.length}
                     </span>
                 )}
             </h3>

@@ -37,7 +37,12 @@ describe('storyText', () => {
     it('runs the blocks of a story into one line of text', () => {
         expect(
             storyText('<h2>Day one</h2><p>Rain all<br>the way.</p><p>Tea.</p>'),
-        ).toBe('Day one Rain all the way. Tea.');
+        ).toBe('Day one · Rain all the way. Tea.');
+    });
+
+    it('ends without a dot when the story ends on a heading', () => {
+        expect(storyText('<p>Tea.</p><h2>Later</h2>')).toBe('Tea. Later');
+        expect(storyText('<h2>Only a heading</h2>')).toBe('Only a heading');
     });
 
     it('keeps markup as text and runs nothing', () => {
