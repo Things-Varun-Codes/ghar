@@ -2,8 +2,18 @@ import { useForm, usePage } from '@inertiajs/react';
 import type { FormEventHandler } from 'react';
 import { useMemo, useState } from 'react';
 
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Checkbox } from '@/components/ui/checkbox';
+import {
+    FieldContent,
+    FieldDescription,
+    FieldError,
+    FieldLegend,
+    FieldSet,
+    Field,
+} from '@/components/ui/field';
 import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import {
     Select,
     SelectContent,
@@ -17,13 +27,26 @@ import { cn } from '@/lib/utils';
 import * as adminNotifications from '@/routes/admin/notifications';
 import FormField from '@/Shell/Components/FormField';
 import Page from '@/Shell/Components/Page';
+import PersonAvatar from '@/Shell/Components/PersonAvatar';
 import SubmitButton from '@/Shell/Components/SubmitButton';
+import type { Person } from '@/types/person';
 
-interface User {
-    id: number;
-    name: string;
+interface User extends Person {
     email: string;
 }
+
+const CHANNELS = [
+    {
+        value: 'push',
+        name: 'Push',
+        description: "On every device they've subscribed",
+    },
+    {
+        value: 'email',
+        name: 'Email',
+        description: 'One email to their account address',
+    },
+] as const;
 
 interface PageProps {
     users: User[];
@@ -100,17 +123,19 @@ export default function NotificationsSend() {
                 subtitle="Sends one person a push notification, an email, or both."
             >
                 {(flash?.success || flash?.error) && (
-                    <div
+                    <Alert
+                        variant={flash?.success ? 'default' : 'destructive'}
                         className={cn(
-                            'os-admin-flash mb-6 rounded-lg px-4 py-3',
+                            'os-admin-flash mb-6 border-0',
                             !flash?.success && 'os-admin-flash--error',
                         )}
                         role={flash?.success ? 'status' : 'alert'}
-                        aria-live="polite"
                         data-testid="admin-notifications-flash"
                     >
-                        {flash?.success ?? flash?.error}
-                    </div>
+                        <AlertDescription className="text-current">
+                            {flash?.success ?? flash?.error}
+                        </AlertDescription>
+                    </Alert>
                 )}
 
                 <div className="os-admin-surface border p-6">
@@ -151,13 +176,19 @@ export default function NotificationsSend() {
                                                 key={u.id}
                                                 value={String(u.id)}
                                             >
-                                                <div className="flex flex-col items-start gap-1 py-1">
-                                                    <span className="os-admin-strong">
-                                                        {u.name}
-                                                    </span>
-                                                    <span className="os-admin-muted text-[13px]">
-                                                        {u.email}
-                                                    </span>
+                                                <div className="flex items-center gap-3 py-1">
+                                                    <PersonAvatar
+                                                        person={u}
+                                                        size={24}
+                                                    />
+                                                    <div className="flex flex-col items-start gap-1">
+                                                        <span className="os-admin-strong">
+                                                            {u.name}
+                                                        </span>
+                                                        <span className="os-admin-muted text-[13px]">
+                                                            {u.email}
+                                                        </span>
+                                                    </div>
                                                 </div>
                                             </SelectItem>
                                         ))}
@@ -219,8 +250,12 @@ export default function NotificationsSend() {
                             />
                         </FormField>
 
-                        <div>
-                            <p className="os-admin-group-label mb-1.5 block">
+                        <FieldSet
+                            aria-describedby="channels-help"
+                            aria-invalid={showChannelError || undefined}
+                            className="gap-0"
+                        >
+                            <FieldLegend className="os-admin-group-label">
                                 Channels
                                 <span
                                     aria-hidden="true"
@@ -228,8 +263,9 @@ export default function NotificationsSend() {
                                 >
                                     *
                                 </span>
-                            </p>
-                            <p
+                            </FieldLegend>
+                            <FieldDescription
+                                id="channels-help"
                                 className={cn(
                                     'os-admin-group-help mb-2',
                                     showChannelError &&
@@ -237,53 +273,51 @@ export default function NotificationsSend() {
                                 )}
                             >
                                 Choose at least one.
-                            </p>
+                            </FieldDescription>
 
-                            <label className="flex cursor-pointer items-center gap-3 py-2.5">
-                                <Checkbox
-                                    id="channel-push"
-                                    checked={data.channels.includes('push')}
-                                    onCheckedChange={() =>
-                                        toggleChannel('push')
-                                    }
-                                />
-                                <div className="flex flex-col gap-0.5">
-                                    <span className="os-admin-option-name">
-                                        Push
-                                    </span>
-                                    <span className="os-admin-option-desc">
-                                        On every device they&#39;ve subscribed
-                                    </span>
-                                </div>
-                            </label>
-
-                            <label className="flex cursor-pointer items-center gap-3 py-2.5">
-                                <Checkbox
-                                    id="channel-email"
-                                    checked={data.channels.includes('email')}
-                                    onCheckedChange={() =>
-                                        toggleChannel('email')
-                                    }
-                                />
-                                <div className="flex flex-col gap-0.5">
-                                    <span className="os-admin-option-name">
-                                        Email
-                                    </span>
-                                    <span className="os-admin-option-desc">
-                                        One email to their account address
-                                    </span>
-                                </div>
-                            </label>
+                            {CHANNELS.map((channel) => (
+                                <Field
+                                    key={channel.value}
+                                    orientation="horizontal"
+                                    className="py-2.5"
+                                >
+                                    <Checkbox
+                                        id={`channel-${channel.value}`}
+                                        checked={data.channels.includes(
+                                            channel.value,
+                                        )}
+                                        onCheckedChange={() =>
+                                            toggleChannel(channel.value)
+                                        }
+                                        aria-describedby={`channel-${channel.value}-description`}
+                                    />
+                                    <FieldContent>
+                                        <Label
+                                            htmlFor={`channel-${channel.value}`}
+                                            className="os-admin-option-name cursor-pointer"
+                                        >
+                                            {channel.name}
+                                        </Label>
+                                        <span
+                                            id={`channel-${channel.value}-description`}
+                                            className="os-admin-option-desc"
+                                        >
+                                            {channel.description}
+                                        </span>
+                                    </FieldContent>
+                                </Field>
+                            ))}
 
                             {showChannelError && (
-                                <p
+                                <FieldError
                                     className="os-admin-field-error mt-1"
                                     data-testid="admin-notifications-channel-error"
                                 >
-                                    Pick at least one channel.
-                                </p>
+                                    {errors.channels ??
+                                        'Pick at least one channel.'}
+                                </FieldError>
                             )}
-                        </div>
+                        </FieldSet>
 
                         <div className="flex justify-end">
                             <SubmitButton

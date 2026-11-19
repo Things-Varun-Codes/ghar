@@ -73,3 +73,14 @@
     font-weight: 500;
     color: var(--foreground);
 }
+
+/* The cropper fills this square; the circle inside it is what's kept. */
+.os-settings-crop-area {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 1;
+    overflow: hidden;
+    border-radius: var(--radius-inner);
+    background-color: var(--muted);
+    touch-action: none;
+}
