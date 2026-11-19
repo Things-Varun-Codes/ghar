@@ -2,7 +2,9 @@
 
 namespace Tests\Feature\Console;
 
+use App\Shell\Support\Region;
 use Illuminate\Console\Scheduling\Schedule;
+use Illuminate\Support\Carbon;
 use Tests\TestCase;
 
 class ScheduledCommandsTest extends TestCase
@@ -26,6 +28,38 @@ class ScheduledCommandsTest extends TestCase
 
         $this->assertNotNull($event, 'history:prune-media must remain registered on the scheduler');
         $this->assertSame('0 3 * * *', $event->expression, 'history:prune-media must remain scheduled daily at 03:00');
+    }
+
+    public function test_history_morning_memories_runs_hourly_through_the_households_morning(): void
+    {
+        config(['shell.timezone' => 'Asia/Kolkata']);
+        app()->forgetInstance(Schedule::class);
+        $event = $this->findEventByCommandSubstring(app(Schedule::class), 'history:morning-memories');
+
+        $this->assertNotNull($event, 'history:morning-memories must be registered on the scheduler');
+        $this->assertSame('0 * * * *', $event->expression);
+        $this->assertSame('Asia/Kolkata', $event->timezone, "the morning is the household's");
+        $this->assertTrue($event->onOneServer);
+
+        // between() reads the clock when the schedule is built, as each schedule:run does.
+        $runsAt = function (string $time): bool {
+            Carbon::setTestNow(Carbon::parse("2026-06-14 {$time}", Region::timezone()));
+            app()->forgetInstance(Schedule::class);
+            $event = $this->findEventByCommandSubstring(app(Schedule::class), 'history:morning-memories');
+
+            return $event !== null && $event->isDue(app()) && $event->filtersPass(app());
+        };
+
+        try {
+            $this->assertFalse($runsAt('08:00'));
+            $this->assertTrue($runsAt('09:00'));
+            $this->assertTrue($runsAt('11:00'));
+            $this->assertTrue($runsAt('12:00'));
+            $this->assertFalse($runsAt('13:00'));
+            $this->assertFalse($runsAt('09:30'), 'on the hour only');
+        } finally {
+            Carbon::setTestNow();
+        }
     }
 
     private function findEventByCommandSubstring(Schedule $schedule, string $needle): ?object

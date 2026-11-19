@@ -23,6 +23,15 @@ Rules that aren't obvious from the code:
   gets a 44×44px hit area; focus uses `--history-focus-ring`; clickable tiles are real
   `<button>`s; hover-only reveals sit inside `@media (hover: hover)`; the reduced-motion block in
   `history.css` stays.
+- **"On this day" is one matcher, `Support/OnThisDay`,** for the Dashboard line, the Timeline and
+  Calendar strips and the morning digest: the household's day (`Region::today()`), earlier years
+  only, and a Feb 29 comes round on Feb 28 of a non-leap year. A moment's birthday link
+  (`birthday_user_id`) is accepted only on that member's birthday by the same rule, and moving the
+  moment off the day drops the link.
+- **The morning digest** (`history:morning-memories`, hourly 09:00–12:00 household time) claims
+  the day in `our_history_digest_claims` before it sends, so a second hour or server sends
+  nothing. A day with nothing to say, or with the room off, claims nothing, so a later hour can
+  still send.
 - **PhotoSwipe inside the EventSheet:** the Drawer's `onOpenChange` cancels an `outside-press`
   whose target is inside `.pswp` (`EventSheet.tsx`), or the next-arrow click and mobile swipes
   close the sheet. The lightbox takes Escape in the capture phase while it's open
