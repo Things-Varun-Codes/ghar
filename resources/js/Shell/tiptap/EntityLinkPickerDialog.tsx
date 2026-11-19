@@ -215,8 +215,6 @@ export default function EntityLinkPickerDialog({
             {/* The group draws the focus state for an input it holds. */}
             <CommandInput
                 ref={inputRef}
-                data-slot="input-group-control"
-                className="pr-3 pl-2"
                 value={query}
                 onValueChange={setQuery}
                 placeholder="Search"

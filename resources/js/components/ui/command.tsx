@@ -34,10 +34,11 @@ function CommandInput({
   return (
     <div data-slot="command-input-wrapper" className="p-1 pb-0">
       <InputGroup className="*:data-[slot=input-group-addon]:pl-3">
+        {/* input-group-control, so the group draws the field's focus border. */}
         <CommandPrimitive.Input
-          data-slot="command-input"
+          data-slot="input-group-control"
           className={cn(
-            "h-11 w-full bg-transparent text-base outline-hidden disabled:cursor-not-allowed disabled:opacity-50",
+            "h-11 w-full bg-transparent pr-3 pl-2 text-base outline-hidden disabled:cursor-not-allowed disabled:opacity-50",
             className
           )}
           {...props}

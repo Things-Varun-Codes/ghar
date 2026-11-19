@@ -249,10 +249,8 @@ function AutocompleteInput({ label, onSelect }: AutocompleteInputProps) {
             }}
             className="shell-places-root overflow-visible rounded-none bg-transparent p-0 [&_[data-slot=command-input-wrapper]]:p-0"
         >
-            {/* cmdk sets the input's id and names it with `label`; the group draws its focus. */}
+            {/* cmdk sets the input's id and names it with `label`. */}
             <CommandInput
-                data-slot="input-group-control"
-                className="pr-3 pl-2"
                 value={query}
                 onValueChange={(next) => {
                     setQuery(next);

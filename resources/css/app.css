@@ -1266,15 +1266,6 @@ button[type='submit'][data-slot='button'] {
     overflow-y: auto;
 }
 
-.shell-places-option {
-    display: flex;
-    align-items: flex-start;
-    gap: 8px;
-    padding: 8px 10px;
-    border-radius: var(--radius-inner);
-    cursor: pointer;
-}
-
 .shell-places-main {
     font-size: var(--text-small);
     color: var(--shell-text);
@@ -1626,17 +1617,6 @@ button[type='submit'][data-slot='button'] {
     background-color: var(--primary);
 }
 
-.shell-picker-input {
-    width: 100%;
-    min-height: 44px;
-    padding: 10px 14px;
-    border-radius: var(--radius-field);
-    border: 1px solid var(--shell-border-input);
-    background: var(--shell-surface);
-    color: var(--shell-text);
-    font-size: var(--text-body);
-}
-
 .shell-picker-results {
     min-height: 200px;
     max-height: 360px;
@@ -1658,20 +1638,6 @@ button[type='submit'][data-slot='button'] {
     color: var(--shell-text-muted);
     font-size: var(--text-small);
     margin: 0;
-}
-
-.shell-picker-row {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    width: 100%;
-    padding: 8px 12px;
-    border: none;
-    border-bottom: 1px solid var(--shell-border);
-    color: var(--shell-text);
-    text-align: left;
-    cursor: pointer;
-    font-size: var(--text-small);
 }
 
 .shell-picker-thumb {

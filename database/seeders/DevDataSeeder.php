@@ -176,10 +176,17 @@ class DevDataSeeder extends Seeder
     {
         $encode = fn (string $raw): string => rtrim(strtr(base64_encode($raw), '+/', '-_'), '=');
 
+        // A real P-256 key, so a push can be encrypted and only the unreachable endpoint fails.
+        // With QUEUE_CONNECTION=sync a key that doesn't parse throws inside the request.
+        $key = openssl_pkey_new(['private_key_type' => OPENSSL_KEYTYPE_EC, 'curve_name' => 'prime256v1']);
+        $ec = $key === false ? null : (openssl_pkey_get_details($key)['ec'] ?? null);
+        if ($ec === null) {
+            throw new RuntimeException('OpenSSL could not make a P-256 key for the seed push subscription.');
+        }
+
         $user->pushSubscriptions()->create([
             'endpoint' => "https://example.invalid/dev-seed-{$user->id}",
-            // Right length for the column, not a usable key.
-            'public_key' => $encode(hash_hkdf('sha256', $user->email, 65, 'p256dh')),
+            'public_key' => $encode("\x04".$ec['x'].$ec['y']),
             'auth_token' => $encode(hash_hkdf('sha256', $user->email, 16, 'auth')),
             'content_encoding' => 'aesgcm',
         ]);
