@@ -1,11 +1,17 @@
 import { Plus } from 'lucide-react';
 import { useMemo, useState } from 'react';
+import { Settle, SettleItem } from '@/components/motion';
 import EventCard from '@/MiniApps/History/Components/EventCard';
 import EventSheet from '@/MiniApps/History/Components/EventSheet';
+import OnThisDayStrip from '@/MiniApps/History/Components/OnThisDayStrip';
 import SortDropdown from '@/MiniApps/History/Components/SortDropdown';
 import YearBanner from '@/MiniApps/History/Components/YearBanner';
 import YearJumpRail from '@/MiniApps/History/Components/YearJumpRail';
 import { useConversionPolling } from '@/MiniApps/History/Hooks/useConversionPolling';
+import {
+    findMoment,
+    useFreshMoments,
+} from '@/MiniApps/History/Hooks/useFreshMoments';
 import { useMomentFromUrl } from '@/MiniApps/History/Hooks/useMomentFromUrl';
 import HistoryLayout from '@/MiniApps/History/Layouts/HistoryLayout';
 import type {
@@ -112,6 +118,8 @@ export default function Timeline({
     eventsCount,
     lastEventOccurredOn,
     yearCounts,
+    onThisDay,
+    birthdays,
     moment,
 }: Props) {
     const daysSinceLast = lastEventOccurredOn
@@ -122,13 +130,19 @@ export default function Timeline({
 
     const [sheetOpen, setSheetOpen] = useState(false);
     const [sheetMode, setSheetMode] = useState<'add' | 'edit' | 'read'>('add');
-    const [editingEvent, setEditingEvent] = useState<HistoryEvent | null>(null);
+    // The id, not a copy: the sheet reads the moment from the current props, so a reaction or
+    // a comment shows as soon as the fresh moment comes back. The copy is for while it closes.
+    const [openId, setOpenId] = useState<number | null>(null);
+    const [openedCopy, setOpenedCopy] = useState<HistoryEvent | null>(null);
 
-    useMomentFromUrl(moment, initialEvents.data, (event) => {
-        setEditingEvent(event);
-        setSheetMode('read');
+    const openMoment = (event: HistoryEvent | null) => {
+        setOpenId(event?.id ?? null);
+        setOpenedCopy(event);
+        setSheetMode(event ? 'read' : 'add');
         setSheetOpen(true);
-    });
+    };
+
+    useMomentFromUrl(moment, [...initialEvents.data, ...onThisDay], openMoment);
 
     const {
         items: loadedEvents,
@@ -142,14 +156,27 @@ export default function Timeline({
         propName: 'events',
     });
 
+    const fresh = useFreshMoments(moment, loadedEvents, onThisDay);
+    const openEvent =
+        findMoment(openId, fresh.rows, fresh.others, moment) ?? openedCopy;
+
     const hasPendingMedia = loadedEvents.some((e) =>
         e.media.some((m) => m.pending),
     );
     useConversionPolling(hasPendingMedia, refreshInPlace);
 
     const yearGroups = useMemo(
-        () => groupByYear(loadedEvents, order),
-        [loadedEvents, order],
+        () => groupByYear(fresh.rows, order),
+        [fresh.rows, order],
+    );
+    const rowIndex = useMemo(
+        () =>
+            new Map(
+                yearGroups
+                    .flatMap((g) => g.events)
+                    .map((e, i) => [e.id, i] as const),
+            ),
+        [yearGroups],
     );
     const distinctYears = useMemo(
         () => yearGroups.map((g) => g.year),
@@ -180,12 +207,13 @@ export default function Timeline({
             <Fab
                 ariaLabel="Add moment"
                 icon={<Plus aria-hidden="true" size={24} strokeWidth={2.5} />}
-                onClick={() => {
-                    setEditingEvent(null);
-                    setSheetMode('add');
-                    setSheetOpen(true);
-                }}
+                onClick={() => openMoment(null)}
             />
+
+            {/* In the card column, clear of the fixed year rail. */}
+            <div className="history-timeline-body">
+                <OnThisDayStrip events={fresh.others} onOpen={openMoment} />
+            </div>
 
             {isEmpty && (
                 <EmptyState
@@ -194,11 +222,7 @@ export default function Timeline({
                     action={
                         <button
                             type="button"
-                            onClick={() => {
-                                setEditingEvent(null);
-                                setSheetMode('add');
-                                setSheetOpen(true);
-                            }}
+                            onClick={() => openMoment(null)}
                             className="history-btn-add-first shell-press"
                         >
                             Add your first moment
@@ -221,30 +245,37 @@ export default function Timeline({
                         className="history-timeline-rail history-rail-line"
                     />
 
-                    {yearGroups.map(({ year, events: yearEvents }) => (
-                        <div key={year}>
-                            <YearBanner
-                                year={year}
-                                count={yearCounts[year] ?? yearEvents.length}
-                            />
-                            {yearEvents.map((event) => (
-                                <div key={event.id} className="relative">
-                                    <EventCard
-                                        event={event}
-                                        onRead={(id) => {
-                                            const target =
-                                                loadedEvents.find(
-                                                    (e) => e.id === id,
-                                                ) ?? null;
-                                            setEditingEvent(target);
-                                            setSheetMode('read');
-                                            setSheetOpen(true);
-                                        }}
-                                    />
-                                </div>
-                            ))}
-                        </div>
-                    ))}
+                    {/* Only the first page settles in; rows loaded later appear in place. */}
+                    <Settle>
+                        {yearGroups.map(({ year, events: yearEvents }) => (
+                            <div key={year}>
+                                <YearBanner
+                                    year={year}
+                                    count={
+                                        yearCounts[year] ?? yearEvents.length
+                                    }
+                                />
+                                {yearEvents.map((event) => (
+                                    <SettleItem
+                                        key={event.id}
+                                        index={rowIndex.get(event.id) ?? 0}
+                                        className="relative"
+                                    >
+                                        <EventCard
+                                            event={event}
+                                            onRead={(id) =>
+                                                openMoment(
+                                                    fresh.rows.find(
+                                                        (e) => e.id === id,
+                                                    ) ?? null,
+                                                )
+                                            }
+                                        />
+                                    </SettleItem>
+                                ))}
+                            </div>
+                        ))}
+                    </Settle>
 
                     <ListLoadMoreState
                         loadingMore={loadingMore}
@@ -259,7 +290,8 @@ export default function Timeline({
                 open={sheetOpen}
                 onOpenChange={setSheetOpen}
                 mode={sheetMode}
-                editingEvent={editingEvent}
+                editingEvent={sheetMode === 'add' ? null : openEvent}
+                birthdays={birthdays}
             />
         </HistoryLayout>
     );

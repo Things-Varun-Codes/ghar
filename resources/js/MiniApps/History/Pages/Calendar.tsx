@@ -5,6 +5,11 @@ import { useIsPhone } from '@/hooks/use-breakpoint';
 import { count } from '@/lib/plural';
 import CalendarMonth from '@/MiniApps/History/Components/CalendarMonth';
 import EventSheet from '@/MiniApps/History/Components/EventSheet';
+import OnThisDayStrip from '@/MiniApps/History/Components/OnThisDayStrip';
+import {
+    findMoment,
+    useFreshMoments,
+} from '@/MiniApps/History/Hooks/useFreshMoments';
 import { useMomentFromUrl } from '@/MiniApps/History/Hooks/useMomentFromUrl';
 import HistoryLayout from '@/MiniApps/History/Layouts/HistoryLayout';
 import type {
@@ -74,15 +79,20 @@ export default function Calendar({
     onThisDay,
     year,
     availableYears,
+    birthdays,
     moment,
 }: Props) {
     const isMobile = useIsPhone();
 
     const lastTriggerRef = useRef<HTMLElement | null>(null);
     const [sheetOpen, setSheetOpen] = useState(false);
-    const [selectedEvent, setSelectedEvent] = useState<HistoryEvent | null>(
-        null,
-    );
+    // The id, not a copy: the sheet reads the moment from the current props, so a reaction or
+    // a comment shows as soon as the fresh moment comes back. The copy is for while it closes.
+    const [openId, setOpenId] = useState<number | null>(null);
+    const [openedCopy, setOpenedCopy] = useState<HistoryEvent | null>(null);
+    const fresh = useFreshMoments(moment, events, onThisDay);
+    const selectedEvent =
+        findMoment(openId, fresh.rows, fresh.others, moment) ?? openedCopy;
     // The menu row unmounts on close, so multi-event days return focus to the day cell passed in
     // here.
     const openEvent = (event: HistoryEvent, triggerEl?: HTMLElement | null) => {
@@ -90,16 +100,18 @@ export default function Calendar({
             triggerEl !== undefined
                 ? triggerEl
                 : (document.activeElement as HTMLElement | null);
-        setSelectedEvent(event);
+        setOpenId(event.id);
+        setOpenedCopy(event);
         setSheetOpen(true);
     };
 
     useMomentFromUrl(moment, [...events, ...onThisDay], (event) => {
-        setSelectedEvent(event);
+        setOpenId(event.id);
+        setOpenedCopy(event);
         setSheetOpen(true);
     });
 
-    const byMonth = useMemo(() => buildMonthMaps(events), [events]);
+    const byMonth = useMemo(() => buildMonthMaps(fresh.rows), [fresh.rows]);
 
     const now = new Date();
     const todayYear = now.getFullYear();
@@ -189,67 +201,10 @@ export default function Calendar({
                 </div>
             }
         >
-            {onThisDay.length > 0 && (
-                <div className="history-cal-otd">
-                    <h2 className="history-cal-otd-head">
-                        <span
-                            className="history-cal-otd-dot"
-                            aria-hidden="true"
-                        />
-                        On this day · {now.getDate()}{' '}
-                        {MONTH_ABBR[now.getMonth()]}
-                    </h2>
-                    <div className="history-cal-otd-row">
-                        {onThisDay.map((e) => {
-                            const ago = todayYear - e.year;
-                            const agoText =
-                                ago <= 0
-                                    ? 'today'
-                                    : ago === 1
-                                      ? '1 year ago'
-                                      : `${ago} years ago`;
-                            const thumb =
-                                e.media.find((m) => m.thumb || m.poster)
-                                    ?.thumb ?? null;
-
-                            return (
-                                <button
-                                    key={e.id}
-                                    type="button"
-                                    className="history-cal-otd-card shell-press"
-                                    onClick={() => openEvent(e)}
-                                >
-                                    <span
-                                        className="history-cal-otd-thumb"
-                                        style={
-                                            thumb
-                                                ? {
-                                                      backgroundImage: `url("${thumb}")`,
-                                                  }
-                                                : undefined
-                                        }
-                                        aria-hidden="true"
-                                    />
-                                    <span className="history-cal-otd-text">
-                                        <span className="history-cal-otd-year">
-                                            {e.year}
-                                        </span>
-                                        <span className="history-cal-otd-title">
-                                            {e.title ?? e.date_label}
-                                        </span>
-                                        <span className="history-cal-otd-sub">
-                                            {agoText}
-                                            {e.location_name
-                                                ? ` · ${e.location_name}`
-                                                : ''}
-                                        </span>
-                                    </span>
-                                </button>
-                            );
-                        })}
-                    </div>
-                </div>
-            )}
+            <OnThisDayStrip
+                events={fresh.others}
+                onOpen={(e) => openEvent(e)}
+            />
 
             {yearIsEmpty ? (
                 <EmptyState
@@ -344,6 +299,7 @@ export default function Calendar({
                 mode="read"
                 editingEvent={selectedEvent}
                 triggerRef={lastTriggerRef}
+                birthdays={birthdays}
             />
         </HistoryLayout>
     );

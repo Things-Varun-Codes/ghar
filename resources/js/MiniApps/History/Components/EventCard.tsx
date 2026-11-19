@@ -1,8 +1,15 @@
-import { ArrowRight, MapPin } from 'lucide-react';
+import { ChevronDown, MapPin, MessageCircle } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { Button } from '@/components/ui/button';
+import {
+    Collapsible,
+    CollapsibleContent,
+    CollapsibleTrigger,
+} from '@/components/ui/collapsible';
 import { cn } from '@/lib/utils';
+import { displayLocation, storyText } from '@/MiniApps/History/lib/moment';
 import type { HistoryEvent } from '@/MiniApps/History/lib/types';
+import PersonAvatar from '@/Shell/Components/PersonAvatar';
+import BirthdayLabel from './BirthdayLabel';
 import BodyHtml from './BodyHtml';
 import MediaGrid from './MediaGrid';
 import type { MediaItem } from './MediaGrid';
@@ -14,32 +21,37 @@ import type {
 
 type EventCardProps = {
     event: HistoryEvent;
-    onRead?: (id: number) => void;
+    onRead: (id: number) => void;
 };
 
+/*
+ * One moment on the Timeline: a line of its story and quiet counts, so a screen holds many.
+ * The whole card opens the sheet; "Details" opens the story and photos in place.
+ */
 export default function EventCard({ event, onRead }: EventCardProps) {
-    const isTappable = !!onRead;
     const lightboxRef = useRef<PhotoSwipeGalleryHandle>(null);
+    const excerptRef = useRef<HTMLParagraphElement>(null);
+    const [storyCut, setStoryCut] = useState(false);
 
-    const bodyClampRef = useRef<HTMLDivElement>(null);
-    const [isOverflowing, setIsOverflowing] = useState(false);
+    const excerpt = useMemo(
+        () => storyText(event.body_html),
+        [event.body_html],
+    );
 
     useEffect(() => {
-        const el = bodyClampRef.current;
+        const el = excerptRef.current;
 
         if (!el) {
             return;
         }
 
-        const measure = () => {
-            setIsOverflowing(el.scrollHeight > el.clientHeight);
-        };
+        const measure = () => setStoryCut(el.scrollWidth > el.clientWidth + 1);
 
         measure();
         window.addEventListener('resize', measure);
 
         return () => window.removeEventListener('resize', measure);
-    }, [event.body_html]);
+    }, [excerpt]);
 
     const renderableMedia = useMemo(
         () =>
@@ -62,36 +74,28 @@ export default function EventCard({ event, onRead }: EventCardProps) {
                 width: m.width ?? null,
                 height: m.height ?? null,
                 mime_type: null,
-                alt: event.title
-                    ? `${m.kind === 'video' ? 'Video' : 'Photo'} from ${event.title}`
-                    : `${m.kind === 'video' ? 'Video' : 'Photo'} from ${event.date_label}`,
+                alt: `${m.kind === 'video' ? 'Video' : 'Photo'} from ${event.title || event.date_label}`,
                 event_title: event.title ?? undefined,
                 event_date: event.date_label,
             })),
         [renderableMedia, event.title, event.date_label],
     );
 
-    // The whole card opens the moment through one real button, stretched over the card, so the
-    // story's links and the photos inside keep their own clicks and keys.
-    const openButton = (label: string) =>
-        isTappable ? (
-            <button
-                type="button"
-                className="shell-card-link history-card-open"
-                onClick={() => onRead?.(event.id)}
-            >
-                {label}
-            </button>
-        ) : (
-            label
-        );
+    const name = event.title || event.date_label;
+    const place = displayLocation(event);
+    const thumb = renderableMedia.find((m) => m.thumb)?.thumb ?? null;
+    const reacted = event.reactions.filter((r) => r.count > 0);
+    const reactionTotal = reacted.reduce((sum, r) => sum + r.count, 0);
+    const commentCount = event.comments.length;
+    const hasDetails = storyCut || renderableMedia.length > 0;
 
     return (
-        <article
+        <Collapsible
+            render={<article />}
             id={`event-${event.id}`}
             className={cn(
-                'history-event-card',
-                isTappable && 'shell-card-stretch shell-lift',
+                'history-event-card history-moment shell-card-stretch shell-lift',
+                storyCut && 'history-moment--story-cut',
             )}
         >
             <span
@@ -99,107 +103,149 @@ export default function EventCard({ event, onRead }: EventCardProps) {
                 className="history-timeline-dot history-timeline-marker"
             />
 
-            <header className="mb-3">
-                {event.date_label && (
-                    <p className="history-card-date">
-                        {event.title
-                            ? event.date_label
-                            : openButton(event.date_label)}
+            <div className="history-moment-head">
+                <div className="history-moment-main">
+                    <p className="history-moment-dateline">
+                        {event.title && (
+                            <span className="history-card-date">
+                                {event.date_label}
+                            </span>
+                        )}
+                        {event.creator && (
+                            <span className="history-moment-creator">
+                                <PersonAvatar
+                                    person={event.creator}
+                                    size={20}
+                                />
+                                <span>{event.creator.name}</span>
+                            </span>
+                        )}
                     </p>
-                )}
-                {event.title && (
+
+                    {/* One real button, stretched over the card, opens the moment; the
+                        Details toggle and the photos keep their own clicks above it. */}
                     <h3 className="history-card-title">
-                        {openButton(event.title)}
+                        <button
+                            type="button"
+                            className="shell-card-link history-card-open"
+                            onClick={() => onRead(event.id)}
+                        >
+                            {name}
+                        </button>
                     </h3>
+
+                    {excerpt && (
+                        <p ref={excerptRef} className="history-moment-excerpt">
+                            {excerpt}
+                        </p>
+                    )}
+                </div>
+
+                {thumb && (
+                    <img
+                        src={thumb}
+                        alt=""
+                        loading="lazy"
+                        decoding="async"
+                        className="history-moment-thumb"
+                    />
                 )}
-            </header>
+            </div>
 
-            {(() => {
-                const { location_name, location_address, location_freetext } =
-                    event;
+            {(place ||
+                event.birthday_of ||
+                reactionTotal > 0 ||
+                commentCount > 0 ||
+                hasDetails) && (
+                <div className="history-moment-meta">
+                    {event.birthday_of && (
+                        <BirthdayLabel person={event.birthday_of} />
+                    )}
+                    {place && (
+                        <p className="history-card-location">
+                            <MapPin
+                                aria-hidden="true"
+                                size={14}
+                                strokeWidth={1.5}
+                                className="shrink-0"
+                            />
+                            <span>{place}</span>
+                        </p>
+                    )}
+                    {reactionTotal > 0 && (
+                        <p className="history-moment-count">
+                            <span
+                                aria-hidden="true"
+                                className="history-reaction-emoji"
+                            >
+                                {reacted.map((r) => r.emoji).join('')}
+                            </span>
+                            <span aria-hidden="true">{reactionTotal}</span>
+                            <span className="sr-only">
+                                {reactionTotal === 1
+                                    ? '1 reaction'
+                                    : `${reactionTotal} reactions`}
+                            </span>
+                        </p>
+                    )}
+                    {commentCount > 0 && (
+                        <p className="history-moment-count">
+                            <MessageCircle
+                                aria-hidden="true"
+                                size={14}
+                                strokeWidth={1.5}
+                            />
+                            <span aria-hidden="true">{commentCount}</span>
+                            <span className="sr-only">
+                                {commentCount === 1
+                                    ? '1 comment'
+                                    : `${commentCount} comments`}
+                            </span>
+                        </p>
+                    )}
+                    {hasDetails && (
+                        <CollapsibleTrigger
+                            className="history-moment-toggle"
+                            aria-label={`Details of ${name}`}
+                        >
+                            Details
+                            <ChevronDown
+                                aria-hidden="true"
+                                size={16}
+                                strokeWidth={1.5}
+                                className="history-moment-chevron"
+                            />
+                        </CollapsibleTrigger>
+                    )}
+                </div>
+            )}
 
-                let displayLocation: string | null = null;
-
-                if (
-                    location_name &&
-                    location_address &&
-                    !location_address.includes(location_name)
-                ) {
-                    displayLocation = location_name;
-                } else if (location_name && !location_address) {
-                    displayLocation = location_name;
-                } else if (location_address) {
-                    displayLocation = location_address;
-                } else if (location_freetext) {
-                    displayLocation = location_freetext;
-                }
-
-                if (!displayLocation) {
-                    return null;
-                }
-
-                return (
-                    <p className="history-card-location">
-                        <MapPin
-                            aria-hidden="true"
-                            size={14}
-                            strokeWidth={1.5}
-                            color="var(--history-ink-soft)"
-                            className="shrink-0"
-                        />
-                        <span>{displayLocation}</span>
-                    </p>
-                );
-            })()}
-
-            {event.body_html && (
-                <div className="mb-4">
-                    <div
-                        ref={bodyClampRef}
-                        className="history-event-body-clamp"
-                    >
+            {hasDetails && (
+                <CollapsibleContent className="history-moment-details">
+                    {storyCut && event.body_html && (
                         <BodyHtml
                             html={event.body_html}
                             headingBase={3}
                             links={event.links}
                         />
-                    </div>
-                    {isOverflowing && onRead && (
-                        <div className="mt-2 flex justify-end">
-                            <Button
-                                type="button"
-                                variant="link"
-                                className="history-continue-link h-auto w-auto no-underline shadow-none hover:no-underline"
-                                onClick={() => onRead?.(event.id)}
-                                aria-label={`Continue reading "${event.title || event.date_label}"`}
-                            >
-                                Continue reading
-                                <ArrowRight
-                                    aria-hidden="true"
-                                    size={16}
-                                    strokeWidth={1.5}
-                                />
-                            </Button>
+                    )}
+                    {renderableMedia.length > 0 && (
+                        <div className="history-moment-media">
+                            <MediaGrid
+                                media={renderableMedia}
+                                contextLabel={name}
+                                onClickItem={(_item, index) =>
+                                    lightboxRef.current?.open(index)
+                                }
+                            />
                         </div>
                     )}
-                </div>
-            )}
-
-            {renderableMedia.length > 0 && (
-                <div className="mb-4">
-                    <MediaGrid
-                        media={renderableMedia}
-                        contextLabel={event.title || event.date_label}
-                        onClickItem={(_item, index) =>
-                            lightboxRef.current?.open(index)
-                        }
-                    />
-                </div>
+                </CollapsibleContent>
             )}
 
             {lightboxMedia.length > 0 && (
                 <PhotoSwipeGallery ref={lightboxRef} media={lightboxMedia} />
             )}
-        </article>
+        </Collapsible>
     );
 }
