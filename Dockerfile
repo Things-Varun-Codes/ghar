@@ -8,10 +8,10 @@
 # Pinned so a rebuild is reproducible. Keep both PHP stages on the same tag: the
 # runtime stage copies compiled extensions from the builder.
 FROM composer:2.11.2 AS composer
-FROM node:26.12.1-alpine3.24 AS node
+FROM node:26.13.1-alpine3.24 AS node
 
 # ─── Stage 1: builder ─────────────────────────────────────────────────
-FROM php:8.5.13-fpm-alpine3.24 AS builder
+FROM php:8.6.0RC5-fpm-alpine3.24 AS builder
 
 # Extensions compile once, here: the runtime stage copies the .so files, because
 # compiling ICU/intl in both stages in parallel OOM-kills a 4 GB host. gd's
@@ -106,7 +106,7 @@ RUN printf "%s" "$GHAR_VERSION" > VERSION \
     && rm -rf node_modules /root/.npm /root/.composer /tmp/*
 
 # ─── Stage 2: runtime ────────────────────────────────────────────────
-FROM php:8.5.13-fpm-alpine3.24 AS runtime
+FROM php:8.6.0RC5-fpm-alpine3.24 AS runtime
 
 # Only the shared libs the copied extensions link against (verified with ldd):
 # icu-libs (intl), libpng/libjpeg-turbo/freetype/libwebp (gd), libzip (zip),
