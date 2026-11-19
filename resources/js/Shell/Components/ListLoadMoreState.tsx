@@ -6,7 +6,8 @@ type Props = {
     loadingMore: boolean;
     loadError: boolean;
     onRetry: () => void;
-    sentinelRef: RefObject<HTMLDivElement | null>;
+    /* useCursorPagination's trigger; CursorListBody's InfiniteScroll watches its own. */
+    sentinelRef?: RefObject<HTMLDivElement | null>;
 };
 
 export default function ListLoadMoreState({
@@ -35,7 +36,7 @@ export default function ListLoadMoreState({
                 />
             )}
 
-            <div ref={sentinelRef} className="h-[1px]" />
+            {sentinelRef && <div ref={sentinelRef} className="h-[1px]" />}
         </>
     );
 }

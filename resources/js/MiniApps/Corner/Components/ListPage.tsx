@@ -10,7 +10,7 @@ import ListNavBand from '@/Shell/Components/ListNavBand';
 import type { SortItem } from '@/Shell/Components/ListNavBand';
 import Page from '@/Shell/Components/Page';
 import SegmentedTabs from '@/Shell/Components/SegmentedTabs';
-import { useCursorPagination } from '@/Shell/Hooks/useCursorPagination';
+import { useListNavigation } from '@/Shell/Hooks/useListNavigation';
 import type { Paginated } from '@/types/paginated';
 
 export type FilterMode = 'all' | 'active' | 'done';
@@ -49,11 +49,8 @@ export default function ListPage({
     emptyState,
     actions,
 }: ListPageProps) {
-    const pagination = useCursorPagination<CornerItem>({
-        initial: paginator,
-        propName: 'items',
-    });
-    const { navigate } = pagination;
+    const navigation = useListNavigation();
+    const { navigate } = navigation;
     const searching = query.trim() !== '';
 
     const tabs: Array<{ key: FilterMode; label: string; count: number }> = [
@@ -79,7 +76,7 @@ export default function ListPage({
             }
         >
             <ListNavBand
-                navigating={pagination.navigating}
+                navigating={navigation.navigating}
                 count={
                     // Search narrows the counts too, so while searching they read as matches.
                     <span className="text-(length:--text-meta) font-medium text-(--corner-ink-soft) tabular-nums">
@@ -113,13 +110,13 @@ export default function ListPage({
             <CursorListBody
                 id="corner-list-panel"
                 role="tabpanel"
-                list={pagination}
+                prop="items"
+                items={paginator.data}
+                navigation={navigation}
                 query={query}
                 noMatchesNoun="things"
                 empty={emptyState[filter]}
-                renderItem={(item) => (
-                    <div key={item.id}>{renderItem(item)}</div>
-                )}
+                renderItem={renderItem}
                 listClassName="corner-item-grid grid [align-items:start] gap-4"
                 footerWhenEmpty
             />

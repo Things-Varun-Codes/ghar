@@ -2,7 +2,11 @@
 
 namespace App\Shell\Support;
 
+use Illuminate\Contracts\Pagination\CursorPaginator;
 use Illuminate\Database\Eloquent\Builder;
+use Inertia\Inertia;
+use Inertia\ScrollMetadata;
+use Inertia\ScrollProp;
 
 /**
  * Both the page and the {all,active,done} counts derive from one caller-built query, so
@@ -68,6 +72,31 @@ class CursorList
      */
     public function paginate(string $filter, int $perPage, callable $transform): array
     {
+        return $this->build($filter, $perPage, $transform)[0];
+    }
+
+    /**
+     * The same page as an Inertia scroll prop, for the client's InfiniteScroll: a load-more
+     * request appends to `data`, anything else replaces the list.
+     *
+     * @param  callable(mixed): mixed  $transform
+     * @return ScrollProp<array<string, mixed>>
+     */
+    public function scroll(string $filter, int $perPage, callable $transform): ScrollProp
+    {
+        [$payload, $paginator] = $this->build($filter, $perPage, $transform);
+
+        return Inertia::scroll($payload, 'data', ScrollMetadata::fromPaginator($paginator));
+    }
+
+    /**
+     * @param  callable(mixed): mixed  $transform
+     * @return array{0: array{data: array, next_cursor: ?string, prev_cursor: ?string,
+     *               next_page_url: ?string, prev_page_url: ?string, per_page: int,
+     *               counts: array{all: int, active: int, done: int}}, 1: CursorPaginator<int, mixed>}
+     */
+    private function build(string $filter, int $perPage, callable $transform): array
+    {
         $countsQuery = (clone $this->base)->toBase()->reorder();
 
         if ($this->statusColumn !== null) {
@@ -95,7 +124,7 @@ class CursorList
 
         $paginator = $query->cursorPaginate($perPage)->withQueryString();
 
-        return array_merge(
+        $payload = array_merge(
             CursorPayload::make($paginator, $transform),
             [
                 'counts' => [
@@ -105,5 +134,7 @@ class CursorList
                 ],
             ],
         );
+
+        return [$payload, $paginator];
     }
 }

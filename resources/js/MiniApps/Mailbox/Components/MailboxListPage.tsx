@@ -13,7 +13,7 @@ import ListNavBand from '@/Shell/Components/ListNavBand';
 import type { SortItem } from '@/Shell/Components/ListNavBand';
 import Page from '@/Shell/Components/Page';
 import SegmentedTabs from '@/Shell/Components/SegmentedTabs';
-import { useCursorPagination } from '@/Shell/Hooks/useCursorPagination';
+import { useListNavigation } from '@/Shell/Hooks/useListNavigation';
 import type { Paginated } from '@/types/paginated';
 
 type ItemConstraint = { id: number };
@@ -74,11 +74,8 @@ export default function MailboxListPage<
 }: MailboxListPageProps<TItem, TTab>) {
     const { url } = usePage();
 
-    const pagination = useCursorPagination<TItem>({
-        initial: paginator,
-        propName,
-    });
-    const { navigate } = pagination;
+    const navigation = useListNavigation();
+    const { navigate } = navigation;
 
     const focusedId = useMemo(() => {
         const raw = new URL(url, 'http://ghar.invalid').searchParams.get(
@@ -137,7 +134,7 @@ export default function MailboxListPage<
                 }
             >
                 <ListNavBand
-                    navigating={pagination.navigating}
+                    navigating={navigation.navigating}
                     count={
                         <span className="text-(length:--text-eyebrow) text-(--mailbox-ink-soft)">
                             {count(countAll, countNoun.one, countNoun.other)}
@@ -164,7 +161,9 @@ export default function MailboxListPage<
                 />
 
                 <CursorListBody
-                    list={pagination}
+                    prop={propName}
+                    items={paginator.data}
+                    navigation={navigation}
                     query={query ?? ''}
                     noMatchesNoun={countNoun.other}
                     noMatchesBody="Try another word, or clear the search to see everything."
