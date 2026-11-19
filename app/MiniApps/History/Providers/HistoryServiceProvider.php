@@ -3,8 +3,11 @@
 namespace App\MiniApps\History\Providers;
 
 use App\MiniApps\History\Console\PruneOrphanedMedia;
+use App\MiniApps\History\Console\SendMorningMemories;
 use App\MiniApps\History\Models\Event;
+use App\MiniApps\History\Models\EventComment;
 use App\MiniApps\History\Observers\MediaDimensionsObserver;
+use App\MiniApps\History\Policies\CommentPolicy;
 use App\MiniApps\History\Policies\EventPolicy;
 use App\MiniApps\History\Support\DashboardLine;
 use App\MiniApps\History\Support\DashboardPreview;
@@ -14,6 +17,7 @@ use App\Shell\Services\DashboardSummaries;
 use App\Shell\Services\LinkableEntities;
 use App\Shell\Support\CursorList;
 use App\Shell\Support\Limits;
+use App\Shell\Support\Region;
 use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\RateLimiter;
@@ -29,7 +33,7 @@ class HistoryServiceProvider extends ServiceProvider
     public function boot(LinkableEntities $linkable, DashboardSummaries $summaries): void
     {
         if ($this->app->runningInConsole()) {
-            $this->commands([PruneOrphanedMedia::class]);
+            $this->commands([PruneOrphanedMedia::class, SendMorningMemories::class]);
         }
 
         // Run `php artisan history:prune-media --dry-run` first to see what it will remove.
@@ -38,11 +42,24 @@ class HistoryServiceProvider extends ServiceProvider
                 ->dailyAt('03:00')
                 ->onOneServer()
                 ->runInBackground();
+
+            // Hourly through the morning, so a server that was down at nine still sends; the
+            // command's day claim makes every run after the first a no-op.
+            $schedule->command('history:morning-memories')
+                ->hourly()
+                ->between('09:00', '12:00')
+                ->timezone(Region::timezone())
+                ->onOneServer();
         });
 
         Gate::policy(Event::class, EventPolicy::class);
+        Gate::policy(EventComment::class, CommentPolicy::class);
 
         RateLimiter::for('history-mutations', Limits::perUser(30));
+        // Their own budgets: uploads spend history-mutations, and a burst of photos must not
+        // stop someone reacting or replying.
+        RateLimiter::for('history-reactions', Limits::perUser(60));
+        RateLimiter::for('history-comments', Limits::perUser(20));
 
         $summaries->register(self::SLUG, fn (User $user): ?string => DashboardLine::forUser($user));
         $summaries->registerPreview(self::SLUG, fn (User $user): ?array => DashboardPreview::forUser($user));

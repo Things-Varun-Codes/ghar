@@ -19,6 +19,7 @@ trait EventRequestRules
             'location_lat' => ['nullable', 'numeric', 'between:-90,90'],
             'location_lng' => ['nullable', 'numeric', 'between:-180,180'],
             'body_html' => ['nullable', 'string', 'max:50000'],
+            'birthday_user_id' => ['nullable', 'integer', 'exists:users,id'],
         ];
     }
 
