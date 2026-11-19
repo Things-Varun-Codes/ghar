@@ -74,7 +74,8 @@ its own lists; nothing about Songs or Movies is hard-coded any more.
   leaves them out. The types stay registered, so History keeps both old and new pills (shown as
   plain text) when a moment is saved meanwhile.
 - **Our Shelf** — a shelf of loved things, one look for every list. Its character is in its
-  objects, not its type or motion: `.corner-sticker` done flags (a fixed tilt, never animated), each
+  objects, not its type or motion: `.corner-sticker` done flags (a fixed tilt; the sticker scales in, through `Pop` on a wrapper,
+  when something is marked done, and never moves otherwise or on load), each
   item's picture in a rounded thumb (`ItemThumb`), and where there is no picture the list's own icon
   on an accent wash via `color-mix(in oklab, var(--shell-accent) N%, var(--shell-surface))` — never
   hex. Identity changes are CSS-only in `corner.css` over the shared components; don't fork

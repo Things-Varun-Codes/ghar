@@ -44,12 +44,12 @@ composer dev          # or: server + queue + logs + Vite, also on 127.0.0.1:8000
 
 Password for every account: `ghar-local-dev`. Mail lands in Mailpit at `http://127.0.0.1:8025`.
 
-| Account              | Who                     | Use it to check                                                                                                                       |
-| -------------------- | ----------------------- | ------------------------------------------------------------------------------------------------------------------------------------- |
-| `admin@example.test` | Asha, the only admin    | Admin pages; editing anyone's moment or Corner item; last-admin guards. Has no special access to other people's mail.                 |
-| `ravi@example.test`  | Ravi, adult             | **Non-admin creator**: can edit "Monsoon drive to the coast" (his), can't edit "Meera's first pottery class". Sender of the fixtures. |
-| `meera@example.test` | Meera, adult            | **Recipient**: note 1, bouquet 1, coupon 1 and citation 1 are Ravi's to her alone. Can request the coupon and pay the citation.       |
-| `kabir@example.test` | Kabir, younger, no push | **Non-recipient**: `/apps/our-exchange/citations/1` and `coupons/1` must 403; note 1 and bouquet 1 must not be listed.                |
+| Account              | Who                         | Use it to check                                                                                                                       |
+| -------------------- | --------------------------- | ------------------------------------------------------------------------------------------------------------------------------------- |
+| `admin@example.test` | Asha, the only admin        | Admin pages; editing anyone's moment or Corner item; last-admin guards. Has no special access to other people's mail.                 |
+| `ravi@example.test`  | Ravi, adult, has a picture  | **Non-admin creator**: can edit "Monsoon drive to the coast" (his), can't edit "Meera's first pottery class". Sender of the fixtures. |
+| `meera@example.test` | Meera, adult, has a picture | **Recipient**: note 1, bouquet 1, coupon 1 and citation 1 are Ravi's to her alone. Can request the coupon and pay the citation.       |
+| `kabir@example.test` | Kabir, younger, no push     | **Non-recipient**: `/apps/our-exchange/citations/1` and `coupons/1` must 403; note 1 and bouquet 1 must not be listed.                |
 
 Every state the seed covers, with the ids to use, is in `.claude/rules/dev-data.md`.
 
@@ -96,7 +96,8 @@ parallel worktrees. The smoke scripts use fixed ports: one run at a time per mac
 | Vite                                             | ^8                                  |
 | Tailwind CSS                                     | ^4 (no `tailwind.config.js`)        |
 | TypeScript                                       | ^6.0                                |
-| shadcn/ui on Radix primitives                    | current                             |
+| shadcn/ui on Base UI (`@base-ui/react`)          | ^1.9 (style `base-vega`)            |
+| Motion (`motion`, through `components/motion`)   | ^14                                 |
 | Vitest                                           | ^5                                  |
 
 ## Working in this repo
@@ -150,8 +151,8 @@ Five tiers; none replaces another. Start with [How to test locally](#how-to-test
   when touching cursor pagination, the list footer or the pagination hook.
 - **Interactive — Playwright MCP.** Start with `npm run smoke-mcp` (rebuilds the bundle, serves the
   seeded data on `127.0.0.1:8000`; plain `artisan serve` serves a stale `public/build/`). **Required
-  when** a change touches XHR/fetch/upload/drag-drop/`FormData`, any Radix portal (Dialog, Sheet,
-  AlertDialog, Popover, Dropdown), a dirty-gate or multi-step/close-intent flow, or a new mini-app
+  when** a change touches XHR/fetch/upload/drag-drop/`FormData`, any Base UI portal (Dialog, Drawer,
+  Sheet, AlertDialog, Popover, Menu, Select, Tooltip), a dirty-gate or multi-step/close-intent flow, or a new mini-app
   interactive surface.
 
 **The loop.** Locally, run the tests for what you touched: `php artisan test --filter=…` or one

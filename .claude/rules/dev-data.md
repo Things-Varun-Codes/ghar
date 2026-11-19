@@ -22,5 +22,6 @@ picture, coordinates only, a map link only, a typed place, and link, picture and
 pictures are https addresses primed into the picture cache, single and multi-recipient notes and flowers read and unread, coupons
 issued/requested/part-fulfilled/depleted/expired, citations issued/paid, short links `pantry23`,
 `garage23` and the disabled `bench789`, and a pending invite at
-`/invitations/dev-invite-token-for-local-testing-only`. Row ids are stable after a reset. Ravi and
+`/invitations/dev-invite-token-for-local-testing-only`. Ravi and Meera have profile pictures (drawn into `dev-seed/`), Asha and Kabir show initials; Meera's
+birthday is today, Asha's and Ravi's are set, Kabir has none and morning memories off. Row ids are stable after a reset. Ravi and
 Meera have synthetic push subscriptions that can't deliver; test real push by subscribing a browser.

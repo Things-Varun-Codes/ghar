@@ -41,6 +41,8 @@ Every invited user is a household member (`App\Shell\Services\Household`: `membe
   coupons and citations keep `issuer_id` and `recipient_id` on the row (`IssuedToOne`, whose
   `isParty()` is their policies' `view`). Mailbox checks abilities with `Gate::authorize` in the
   controller, as Corner and History do, not with a route `->can()`.
+- **People in payloads** go through `Person::of($user)` (`{id, name, avatar_url}`);
+  `optionsFor($user)` returns them.
 - **Recipients** arrive as `recipient_ids`: one or more other members, never yourself
   (`ValidatesRecipients`). A coupon or citation has one recipient, so several ids issue one row each.
 - **Push:** `PushDispatcher::toHousehold($actor, …)` for new moments and Corner items;
