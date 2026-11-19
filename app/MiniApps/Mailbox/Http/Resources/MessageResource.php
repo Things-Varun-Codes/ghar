@@ -4,6 +4,7 @@ namespace App\MiniApps\Mailbox\Http\Resources;
 
 use App\MiniApps\Mailbox\Models\MailboxMessage;
 use App\Shell\Models\User;
+use App\Shell\Support\Person;
 use Illuminate\Support\Carbon;
 
 class MessageResource
@@ -17,8 +18,8 @@ class MessageResource
      *     read_at: string|null,
      *     is_unread: bool,
      *     is_mine: bool,
-     *     sender: array{id: int, name: string},
-     *     recipients: list<array{id: int, name: string}>,
+     *     sender: array{id: int, name: string, avatar_url: string|null},
+     *     recipients: list<array{id: int, name: string, avatar_url: string|null}>,
      * }
      */
     public function __invoke(MailboxMessage $message, ?User $viewer = null): array
@@ -37,12 +38,9 @@ class MessageResource
             'read_at' => $readAt !== null ? Carbon::parse($readAt)->toIso8601String() : null,
             'is_unread' => $ownRow !== null && $readAt === null,
             'is_mine' => $message->sender_id === $authId,
-            'sender' => [
-                'id' => $message->sender->id,
-                'name' => $message->sender->name,
-            ],
+            'sender' => Person::of($message->sender),
             'recipients' => $message->recipients
-                ->map(fn (User $user): array => ['id' => $user->id, 'name' => $user->name])
+                ->map(fn (User $user): array => Person::of($user))
                 ->values()
                 ->all(),
         ];
