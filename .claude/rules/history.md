@@ -33,3 +33,10 @@ Rules that aren't obvious from the code:
   `useLinkTypeOn(type)`. Moments register as `history.event` (label "Moments") in
   `HistoryServiceProvider`; a save keeps every pill whose type is registered (`ExtractsCornerLinks`)
   and records it as an `entity_references` row.
+- **Reactions and comments aren't edits.** Adding or removing either leaves the moment's
+  `updated_at` and its `EventChange` log alone, so the sheet's activity strip and the Timeline
+  order don't move. Both answer `back()` for the sheet's `only: ['moment']` reload, and each has its
+  own limiter (`history-reactions`, `history-comments`) so a burst can't eat the upload budget.
+- **A comment push never carries the comment's text** (it shows on a lock screen): "{first name}
+  commented on a moment: {title}", tagged `our-history:comment:{eventId}` so a thread collapses
+  into one notification.
