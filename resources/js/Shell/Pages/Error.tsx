@@ -1,5 +1,6 @@
 import { Link, usePage } from '@inertiajs/react';
 
+import { Button } from '@/components/ui/button';
 import { pathOf } from '@/lib/url';
 import { dashboard } from '@/routes';
 import Page from '@/Shell/Components/Page';
@@ -36,23 +37,22 @@ export default function ErrorPage({ status }: Props) {
                 <p className="shell-error-body">{copy.body}</p>
                 <p className="mt-6 flex flex-wrap gap-3">
                     {room && (
-                        <Link
-                            href={room.route}
-                            className="shell-focus shell-press shell-error-action"
+                        <Button
+                            nativeButton={false}
+                            render={<Link href={room.route} />}
+                            className="shell-press"
                         >
                             Go to {room.name}
-                        </Link>
+                        </Button>
                     )}
-                    <Link
-                        href={dashboard().url}
-                        className={
-                            room
-                                ? 'shell-focus shell-press shell-btn-outline inline-flex min-h-11 items-center rounded-full border border-(--shell-border-input) bg-(--card) px-6 text-(length:--text-small) font-medium'
-                                : 'shell-focus shell-press shell-error-action'
-                        }
+                    <Button
+                        nativeButton={false}
+                        render={<Link href={dashboard().url} />}
+                        variant={room ? 'outline' : 'default'}
+                        className="shell-press"
                     >
                         Back to Home
-                    </Link>
+                    </Button>
                 </p>
             </Page>
         </>

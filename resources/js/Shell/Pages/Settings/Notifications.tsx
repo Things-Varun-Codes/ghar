@@ -4,13 +4,16 @@ import { Info } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { Switch } from '@/components/ui/switch';
+import { Separator } from '@/components/ui/separator';
+import { mutationOptions } from '@/lib/mutation';
 import { captureSilent } from '@/lib/observability';
 import { cn } from '@/lib/utils';
 import * as notifications from '@/routes/settings/notifications';
+import * as morningMemoriesRoutes from '@/routes/settings/notifications/morning-memories';
 import ErrorState from '@/Shell/Components/ErrorState';
 import LoadingState from '@/Shell/Components/LoadingState';
 import Page from '@/Shell/Components/Page';
+import SwitchRow from '@/Shell/Components/SwitchRow';
 import type { Auth } from '@/types/auth';
 
 function urlBase64ToUint8Array(base64String: string): Uint8Array<ArrayBuffer> {
@@ -69,6 +72,7 @@ interface SharedProps {
 
 interface Props {
     subscriptions: string[];
+    morningMemories: boolean;
 }
 
 // matchMedia covers Chrome and Firefox; navigator.standalone covers iOS.
@@ -120,7 +124,48 @@ const SUB_LABELS = {
     },
 } satisfies Record<ToggleState, { text: string; tone: ToggleTone }>;
 
-export default function NotificationsSettings({ subscriptions }: Props) {
+function MorningMemoriesRow({ on }: { on: boolean }) {
+    // What was asked for while the request is out; the page's own prop once it settles.
+    const [asked, setAsked] = useState<boolean | null>(null);
+
+    const change = (next: boolean) => {
+        setAsked(next);
+        router.patch(
+            morningMemoriesRoutes.update.url(),
+            { morning_memories: next },
+            {
+                preserveScroll: true,
+                ...mutationOptions({
+                    component: 'Settings/Notifications',
+                    action: 'morningMemories.update',
+                    onPendingChange: (pending) => {
+                        if (!pending) {
+                            setAsked(null);
+                        }
+                    },
+                }),
+            },
+        );
+    };
+
+    return (
+        <SwitchRow
+            id="morning-memories"
+            label="Morning memories"
+            description="A push each morning with what happened on this day in years past, and whose birthday it is. It comes to every device you've turned notifications on for."
+            checked={asked ?? on}
+            disabled={asked !== null}
+            onCheckedChange={change}
+            labelClassName="os-settings-row-label"
+            descriptionClassName="os-settings-row-status"
+        />
+    );
+}
+
+export default function NotificationsSettings({
+    subscriptions,
+    morningMemories,
+}: Props) {
     const {
         vapidPublicKey,
         flash,
@@ -372,33 +417,27 @@ export default function NotificationsSettings({ subscriptions }: Props) {
                             </AlertDescription>
                         </Alert>
                     ) : (
-                        <div className="flex items-start justify-between gap-4 py-3">
-                            <div className="flex-1">
-                                <p className="os-settings-row-label">
-                                    Push notifications on this device
-                                </p>
-                                <p
-                                    className={cn(
-                                        'os-settings-row-status mt-1',
-                                        subLabel.tone === 'danger' &&
-                                            'os-settings-row-status--danger',
-                                    )}
-                                    data-testid="settings-notifications-sub-label"
-                                >
-                                    {subLabel.text}
-                                </p>
-                            </div>
-
-                            <div className="shrink-0">
-                                <Switch
-                                    checked={state === 'idle-on'}
-                                    disabled={isDisabled}
-                                    onCheckedChange={onCheckedChange}
-                                    data-testid="settings-notifications-toggle"
-                                />
-                            </div>
-                        </div>
+                        <SwitchRow
+                            id="push-this-device"
+                            label="Push notifications on this device"
+                            description={subLabel.text}
+                            checked={state === 'idle-on'}
+                            disabled={isDisabled}
+                            onCheckedChange={(next) =>
+                                void onCheckedChange(next)
+                            }
+                            labelClassName="os-settings-row-label"
+                            descriptionClassName={cn(
+                                'os-settings-row-status',
+                                subLabel.tone === 'danger' &&
+                                    'os-settings-row-status--danger',
+                            )}
+                        />
                     )}
+
+                    <Separator className="my-6" />
+
+                    <MorningMemoriesRow on={morningMemories} />
                 </div>
             </Page>
         </>

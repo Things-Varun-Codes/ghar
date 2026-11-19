@@ -14,7 +14,23 @@ class NotificationsController
     {
         return Inertia::render('Shell/Pages/Settings/Notifications', [
             'subscriptions' => $request->user()->pushSubscriptions()->pluck('endpoint'),
+            'morningMemories' => $request->user()->morning_memories,
         ]);
+    }
+
+    public function updateMorningMemories(Request $request): RedirectResponse
+    {
+        $validated = $request->validate([
+            'morning_memories' => ['required', 'boolean'],
+        ]);
+
+        $request->user()->update(['morning_memories' => $validated['morning_memories']]);
+
+        FlashToast::success($validated['morning_memories']
+            ? 'Morning memories are on.'
+            : 'Morning memories are off.');
+
+        return redirect()->route('settings.notifications.show');
     }
 
     public function subscribe(Request $request): RedirectResponse

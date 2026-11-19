@@ -806,8 +806,20 @@ button[type='submit'][data-slot='button'] {
     gap: 16px;
 }
 
-.os-door {
+/* Each door sits in a slot that carries its place in the grid, so the settle-in motion
+   runs on the slot and the door keeps its own lift. */
+.os-home-door {
+    display: grid;
     grid-column: span 5;
+    min-width: 0;
+}
+
+.os-home-door:first-child {
+    grid-column: span 7;
+    grid-row: span 2;
+}
+
+.os-door {
     display: flex;
     flex-direction: column;
     min-width: 0;
@@ -817,11 +829,6 @@ button[type='submit'][data-slot='button'] {
     border: 1px solid var(--border);
     color: var(--foreground);
     text-decoration: none;
-}
-
-.os-door:first-child {
-    grid-column: span 7;
-    grid-row: span 2;
 }
 
 @media (hover: hover) and (pointer: fine) {
@@ -856,25 +863,28 @@ button[type='submit'][data-slot='button'] {
     transition: transform var(--dur-media) var(--ease-ui);
 }
 
-.os-door:first-child .os-door-images[data-count='3'] {
+.os-home-door:first-child .os-door .os-door-images[data-count='3'] {
     grid-auto-flow: row;
     grid-template-columns: 2fr 1fr;
     grid-template-rows: 1fr 1fr;
 }
 
-.os-door:first-child .os-door-images[data-count='3'] img:first-child {
+.os-home-door:first-child
+    .os-door
+    .os-door-images[data-count='3']
+    img:first-child {
     grid-row: span 2;
 }
 
-.os-door:first-child .os-door-images img {
+.os-home-door:first-child .os-door .os-door-images img {
     min-height: 0;
 }
 
-.os-door:first-child .os-door-glimpse {
+.os-home-door:first-child .os-door .os-door-glimpse {
     min-height: 340px;
 }
 
-.os-door:first-child .os-door-images {
+.os-home-door:first-child .os-door .os-door-images {
     height: 340px;
     min-height: 100%;
 }
@@ -948,22 +958,22 @@ button[type='submit'][data-slot='button'] {
     overflow: hidden;
 }
 
-.os-door:first-child:has(.os-door-empty) .os-door-glimpse {
+.os-home-door:first-child .os-door:has(.os-door-empty) .os-door-glimpse {
     min-height: 148px;
 }
 
 @media (max-width: 899px) {
-    .os-door,
-    .os-door:first-child {
+    .os-home-door,
+    .os-home-door:first-child {
         grid-column: 1 / -1;
         grid-row: auto;
     }
 
-    .os-door:first-child .os-door-glimpse {
+    .os-home-door:first-child .os-door .os-door-glimpse {
         min-height: 220px;
     }
 
-    .os-door:first-child .os-door-images {
+    .os-home-door:first-child .os-door .os-door-images {
         height: 220px;
     }
 }
@@ -993,31 +1003,21 @@ button[type='submit'][data-slot='button'] {
     cursor: pointer;
 }
 
-.shell-account-initials {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 32px;
-    height: 32px;
-    border-radius: var(--radius-pill);
-    background-color: var(--accent);
-    color: var(--foreground);
-    font-size: var(--text-small);
-    font-weight: 500;
+/* The face and the name and address beside it, at the top of the account menu. */
+.shell-account-header {
+    padding: 8px 12px 10px;
 }
 
 .shell-account-name {
     font-size: var(--text-small);
     font-weight: 500;
     color: var(--foreground);
-    padding: 8px 12px 2px;
 }
 
 .shell-account-email {
     font-size: var(--text-meta);
     font-weight: 400;
     color: var(--muted-foreground);
-    padding: 0 12px 10px;
 }
 
 .shell-account-signout {
@@ -1118,23 +1118,25 @@ button[type='submit'][data-slot='button'] {
     color: var(--shell-text);
 }
 
+/* The list search is an InputGroup: the frame carries the field look, so a room's
+   --list-nav-font and --list-nav-radius still reach it. */
+.shell-list-search-group {
+    min-height: 44px;
+    background-color: var(--shell-surface);
+    border-color: var(--shell-border-input);
+    border-radius: var(--list-nav-radius, 999px);
+}
+
 .shell-list-search-icon {
-    position: absolute;
-    left: 12px;
     color: var(--shell-text-muted);
     pointer-events: none;
 }
 
 .shell-list-search {
-    width: 100%;
-    min-height: 44px;
-    padding: 0 44px 0 36px;
+    padding-inline: 8px 0;
     font-family: var(--list-nav-font, var(--font-sans));
     font-size: var(--text-body);
     color: var(--shell-text);
-    background-color: var(--shell-surface);
-    border: 1px solid var(--shell-border-input);
-    border-radius: var(--list-nav-radius, 999px);
 }
 
 .shell-list-search::-webkit-search-cancel-button {
@@ -1142,18 +1144,7 @@ button[type='submit'][data-slot='button'] {
 }
 
 .shell-list-search-clear {
-    position: absolute;
-    right: 0;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 44px;
-    height: 44px;
-    border: none;
-    border-radius: var(--radius-pill);
-    background: transparent;
     color: var(--shell-text-muted);
-    cursor: pointer;
 }
 
 .shell-list-search-clear:hover {
@@ -1577,6 +1568,12 @@ button[type='submit'][data-slot='button'] {
 .shell-auth-submit:hover,
 .shell-error-action:hover {
     background-color: var(--shell-action-hover);
+}
+
+/* The password field's frame is an InputGroup; a page's field class lands on the frame, so
+   the invalid border is restated after it. */
+.shell-password-group:has([aria-invalid='true']) {
+    border-color: var(--destructive);
 }
 
 .shell-auth-field,

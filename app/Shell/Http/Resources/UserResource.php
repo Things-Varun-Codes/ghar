@@ -3,6 +3,7 @@
 namespace App\Shell\Http\Resources;
 
 use App\Shell\Models\User;
+use App\Shell\Support\Person;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 use Spatie\Permission\Models\Role;
@@ -14,6 +15,7 @@ class UserResource extends JsonResource
      * @return array{
      *     id: int,
      *     name: string,
+     *     avatar_url: string|null,
      *     email: string,
      *     last_login_at: string|null,
      *     roles: array<int, array{name: string}>,
@@ -25,8 +27,7 @@ class UserResource extends JsonResource
         \assert($user instanceof User);
 
         return [
-            'id' => $user->id,
-            'name' => $user->name,
+            ...Person::of($user),
             'email' => $user->email,
             'last_login_at' => $user->last_login_at?->toIso8601String(),
             'roles' => $user->roles->map(fn (Role $role): array => ['name' => $role->name])->all(),

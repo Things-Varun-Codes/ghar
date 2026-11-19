@@ -1,20 +1,16 @@
+import { Skeleton } from '@/components/ui/skeleton';
+
 type Props = {
     rows?: number;
     variant?: 'card' | 'list' | 'form';
 };
 
-const HEIGHTS: Record<
-    NonNullable<Props['variant']>,
-    number | { label: number; input: number }
-> = {
-    card: 80,
-    list: 24,
-    form: { label: 16, input: 44 },
+const ROW: Record<Exclude<Props['variant'], undefined | 'form'>, string> = {
+    card: 'h-20',
+    list: 'h-6',
 };
 
 export default function LoadingState({ rows = 3, variant = 'list' }: Props) {
-    const height = HEIGHTS[variant];
-
     return (
         <div
             aria-busy="true"
@@ -22,32 +18,19 @@ export default function LoadingState({ rows = 3, variant = 'list' }: Props) {
             role="status"
             className="w-full"
         >
-            {Array.from({ length: rows }).map((_, i) => {
-                if (variant === 'form' && typeof height === 'object') {
-                    return (
-                        <div key={i} className="mb-4">
-                            <div
-                                className="shell-skeleton mb-1.5 w-[30%] rounded-[6px]"
-                                style={{ height: height.label }}
-                            />
-                            <div
-                                className="shell-skeleton w-full rounded-[6px]"
-                                style={{ height: height.input }}
-                            />
-                        </div>
-                    );
-                }
-
-                return (
-                    <div
+            {Array.from({ length: rows }).map((_, i) =>
+                variant === 'form' ? (
+                    <div key={i} className="mb-4">
+                        <Skeleton className="mb-1.5 h-4 w-[30%] rounded-[6px]" />
+                        <Skeleton className="h-11 w-full rounded-[6px]" />
+                    </div>
+                ) : (
+                    <Skeleton
                         key={i}
-                        className="shell-skeleton mb-3 w-full rounded-[6px]"
-                        style={{
-                            height: typeof height === 'number' ? height : 24,
-                        }}
+                        className={`mb-3 w-full rounded-[6px] ${ROW[variant]}`}
                     />
-                );
-            })}
+                ),
+            )}
         </div>
     );
 }

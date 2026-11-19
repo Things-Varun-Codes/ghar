@@ -1,5 +1,6 @@
 import { Head, useForm } from '@inertiajs/react';
 import type { FormEventHandler } from 'react';
+import { Input } from '@/components/ui/input';
 import { login } from '@/routes';
 import { email } from '@/routes/password';
 import AuthLayout from '@/Shell/Components/AuthLayout';
@@ -38,14 +39,14 @@ export default function ForgotPassword({ status }: Props) {
 
             <form onSubmit={submit} noValidate className="mt-6 space-y-4">
                 <FormField label="Email" name="email" error={errors.email}>
-                    <input
+                    <Input
                         id="email"
                         name="email"
                         type="email"
                         autoComplete="email"
                         value={data.email}
                         onChange={(e) => setData('email', e.target.value)}
-                        className="shell-auth-field shell-field block w-full border px-3 py-2.5 outline-none"
+                        className="shell-auth-field"
                         placeholder="you@example.com"
                         required
                     />

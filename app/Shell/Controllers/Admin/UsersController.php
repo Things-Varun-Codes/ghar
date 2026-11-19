@@ -3,10 +3,13 @@
 namespace App\Shell\Controllers\Admin;
 
 use App\Enums\UserRole;
+use App\Shell\Actions\ProfilePicture;
 use App\Shell\Http\Resources\UserResource;
 use App\Shell\Models\User;
 use App\Shell\Services\UserOwnedContent;
+use App\Shell\Support\Birthday;
 use App\Shell\Support\FlashToast;
+use App\Shell\Support\Person;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -34,9 +37,9 @@ class UsersController
 
         return Inertia::render('Shell/Pages/Admin/UsersEdit', [
             'user' => [
-                'id' => $user->id,
-                'name' => $user->name,
+                ...Person::of($user),
                 'email' => $user->email,
+                'birthday' => $user->birthday?->toDateString(),
                 'roles' => $user->getRoleNames()->values()->all(),
             ],
         ]);
@@ -46,30 +49,49 @@ class UsersController
     {
         $validated = $request->validate([
             'role' => ['required', 'string', Rule::in(array_column(UserRole::cases(), 'value'))],
-        ]);
+            'birthday' => Birthday::rules($user),
+        ], Birthday::messages());
 
         /** @var User $actor */
         $actor = auth()->user();
 
+        $roleChanges = $user->getRoleNames()->values()->all() !== [$validated['role']];
+
         // BlockLastAdminDemotion only protects the last admin; this covers self-demotion when
         // there are others.
-        if ($actor->id === $user->id) {
+        if ($roleChanges && $actor->id === $user->id) {
             return redirect()->route('admin.users.index')
                 ->withErrors(['role' => 'You cannot change your own role.']);
         }
 
         try {
-            DB::transaction(function () use ($user, $validated) {
-                $user->syncRoles([$validated['role']]);
+            DB::transaction(function () use ($user, $validated, $roleChanges) {
+                $user->forceFill(['birthday' => $validated['birthday'] ?? null])->save();
+
+                if ($roleChanges) {
+                    $user->syncRoles([$validated['role']]);
+                }
             });
         } catch (AuthorizationException $e) {
             return redirect()->route('admin.users.index')
                 ->withErrors(['role' => $e->getMessage()]);
         }
 
-        FlashToast::success($user->name.'\'s role updated to '.$validated['role'].'.');
+        FlashToast::success($roleChanges
+            ? $user->name.'\'s role updated to '.$validated['role'].'.'
+            : 'Saved.');
 
         return redirect()->route('admin.users.index');
+    }
+
+    /** An admin may take anyone's picture down, but only its owner can put one up. */
+    public function destroyPicture(User $user, ProfilePicture $pictures): RedirectResponse
+    {
+        $pictures->remove($user);
+
+        FlashToast::success($user->name.'\'s picture removed.');
+
+        return redirect()->route('admin.users.edit', ['user' => $user->id]);
     }
 
     public function destroy(User $user, UserOwnedContent $ownedContent): RedirectResponse

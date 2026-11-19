@@ -18,6 +18,7 @@ use App\Shell\Controllers\Settings\EmailVerificationController;
 use App\Shell\Controllers\Settings\NotificationsController;
 use App\Shell\Controllers\Settings\PasswordController;
 use App\Shell\Controllers\Settings\ProfileController;
+use App\Shell\Controllers\Settings\ProfilePictureController;
 use App\Shell\Controllers\ShortLinkController;
 use Illuminate\Foundation\Http\Middleware\PreventRequestForgery;
 use Illuminate\Http\Middleware\AddLinkHeadersForPreloadedAssets;
@@ -62,6 +63,12 @@ Route::middleware(['auth'])->group(function () {
         Route::patch('/profile', [ProfileController::class, 'update'])
             ->middleware('throttle:settings-profile')
             ->name('profile.update');
+        Route::post('/profile/picture', [ProfilePictureController::class, 'update'])
+            ->middleware('throttle:settings-profile')
+            ->name('profile.picture.update');
+        Route::delete('/profile/picture', [ProfilePictureController::class, 'destroy'])
+            ->middleware('throttle:settings-profile')
+            ->name('profile.picture.destroy');
         Route::get('/password', [PasswordController::class, 'show'])->name('password.show');
         Route::put('/password', [PasswordController::class, 'update'])
             ->middleware('throttle:password-change')
@@ -69,6 +76,9 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/email/verify', [EmailVerificationController::class, 'verify'])->name('email.verify');
 
         Route::get('/notifications', [NotificationsController::class, 'show'])->name('notifications.show');
+        Route::patch('/notifications/morning-memories', [NotificationsController::class, 'updateMorningMemories'])
+            ->middleware('throttle:settings-profile')
+            ->name('notifications.morning-memories.update');
         Route::post('/notifications/subscribe', [NotificationsController::class, 'subscribe'])
             ->middleware('throttle:push-subscriptions')
             ->name('notifications.subscribe');
@@ -105,6 +115,9 @@ Route::middleware(['auth', 'can:admin'])->prefix('admin')->name('admin.')->group
     Route::patch('/users/{user}', [UsersController::class, 'update'])
         ->middleware('throttle:admin-mutations')
         ->name('users.update');
+    Route::delete('/users/{user}/picture', [UsersController::class, 'destroyPicture'])
+        ->middleware('throttle:admin-mutations')
+        ->name('users.picture.destroy');
     Route::delete('/users/{user}', [UsersController::class, 'destroy'])
         ->middleware('throttle:admin-mutations')
         ->name('users.destroy');
