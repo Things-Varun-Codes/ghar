@@ -5,6 +5,8 @@ namespace App\Http\Middleware;
 use App\Shell\Services\LinkableEntities;
 use App\Shell\Support\AppVersion;
 use App\Shell\Support\MiniAppRegistry;
+use App\Shell\Support\Person;
+use App\Shell\Support\Region;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
 
@@ -34,15 +36,16 @@ class HandleInertiaRequests extends Middleware
             'version' => $user ? AppVersion::forPage() : null,
             'auth' => [
                 'user' => $user ? [
-                    'id' => $user->id,
-                    'name' => $user->name,
+                    ...Person::of($user),
                     'email' => $user->email,
                     'roles' => $user->getRoleNames()->values()->all(),
                 ] : null,
             ],
             'miniApps' => $miniApps,
             'linking' => fn () => $user ? app(LinkableEntities::class)->forPage() : null,
-            'today' => now()->toDateString(),
+            // The household's date, not the server's: GHAR_TIMEZONE.
+            'today' => Region::today()->toDateString(),
+            'region' => Region::forPage(),
             'flash' => [
                 'success' => fn () => $request->session()->get('success'),
                 'error' => fn () => $request->session()->get('error'),

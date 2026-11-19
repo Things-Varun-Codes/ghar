@@ -200,6 +200,22 @@ describe('usePullToRefresh', () => {
         expect(result.current.pullDistance).toBe(0);
     });
 
+    it("refuses to arm while Base UI's scroll lock marks the page", () => {
+        document.documentElement.setAttribute('data-base-ui-scroll-locked', '');
+
+        const { result } = renderHook(() => usePullToRefresh());
+
+        act(() => {
+            container.dispatchEvent(touchEvent('touchstart', 0));
+        });
+        act(() => {
+            container.dispatchEvent(touchEvent('touchmove', 200));
+        });
+
+        expect(result.current.pullDistance).toBe(0);
+        document.documentElement.removeAttribute('data-base-ui-scroll-locked');
+    });
+
     it('refuses to arm when the body has an inline overflow:hidden lock', () => {
         document.body.style.overflow = 'hidden';
 

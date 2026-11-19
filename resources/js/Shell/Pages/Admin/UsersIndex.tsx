@@ -1,33 +1,27 @@
 import { Link, router, usePage } from '@inertiajs/react';
 import { useState } from 'react';
-import {
-    AlertDialog,
-    AlertDialogAction,
-    AlertDialogCancel,
-    AlertDialogContent,
-    AlertDialogDescription,
-    AlertDialogFooter,
-    AlertDialogHeader,
-    AlertDialogTitle,
-} from '@/components/ui/alert-dialog';
 import { Badge } from '@/components/ui/badge';
+import { Button, buttonVariants } from '@/components/ui/button';
 import { formatDate } from '@/lib/dates';
 import { roleLabel } from '@/lib/roles';
+import { cn } from '@/lib/utils';
 import * as invites from '@/routes/admin/invites';
 import * as usersRoutes from '@/routes/admin/users';
 import AdminCollection from '@/Shell/Components/AdminCollection';
 import type { AdminColumn } from '@/Shell/Components/AdminCollection';
+import ConfirmDialog from '@/Shell/Components/ConfirmDialog';
 import Page from '@/Shell/Components/Page';
 import Pagination from '@/Shell/Components/Pagination';
 import type { PaginationLink } from '@/Shell/Components/Pagination';
+import PersonAvatar from '@/Shell/Components/PersonAvatar';
+import type { Auth } from '@/types/auth';
+import type { Person } from '@/types/person';
 
 interface Role {
     name: string;
 }
 
-interface User {
-    id: number;
-    name: string;
+interface User extends Person {
     email: string;
     last_login_at: string | null;
     roles: Role[];
@@ -48,25 +42,23 @@ interface Props {
 }
 
 export default function UsersIndex({ users }: Props) {
-    const page = usePage<{
-        auth: { user: { roles: string[]; id: number } };
-    }>();
-    const currentUserId = page.props.auth.user.id;
+    const currentUserId = usePage<{ auth: Auth }>().props.auth.user?.id;
 
-    const [pendingDelete, setPendingDelete] = useState<User | null>(null);
+    // Kept after the dialog closes, so its title doesn't empty while it fades out.
+    const [deleting, setDeleting] = useState<User | null>(null);
+    const [confirmOpen, setConfirmOpen] = useState(false);
 
     const handleDelete = (user: User) => {
-        setPendingDelete(user);
+        setDeleting(user);
+        setConfirmOpen(true);
     };
 
     const confirmDelete = () => {
-        if (!pendingDelete) {
+        if (!deleting) {
             return;
         }
 
-        const user = pendingDelete;
-        setPendingDelete(null);
-        router.delete(usersRoutes.destroy.url({ user: user.id }));
+        router.delete(usersRoutes.destroy.url({ user: deleting.id }));
     };
 
     const renderRoleBadges = (user: User) => (
@@ -86,13 +78,17 @@ export default function UsersIndex({ users }: Props) {
         <div className="flex items-center gap-2">
             <Link
                 href={usersRoutes.edit.url({ user: user.id })}
+                className={cn(
+                    buttonVariants({ variant: 'outline' }),
+                    'os-admin-row-action os-admin-fill-accent shell-press',
+                )}
                 aria-label={`Edit ${user.name}`}
-                className="os-admin-row-action os-admin-fill-accent shell-press inline-flex items-center justify-center"
             >
                 Edit
             </Link>
-            <button
+            <Button
                 type="button"
+                variant="outline"
                 onClick={() => handleDelete(user)}
                 disabled={user.id === currentUserId}
                 aria-label={
@@ -100,17 +96,22 @@ export default function UsersIndex({ users }: Props) {
                         ? `Delete ${user.name} (you can't delete yourself)`
                         : `Delete ${user.name}`
                 }
-                className="os-admin-row-action os-admin-outline-destructive shell-press inline-flex items-center justify-center disabled:cursor-not-allowed disabled:opacity-40"
+                className="os-admin-row-action os-admin-outline-destructive shell-press disabled:cursor-not-allowed disabled:opacity-40"
             >
                 Delete
-            </button>
+            </Button>
         </div>
     );
 
     const columns: AdminColumn<User>[] = [
         {
             header: 'Name',
-            cell: (user) => user.name,
+            cell: (user) => (
+                <span className="inline-flex items-center gap-3">
+                    <PersonAvatar person={user} size={32} />
+                    {user.name}
+                </span>
+            ),
             className: 'os-admin-strong',
             card: { as: 'title' },
         },
@@ -164,34 +165,15 @@ export default function UsersIndex({ users }: Props) {
                     tableClassName="min-w-[640px]"
                 />
 
-                <AlertDialog
-                    open={pendingDelete !== null}
-                    onOpenChange={(open) => {
-                        if (!open) {
-                            setPendingDelete(null);
-                        }
-                    }}
-                >
-                    <AlertDialogContent>
-                        <AlertDialogHeader>
-                            <AlertDialogTitle>
-                                Delete {pendingDelete?.name}?
-                            </AlertDialogTitle>
-                            <AlertDialogDescription>
-                                There's no undo. They'll lose access right away.
-                            </AlertDialogDescription>
-                        </AlertDialogHeader>
-                        <AlertDialogFooter>
-                            <AlertDialogCancel>Cancel</AlertDialogCancel>
-                            <AlertDialogAction
-                                onClick={confirmDelete}
-                                className="os-admin-fill-destructive"
-                            >
-                                Delete
-                            </AlertDialogAction>
-                        </AlertDialogFooter>
-                    </AlertDialogContent>
-                </AlertDialog>
+                <ConfirmDialog
+                    open={confirmOpen}
+                    onOpenChange={setConfirmOpen}
+                    title={`Delete ${deleting?.name ?? 'this person'}?`}
+                    description="There's no undo. They'll lose access right away."
+                    confirmLabel="Delete"
+                    variant="destructive"
+                    onConfirm={confirmDelete}
+                />
 
                 <Pagination links={users.meta.links} />
             </Page>

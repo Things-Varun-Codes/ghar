@@ -2,15 +2,16 @@ import { router } from '@inertiajs/react';
 import { MoreHorizontal } from 'lucide-react';
 import { useState } from 'react';
 
+import { Button } from '@/components/ui/button';
 import {
     DropdownMenu,
     DropdownMenuContent,
     DropdownMenuItem,
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { useMenuAction } from '@/hooks/use-menu-action';
 import { mutationOptions } from '@/lib/mutation';
 import ListSettingsSheet from '@/MiniApps/Corner/Components/ListSettingsSheet';
+import { useSheetSession } from '@/MiniApps/Corner/Hooks/useSheetSession';
 import type { CornerListInfo } from '@/MiniApps/Corner/lib/types';
 import { destroy, move } from '@/routes/apps/our-shelf/lists';
 import ConfirmDialog from '@/Shell/Components/ConfirmDialog';
@@ -27,8 +28,7 @@ type Props = {
 
 /* Change, move or delete one list. The server decides who may; this only hides what they can't. */
 export default function ListMenu({ list, count, reorder }: Props) {
-    const menu = useMenuAction();
-    const [settingsOpen, setSettingsOpen] = useState(false);
+    const settings = useSheetSession<true>();
     const [confirmOpen, setConfirmOpen] = useState(false);
     const [pending, setPending] = useState(false);
 
@@ -77,41 +77,34 @@ export default function ListMenu({ list, count, reorder }: Props) {
     return (
         <>
             <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                    <button
-                        type="button"
-                        aria-label={`Options for ${list.name}`}
-                        disabled={pending}
-                        className="corner-icon-btn corner-list-menu-btn shell-press"
-                    >
-                        <MoreHorizontal size={18} aria-hidden="true" />
-                    </button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent
-                    onCloseAutoFocus={menu.onCloseAutoFocus}
-                    align="end"
+                <DropdownMenuTrigger
+                    render={<Button variant="ghost" size="icon" />}
+                    aria-label={`Options for ${list.name}`}
+                    disabled={pending}
+                    className="corner-icon-btn corner-list-menu-btn shell-press"
                 >
+                    <MoreHorizontal size={18} aria-hidden="true" />
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
                     {list.can.update && (
-                        <DropdownMenuItem
-                            onSelect={menu.defer(() => setSettingsOpen(true))}
-                        >
+                        <DropdownMenuItem onClick={() => settings.show(true)}>
                             List settings
                         </DropdownMenuItem>
                     )}
                     {canMove && !reorder.first && (
-                        <DropdownMenuItem onSelect={() => moveTo('up')}>
+                        <DropdownMenuItem onClick={() => moveTo('up')}>
                             Move earlier
                         </DropdownMenuItem>
                     )}
                     {canMove && !reorder.last && (
-                        <DropdownMenuItem onSelect={() => moveTo('down')}>
+                        <DropdownMenuItem onClick={() => moveTo('down')}>
                             Move later
                         </DropdownMenuItem>
                     )}
                     {list.can.delete && (
                         <DropdownMenuItem
                             variant="destructive"
-                            onSelect={menu.defer(() => setConfirmOpen(true))}
+                            onClick={() => setConfirmOpen(true)}
                         >
                             Delete list
                         </DropdownMenuItem>
@@ -125,15 +118,12 @@ export default function ListMenu({ list, count, reorder }: Props) {
                 </DropdownMenuContent>
             </DropdownMenu>
 
-            {settingsOpen && (
+            {settings.value && (
                 <ListSettingsSheet
+                    key={settings.key}
                     list={list}
-                    open
-                    onOpenChange={(next) => {
-                        if (!next) {
-                            setSettingsOpen(false);
-                        }
-                    }}
+                    open={settings.open}
+                    onOpenChange={settings.onOpenChange}
                 />
             )}
 

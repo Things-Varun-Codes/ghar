@@ -30,8 +30,8 @@ const citation: CitationPayload = {
     issued_at_human: '2 weeks ago',
     settled_at: null,
     is_mine: false,
-    issuer: { id: 1, name: 'Ravi' },
-    recipient: { id: 2, name: 'Meera' },
+    issuer: { id: 1, name: 'Ravi', avatar_url: null },
+    recipient: { id: 2, name: 'Meera', avatar_url: null },
     available_actions: ['pay'],
 };
 

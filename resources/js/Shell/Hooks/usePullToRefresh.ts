@@ -1,6 +1,22 @@
 import { router } from '@inertiajs/react';
 import { useEffect, useRef, useState } from 'react';
 
+/*
+ * Base UI's modal overlays lock the page either by marking <html> (desktop scrollbars) or with
+ * an inline overflow on <html> or <body> (overlay scrollbars, as on phones).
+ */
+function pageScrollLocked(): boolean {
+    const html = document.documentElement;
+    const hidden = (el: HTMLElement) =>
+        el.style.overflow === 'hidden' || el.style.overflowY === 'hidden';
+
+    return (
+        html.hasAttribute('data-base-ui-scroll-locked') ||
+        hidden(html) ||
+        hidden(document.body)
+    );
+}
+
 export interface UsePullToRefreshOptions {
     threshold?: number;
     onReload?: () => void;
@@ -53,8 +69,8 @@ export function usePullToRefresh(
                 return;
             }
 
-            // Don't arm while an overlay has locked body scroll.
-            if (document.body.style.overflow === 'hidden') {
+            // Don't arm while an overlay has locked page scroll.
+            if (pageScrollLocked()) {
                 return;
             }
 

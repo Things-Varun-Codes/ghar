@@ -2,16 +2,12 @@ import { router } from '@inertiajs/react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 
 import { captureSilent } from '@/lib/observability';
+import { useListNavigation } from '@/Shell/Hooks/useListNavigation';
 
 export type CursorPaginator<T> = {
     data: T[];
     next_page_url: string | null;
 };
-
-// Delay gate for the Mode-B `navigating` flag. Matches Inertia's own
-// progress-bar default delay so the two affordances never disagree — a fast
-// local round-trip shows neither, a slow one shows both.
-const NAVIGATING_DELAY_MS = 250;
 
 type VisitId = unknown;
 
@@ -57,6 +53,11 @@ function asksFor(visit: VisitScope, propName: string): boolean {
     );
 }
 
+/*
+ * History's Timeline and Gallery: load more by hand, re-seed from any response that carries
+ * the list. The rooms' lists (ListPage on the server) use CursorListBody, which loads more
+ * through Inertia's InfiniteScroll instead.
+ */
 export function useCursorPagination<T extends { id: number | string }>({
     initial,
     propName,
@@ -70,11 +71,7 @@ export function useCursorPagination<T extends { id: number | string }>({
     const [loadError, setLoadError] = useState(false);
     const sentinelRef = useRef<HTMLDivElement>(null);
 
-    const visitIdRef = useRef(0);
-    const navigatingTimerRef = useRef<ReturnType<typeof setTimeout> | null>(
-        null,
-    );
-    const [navigating, setNavigating] = useState(false);
+    const { navigate, navigating } = useListNavigation();
 
     // Bumped on every re-seed, so a load-more answered afterwards can't append to the new list.
     const seedRef = useRef(0);
@@ -91,14 +88,6 @@ export function useCursorPagination<T extends { id: number | string }>({
 
     const markOwn = useCallback((visit: { id: VisitId }) => {
         ownVisitsRef.current.add(visit.id);
-    }, []);
-
-    useEffect(() => {
-        return () => {
-            if (navigatingTimerRef.current !== null) {
-                clearTimeout(navigatingTimerRef.current);
-            }
-        };
     }, []);
 
     useEffect(() => {
@@ -305,57 +294,6 @@ export function useCursorPagination<T extends { id: number | string }>({
 
         return () => observer.disconnect();
     }, [paginatorMeta.next_page_url, loadingMore, loadError, loadMore]);
-
-    function navigate(patch: Record<string, string | undefined>) {
-        const params = new URLSearchParams(window.location.search);
-
-        for (const [key, value] of Object.entries(patch)) {
-            if (value === undefined || value === '') {
-                params.delete(key);
-            } else {
-                params.set(key, value);
-            }
-        }
-
-        const query = params.toString();
-        const url = query
-            ? `${window.location.pathname}?${query}`
-            : window.location.pathname;
-
-        const visitId = ++visitIdRef.current;
-
-        if (navigatingTimerRef.current !== null) {
-            clearTimeout(navigatingTimerRef.current);
-        }
-
-        navigatingTimerRef.current = setTimeout(() => {
-            if (visitId === visitIdRef.current) {
-                setNavigating(true);
-            }
-        }, NAVIGATING_DELAY_MS);
-
-        router.get(
-            url,
-            {},
-            {
-                preserveScroll: false,
-                preserveState: true,
-                onFinish: () => {
-                    // A newer navigate() may own visitIdRef by now; don't clear its pending state.
-                    if (visitId !== visitIdRef.current) {
-                        return;
-                    }
-
-                    if (navigatingTimerRef.current !== null) {
-                        clearTimeout(navigatingTimerRef.current);
-                        navigatingTimerRef.current = null;
-                    }
-
-                    setNavigating(false);
-                },
-            },
-        );
-    }
 
     return {
         items,

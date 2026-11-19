@@ -3,6 +3,7 @@
 namespace App\Providers;
 
 use App\Shell\Support\Limits;
+use App\Shell\Support\Person;
 use Carbon\CarbonImmutable;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Database\Eloquent\Model;
@@ -22,6 +23,9 @@ class AppServiceProvider extends ServiceProvider
 {
     public function register(): void
     {
+        // One per request: its signed picture URLs are memoised for that request only.
+        $this->app->scoped(Person::class);
+
         // Local only, registered here rather than auto-discovered, so it can't ship to
         // production.
         if ($this->app->environment('local')) {

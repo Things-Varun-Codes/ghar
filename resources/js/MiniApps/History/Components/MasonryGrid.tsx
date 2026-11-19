@@ -1,6 +1,6 @@
 import { Play } from 'lucide-react';
+import { useMediaQuery } from 'usehooks-ts';
 import { useIsPhone } from '@/hooks/use-breakpoint';
-import { useMediaQuery } from '@/hooks/use-media-query';
 
 export type GalleryMediaItem = {
     id: number;

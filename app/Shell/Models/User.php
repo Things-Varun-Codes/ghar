@@ -23,8 +23,13 @@ use Spatie\Permission\Traits\HasRoles;
  * @property ?Carbon $email_verified_at
  * @property ?Carbon $last_login_at
  * @property string $password
+ * @property ?string $avatar_key
+ * @property ?Carbon $birthday
+ * @property bool $morning_memories
  */
-#[Fillable(['name', 'email', 'password'])]
+// avatar_key isn't fillable either: it names an object on the media disk, and a key from
+// request input could point a signed URL at someone else's file. Set it with forceFill.
+#[Fillable(['name', 'email', 'password', 'birthday', 'morning_memories'])]
 #[Hidden(['password', 'remember_token'])]
 class User extends Authenticatable
 {
@@ -59,6 +64,8 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'last_login_at' => 'datetime',
             'password' => 'hashed',
+            'birthday' => 'date',
+            'morning_memories' => 'boolean',
         ];
     }
 }

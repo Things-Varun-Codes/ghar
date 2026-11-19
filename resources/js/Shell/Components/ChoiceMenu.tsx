@@ -1,9 +1,10 @@
-import { Check, ChevronDown } from 'lucide-react';
+import { ChevronDown } from 'lucide-react';
 
 import {
     DropdownMenu,
     DropdownMenuContent,
-    DropdownMenuItem,
+    DropdownMenuRadioGroup,
+    DropdownMenuRadioItem,
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { cn } from '@/lib/utils';
@@ -45,7 +46,7 @@ type Props = {
     classNames?: ChoiceMenuClassNames;
 };
 
-/* A "Label: value" button that opens the choices, the chosen one ticked. */
+/* A "Label: value" button that opens the choices as radio items, the chosen one ticked. */
 export default function ChoiceMenu({
     label,
     value,
@@ -67,36 +68,36 @@ export default function ChoiceMenu({
 
     return (
         <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-                <button type="button" className={classNames.trigger}>
-                    <span>
-                        {label}: {activeLabel}
-                    </span>
-                    <ChevronDown
-                        aria-hidden="true"
-                        size={14}
-                        strokeWidth={1.5}
-                        className="shrink-0 opacity-[0.6]"
-                    />
-                </button>
+            <DropdownMenuTrigger className={classNames.trigger}>
+                <span>
+                    {label}: {activeLabel}
+                </span>
+                <ChevronDown
+                    aria-hidden="true"
+                    size={14}
+                    strokeWidth={1.5}
+                    className="shrink-0 opacity-[0.6]"
+                />
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className={classNames.menu}>
-                {items.map(({ key, label: itemLabel, hint }) => {
-                    const isActive = key === value;
-
-                    return (
-                        <DropdownMenuItem
+                <DropdownMenuRadioGroup
+                    value={value}
+                    onValueChange={(next) => handleSelect(String(next))}
+                >
+                    {items.map(({ key, label: itemLabel, hint }) => (
+                        <DropdownMenuRadioItem
                             key={key}
-                            onSelect={() => handleSelect(key)}
-                            className={classNames.item}
+                            value={key}
+                            closeOnClick
+                            className={cn('group/choice', classNames.item)}
+                            indicatorClassName={classNames.check}
                         >
                             <span>
                                 <span
                                     className={cn(
-                                        'block',
+                                        'block font-normal group-data-checked/choice:font-medium',
                                         classNames.itemLabel,
                                     )}
-                                    style={{ fontWeight: isActive ? 500 : 400 }}
                                 >
                                     {itemLabel}
                                 </span>
@@ -106,17 +107,9 @@ export default function ChoiceMenu({
                                     </span>
                                 )}
                             </span>
-                            {isActive && (
-                                <Check
-                                    aria-hidden="true"
-                                    size={14}
-                                    strokeWidth={1.5}
-                                    className={cn('shrink-0', classNames.check)}
-                                />
-                            )}
-                        </DropdownMenuItem>
-                    );
-                })}
+                        </DropdownMenuRadioItem>
+                    ))}
+                </DropdownMenuRadioGroup>
             </DropdownMenuContent>
         </DropdownMenu>
     );

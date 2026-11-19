@@ -1,9 +1,12 @@
 import { Head, Link, usePage } from '@inertiajs/react';
 
-import { Button } from '@/components/ui/button';
+import { Settle, SettleItem } from '@/components/motion';
+import { buttonVariants } from '@/components/ui/button';
+import { cn } from '@/lib/utils';
 import * as rooms from '@/routes/admin/rooms';
 import DesktopIcon from '@/Shell/Components/DesktopIcon';
 import EmptyState from '@/Shell/Components/EmptyState';
+import type { Auth } from '@/types/auth';
 import type { MiniApp, MiniAppPreview } from '@/types/miniapp';
 
 function greetingFor(hour: number): string {
@@ -23,7 +26,7 @@ function greetingFor(hour: number): string {
 }
 
 type SharedProps = {
-    auth: { user: { name: string; roles?: string[] } | null };
+    auth: Auth;
     miniApps: MiniApp[];
     summaries?: Record<string, string>;
     previews?: Record<string, MiniAppPreview>;
@@ -50,26 +53,35 @@ export default function Dashboard() {
                 </header>
 
                 {miniApps.length > 0 ? (
-                    <div className="os-home-doors">
-                        {miniApps.map((app) => (
-                            <DesktopIcon
-                                key={app.slug}
-                                app={app}
-                                summary={props.summaries?.[app.slug]}
-                                preview={props.previews?.[app.slug]}
-                            />
-                        ))}
-                    </div>
+                    <Settle>
+                        <div className="os-home-doors">
+                            {miniApps.map((app, index) => (
+                                // The wrapper settles; the door keeps its own lift.
+                                <SettleItem
+                                    key={app.slug}
+                                    index={index}
+                                    className="os-home-door"
+                                >
+                                    <DesktopIcon
+                                        app={app}
+                                        summary={props.summaries?.[app.slug]}
+                                        preview={props.previews?.[app.slug]}
+                                    />
+                                </SettleItem>
+                            ))}
+                        </div>
+                    </Settle>
                 ) : isAdmin ? (
                     <EmptyState
                         title="This home has no rooms yet"
                         body="Choose the ones you want. You can change them whenever you like."
                         action={
-                            <Button asChild className="shell-press">
-                                <Link href={rooms.index.url()}>
-                                    Choose rooms
-                                </Link>
-                            </Button>
+                            <Link
+                                href={rooms.index.url()}
+                                className={cn(buttonVariants(), 'shell-press')}
+                            >
+                                Choose rooms
+                            </Link>
                         }
                     />
                 ) : (

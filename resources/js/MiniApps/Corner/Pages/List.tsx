@@ -1,9 +1,9 @@
-import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import ItemCard from '@/MiniApps/Corner/Components/ItemCard';
 import ItemSheet from '@/MiniApps/Corner/Components/ItemSheet';
 import ListMenu from '@/MiniApps/Corner/Components/ListMenu';
 import ListPage from '@/MiniApps/Corner/Components/ListPage';
+import { useSheetSession } from '@/MiniApps/Corner/Hooks/useSheetSession';
 import CornerLayout from '@/MiniApps/Corner/Layouts/CornerLayout';
 import type { CornerItem, CornerListInfo } from '@/MiniApps/Corner/lib/types';
 import EmptyState from '@/Shell/Components/EmptyState';
@@ -27,8 +27,8 @@ const SORT_LABELS: Record<string, string> = {
 };
 
 export default function List({ list, items, filter, sort, sorts, q }: Props) {
-    const [addOpen, setAddOpen] = useState(false);
-    const [editing, setEditing] = useState<CornerItem | null>(null);
+    const adding = useSheetSession<true>();
+    const editing = useSheetSession<CornerItem>();
     const addLabel = `Add to ${list.name}`;
 
     const sortItems: SortItem[] = sorts.map((key) => ({
@@ -49,11 +49,11 @@ export default function List({ list, items, filter, sort, sorts, q }: Props) {
                 sort={sort}
                 sortItems={sortItems}
                 addLabel={addLabel}
-                onAdd={() => setAddOpen(true)}
+                onAdd={() => adding.show(true)}
                 actions={<ListMenu list={list} count={items.counts.all} />}
                 renderItem={(item) => {
                     const onEdit = item.can.update
-                        ? () => setEditing(item)
+                        ? () => editing.show(item)
                         : undefined;
 
                     return <ItemCard list={list} item={item} onEdit={onEdit} />;
@@ -67,7 +67,7 @@ export default function List({ list, items, filter, sort, sorts, q }: Props) {
                                 <Button
                                     type="button"
                                     className="shell-press"
-                                    onClick={() => setAddOpen(true)}
+                                    onClick={() => adding.show(true)}
                                 >
                                     {addLabel}
                                 </Button>
@@ -89,29 +89,22 @@ export default function List({ list, items, filter, sort, sorts, q }: Props) {
                 }}
             />
 
-            {addOpen && (
+            {adding.value && (
                 <ItemSheet
+                    key={adding.key}
                     list={list}
-                    open
-                    onOpenChange={(next) => {
-                        if (!next) {
-                            setAddOpen(false);
-                        }
-                    }}
+                    open={adding.open}
+                    onOpenChange={adding.onOpenChange}
                 />
             )}
 
-            {editing && (
+            {editing.value && (
                 <ItemSheet
-                    key={editing.id}
+                    key={editing.key}
                     list={list}
-                    item={editing}
-                    open
-                    onOpenChange={(next) => {
-                        if (!next) {
-                            setEditing(null);
-                        }
-                    }}
+                    item={editing.value}
+                    open={editing.open}
+                    onOpenChange={editing.onOpenChange}
                 />
             )}
         </CornerLayout>

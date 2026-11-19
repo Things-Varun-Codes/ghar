@@ -63,9 +63,7 @@ export default function CitationsIndex({
                 emptyIcon={Gavel}
                 emptyTitle={emptyCopy.title}
                 emptyBody={emptyCopy.body}
-                renderItem={(citation) => (
-                    <CitationCard key={citation.id} citation={citation} />
-                )}
+                renderItem={(citation) => <CitationCard citation={citation} />}
             >
                 <CitationSheet
                     open={sheetOpen}

@@ -1,7 +1,13 @@
 import { Link } from '@inertiajs/react';
+import type { ComponentProps } from 'react';
+
+import { Badge } from '@/components/ui/badge';
 
 import CitationActions from '@/MiniApps/Mailbox/Components/CitationActions';
 import { show } from '@/routes/apps/our-exchange/citations';
+import type { Person } from '@/types/person';
+
+type BadgeVariant = ComponentProps<typeof Badge>['variant'];
 
 export type CitationPayload = {
     id: number;
@@ -17,17 +23,17 @@ export type CitationPayload = {
     issued_at_human: string | null;
     settled_at: string | null;
     is_mine: boolean;
-    issuer: { id: number; name: string };
-    recipient: { id: number; name: string };
+    issuer: Person;
+    recipient: Person;
     available_actions: string[];
 };
 
 const STATUS_META: Record<
     CitationPayload['status'],
-    { label: string; color: string }
+    { label: string; variant: BadgeVariant }
 > = {
-    issued: { label: 'Issued', color: 'var(--mailbox-destructive)' },
-    paid: { label: 'Paid', color: 'var(--mailbox-accent-text)' },
+    issued: { label: 'Issued', variant: 'destructive' },
+    paid: { label: 'Paid', variant: 'default' },
 };
 
 export default function CitationCard({
@@ -43,15 +49,7 @@ export default function CitationCard({
                 <span className="font-(family-name:--mailbox-citation-font) text-(length:--text-meta) text-(--mailbox-ink-soft) tabular-nums">
                     {citation.ref_no ?? '—'}
                 </span>
-                <span
-                    className="mailbox-status-pill"
-                    style={{
-                        color: status.color,
-                        border: `1px solid ${status.color}`,
-                    }}
-                >
-                    {status.label}
-                </span>
+                <Badge variant={status.variant}>{status.label}</Badge>
             </div>
 
             <Link

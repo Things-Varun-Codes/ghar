@@ -11,7 +11,6 @@ import {
 } from 'react';
 import type { ReactNode } from 'react';
 import { toast } from 'sonner';
-import { useDirtyFormGate } from '@/hooks/use-dirty-form-gate';
 import { count } from '@/lib/plural';
 import events from '@/routes/apps/our-history/events';
 import PlacesLocationField, {
@@ -160,19 +159,7 @@ const EventForm = forwardRef<EventFormHandle, EventFormProps>(
 
         const hasPlacesSearch = useHasPlacesSearch();
 
-        const { isDirty, reset: gateReset } = useDirtyFormGate(form, {
-            fields: [
-                'occurred_on',
-                'title',
-                'location_freetext',
-                'location_place_id',
-                'location_name',
-                'location_address',
-                'location_lat',
-                'location_lng',
-                'body_html',
-            ],
-        });
+        const { isDirty, setDefaults } = form;
 
         useEffect(() => {
             onDirtyChange?.(isDirty);
@@ -213,7 +200,10 @@ const EventForm = forwardRef<EventFormHandle, EventFormProps>(
                         if (newId !== null) {
                             // Seed from the ref: debounced data may still lag the last keystroke
                             // and falsely mark the form dirty.
-                            gateReset({ body_html: bodyHtmlRef.current });
+                            setDefaults({
+                                ...data,
+                                body_html: bodyHtmlRef.current,
+                            });
 
                             if (stagedCountRef.current === 0) {
                                 toast.success('Saved.');

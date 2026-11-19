@@ -1,6 +1,7 @@
 import { Head, useForm } from '@inertiajs/react';
 import type { FormEventHandler } from 'react';
 import PasswordInput from '@/components/password-input';
+import { Input } from '@/components/ui/input';
 import * as accept from '@/routes/invitations/accept';
 import AuthLayout from '@/Shell/Components/AuthLayout';
 import FormField from '@/Shell/Components/FormField';
@@ -42,14 +43,14 @@ export default function InviteAccept({ email, token }: Props) {
 
             <form onSubmit={submit} noValidate className="mt-6 space-y-4">
                 <FormField label="Your name" name="name" error={errors.name}>
-                    <input
+                    <Input
                         id="name"
                         name="name"
                         type="text"
                         autoComplete="name"
                         value={data.name}
                         onChange={(e) => setData('name', e.target.value)}
-                        className="shell-auth-field shell-field block w-full border px-3 py-2.5 outline-none"
+                        className="shell-auth-field"
                         placeholder="Your name"
                         required
                     />
@@ -66,7 +67,7 @@ export default function InviteAccept({ email, token }: Props) {
                         autoComplete="new-password"
                         value={data.password}
                         onChange={(e) => setData('password', e.target.value)}
-                        className="shell-auth-field shell-field block w-full border px-3 py-2.5 outline-none"
+                        className="shell-auth-field"
                         required
                     />
                 </FormField>
@@ -83,7 +84,7 @@ export default function InviteAccept({ email, token }: Props) {
                         onChange={(e) =>
                             setData('password_confirmation', e.target.value)
                         }
-                        className="shell-auth-password shell-field block w-full border px-3 py-2.5 outline-none"
+                        className="shell-auth-password"
                         required
                     />
                 </FormField>

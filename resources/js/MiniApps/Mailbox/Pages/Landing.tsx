@@ -1,5 +1,6 @@
 import { Flower2 } from 'lucide-react';
 import type { ReactNode } from 'react';
+import { Settle } from '@/components/motion';
 import { count } from '@/lib/plural';
 
 import { cn } from '@/lib/utils';
@@ -85,13 +86,15 @@ function MailboxDoor({
     prefetch,
     live,
     peek,
-}: Door & { title: string }) {
+    index,
+}: Door & { title: string; index: number }) {
     return (
         <RoomDoor
             href={href}
             // Notes and flowers mark themselves read when fetched: never prefetched.
             prefetch={prefetch ? 'hover' : false}
             name={title}
+            settleIndex={index}
             peek={peek}
             live={live.text}
             className="mailbox-card mailbox-door"
@@ -313,13 +316,16 @@ export default function Landing({
                     />
                 )}
                 <div className="mailbox-doors">
-                    {types.map(({ key, label }) => (
-                        <MailboxDoor
-                            key={key}
-                            title={label}
-                            {...DOORS[key](mailboxSummary, mailboxPeeks)}
-                        />
-                    ))}
+                    <Settle>
+                        {types.map(({ key, label }, index) => (
+                            <MailboxDoor
+                                key={key}
+                                title={label}
+                                index={index}
+                                {...DOORS[key](mailboxSummary, mailboxPeeks)}
+                            />
+                        ))}
+                    </Settle>
                 </div>
             </Page>
         </MailboxLayout>

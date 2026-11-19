@@ -3,6 +3,7 @@
 namespace App\MiniApps\Mailbox\Http\Requests;
 
 use App\MiniApps\Mailbox\Http\Requests\Concerns\ValidatesRecipients;
+use App\Shell\Support\Region;
 use Illuminate\Foundation\Http\FormRequest;
 
 class IssueCouponRequest extends FormRequest
@@ -22,7 +23,8 @@ class IssueCouponRequest extends FormRequest
             'title' => ['required', 'string', 'max:80'],
             'description' => ['nullable', 'string', 'max:500'],
             'quantity' => ['required', 'integer', 'min:1', 'max:20'],
-            'expires_at' => ['nullable', 'date', 'after_or_equal:today'],
+            // The household's today, not the server's: the coupon is valid through that day.
+            'expires_at' => ['nullable', 'date', 'after_or_equal:'.Region::today()->toDateString()],
         ];
     }
 

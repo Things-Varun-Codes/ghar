@@ -35,32 +35,25 @@ export default function DayEventMenu({
 
     return (
         <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-                <button
-                    ref={triggerRef}
-                    type="button"
-                    className={cn(
-                        `history-cal-cell history-cal-cell--event${todayClass}`,
-                    )}
-                    aria-label={`${day} ${MONTH_NAMES[month - 1]}: ${events.length} moments, choose one to open`}
-                    aria-current={todayClass ? 'date' : undefined}
-                    style={
-                        thumb
-                            ? { backgroundImage: `url("${thumb}")` }
-                            : undefined
-                    }
-                >
-                    {!thumb && (
-                        <span className="history-cal-dot" aria-hidden="true" />
-                    )}
-                    <span className="history-cal-num">{day}</span>
-                    <span className="history-cal-badge">
-                        +{events.length - 1}
-                    </span>
-                    {size === 'large' && (
-                        <span className="history-cal-cap">{label}</span>
-                    )}
-                </button>
+            <DropdownMenuTrigger
+                ref={triggerRef}
+                className={cn(
+                    `history-cal-cell history-cal-cell--event${todayClass}`,
+                )}
+                aria-label={`${day} ${MONTH_NAMES[month - 1]}: ${events.length} moments, choose one to open`}
+                aria-current={todayClass ? 'date' : undefined}
+                style={
+                    thumb ? { backgroundImage: `url("${thumb}")` } : undefined
+                }
+            >
+                {!thumb && (
+                    <span className="history-cal-dot" aria-hidden="true" />
+                )}
+                <span className="history-cal-num">{day}</span>
+                <span className="history-cal-badge">+{events.length - 1}</span>
+                {size === 'large' && (
+                    <span className="history-cal-cap">{label}</span>
+                )}
             </DropdownMenuTrigger>
             <DropdownMenuContent
                 align="start"
@@ -84,7 +77,7 @@ export default function DayEventMenu({
                         <DropdownMenuItem
                             key={event.id}
                             className="history-cal-daymenu-row"
-                            onSelect={() => onOpen(event, triggerRef.current)}
+                            onClick={() => onOpen(event, triggerRef.current)}
                         >
                             <span
                                 className={cn(

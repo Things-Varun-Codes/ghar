@@ -1,9 +1,13 @@
 import { createInertiaApp, router } from '@inertiajs/react';
 import * as Sentry from '@sentry/react';
 import { createRoot } from 'react-dom/client';
+import { MotionProvider } from '@/components/motion';
 import { Toaster } from '@/components/ui/sonner';
+import { TooltipProvider } from '@/components/ui/tooltip';
 import { installOverlayHistory } from '@/hooks/use-overlay-history';
 import { watchConnection } from '@/lib/connection';
+import { setRegion } from '@/lib/dates';
+import { installMotionGate } from '@/lib/motion';
 import { installNavigation } from '@/lib/navigation';
 import { captureSilent, installUserRole } from '@/lib/observability';
 import { installRouteFocus } from '@/lib/route-focus';
@@ -54,6 +58,8 @@ if (import.meta.env.PROD && sentryDsn) {
 installOverlayHistory();
 // Before createInertiaApp too, so the first page's navigate is heard.
 installUserRole(router);
+// Before any page mounts: a list settles in only on a page that is being opened.
+installMotionGate(router);
 
 createInertiaApp({
     title: (title) => (title ? `${title} · ${appName}` : appName),
@@ -82,6 +88,8 @@ createInertiaApp({
         name.startsWith('Shell/Pages/Auth/') ? undefined : AppLayout,
 
     setup({ el, App, props }) {
+        // Per install, not per page: the first page's region holds for the visit.
+        setRegion(props.initialPage.props.region);
         const root = createRoot(el);
         root.render(
             <Sentry.ErrorBoundary
@@ -95,7 +103,11 @@ createInertiaApp({
                     </div>
                 )}
             >
-                <App {...props} />
+                <MotionProvider>
+                    <TooltipProvider>
+                        <App {...props} />
+                    </TooltipProvider>
+                </MotionProvider>
                 <Toaster />
             </Sentry.ErrorBoundary>,
         );

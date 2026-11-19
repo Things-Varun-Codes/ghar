@@ -4,6 +4,7 @@ namespace App\MiniApps\Mailbox\Http\Resources;
 
 use App\MiniApps\Mailbox\Models\Bouquet;
 use App\Shell\Models\User;
+use App\Shell\Support\Person;
 use App\Shell\Support\SignedUrls;
 use Illuminate\Support\Carbon;
 
@@ -24,8 +25,8 @@ class BouquetResource
      *     read_at: string|null,
      *     is_unread: bool,
      *     is_mine: bool,
-     *     sender: array{id: int, name: string},
-     *     recipients: list<array{id: int, name: string}>,
+     *     sender: array{id: int, name: string, avatar_url: string|null},
+     *     recipients: list<array{id: int, name: string, avatar_url: string|null}>,
      * }
      */
     public function __invoke(Bouquet $bouquet, ?User $viewer = null): array
@@ -48,12 +49,9 @@ class BouquetResource
             'read_at' => $readAt !== null ? Carbon::parse($readAt)->toIso8601String() : null,
             'is_unread' => $ownRow !== null && $readAt === null,
             'is_mine' => $bouquet->sender_id === $authId,
-            'sender' => [
-                'id' => $bouquet->sender->id,
-                'name' => $bouquet->sender->name,
-            ],
+            'sender' => Person::of($bouquet->sender),
             'recipients' => $bouquet->recipients
-                ->map(fn (User $user): array => ['id' => $user->id, 'name' => $user->name])
+                ->map(fn (User $user): array => Person::of($user))
                 ->values()
                 ->all(),
         ];

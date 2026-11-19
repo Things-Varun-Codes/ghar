@@ -4,6 +4,7 @@ namespace Tests\Feature\Mailbox;
 
 use App\MiniApps\Mailbox\Models\Coupon;
 use App\Shell\Models\User;
+use Carbon\CarbonImmutable;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Notification;
 use Inertia\Testing\AssertableInertia as Assert;
@@ -84,6 +85,37 @@ class CouponAuthorizationTest extends TestCase
             ->assertSessionHasErrors('expires_at');
 
         $this->assertDatabaseCount('mailbox_coupons', 0);
+    }
+
+    public function test_issue_checks_expiry_against_the_households_day(): void
+    {
+        Notification::fake();
+        [$issuer, $recipient] = $this->seedPair();
+        config(['shell.timezone' => 'Asia/Kolkata']);
+        // 20:00 UTC on 3 March is already 4 March in Kolkata.
+        $this->travelTo(CarbonImmutable::parse('2026-03-03 20:00:00', 'UTC'));
+
+        $this->actingAs($issuer)
+            ->from('/apps/our-exchange/coupons')
+            ->post('/apps/our-exchange/coupons', [
+                'recipient_ids' => [$recipient->id],
+                'title' => 'Back rub',
+                'quantity' => 1,
+                'expires_at' => '2026-03-03',
+            ])
+            ->assertSessionHasErrors('expires_at');
+
+        $this->actingAs($issuer)
+            ->from('/apps/our-exchange/coupons')
+            ->post('/apps/our-exchange/coupons', [
+                'recipient_ids' => [$recipient->id],
+                'title' => 'Back rub',
+                'quantity' => 1,
+                'expires_at' => '2026-03-04',
+            ])
+            ->assertSessionHasNoErrors();
+
+        $this->assertDatabaseCount('mailbox_coupons', 1);
     }
 
     public function test_code_status_issuer_redeemed_count_injection_is_ignored(): void

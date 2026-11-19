@@ -3,7 +3,25 @@ import { MailPlus } from 'lucide-react';
 import { useState } from 'react';
 import type { FormEventHandler } from 'react';
 import { Badge } from '@/components/ui/badge';
+import { Button, buttonVariants } from '@/components/ui/button';
+import {
+    Dialog,
+    DialogContent,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
+} from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from '@/components/ui/select';
+import { useDraftCloseGate } from '@/hooks/use-draft-close-gate';
 import { formatDate } from '@/lib/dates';
+import { formSubmitOptions } from '@/lib/mutation';
 import { roleLabel } from '@/lib/roles';
 import { cn } from '@/lib/utils';
 import * as invitesRoutes from '@/routes/admin/invites';
@@ -11,16 +29,15 @@ import * as users from '@/routes/admin/users';
 import AdminCollection from '@/Shell/Components/AdminCollection';
 import type { AdminColumn } from '@/Shell/Components/AdminCollection';
 import ConfirmDialog from '@/Shell/Components/ConfirmDialog';
+import DiscardDraftDialog from '@/Shell/Components/DiscardDraftDialog';
+import EmptyState from '@/Shell/Components/EmptyState';
 import FormField from '@/Shell/Components/FormField';
 import Page from '@/Shell/Components/Page';
 import Pagination from '@/Shell/Components/Pagination';
 import type { PaginationLink } from '@/Shell/Components/Pagination';
+import PersonAvatar from '@/Shell/Components/PersonAvatar';
 import SubmitButton from '@/Shell/Components/SubmitButton';
-
-interface Inviter {
-    id: number;
-    name: string;
-}
+import type { Person } from '@/types/person';
 
 interface Invitation {
     id: number;
@@ -30,7 +47,7 @@ interface Invitation {
     accepted_at: string | null;
     revoked_at: string | null;
     created_at: string;
-    invited_by: Inviter | null;
+    invited_by: Person | null;
 }
 
 interface PaginatedInvites {
@@ -61,53 +78,165 @@ function inviteStatus(invite: Invitation): {
     return { label: 'Pending', variant: 'secondary' };
 }
 
-export default function InvitesIndex({ invites }: Props) {
-    const [showForm, setShowForm] = useState(false);
+const ROLE_ITEMS = { user: roleLabel('user'), admin: roleLabel('admin') };
+const INVITE_FIELDS = new Set(['email', 'role']);
 
-    const { data, setData, post, processing, errors, reset } = useForm({
-        email: '',
-        role: 'user',
+function InviteDialog({
+    open,
+    onOpenChange,
+}: {
+    open: boolean;
+    onOpenChange: (open: boolean) => void;
+}) {
+    const form = useForm({ email: '', role: 'user' });
+    const { data, setData, post, processing, errors, reset, clearErrors } =
+        form;
+
+    const close = () => onOpenChange(false);
+    const gate = useDraftCloseGate({
+        open,
+        isDirty: form.isDirty,
+        onClose: close,
+        onDiscard: () => {
+            reset();
+            clearErrors();
+        },
     });
 
     const submit: FormEventHandler = (e) => {
         e.preventDefault();
-        post(invitesRoutes.store.url(), {
-            onSuccess: () => {
-                reset();
-                setShowForm(false);
-            },
-        });
+        post(
+            invitesRoutes.store.url(),
+            formSubmitOptions({
+                component: 'Admin/InvitesIndex',
+                action: 'invites.store',
+                isShownField: (key) => INVITE_FIELDS.has(key),
+                onSuccess: () => {
+                    reset();
+                    close();
+                },
+            }),
+        );
     };
 
-    const [pendingRevoke, setPendingRevoke] = useState<Invitation | null>(null);
-    const [pendingResend, setPendingResend] = useState<Invitation | null>(null);
+    return (
+        <Dialog open={open} onOpenChange={gate.onOpenChange}>
+            <DialogContent>
+                <DialogHeader>
+                    <DialogTitle className="font-display text-(length:--text-title) font-normal">
+                        Send an invite
+                    </DialogTitle>
+                </DialogHeader>
+                <form
+                    id="invite-form"
+                    onSubmit={submit}
+                    className="flex flex-col gap-5"
+                >
+                    <FormField
+                        label="Email"
+                        name="invite-email"
+                        error={errors.email}
+                        required
+                    >
+                        <Input
+                            id="invite-email"
+                            name="email"
+                            type="email"
+                            value={data.email}
+                            onChange={(e) => setData('email', e.target.value)}
+                            placeholder="invitee@example.com"
+                            className="os-admin-control"
+                            autoComplete="off"
+                            required
+                        />
+                    </FormField>
+                    <FormField
+                        label="Role"
+                        name="invite-role"
+                        error={errors.role}
+                    >
+                        <Select
+                            value={data.role}
+                            items={ROLE_ITEMS}
+                            onValueChange={(value) => {
+                                if (value !== null) {
+                                    setData('role', value);
+                                }
+                            }}
+                        >
+                            <SelectTrigger
+                                id="invite-role"
+                                className={cn(
+                                    'os-admin-control w-full',
+                                    errors.role && 'os-admin-control--invalid',
+                                )}
+                            >
+                                <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="user">
+                                    {ROLE_ITEMS.user}
+                                </SelectItem>
+                                <SelectItem value="admin">
+                                    {ROLE_ITEMS.admin}
+                                </SelectItem>
+                            </SelectContent>
+                        </Select>
+                    </FormField>
+                </form>
+                <DialogFooter>
+                    <Button
+                        type="button"
+                        variant="outline"
+                        className="shell-press"
+                        onClick={gate.requestClose}
+                    >
+                        Cancel
+                    </Button>
+                    <SubmitButton
+                        form="invite-form"
+                        processing={processing}
+                        busyText="Sending invite…"
+                        className="os-admin-fill-primary os-admin-submit shell-press px-5"
+                    >
+                        Send invite
+                    </SubmitButton>
+                </DialogFooter>
+                <DiscardDraftDialog
+                    {...gate.prompt}
+                    title="Discard this invite?"
+                    description="The address you typed won't be kept."
+                />
+            </DialogContent>
+        </Dialog>
+    );
+}
 
-    const handleRevoke = (invite: Invitation) => {
-        setPendingRevoke(invite);
+export default function InvitesIndex({ invites }: Props) {
+    const [showForm, setShowForm] = useState(false);
+
+    // The invite stays after its dialog closes, so the title doesn't empty while it fades out.
+    const [target, setTarget] = useState<Invitation | null>(null);
+    const [asking, setAsking] = useState<'revoke' | 'resend' | null>(null);
+
+    const ask = (question: 'revoke' | 'resend', invite: Invitation) => {
+        setTarget(invite);
+        setAsking(question);
     };
+
+    const handleRevoke = (invite: Invitation) => ask('revoke', invite);
+    const handleResend = (invite: Invitation) => ask('resend', invite);
 
     const confirmRevoke = () => {
-        if (!pendingRevoke) {
-            return;
+        if (target) {
+            router.delete(invitesRoutes.destroy.url({ invite: target.id }));
         }
-
-        const invite = pendingRevoke;
-        setPendingRevoke(null);
-        router.delete(invitesRoutes.destroy.url({ invite: invite.id }));
-    };
-
-    const handleResend = (invite: Invitation) => {
-        setPendingResend(invite);
     };
 
     const confirmResend = () => {
-        if (!pendingResend) {
-            return;
+        if (target) {
+            router.post(invitesRoutes.resend.url({ invite: target.id }));
         }
-
-        const invite = pendingResend;
-        setPendingResend(null);
-        router.post(invitesRoutes.resend.url({ invite: invite.id }));
     };
 
     const renderActions = (invite: Invitation, inCard = false) =>
@@ -118,22 +247,24 @@ export default function InvitesIndex({ invites }: Props) {
                     inCard ? 'justify-start' : 'justify-end',
                 )}
             >
-                <button
+                <Button
                     type="button"
+                    variant="outline"
                     onClick={() => handleResend(invite)}
                     aria-label={`Resend the invite to ${invite.email}`}
-                    className="os-admin-row-action os-admin-fill-accent shell-press inline-flex items-center justify-center"
+                    className="os-admin-row-action os-admin-fill-accent shell-press"
                 >
                     Resend
-                </button>
-                <button
+                </Button>
+                <Button
                     type="button"
+                    variant="outline"
                     onClick={() => handleRevoke(invite)}
                     aria-label={`Revoke the invite for ${invite.email}`}
-                    className="os-admin-row-action os-admin-outline-destructive shell-press inline-flex items-center justify-center"
+                    className="os-admin-row-action os-admin-outline-destructive shell-press"
                 >
                     Revoke
-                </button>
+                </Button>
             </div>
         ) : null;
 
@@ -179,8 +310,12 @@ export default function InvitesIndex({ invites }: Props) {
                 render: (invite) => (
                     <>
                         Expires {formatDate(invite.expires_at)}
-                        {invite.invited_by &&
-                            ` · invited by ${invite.invited_by.name}`}
+                        {invite.invited_by && (
+                            <>
+                                {' · invited by '}
+                                <Inviter person={invite.invited_by} />
+                            </>
+                        )}
                     </>
                 ),
             },
@@ -188,7 +323,11 @@ export default function InvitesIndex({ invites }: Props) {
         {
             header: 'Invited by',
             cell: (invite) =>
-                invite.invited_by?.name ?? 'Someone since removed',
+                invite.invited_by ? (
+                    <Inviter person={invite.invited_by} />
+                ) : (
+                    'Someone since removed'
+                ),
             className: 'os-admin-meta',
             card: 'hidden',
         },
@@ -204,102 +343,45 @@ export default function InvitesIndex({ invites }: Props) {
                     <>
                         <Link
                             href={users.index.url()}
-                            className="os-admin-tap os-admin-tap-center os-admin-fill-accent shell-press px-4 py-2 text-sm font-medium"
+                            className={cn(
+                                buttonVariants({
+                                    variant: 'outline',
+                                    size: 'sm',
+                                }),
+                                'os-admin-fill-accent shell-press',
+                            )}
                         >
                             View users
                         </Link>
-                        <button
-                            onClick={() => setShowForm((v) => !v)}
-                            className={`os-admin-tap ${showForm ? 'os-admin-fill-accent' : 'os-admin-fill-primary'} shell-press px-4 py-2 text-sm font-medium`}
+                        <Button
+                            type="button"
+                            size="sm"
+                            onClick={() => setShowForm(true)}
+                            className="os-admin-fill-primary shell-press"
                         >
-                            {showForm ? 'Cancel' : 'Send invite'}
-                        </button>
+                            Send invite
+                        </Button>
                     </>
                 }
             >
-                {showForm && (
-                    <div className="os-admin-surface mb-6 border p-6">
-                        <h2 className="os-admin-section-title mb-4">
-                            Send invitation
-                        </h2>
-                        <form
-                            onSubmit={submit}
-                            className="flex flex-wrap items-end gap-3"
-                        >
-                            <FormField
-                                label="Email"
-                                name="invite-email"
-                                error={errors.email}
-                                className="min-w-[200px] flex-1"
-                            >
-                                <input
-                                    id="invite-email"
-                                    type="email"
-                                    value={data.email}
-                                    onChange={(e) =>
-                                        setData('email', e.target.value)
-                                    }
-                                    placeholder="invitee@example.com"
-                                    className={cn(
-                                        'os-admin-control shell-field block w-full border px-3 py-2.5 outline-none',
-                                        errors.email &&
-                                            'os-admin-control--invalid',
-                                    )}
-                                    required
-                                />
-                            </FormField>
-                            <FormField
-                                label="Role"
-                                name="invite-role"
-                                error={errors.role}
-                            >
-                                <select
-                                    id="invite-role"
-                                    value={data.role}
-                                    onChange={(e) =>
-                                        setData('role', e.target.value)
-                                    }
-                                    className={cn(
-                                        'os-admin-control shell-field block border px-3 py-2.5 outline-none',
-                                        errors.role &&
-                                            'os-admin-control--invalid',
-                                    )}
-                                >
-                                    <option value="user">
-                                        {roleLabel('user')}
-                                    </option>
-                                    <option value="admin">
-                                        {roleLabel('admin')}
-                                    </option>
-                                </select>
-                            </FormField>
-                            <SubmitButton
-                                processing={processing}
-                                busyText="Sending invite…"
-                                className="os-admin-tap os-admin-fill-primary os-admin-submit shell-press px-5 font-medium"
-                            >
-                                Send invite
-                            </SubmitButton>
-                        </form>
-                    </div>
-                )}
+                <InviteDialog open={showForm} onOpenChange={setShowForm} />
 
                 {invites.data.length === 0 ? (
-                    <div className="os-admin-surface flex flex-col items-center gap-3 border px-6 py-10 text-center">
-                        <MailPlus
-                            size={32}
-                            strokeWidth={1.5}
-                            aria-hidden="true"
-                            className="os-admin-muted"
+                    <div className="os-admin-surface border">
+                        <EmptyState
+                            icon={MailPlus}
+                            title="No invitations yet"
+                            body="Invite someone and they'll get a link to join this home."
+                            action={
+                                <Button
+                                    type="button"
+                                    onClick={() => setShowForm(true)}
+                                    className="os-admin-fill-primary shell-press"
+                                >
+                                    Send your first invite
+                                </Button>
+                            }
                         />
-                        <p className="os-admin-muted">No invitations yet.</p>
-                        <button
-                            type="button"
-                            onClick={() => setShowForm(true)}
-                            className="os-admin-tap os-admin-tap-center os-admin-fill-primary shell-press px-4 font-medium"
-                        >
-                            Send your first invite
-                        </button>
                     </div>
                 ) : (
                     <AdminCollection
@@ -322,13 +404,9 @@ export default function InvitesIndex({ invites }: Props) {
                 )}
 
                 <ConfirmDialog
-                    open={pendingRevoke !== null}
-                    onOpenChange={(open) => {
-                        if (!open) {
-                            setPendingRevoke(null);
-                        }
-                    }}
-                    title={`Revoke the invite for ${pendingRevoke?.email}?`}
+                    open={asking === 'revoke'}
+                    onOpenChange={(open) => !open && setAsking(null)}
+                    title={`Revoke the invite for ${target?.email ?? 'this address'}?`}
                     description="The link will stop working right away."
                     confirmLabel="Revoke"
                     onConfirm={confirmRevoke}
@@ -336,13 +414,9 @@ export default function InvitesIndex({ invites }: Props) {
                 />
 
                 <ConfirmDialog
-                    open={pendingResend !== null}
-                    onOpenChange={(open) => {
-                        if (!open) {
-                            setPendingResend(null);
-                        }
-                    }}
-                    title={`Resend the invite to ${pendingResend?.email}?`}
+                    open={asking === 'resend'}
+                    onOpenChange={(open) => !open && setAsking(null)}
+                    title={`Resend the invite to ${target?.email ?? 'this address'}?`}
                     description="The old link will stop working."
                     confirmLabel="Resend"
                     onConfirm={confirmResend}
@@ -351,5 +425,14 @@ export default function InvitesIndex({ invites }: Props) {
                 <Pagination links={invites.links} />
             </Page>
         </>
+    );
+}
+
+function Inviter({ person }: { person: Person }) {
+    return (
+        <span className="inline-flex items-center gap-1.5 align-middle">
+            <PersonAvatar person={person} size={20} />
+            {person.name}
+        </span>
     );
 }

@@ -1,3 +1,4 @@
+import { Pop } from '@/components/motion';
 import type { CitationPayload } from '@/MiniApps/Mailbox/Components/CitationCard';
 import {
     formatInstantDay,
@@ -23,12 +24,18 @@ export default function CitationArtifact({
             </div>
 
             <div className="mailbox-citation-confidential">Confidential</div>
-            <div
-                className={`mailbox-citation-stamp mailbox-citation-stamp--${citation.status}`}
-                aria-hidden="true"
+            {/* The slot holds the stamp's place and takes the scale-in; the stamp keeps its tilt. */}
+            <Pop
+                changeKey={citation.status}
+                className="mailbox-citation-stamp-slot"
             >
-                {STAMP_LABEL[citation.status]}
-            </div>
+                <span
+                    className={`mailbox-citation-stamp mailbox-citation-stamp--${citation.status}`}
+                    aria-hidden="true"
+                >
+                    {STAMP_LABEL[citation.status]}
+                </span>
+            </Pop>
 
             <div className="mailbox-citation-masthead">
                 <div className="mailbox-citation-seal">

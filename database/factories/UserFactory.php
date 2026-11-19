@@ -24,7 +24,18 @@ class UserFactory extends Factory
             'email_verified_at' => now(),
             'password' => static::$password ??= Hash::make('password'),
             'remember_token' => Str::random(10),
+            'avatar_key' => null,
+            'birthday' => null,
+            'morning_memories' => true,
         ];
+    }
+
+    /** A picture on the media disk; the file itself is the test's to put there. */
+    public function withAvatar(?string $key = null): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'avatar_key' => $key ?? 'avatars/'.Str::uuid().'.webp',
+        ]);
     }
 
     public function unverified(): static

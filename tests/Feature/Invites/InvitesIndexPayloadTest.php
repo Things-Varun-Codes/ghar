@@ -39,7 +39,7 @@ class InvitesIndexPayloadTest extends TestCase
                     ->where('accepted_at', null)
                     ->where('revoked_at', null)
                     ->has('created_at')
-                    ->where('invited_by', ['id' => $admin->id, 'name' => 'Asha'])
+                    ->where('invited_by', ['id' => $admin->id, 'name' => 'Asha', 'avatar_url' => null])
                 )
                 ->has('invites.links')
             );

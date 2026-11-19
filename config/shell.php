@@ -17,6 +17,12 @@ return [
         return $disk;
     })(strtolower((string) (env('MEDIA_DISK') ?: 'local'))),
 
+    // The household's region. Stored times stay UTC (app.timezone); "today", what is due and
+    // how dates read come from here. The locale, when unset, follows the timezone's country
+    // (Asia/Kolkata reads en-IN). Validated in App\Shell\Support\Region.
+    'timezone' => env('GHAR_TIMEZONE') ?: 'UTC',
+    'locale' => env('GHAR_LOCALE') ?: null,
+
     // The scheduler ticks every minute, so three minutes allows for missed ticks. The queue's
     // one worker is shared with photo conversions, so a heartbeat can wait behind a big
     // upload. docker-entrypoint.sh touches boot_marker; heartbeats count as healthy for

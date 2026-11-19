@@ -1664,10 +1664,7 @@
 
 /* ---- Calendar ---- */
 
-/*
- * Radix sets pointer-events: none on body while a modal is open; .pswp portals outside the sheet
- * and would inherit it.
- */
+/* .pswp portals outside the sheet: it must take pointer events whatever the modal sets on body. */
 .pswp {
     pointer-events: auto;
 }

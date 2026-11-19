@@ -1,6 +1,7 @@
 import { Head, useForm } from '@inertiajs/react';
 import type { FormEventHandler } from 'react';
 import PasswordInput from '@/components/password-input';
+import { Input } from '@/components/ui/input';
 import { update } from '@/routes/password';
 import AuthLayout from '@/Shell/Components/AuthLayout';
 import FormField from '@/Shell/Components/FormField';
@@ -38,13 +39,13 @@ export default function ResetPassword({ token, email }: Props) {
 
             <form onSubmit={submit} noValidate className="mt-6 space-y-4">
                 <FormField label="Email" name="email" error={errors.email}>
-                    <input
+                    <Input
                         id="email"
                         name="email"
                         type="email"
                         value={data.email}
                         readOnly
-                        className="shell-auth-field-readonly shell-field block w-full border px-3 py-2.5 outline-none"
+                        className="shell-auth-field-readonly"
                         autoComplete="username"
                     />
                 </FormField>
@@ -60,7 +61,7 @@ export default function ResetPassword({ token, email }: Props) {
                         autoComplete="new-password"
                         value={data.password}
                         onChange={(e) => setData('password', e.target.value)}
-                        className="shell-auth-field shell-field block w-full border px-3 py-2.5 outline-none"
+                        className="shell-auth-field"
                         required
                     />
                 </FormField>
@@ -78,7 +79,7 @@ export default function ResetPassword({ token, email }: Props) {
                         onChange={(e) =>
                             setData('password_confirmation', e.target.value)
                         }
-                        className="shell-auth-field shell-field block w-full border px-3 py-2.5 outline-none"
+                        className="shell-auth-field"
                         required
                     />
                 </FormField>

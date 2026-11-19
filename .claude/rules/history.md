@@ -23,9 +23,11 @@ Rules that aren't obvious from the code:
   gets a 44×44px hit area; focus uses `--history-focus-ring`; clickable tiles are real
   `<button>`s; hover-only reveals sit inside `@media (hover: hover)`; the reduced-motion block in
   `history.css` stays.
-- **PhotoSwipe inside the EventSheet:** the Sheet's `onPointerDownOutside` / `onInteractOutside`
-  must `preventDefault()` when `e.target.closest('.pswp')` (`EventSheet.tsx`), or the next-arrow
-  click and mobile swipes close the Sheet.
+- **PhotoSwipe inside the EventSheet:** the Drawer's `onOpenChange` cancels an `outside-press`
+  whose target is inside `.pswp` (`EventSheet.tsx`), or the next-arrow click and mobile swipes
+  close the sheet. The lightbox takes Escape in the capture phase while it's open
+  (`PhotoSwipeGallery.tsx`), so Escape closes it and not the sheet too. Its scrolling body is `data-base-ui-swipe-ignore`, so the editor and the photo
+  grid keep their drags and only the frame swipes the sheet closed.
 - **Links in a story never name another room.** The editor offers the picker while
   `useLinking().searchable`; `BodyHtml` draws a pill as a link (and its picture) only while
   `useLinkTypeOn(type)`. Moments register as `history.event` (label "Moments") in

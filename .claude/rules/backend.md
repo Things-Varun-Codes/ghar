@@ -22,3 +22,16 @@ array properties. Reference: `app/Shell/Models/Invitation.php`, `User.php`.
 first line of `AppServiceProvider::configureDefaults()`): lazy loading, silently discarded
 attributes and missing-attribute reads are hard failures locally and in tests. Eager-load relations,
 keep `#[Fillable]` complete, and `refresh()` a model before reading DB-computed defaults.
+
+### People and the region
+
+- **A person on a page is `App\Shell\Support\Person::of($user)`**: `{id, name, avatar_url}`, the
+  picture signed per the hour window and memoised for the request. Never send a bare name pair
+  or the `avatar_key`. A query that selects named user columns adds `avatar_key`, or strict mode
+  throws when the picture is read.
+- **`users.avatar_key` isn't fillable**: it names an object on the media disk, so a key from
+  request input could sign someone else's file. Set it with `forceFill` after storing the upload.
+  `birthday` (a whole date or null) and `morning_memories` (default on) are fillable.
+- **The household region is `App\Shell\Support\Region`** (`GHAR_TIMEZONE`, `GHAR_LOCALE`):
+  `Region::today()` / `now()` for "today" and anything due, `forPage()` for the shared `region`
+  prop. `app.timezone` stays UTC; stored timestamps are naive UTC.

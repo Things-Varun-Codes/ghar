@@ -11,6 +11,7 @@ use Database\Seeders\DevData\CornerData;
 use Database\Seeders\DevData\HistoryData;
 use Database\Seeders\DevData\Household;
 use Database\Seeders\DevData\MailboxData;
+use Database\Seeders\DevData\PlaceholderImage;
 use Faker\Factory as Faker;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\App;
@@ -136,6 +137,8 @@ class DevDataSeeder extends Seeder
             faker: $faker,
         );
 
+        $this->seedProfiles($household);
+
         // Kabir and the admin stay unsubscribed, so "a member with no device"
         // is covered too. The endpoints can't deliver; they exercise the
         // recipient and subscription-count paths.
@@ -143,6 +146,27 @@ class DevDataSeeder extends Seeder
         $this->seedPushSubscription($household->meera);
 
         return $household;
+    }
+
+    /**
+     * Ravi and Meera have pictures and Asha and Kabir show their initials, so both faces of
+     * an avatar are on screen in a sender/recipient pair and on Admin -> People. Meera's
+     * birthday is today; Kabir has none set and morning memories off.
+     */
+    private function seedProfiles(Household $household): void
+    {
+        foreach ([[$household->ravi, 3], [$household->meera, 5]] as [$user, $seed]) {
+            $key = $household->storeImage(
+                "avatar-{$user->id}.jpg",
+                PlaceholderImage::jpeg('', $seed, 256, 256),
+            );
+            $user->forceFill(['avatar_key' => $key])->save();
+        }
+
+        $household->admin->update(['birthday' => '1968-03-14']);
+        $household->ravi->update(['birthday' => '1990-07-02']);
+        $household->meera->update(['birthday' => $household->today->setYear(1992)->toDateString()]);
+        $household->kabir->update(['morning_memories' => false]);
     }
 
     private function seedPushSubscription(User $user): void

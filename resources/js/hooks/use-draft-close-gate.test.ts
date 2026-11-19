@@ -77,7 +77,28 @@ describe('useDraftCloseGate', () => {
         expect(result.current.prompt.open).toBe(true);
     });
 
-    it('ignores an open request from Radix', () => {
+    it("cancels Base UI's own close of a dirty overlay and asks instead", () => {
+        const { result, onClose } = setup({ isDirty: true });
+        const cancel = vi.fn();
+
+        act(() => result.current.onOpenChange(false, { cancel }));
+
+        expect(cancel).toHaveBeenCalledTimes(1);
+        expect(onClose).not.toHaveBeenCalled();
+        expect(result.current.prompt.open).toBe(true);
+    });
+
+    it('lets Base UI close a clean overlay', () => {
+        const { result, onClose } = setup({ isDirty: false });
+        const cancel = vi.fn();
+
+        act(() => result.current.onOpenChange(false, { cancel }));
+
+        expect(cancel).not.toHaveBeenCalled();
+        expect(onClose).toHaveBeenCalledTimes(1);
+    });
+
+    it('ignores an open request from Base UI', () => {
         const { result, onClose } = setup({ isDirty: true });
 
         act(() => result.current.onOpenChange(true));

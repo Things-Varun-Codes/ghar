@@ -1,5 +1,11 @@
 import { cloneElement, isValidElement } from 'react';
 import type { ReactElement, ReactNode } from 'react';
+import { Reveal } from '@/components/motion';
+import {
+    FieldDescription,
+    FieldError,
+    FieldLabel,
+} from '@/components/ui/field';
 
 interface Props {
     label: string;
@@ -58,11 +64,8 @@ export default function FormField({
             : children;
 
     return (
-        <div className={wrapperClass}>
-            <label
-                htmlFor={labelFor}
-                className="mb-1.5 block text-[14px] font-medium text-(--foreground)"
-            >
+        <div className={wrapperClass} data-slot="form-field">
+            <FieldLabel htmlFor={labelFor}>
                 {label}
                 {required && (
                     <span
@@ -72,24 +75,17 @@ export default function FormField({
                         *
                     </span>
                 )}
-            </label>
+            </FieldLabel>
             {childWithAria}
-            {error && (
-                <p
-                    id={errorId}
-                    role="alert"
-                    className="mt-1 text-(length:--text-small) font-normal text-(--destructive)"
-                >
+            <Reveal show={Boolean(error)}>
+                <FieldError id={errorId} className="mt-1">
                     {error}
-                </p>
-            )}
+                </FieldError>
+            </Reveal>
             {helper && (
-                <p
-                    id={helperId}
-                    className="mt-1 text-(length:--text-small) font-normal text-(--muted-foreground)"
-                >
+                <FieldDescription id={helperId} className="mt-1">
                     {helper}
-                </p>
+                </FieldDescription>
             )}
         </div>
     );

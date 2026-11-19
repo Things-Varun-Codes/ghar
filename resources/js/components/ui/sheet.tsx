@@ -1,32 +1,37 @@
-import * as SheetPrimitive from "@radix-ui/react-dialog"
+import { Dialog as SheetPrimitive } from "@base-ui/react/dialog"
 import * as React from "react"
 
 import { OverlayClose } from "@/components/ui/overlay-close"
-import { useAllowTouchSelection } from "@/hooks/use-allow-touch-selection"
 import { useAppAttrs } from "@/hooks/use-app-attrs"
-import { useReturnFocus } from "@/hooks/use-return-focus"
 import { cn } from "@/lib/utils"
 
-function Sheet({ ...props }: React.ComponentProps<typeof SheetPrimitive.Root>) {
+/*
+ * An edge panel without gestures: a positioned Dialog. A sheet that holds a form is the shell's
+ * FormSheet, on Drawer, which adds the swipe and the keyboard handling.
+ */
+function Sheet({ ...props }: SheetPrimitive.Root.Props) {
   return <SheetPrimitive.Root data-slot="sheet" {...props} />
 }
 
-function SheetPortal({
-  ...props
-}: React.ComponentProps<typeof SheetPrimitive.Portal>) {
+function SheetTrigger({ ...props }: SheetPrimitive.Trigger.Props) {
+  return <SheetPrimitive.Trigger data-slot="sheet-trigger" {...props} />
+}
+
+function SheetClose({ ...props }: SheetPrimitive.Close.Props) {
+  return <SheetPrimitive.Close data-slot="sheet-close" {...props} />
+}
+
+function SheetPortal({ ...props }: SheetPrimitive.Portal.Props) {
   return <SheetPrimitive.Portal data-slot="sheet-portal" {...props} />
 }
 
-function SheetOverlay({
-  className,
-  ...props
-}: React.ComponentProps<typeof SheetPrimitive.Overlay>) {
+function SheetOverlay({ className, ...props }: SheetPrimitive.Backdrop.Props) {
   return (
-    <SheetPrimitive.Overlay
+    <SheetPrimitive.Backdrop
       data-slot="sheet-overlay"
       className={cn(
-        "shell-scrim data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 fixed inset-0 z-50 ease-(--ease-ui) data-[state=closed]:duration-(--dur-out) data-[state=open]:duration-(--dur-card)",
-        className
+        "shell-scrim fixed inset-0 z-(--z-overlay) transition-opacity duration-(--dur-sheet) ease-(--ease-ui) data-ending-style:opacity-0 data-ending-style:duration-(--dur-sheet-out) data-starting-style:opacity-0",
+        className as string
       )}
       {...props}
     />
@@ -38,43 +43,35 @@ function SheetContent({
   children,
   side = "right",
   showCloseButton = true,
-  onOpenAutoFocus,
-  onCloseAutoFocus,
   ...props
-}: React.ComponentProps<typeof SheetPrimitive.Content> & {
+}: SheetPrimitive.Popup.Props & {
   side?: "top" | "right" | "bottom" | "left"
   /* Off when the sheet places its own OverlayClose. */
   showCloseButton?: boolean
 }) {
   const appAttrs = useAppAttrs()
-  const returnFocus = useReturnFocus({ onOpenAutoFocus, onCloseAutoFocus })
-  // Can cancel iOS selection drags; see use-allow-touch-selection.ts.
-  useAllowTouchSelection()
+
   return (
     <SheetPortal>
       <SheetOverlay />
-      <SheetPrimitive.Content
+      <SheetPrimitive.Popup
         data-slot="sheet-content"
+        data-side={side}
         data-scroll-container=""
         className={cn(
-          "bg-background data-[state=open]:animate-in data-[state=closed]:animate-out fixed z-50 flex flex-col gap-4 ease-(--ease-ui) data-[state=closed]:duration-(--dur-out) data-[state=open]:duration-(--dur-card)",
-          side === "right" &&
-            "data-[state=closed]:slide-out-to-right data-[state=open]:slide-in-from-right inset-y-0 right-0 h-full w-3/4 border-l sm:max-w-sm",
-          side === "left" &&
-            "data-[state=closed]:slide-out-to-left data-[state=open]:slide-in-from-left inset-y-0 left-0 h-full w-3/4 border-r sm:max-w-sm",
-          side === "top" &&
-            "data-[state=closed]:slide-out-to-top data-[state=open]:slide-in-from-top inset-x-0 top-0 h-auto border-b",
-          side === "bottom" &&
-            "data-[state=closed]:slide-out-to-bottom data-[state=open]:slide-in-from-bottom inset-x-0 bottom-0 h-auto border-t pb-[env(safe-area-inset-bottom)]",
-          className
+          "bg-background fixed z-(--z-overlay) flex flex-col gap-4 outline-none transition-[translate] duration-(--dur-sheet) ease-(--ease-ui) data-ending-style:duration-(--dur-sheet-out)",
+          "data-[side=right]:inset-y-0 data-[side=right]:right-0 data-[side=right]:h-full data-[side=right]:w-3/4 data-[side=right]:border-l data-[side=right]:data-ending-style:translate-x-full data-[side=right]:data-starting-style:translate-x-full sm:data-[side=right]:max-w-sm",
+          "data-[side=left]:inset-y-0 data-[side=left]:left-0 data-[side=left]:h-full data-[side=left]:w-3/4 data-[side=left]:border-r data-[side=left]:data-ending-style:-translate-x-full data-[side=left]:data-starting-style:-translate-x-full sm:data-[side=left]:max-w-sm",
+          "data-[side=top]:inset-x-0 data-[side=top]:top-0 data-[side=top]:h-auto data-[side=top]:border-b data-[side=top]:data-ending-style:-translate-y-full data-[side=top]:data-starting-style:-translate-y-full",
+          "data-[side=bottom]:inset-x-0 data-[side=bottom]:bottom-0 data-[side=bottom]:h-auto data-[side=bottom]:border-t data-[side=bottom]:pb-[env(safe-area-inset-bottom)] data-[side=bottom]:data-ending-style:translate-y-full data-[side=bottom]:data-starting-style:translate-y-full",
+          className as string
         )}
         {...appAttrs}
         {...props}
-        {...returnFocus}
       >
         {children}
         {showCloseButton && <OverlayClose />}
-      </SheetPrimitive.Content>
+      </SheetPrimitive.Popup>
     </SheetPortal>
   )
 }
@@ -89,14 +86,21 @@ function SheetHeader({ className, ...props }: React.ComponentProps<"div">) {
   )
 }
 
-function SheetTitle({
-  className,
-  ...props
-}: React.ComponentProps<typeof SheetPrimitive.Title>) {
+function SheetFooter({ className, ...props }: React.ComponentProps<"div">) {
+  return (
+    <div
+      data-slot="sheet-footer"
+      className={cn("mt-auto flex flex-col gap-2 p-4", className)}
+      {...props}
+    />
+  )
+}
+
+function SheetTitle({ className, ...props }: SheetPrimitive.Title.Props) {
   return (
     <SheetPrimitive.Title
       data-slot="sheet-title"
-      className={cn("text-foreground font-medium", className)}
+      className={cn("text-foreground font-medium", className as string)}
       {...props}
     />
   )
@@ -105,11 +109,11 @@ function SheetTitle({
 function SheetDescription({
   className,
   ...props
-}: React.ComponentProps<typeof SheetPrimitive.Description>) {
+}: SheetPrimitive.Description.Props) {
   return (
     <SheetPrimitive.Description
       data-slot="sheet-description"
-      className={cn("text-muted-foreground text-sm", className)}
+      className={cn("text-muted-foreground text-sm", className as string)}
       {...props}
     />
   )
@@ -117,8 +121,11 @@ function SheetDescription({
 
 export {
   Sheet,
+  SheetClose,
   SheetContent,
+  SheetDescription,
+  SheetFooter,
   SheetHeader,
   SheetTitle,
-  SheetDescription,
+  SheetTrigger,
 }

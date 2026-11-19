@@ -1,6 +1,8 @@
 import { Link, usePage } from '@inertiajs/react';
 
+import { buttonVariants } from '@/components/ui/button';
 import { pathOf } from '@/lib/url';
+import { cn } from '@/lib/utils';
 import { dashboard } from '@/routes';
 import Page from '@/Shell/Components/Page';
 import type { MiniApp } from '@/types/miniapp';
@@ -38,18 +40,19 @@ export default function ErrorPage({ status }: Props) {
                     {room && (
                         <Link
                             href={room.route}
-                            className="shell-focus shell-press shell-error-action"
+                            className={cn(buttonVariants(), 'shell-press')}
                         >
                             Go to {room.name}
                         </Link>
                     )}
                     <Link
                         href={dashboard().url}
-                        className={
-                            room
-                                ? 'shell-focus shell-press shell-btn-outline inline-flex min-h-11 items-center rounded-full border border-(--shell-border-input) bg-(--card) px-6 text-(length:--text-small) font-medium'
-                                : 'shell-focus shell-press shell-error-action'
-                        }
+                        className={cn(
+                            buttonVariants({
+                                variant: room ? 'outline' : 'default',
+                            }),
+                            'shell-press',
+                        )}
                     >
                         Back to Home
                     </Link>

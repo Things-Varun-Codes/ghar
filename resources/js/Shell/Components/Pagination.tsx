@@ -1,6 +1,12 @@
 import { Link } from '@inertiajs/react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
-import type { ReactNode } from 'react';
+import {
+    Pagination as PaginationNav,
+    PaginationContent,
+    PaginationEllipsis,
+    PaginationItem,
+    PaginationLink as PageLink,
+} from '@/components/ui/pagination';
 
 export type PaginationLink = {
     url: string | null;
@@ -8,72 +14,63 @@ export type PaginationLink = {
     active: boolean;
 };
 
+/* Laravel's paginator links: previous, the pages (with '...' gaps), next. */
 export default function Pagination({ links }: { links: PaginationLink[] }) {
     if (links.length <= 3) {
         return null;
     }
 
     return (
-        <div className="mt-6 flex items-center justify-center gap-1">
-            {links.map((link, i) => {
-                const isPrev = i === 0;
-                const isNext = i === links.length - 1;
-                const isEllipsis = link.label === '...';
+        <PaginationNav className="mt-6">
+            <PaginationContent>
+                {links.map((link, i) => {
+                    const isPrev = i === 0;
+                    const isNext = i === links.length - 1;
 
-                let child: ReactNode = link.label;
-                const ariaProps: Record<string, string | undefined> = {};
-
-                if (isPrev) {
-                    child = (
-                        <ChevronLeft
-                            size={16}
-                            strokeWidth={1.5}
-                            aria-hidden="true"
-                        />
-                    );
-                    ariaProps['aria-label'] = 'Previous page';
-                } else if (isNext) {
-                    child = (
-                        <ChevronRight
-                            size={16}
-                            strokeWidth={1.5}
-                            aria-hidden="true"
-                        />
-                    );
-                    ariaProps['aria-label'] = 'Next page';
-                } else if (isEllipsis) {
-                    ariaProps['aria-hidden'] = 'true';
-                } else {
-                    ariaProps['aria-label'] = `Page ${link.label}`;
-
-                    if (link.active) {
-                        ariaProps['aria-current'] = 'page';
+                    if (!isPrev && !isNext && link.label === '...') {
+                        return (
+                            <PaginationItem key={i}>
+                                <PaginationEllipsis />
+                            </PaginationItem>
+                        );
                     }
-                }
 
-                return link.url ? (
-                    <Link
-                        key={i}
-                        href={link.url}
-                        className={
-                            link.active
-                                ? 'rounded bg-primary px-3 py-1.5 text-sm font-medium text-white'
-                                : 'rounded bg-accent px-3 py-1.5 text-sm font-medium text-foreground'
-                        }
-                        {...ariaProps}
-                    >
-                        {child}
-                    </Link>
-                ) : (
-                    <span
-                        key={i}
-                        className="rounded px-3 py-1.5 text-sm opacity-40"
-                        {...ariaProps}
-                    >
-                        {child}
-                    </span>
-                );
-            })}
-        </div>
+                    const label = isPrev
+                        ? 'Previous page'
+                        : isNext
+                          ? 'Next page'
+                          : `Page ${link.label}`;
+                    const content = isPrev ? (
+                        <ChevronLeft strokeWidth={1.5} aria-hidden="true" />
+                    ) : isNext ? (
+                        <ChevronRight strokeWidth={1.5} aria-hidden="true" />
+                    ) : (
+                        link.label
+                    );
+
+                    return (
+                        <PaginationItem key={i}>
+                            {link.url ? (
+                                <PageLink
+                                    render={<Link href={link.url} />}
+                                    isActive={link.active}
+                                    aria-label={label}
+                                >
+                                    {content}
+                                </PageLink>
+                            ) : (
+                                <span
+                                    aria-label={label}
+                                    aria-disabled="true"
+                                    className="flex size-11 items-center justify-center opacity-40"
+                                >
+                                    {content}
+                                </span>
+                            )}
+                        </PaginationItem>
+                    );
+                })}
+            </PaginationContent>
+        </PaginationNav>
     );
 }

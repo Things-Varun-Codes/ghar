@@ -4,6 +4,7 @@ namespace App\Shell\Controllers\Admin;
 
 use App\Shell\Models\User;
 use App\Shell\Services\Notify;
+use App\Shell\Support\Person;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
@@ -15,7 +16,9 @@ class NotificationsController
     public function show(): Response
     {
         return Inertia::render('Shell/Pages/Admin/NotificationsSend', [
-            'users' => User::orderBy('name')->get(['id', 'name', 'email']),
+            'users' => User::orderBy('name')
+                ->get(['id', 'name', 'email', 'avatar_key'])
+                ->map(fn (User $user): array => [...Person::of($user), 'email' => $user->email]),
         ]);
     }
 

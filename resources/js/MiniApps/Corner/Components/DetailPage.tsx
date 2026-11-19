@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react';
 
+import { Button } from '@/components/ui/button';
 import { Toggle } from '@/components/ui/toggle';
 import { DoneGlyph } from '@/MiniApps/Corner/Components/DoneMark';
 import type { MentionedInRef } from '@/MiniApps/Corner/Components/MentionedInList';
@@ -9,12 +10,14 @@ import { CORNER_ROOM } from '@/MiniApps/Corner/Layouts/CornerLayout';
 import type { DoneIcon, ItemPermissions } from '@/MiniApps/Corner/lib/types';
 import type { BackTarget } from '@/Shell/Components/BackChevron';
 import Page from '@/Shell/Components/Page';
+import PersonAvatar from '@/Shell/Components/PersonAvatar';
+import type { Person } from '@/types/person';
 
 type DetailPageProps = {
     title: string;
     back: BackTarget;
     can: ItemPermissions;
-    addedByName: string;
+    addedBy: Person;
     mentionedIn: MentionedInRef[];
     hero?: ReactNode;
     body?: ReactNode;
@@ -31,7 +34,7 @@ export default function DetailPage({
     title,
     back,
     can,
-    addedByName,
+    addedBy,
     mentionedIn,
     hero,
     body,
@@ -51,8 +54,9 @@ export default function DetailPage({
                             {hero}
                             {body}
 
-                            <p className="corner-detail-meta">
-                                Added by {addedByName}
+                            <p className="corner-detail-meta corner-added-by">
+                                <PersonAvatar person={addedBy} size={24} />
+                                Added by {addedBy.name}
                             </p>
 
                             <div className="corner-detail-actions">
@@ -77,22 +81,25 @@ export default function DetailPage({
                                 </Toggle>
 
                                 {can.update && (
-                                    <button
+                                    <Button
                                         type="button"
+                                        variant="outline"
                                         className="corner-detail-action shell-press"
                                         onClick={onEdit}
                                     >
                                         Edit
-                                    </button>
+                                    </Button>
                                 )}
                                 {can.delete && (
-                                    <button
+                                    // No confirm: the removal waits five seconds behind an Undo.
+                                    <Button
                                         type="button"
+                                        variant="outline"
                                         className="corner-detail-action corner-detail-action--destructive shell-press"
                                         onClick={itemActions.handleDelete}
                                     >
                                         Remove
-                                    </button>
+                                    </Button>
                                 )}
                             </div>
                         </article>

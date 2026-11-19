@@ -1,69 +1,75 @@
-import * as DialogPrimitive from "@radix-ui/react-dialog"
+import { Dialog as DialogPrimitive } from "@base-ui/react/dialog"
 import * as React from "react"
 
 import { OverlayClose } from "@/components/ui/overlay-close"
-import { useKeyboardAwareDialog } from "@/hooks/use-keyboard-aware-dialog"
 import { useAppAttrs } from "@/hooks/use-app-attrs"
-import { useReturnFocus } from "@/hooks/use-return-focus"
 import { cn } from "@/lib/utils"
 
-function Dialog({
-  ...props
-}: React.ComponentProps<typeof DialogPrimitive.Root>) {
+function Dialog({ ...props }: DialogPrimitive.Root.Props) {
   return <DialogPrimitive.Root data-slot="dialog" {...props} />
 }
 
-function DialogPortal({
-  ...props
-}: React.ComponentProps<typeof DialogPrimitive.Portal>) {
+function DialogTrigger({ ...props }: DialogPrimitive.Trigger.Props) {
+  return <DialogPrimitive.Trigger data-slot="dialog-trigger" {...props} />
+}
+
+function DialogPortal({ ...props }: DialogPrimitive.Portal.Props) {
   return <DialogPrimitive.Portal data-slot="dialog-portal" {...props} />
+}
+
+function DialogClose({ ...props }: DialogPrimitive.Close.Props) {
+  return <DialogPrimitive.Close data-slot="dialog-close" {...props} />
 }
 
 function DialogOverlay({
   className,
   ...props
-}: React.ComponentProps<typeof DialogPrimitive.Overlay>) {
+}: DialogPrimitive.Backdrop.Props) {
   return (
-    <DialogPrimitive.Overlay
+    <DialogPrimitive.Backdrop
       data-slot="dialog-overlay"
       className={cn(
-        "shell-scrim data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 fixed inset-0 z-50 ease-(--ease-ui) data-[state=closed]:duration-(--dur-out) data-[state=open]:duration-(--dur-card)",
-        className
+        "shell-scrim fixed inset-0 z-(--z-overlay) transition-opacity duration-(--dur-card) ease-(--ease-ui) data-ending-style:opacity-0 data-ending-style:duration-(--dur-out) data-starting-style:opacity-0",
+        className as string
       )}
       {...props}
     />
   )
 }
 
+/*
+ * Centred, rising 8px as it fades in. On a phone a focused field moves the dialog to the top,
+ * since the on-screen keyboard covers the lower half and does not shrink the layout viewport.
+ */
 function DialogContent({
   className,
   children,
-  onOpenAutoFocus,
-  onCloseAutoFocus,
+  showCloseButton = true,
   ...props
-}: React.ComponentProps<typeof DialogPrimitive.Content>) {
+}: DialogPrimitive.Popup.Props & {
+  /* Off when the dialog places its own OverlayClose. */
+  showCloseButton?: boolean
+}) {
   const appAttrs = useAppAttrs()
-  const contentRef = React.useRef<HTMLDivElement>(null)
-  useKeyboardAwareDialog(contentRef)
-  const returnFocus = useReturnFocus({ onOpenAutoFocus, onCloseAutoFocus })
+
   return (
-    <DialogPortal data-slot="dialog-portal">
+    <DialogPortal>
       <DialogOverlay />
-      <DialogPrimitive.Content
-        ref={contentRef}
+      <DialogPrimitive.Popup
         data-slot="dialog-content"
         data-scroll-container=""
         className={cn(
-          "bg-background data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=open]:slide-in-from-bottom-2 fixed top-[50%] left-[50%] z-50 grid w-full max-w-[calc(100%-2rem)] translate-x-[-50%] translate-y-[-50%] gap-4 rounded-lg border p-6 ease-(--ease-ui) data-[state=closed]:duration-(--dur-out) data-[state=open]:duration-(--dur-card) sm:max-w-lg",
-          className
+          "bg-background fixed top-[50%] left-[50%] z-(--z-overlay) grid max-h-[calc(100dvh-2rem)] w-full max-w-[calc(100%-2rem)] translate-x-[-50%] translate-y-[-50%] gap-4 overflow-y-auto rounded-lg border p-6 outline-none sm:max-w-lg",
+          "transition-[opacity,translate] duration-(--dur-card) ease-(--ease-ui) data-ending-style:opacity-0 data-ending-style:duration-(--dur-out) data-starting-style:translate-y-[calc(-50%+8px)] data-starting-style:opacity-0",
+          "max-md:has-[:is(input,textarea):focus]:top-[max(12px,env(safe-area-inset-top))] max-md:has-[:is(input,textarea):focus]:translate-y-0",
+          className as string
         )}
         {...appAttrs}
         {...props}
-        {...returnFocus}
       >
         {children}
-        <OverlayClose />
-      </DialogPrimitive.Content>
+        {showCloseButton && <OverlayClose />}
+      </DialogPrimitive.Popup>
     </DialogPortal>
   )
 }
@@ -91,14 +97,11 @@ function DialogFooter({ className, ...props }: React.ComponentProps<"div">) {
   )
 }
 
-function DialogTitle({
-  className,
-  ...props
-}: React.ComponentProps<typeof DialogPrimitive.Title>) {
+function DialogTitle({ className, ...props }: DialogPrimitive.Title.Props) {
   return (
     <DialogPrimitive.Title
       data-slot="dialog-title"
-      className={cn("text-lg leading-none font-medium", className)}
+      className={cn("text-lg leading-none font-medium", className as string)}
       {...props}
     />
   )
@@ -107,11 +110,11 @@ function DialogTitle({
 function DialogDescription({
   className,
   ...props
-}: React.ComponentProps<typeof DialogPrimitive.Description>) {
+}: DialogPrimitive.Description.Props) {
   return (
     <DialogPrimitive.Description
       data-slot="dialog-description"
-      className={cn("text-muted-foreground text-sm", className)}
+      className={cn("text-muted-foreground text-sm", className as string)}
       {...props}
     />
   )
@@ -119,9 +122,13 @@ function DialogDescription({
 
 export {
   Dialog,
+  DialogClose,
   DialogContent,
   DialogDescription,
   DialogFooter,
   DialogHeader,
+  DialogOverlay,
+  DialogPortal,
   DialogTitle,
+  DialogTrigger,
 }

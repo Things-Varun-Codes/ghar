@@ -1,5 +1,5 @@
 /*
- * Radix portals mount at body, outside [data-app], so a mini app's scoped styles miss them. Spread
+ * Base UI portals mount at body, outside [data-app], so a mini app's scoped styles miss them. Spread
  * useAppAttrs() on each portaled root, before {...props}.
  */
 

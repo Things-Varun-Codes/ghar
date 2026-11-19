@@ -6,23 +6,20 @@ import {
     PopoverContent,
     PopoverTrigger,
 } from '@/components/ui/popover';
+import { Separator } from '@/components/ui/separator';
 import { logout } from '@/routes';
+import PersonAvatar from '@/Shell/Components/PersonAvatar';
 import type { ShellNavItem } from '@/Shell/Components/shell-nav';
 import {
     ADMIN_ITEMS,
     SETTINGS_ITEMS,
     isRouteActive,
 } from '@/Shell/Components/shell-nav';
+import type { Auth } from '@/types/auth';
 
-type SharedProps = {
-    auth: { user: { name: string; email: string; roles: string[] } | null };
-};
+type SharedProps = { auth: Auth };
 
-function initials(name: string): string {
-    const parts = name.trim().split(/\s+/).slice(0, 2);
-
-    return parts.map((p) => p.charAt(0).toUpperCase()).join('') || '?';
-}
+const GUEST = { name: '?', avatar_url: null };
 
 /**
  * `withNav` is the phone menu: below `lg` there is no sidebar, so Settings and Admin live here.
@@ -47,32 +44,30 @@ export default function AccountMenu({
 
     return (
         <Popover open={open} onOpenChange={setOpen}>
-            <PopoverTrigger asChild>
-                <button
-                    type="button"
-                    aria-label="Account menu"
-                    className="shell-focus shell-account-trigger flex items-center justify-center"
-                >
-                    <span className="shell-account-initials" aria-hidden="true">
-                        {user ? initials(user.name) : '?'}
-                    </span>
-                </button>
+            <PopoverTrigger
+                aria-label="Account menu"
+                className="shell-focus shell-account-trigger flex items-center justify-center"
+            >
+                <PersonAvatar person={user ?? GUEST} size={32} />
             </PopoverTrigger>
             <PopoverContent
                 align="end"
                 sideOffset={8}
                 collisionPadding={8}
-                className={`${withNav ? 'w-64' : 'w-56'} max-h-(--radix-popover-content-available-height) overflow-y-auto border-(--border) bg-(--card) p-1 text-(--foreground)`}
+                className={`${withNav ? 'w-64' : 'w-56'} max-h-(--available-height) overflow-y-auto border-(--border) bg-(--card) p-1 text-(--foreground)`}
             >
                 {user && (
-                    <>
-                        <div className="shell-account-name truncate">
-                            {user.name}
+                    <div className="shell-account-header flex items-center gap-3">
+                        <PersonAvatar person={user} size={44} />
+                        <div className="min-w-0">
+                            <div className="shell-account-name truncate">
+                                {user.name}
+                            </div>
+                            <div className="shell-account-email truncate">
+                                {user.email}
+                            </div>
                         </div>
-                        <div className="shell-account-email truncate">
-                            {user.email}
-                        </div>
-                    </>
+                    </div>
                 )}
                 {withNav && (
                     <nav aria-label="Account">
@@ -92,7 +87,7 @@ export default function AccountMenu({
                         )}
                     </nav>
                 )}
-                <div className="mt-1 mb-1 border-t border-t-(--border)" />
+                <Separator className="my-1" />
                 <Link
                     href={logout.url()}
                     method="post"
@@ -127,7 +122,8 @@ function MenuGroup({
     const id = useId();
 
     return (
-        <div className="border-t border-t-(--border) pt-1 pb-1 first:mt-1">
+        <div className="pb-1">
+            <Separator className="mb-1" />
             <p id={id} className="shell-account-group-label">
                 {label}
             </p>

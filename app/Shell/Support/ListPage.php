@@ -4,6 +4,7 @@ namespace App\Shell\Support;
 
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
+use Inertia\Support\Header;
 
 /**
  * A searchable, sortable cursor list page: the request's `sort`, `q` and (with a status column)
@@ -91,7 +92,8 @@ final class ListPage
     }
 
     /**
-     * The page under $key, with `sort` and `q`, and `filter` when the list has a status.
+     * The page under $key (an Inertia scroll prop), with `sort` and `q`, and `filter` when the
+     * list has a status.
      *
      * @param  callable(mixed): mixed  $transform
      * @return array<string, mixed>
@@ -114,8 +116,10 @@ final class ListPage
             $list->status($this->statusColumn);
         }
 
+        $this->startOverUnlessLoadingMore($key);
+
         $props = [
-            $key => $list->paginate($filter, $perPage, $transform),
+            $key => $list->scroll($filter, $perPage, $transform),
             'sort' => $sort,
             'q' => $q,
         ];
@@ -125,5 +129,24 @@ final class ListPage
         }
 
         return $props;
+    }
+
+    /**
+     * Any response but a load-more one (a filter, a mutation's redirect, a reload) shows the
+     * first page again. Inertia's InfiniteScroll only forgets how far it had loaded when the
+     * scroll prop says `reset`, which Inertia sets from this header; without it the next
+     * load-more would continue from the old list's cursor.
+     */
+    private function startOverUnlessLoadingMore(string $key): void
+    {
+        if ($this->request->headers->has(Header::INFINITE_SCROLL_MERGE_INTENT)) {
+            return;
+        }
+
+        $reset = array_filter(explode(',', (string) $this->request->header(Header::RESET)));
+
+        if (! in_array($key, $reset, true)) {
+            $this->request->headers->set(Header::RESET, implode(',', [...$reset, $key]));
+        }
     }
 }

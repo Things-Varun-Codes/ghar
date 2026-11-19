@@ -2,6 +2,9 @@ import { Head, Link, useForm } from '@inertiajs/react';
 import { useRef, useState } from 'react';
 import type { FormEventHandler } from 'react';
 import PasswordInput from '@/components/password-input';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { store } from '@/routes/login';
 import * as password from '@/routes/password';
 import AuthLayout from '@/Shell/Components/AuthLayout';
@@ -52,7 +55,7 @@ export default function Login({ status }: { status?: string }) {
 
             <form onSubmit={submit} noValidate className="mt-6 space-y-4">
                 <FormField label="Email" name="email">
-                    <input
+                    <Input
                         ref={emailInput}
                         id="email"
                         name="email"
@@ -68,7 +71,7 @@ export default function Login({ status }: { status?: string }) {
                             clearInvalid();
                         }}
                         disabled={isThrottled}
-                        className="shell-auth-email shell-field block w-full border px-3 py-2.5 outline-none"
+                        className="shell-auth-email"
                         placeholder="you@example.com"
                         required
                     />
@@ -89,7 +92,7 @@ export default function Login({ status }: { status?: string }) {
                             clearInvalid();
                         }}
                         disabled={isThrottled}
-                        className="shell-auth-password shell-field block w-full border px-3 py-2.5 outline-none"
+                        className="shell-auth-password"
                         required
                     />
                 </FormField>
@@ -102,19 +105,23 @@ export default function Login({ status }: { status?: string }) {
                     </Link>
                 </div>
 
-                <label className="flex min-h-[44px] items-center gap-2 pt-1 text-[16px]">
-                    <input
-                        type="checkbox"
+                <div className="flex min-h-[44px] items-center gap-3 pt-1">
+                    <Checkbox
+                        id="remember"
                         name="remember"
                         checked={data.remember}
-                        onChange={(e) => setData('remember', e.target.checked)}
+                        onCheckedChange={(checked) =>
+                            setData('remember', checked)
+                        }
                         disabled={isThrottled}
-                        className="h-[18px] w-[18px] rounded [accent-color:var(--primary)]"
                     />
-                    <span className="text-(--foreground)">
+                    <Label
+                        htmlFor="remember"
+                        className="text-[16px] font-normal text-(--foreground)"
+                    >
                         Keep me signed in
-                    </span>
-                </label>
+                    </Label>
+                </div>
 
                 <SubmitButton
                     processing={processing}

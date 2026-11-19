@@ -3,20 +3,24 @@ import { Link2 } from 'lucide-react';
 import { useState } from 'react';
 import type { FormEventHandler } from 'react';
 import { toast } from 'sonner';
+import { Button } from '@/components/ui/button';
 import {
     Dialog,
     DialogContent,
     DialogDescription,
+    DialogFooter,
     DialogHeader,
     DialogTitle,
 } from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
 import { Switch } from '@/components/ui/switch';
-import { mutationOptions } from '@/lib/mutation';
-import { cn } from '@/lib/utils';
+import { useDraftCloseGate } from '@/hooks/use-draft-close-gate';
+import { formSubmitOptions, mutationOptions } from '@/lib/mutation';
 import * as shortlinksRoutes from '@/routes/admin/shortlinks';
 import AdminCollection from '@/Shell/Components/AdminCollection';
 import type { AdminColumn } from '@/Shell/Components/AdminCollection';
 import ConfirmDialog from '@/Shell/Components/ConfirmDialog';
+import DiscardDraftDialog from '@/Shell/Components/DiscardDraftDialog';
 import EmptyState from '@/Shell/Components/EmptyState';
 import FormField from '@/Shell/Components/FormField';
 import Page from '@/Shell/Components/Page';
@@ -36,83 +40,129 @@ interface Props {
     shortlinks: ShortLink[];
 }
 
-function EditShortLinkForm({
+const FIELDS = new Set(['label', 'destination']);
+
+/*
+ * Keyed by the link's id: useForm seeds from props on mount only, so a second row's dialog
+ * would otherwise open with the first row's values.
+ */
+function EditShortLinkDialog({
     shortlink,
-    onDone,
+    open,
+    onClose,
 }: {
     shortlink: ShortLink;
-    onDone: () => void;
+    open: boolean;
+    onClose: () => void;
 }) {
-    const { data, setData, patch, processing, errors } = useForm({
+    const form = useForm({
         label: shortlink.label,
         destination: shortlink.destination,
+    });
+    const { data, setData, patch, processing, errors, reset } = form;
+
+    const gate = useDraftCloseGate({
+        open,
+        isDirty: form.isDirty,
+        onClose,
+        onDiscard: () => reset(),
     });
 
     const submit: FormEventHandler = (e) => {
         e.preventDefault();
         patch(shortlinksRoutes.update.url({ shortlink: shortlink.id }), {
             preserveScroll: true,
-            onSuccess: () => onDone(),
+            ...formSubmitOptions({
+                component: 'Admin/ShortLinks',
+                action: 'shortlinks.update',
+                isShownField: (key) => FIELDS.has(key),
+                onSuccess: () => {
+                    form.setDefaults();
+                    onClose();
+                },
+            }),
         });
     };
 
     return (
-        <form onSubmit={submit} className="flex flex-col gap-4">
-            <div>
-                <p className="os-admin-meta">Short URL:</p>
-                <p className="os-admin-strong break-all">{shortlink.url}</p>
-            </div>
-            <FormField
-                label="Label"
-                name="edit-shortlink-label"
-                error={errors.label}
-            >
-                <input
-                    id="edit-shortlink-label"
-                    type="text"
-                    value={data.label}
-                    onChange={(e) => setData('label', e.target.value)}
-                    className={cn(
-                        'os-admin-control shell-field block w-full border px-3 py-2.5 outline-none',
-                        errors.label && 'os-admin-control--invalid',
-                    )}
-                    required
-                />
-            </FormField>
-            <FormField
-                label="Destination"
-                name="edit-shortlink-destination"
-                error={errors.destination}
-            >
-                <input
-                    id="edit-shortlink-destination"
-                    type="url"
-                    value={data.destination}
-                    onChange={(e) => setData('destination', e.target.value)}
-                    className={cn(
-                        'os-admin-control shell-field block w-full border px-3 py-2.5 outline-none',
-                        errors.destination && 'os-admin-control--invalid',
-                    )}
-                    required
-                />
-            </FormField>
-            <div className="flex items-center gap-3">
-                <SubmitButton
-                    processing={processing}
-                    busyText="Saving…"
-                    className="os-admin-tap os-admin-fill-primary os-admin-submit shell-press px-5 font-medium"
+        <Dialog open={open} onOpenChange={gate.onOpenChange}>
+            <DialogContent>
+                <DialogHeader>
+                    <DialogTitle className="font-display text-(length:--text-title) font-normal">
+                        Edit shortlink
+                    </DialogTitle>
+                    <DialogDescription>
+                        Change where this tag sends people. The short URL below
+                        stays the same.
+                    </DialogDescription>
+                </DialogHeader>
+                <form
+                    id="edit-shortlink-form"
+                    onSubmit={submit}
+                    className="flex flex-col gap-4"
                 >
-                    Save
-                </SubmitButton>
-                <button
-                    type="button"
-                    onClick={onDone}
-                    className="os-admin-tap os-admin-tap-center os-admin-cancel-link shell-press px-5 font-medium"
-                >
-                    Cancel
-                </button>
-            </div>
-        </form>
+                    <div>
+                        <p className="os-admin-meta">Short URL:</p>
+                        <p className="os-admin-strong break-all">
+                            {shortlink.url}
+                        </p>
+                    </div>
+                    <FormField
+                        label="Label"
+                        name="edit-shortlink-label"
+                        error={errors.label}
+                    >
+                        <Input
+                            id="edit-shortlink-label"
+                            type="text"
+                            value={data.label}
+                            onChange={(e) => setData('label', e.target.value)}
+                            className="os-admin-control"
+                            required
+                        />
+                    </FormField>
+                    <FormField
+                        label="Destination"
+                        name="edit-shortlink-destination"
+                        error={errors.destination}
+                    >
+                        <Input
+                            id="edit-shortlink-destination"
+                            type="url"
+                            value={data.destination}
+                            onChange={(e) =>
+                                setData('destination', e.target.value)
+                            }
+                            className="os-admin-control"
+                            required
+                        />
+                    </FormField>
+                </form>
+                <DialogFooter>
+                    <Button
+                        type="button"
+                        variant="outline"
+                        className="shell-press"
+                        onClick={gate.requestClose}
+                    >
+                        Cancel
+                    </Button>
+                    <SubmitButton
+                        form="edit-shortlink-form"
+                        processing={processing}
+                        busyText="Saving…"
+                        className="os-admin-fill-primary os-admin-submit shell-press px-5"
+                    >
+                        Save
+                    </SubmitButton>
+                </DialogFooter>
+                <DiscardDraftDialog
+                    {...gate.prompt}
+                    title="Discard your changes?"
+                    description="The label and destination go back to what they were."
+                />
+            </DialogContent>
+        </Dialog>
     );
 }
 
@@ -124,29 +174,39 @@ export default function ShortLinks({ shortlinks }: Props) {
 
     const submit: FormEventHandler = (e) => {
         e.preventDefault();
-        post(shortlinksRoutes.store.url(), {
-            onSuccess: () => reset(),
-        });
+        post(
+            shortlinksRoutes.store.url(),
+            formSubmitOptions({
+                component: 'Admin/ShortLinks',
+                action: 'shortlinks.store',
+                isShownField: (key) => FIELDS.has(key),
+                onSuccess: () => reset(),
+            }),
+        );
     };
 
-    const [pendingDelete, setPendingDelete] = useState<ShortLink | null>(null);
-
+    // Each target stays after its dialog closes, so nothing empties while it fades out.
+    const [deleting, setDeleting] = useState<ShortLink | null>(null);
+    const [confirmOpen, setConfirmOpen] = useState(false);
     const [editing, setEditing] = useState<ShortLink | null>(null);
+    const [editOpen, setEditOpen] = useState(false);
 
     const handleDelete = (shortlink: ShortLink) => {
-        setPendingDelete(shortlink);
+        setDeleting(shortlink);
+        setConfirmOpen(true);
+    };
+
+    const handleEdit = (shortlink: ShortLink) => {
+        setEditing(shortlink);
+        setEditOpen(true);
     };
 
     const confirmDelete = () => {
-        if (!pendingDelete) {
-            return;
+        if (deleting) {
+            router.delete(
+                shortlinksRoutes.destroy.url({ shortlink: deleting.id }),
+            );
         }
-
-        const shortlink = pendingDelete;
-        setPendingDelete(null);
-        router.delete(
-            shortlinksRoutes.destroy.url({ shortlink: shortlink.id }),
-        );
     };
 
     const [toggling, setToggling] = useState<Set<number>>(new Set());
@@ -215,35 +275,38 @@ export default function ShortLinks({ shortlinks }: Props) {
             <span className="os-admin-strong whitespace-nowrap">
                 {new URL(shortlink.url).pathname}
             </span>
-            <button
+            <Button
                 type="button"
+                variant="outline"
                 onClick={() => copyUrl(shortlink.url)}
                 aria-label={`Copy the ${shortlink.label} link`}
-                className="os-admin-row-action os-admin-fill-accent shell-press inline-flex shrink-0 items-center justify-center"
+                className="os-admin-row-action os-admin-fill-accent shell-press shrink-0"
             >
                 Copy
-            </button>
+            </Button>
         </div>
     );
 
     const renderActions = (shortlink: ShortLink) => (
         <div className="flex items-center gap-2">
-            <button
+            <Button
                 type="button"
-                onClick={() => setEditing(shortlink)}
+                variant="outline"
+                onClick={() => handleEdit(shortlink)}
                 aria-label={`Edit ${shortlink.label}`}
-                className="os-admin-row-action os-admin-fill-accent shell-press inline-flex items-center justify-center"
+                className="os-admin-row-action os-admin-fill-accent shell-press"
             >
                 Edit
-            </button>
-            <button
+            </Button>
+            <Button
                 type="button"
+                variant="outline"
                 onClick={() => handleDelete(shortlink)}
                 aria-label={`Delete ${shortlink.label}`}
-                className="os-admin-row-action os-admin-outline-destructive shell-press inline-flex items-center justify-center"
+                className="os-admin-row-action os-admin-outline-destructive shell-press"
             >
                 Delete
-            </button>
+            </Button>
         </div>
     );
 
@@ -290,7 +353,7 @@ export default function ShortLinks({ shortlinks }: Props) {
                             error={errors.label}
                             className="min-w-[200px] flex-1"
                         >
-                            <input
+                            <Input
                                 id="shortlink-label"
                                 type="text"
                                 value={data.label}
@@ -298,10 +361,7 @@ export default function ShortLinks({ shortlinks }: Props) {
                                     setData('label', e.target.value)
                                 }
                                 placeholder="e.g. Keychain NFC tag"
-                                className={cn(
-                                    'os-admin-control shell-field block w-full border px-3 py-2.5 outline-none',
-                                    errors.label && 'os-admin-control--invalid',
-                                )}
+                                className="os-admin-control"
                                 required
                             />
                         </FormField>
@@ -311,7 +371,7 @@ export default function ShortLinks({ shortlinks }: Props) {
                             error={errors.destination}
                             className="min-w-[280px] flex-1"
                         >
-                            <input
+                            <Input
                                 id="shortlink-destination"
                                 type="url"
                                 value={data.destination}
@@ -319,18 +379,14 @@ export default function ShortLinks({ shortlinks }: Props) {
                                     setData('destination', e.target.value)
                                 }
                                 placeholder="https://example.com/page"
-                                className={cn(
-                                    'os-admin-control shell-field block w-full border px-3 py-2.5 outline-none',
-                                    errors.destination &&
-                                        'os-admin-control--invalid',
-                                )}
+                                className="os-admin-control"
                                 required
                             />
                         </FormField>
                         <SubmitButton
                             processing={processing}
                             busyText="Creating…"
-                            className="os-admin-tap os-admin-fill-primary os-admin-submit shell-press px-5 font-medium"
+                            className="os-admin-fill-primary os-admin-submit shell-press px-5"
                         >
                             Create shortlink
                         </SubmitButton>
@@ -361,50 +417,23 @@ export default function ShortLinks({ shortlinks }: Props) {
                 )}
 
                 <ConfirmDialog
-                    open={pendingDelete !== null}
-                    onOpenChange={(open) => {
-                        if (!open) {
-                            setPendingDelete(null);
-                        }
-                    }}
-                    title={`Delete ${pendingDelete?.label ?? ''}?`}
+                    open={confirmOpen}
+                    onOpenChange={setConfirmOpen}
+                    title={`Delete ${deleting?.label ?? 'this shortlink'}?`}
                     description="There's no undo. The tag stops working right away."
                     confirmLabel="Delete"
+                    variant="destructive"
                     onConfirm={confirmDelete}
-                    classNames={{ action: 'os-admin-fill-destructive' }}
                 />
 
-                {/* Edit — repoint a shortlink's label/destination.
-                    key={editing.id} is load-bearing: useForm
-                    seeds from props on mount only, so without the key,
-                    opening a second row's dialog would show the first
-                    row's stale values. DialogContent already spreads
-                    useAppAttrs() internally — do not hand-spread it here. */}
-                <Dialog
-                    open={editing !== null}
-                    onOpenChange={(open) => {
-                        if (!open) {
-                            setEditing(null);
-                        }
-                    }}
-                >
-                    <DialogContent>
-                        <DialogHeader>
-                            <DialogTitle>Edit shortlink</DialogTitle>
-                            <DialogDescription>
-                                Change where this tag sends people. The short
-                                URL below stays the same.
-                            </DialogDescription>
-                        </DialogHeader>
-                        {editing && (
-                            <EditShortLinkForm
-                                key={editing.id}
-                                shortlink={editing}
-                                onDone={() => setEditing(null)}
-                            />
-                        )}
-                    </DialogContent>
-                </Dialog>
+                {editing && (
+                    <EditShortLinkDialog
+                        key={editing.id}
+                        shortlink={editing}
+                        open={editOpen}
+                        onClose={() => setEditOpen(false)}
+                    />
+                )}
             </Page>
         </>
     );

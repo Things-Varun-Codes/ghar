@@ -84,7 +84,10 @@ class PushDispatcherTest extends TestCase
         $a = User::factory()->create(['name' => 'Arjun']);
 
         $this->assertSame(
-            [['id' => $a->id, 'name' => 'Arjun'], ['id' => $b->id, 'name' => 'Bea']],
+            [
+                ['id' => $a->id, 'name' => 'Arjun', 'avatar_url' => null],
+                ['id' => $b->id, 'name' => 'Bea', 'avatar_url' => null],
+            ],
             app(Household::class)->optionsFor($me),
         );
         $this->assertCount(3, app(Household::class)->members());

@@ -203,23 +203,6 @@ export function moveActive(rows: Row[], active: number, key: string): number {
     return target.first + Math.min(column, target.icons.length - 1);
 }
 
-/* The rows that meet the visible band, with some to spare either side. */
-export function visibleRows(
-    rows: Row[],
-    scrollTop: number,
-    viewport: number,
-    overscan = 2 * ROW_HEIGHT,
-): Row[] {
-    const from = scrollTop - overscan;
-    const to = scrollTop + viewport + overscan;
-
-    return rows.filter((row) => {
-        const height = row.kind === 'heading' ? HEADING_HEIGHT : ROW_HEIGHT;
-
-        return row.top + height >= from && row.top <= to;
-    });
-}
-
 /* The section whose heading has scrolled past the top, for the sticky heading. */
 export function sectionAt(rows: Row[], scrollTop: number): Section | null {
     let current: Section | null = null;

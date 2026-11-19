@@ -63,9 +63,7 @@ export default function CouponsIndex({
                 emptyIcon={Ticket}
                 emptyTitle={emptyCopy.title}
                 emptyBody={emptyCopy.body}
-                renderItem={(coupon) => (
-                    <CouponCard key={coupon.id} coupon={coupon} />
-                )}
+                renderItem={(coupon) => <CouponCard coupon={coupon} />}
             >
                 <CouponSheet
                     open={sheetOpen}

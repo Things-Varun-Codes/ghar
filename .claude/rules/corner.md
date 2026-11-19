@@ -40,8 +40,10 @@ its own lists; nothing about Songs or Movies is hard-coded any more.
   from data by the shell's `LinkableIcon` (lucide's `Icon` + `Shell/linkables/lucide-paths.json`);
   the picker also loads `lucide-index.json` (categories and tags). `scripts/lucide-icons.mjs` writes
   all three from the installed lucide-react; a unit test fails when they drift. The picker
-  (`IconPicker`) is a popover (a sheet on a phone) with search, a virtualised grid and keyboard
-  use; it sits inside the list settings sheet and goes through `useOverlayHistory`.
+  (`IconPicker`) is a popover (a sheet on a phone) with search, a grid virtualised by TanStack
+  Virtual (`useVirtualizer`, in a component marked `'use no memo'`: the React Compiler would keep
+  drawing the first rows) and keyboard use; it sits inside the list settings sheet and goes
+  through `useOverlayHistory`.
 - **History pills** carry the list's icon in `data-corner-icon`, but draw the item's current picture
   and icon from each moment's `links` (History's `LinkedThings` + the shell's
   `LinkableEntities::snapshotsFor`: one query for the references, one per linked type). A pill
@@ -74,7 +76,8 @@ its own lists; nothing about Songs or Movies is hard-coded any more.
   leaves them out. The types stay registered, so History keeps both old and new pills (shown as
   plain text) when a moment is saved meanwhile.
 - **Our Shelf** — a shelf of loved things, one look for every list. Its character is in its
-  objects, not its type or motion: `.corner-sticker` done flags (a fixed tilt, never animated), each
+  objects, not its type or motion: `.corner-sticker` done flags (a fixed tilt; the sticker scales in, through `Pop` on a wrapper,
+  when something is marked done, and never moves otherwise or on load), each
   item's picture in a rounded thumb (`ItemThumb`), and where there is no picture the list's own icon
   on an accent wash via `color-mix(in oklab, var(--shell-accent) N%, var(--shell-surface))` — never
   hex. Identity changes are CSS-only in `corner.css` over the shared components; don't fork
@@ -92,8 +95,12 @@ Applies to every list.
 - **`DetailPage`** owns the frame (two-column grid, back-reference sidebar, meta, actions, done
   control); `Pages/Item.tsx` fills it the same way for every item. `Pages/List.tsx` renders one
   `ItemCard` per item. Adding and editing happen in `ItemSheet` (a sheet: up to seven fields).
-- **Delete is deferred, not soft:** the row hides, an Undo toast cancels, the real request fires
-  after `DELETE_GRACE_PERIOD_MS` (5000 ms). Hard delete — no `deleted_at`, no restore route (see
+- **Sheets stay mounted once opened**, so they slide away when closed: `useSheetSession` keeps the
+  sheet's value while it closes and gives each opening a new `key`, so every opening starts from
+  a fresh form (an item saved and edited again shows what was saved).
+- **Delete is deferred, not soft:** the card folds away (`Reveal`, inside `ItemCard`, which keeps
+  the hook mounted), an Undo toast cancels and unfolds it, the real request fires after
+  `DELETE_GRACE_PERIOD_MS` (5000 ms). Hard delete — no `deleted_at`, no restore route (see
   ROADMAP.md for the planned soft-delete work).
 - Styling: Layer-3 classes in `resources/css/themes/corner.css`; detail pages use
   `.corner-detail-grid`.

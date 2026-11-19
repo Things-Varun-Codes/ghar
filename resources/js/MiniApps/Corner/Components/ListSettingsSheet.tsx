@@ -1,11 +1,9 @@
 import { useForm } from '@inertiajs/react';
 import { CheckCircle2 } from 'lucide-react';
-import type { FormEvent } from 'react';
-import { useId } from 'react';
+import type { FormEvent, ReactNode } from 'react';
 
 import { Input } from '@/components/ui/input';
-import { Switch } from '@/components/ui/switch';
-import { useDirtyFormGate } from '@/hooks/use-dirty-form-gate';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { formSubmitOptions } from '@/lib/mutation';
 import IconPicker from '@/MiniApps/Corner/Components/IconPicker';
 import type { ListSettings } from '@/MiniApps/Corner/lib/presets';
@@ -14,12 +12,13 @@ import {
     DONE_WORDS,
     TODO_FOR_DONE,
 } from '@/MiniApps/Corner/lib/presets';
-import type { CornerListInfo } from '@/MiniApps/Corner/lib/types';
+import type { CornerListInfo, DoneIcon } from '@/MiniApps/Corner/lib/types';
 import { store, update } from '@/routes/apps/our-shelf/lists';
 import FormField from '@/Shell/Components/FormField';
 import FormSheet from '@/Shell/Components/FormSheet';
 import HeartMark from '@/Shell/Components/HeartMark';
 import SubmitButton from '@/Shell/Components/SubmitButton';
+import SwitchRow from '@/Shell/Components/SwitchRow';
 
 type Props = {
     open: boolean;
@@ -42,16 +41,30 @@ function settingsOf(list: CornerListInfo): ListSettings {
 }
 
 /*
+ * A choice drawn as one of the room's chips. tailwind-merge drops the radio's round dot look;
+ * .corner-chip draws the rest, and data-checked marks the chosen one.
+ */
+function Chip({ value, children }: { value: string; children: ReactNode }) {
+    return (
+        <RadioGroupItem
+            value={value}
+            className="corner-chip shell-press aspect-auto size-auto rounded-(--corner-radius-pill) before:hidden"
+        >
+            {children}
+        </RadioGroupItem>
+    );
+}
+
+/*
  * Everything a household can say about a list: what it is called, its icon, the words and
  * mark for done, and whether adding to it tells everyone.
  */
 export default function ListSettingsSheet({ open, onOpenChange, list }: Props) {
     const isEdit = list !== undefined;
-    const ids = useId();
 
     const form = useForm<ListSettings>(list ? settingsOf(list) : BLANK_LIST);
     const { data, setData, post, patch, processing, errors, reset } = form;
-    const { isDirty, reset: gateReset } = useDirtyFormGate(form);
+    const { isDirty } = form;
 
     const pickDoneWord = (word: string) => {
         setData((prev) => ({
@@ -71,7 +84,7 @@ export default function ListSettingsSheet({ open, onOpenChange, list }: Props) {
                 action: isEdit ? 'list.update' : 'list.create',
                 isShownField: (key) => SHOWN_FIELDS.includes(key),
                 onSuccess: () => {
-                    gateReset();
+                    form.setDefaults();
                     onOpenChange(false);
                 },
             }),
@@ -93,10 +106,7 @@ export default function ListSettingsSheet({ open, onOpenChange, list }: Props) {
             title={isEdit ? `${list.name} settings` : 'New list'}
             description="Name the list, choose its icon and say what done means."
             isDirty={isDirty}
-            onDiscard={() => {
-                reset();
-                gateReset();
-            }}
+            onDiscard={() => reset()}
             onSubmit={handleSubmit}
             footer={
                 <SubmitButton
@@ -132,24 +142,18 @@ export default function ListSettingsSheet({ open, onOpenChange, list }: Props) {
                 <legend className="corner-fieldset-legend">
                     When one is done, it’s…
                 </legend>
-                <div
-                    role="radiogroup"
+                <RadioGroup
                     aria-label="Done word"
+                    value={data.done_label}
+                    onValueChange={(word) => pickDoneWord(word as string)}
                     className="corner-chip-row"
                 >
                     {DONE_WORDS.map((word) => (
-                        <button
-                            key={word}
-                            type="button"
-                            role="radio"
-                            aria-checked={data.done_label === word}
-                            onClick={() => pickDoneWord(word)}
-                            className="corner-chip shell-press"
-                        >
+                        <Chip key={word} value={word}>
                             {word}
-                        </button>
+                        </Chip>
                     ))}
-                </div>
+                </RadioGroup>
                 <div className="corner-word-pair">
                     <FormField
                         label={
@@ -192,56 +196,37 @@ export default function ListSettingsSheet({ open, onOpenChange, list }: Props) {
 
             <fieldset className="corner-fieldset">
                 <legend className="corner-fieldset-legend">Mark it with</legend>
-                <div
-                    role="radiogroup"
+                <RadioGroup
                     aria-label="Mark it with"
+                    value={data.done_icon}
+                    onValueChange={(icon) =>
+                        setData('done_icon', icon as DoneIcon)
+                    }
                     className="corner-chip-row"
                 >
-                    <button
-                        type="button"
-                        role="radio"
-                        aria-checked={data.done_icon === 'heart'}
-                        onClick={() => setData('done_icon', 'heart')}
-                        className="corner-chip shell-press"
-                    >
+                    <Chip value="heart">
                         <HeartMark size={14} filled />A heart
-                    </button>
-                    <button
-                        type="button"
-                        role="radio"
-                        aria-checked={data.done_icon === 'check'}
-                        onClick={() => setData('done_icon', 'check')}
-                        className="corner-chip shell-press"
-                    >
+                    </Chip>
+                    <Chip value="check">
                         <CheckCircle2
                             aria-hidden="true"
                             size={14}
                             strokeWidth={1.5}
                         />
                         A tick
-                    </button>
-                </div>
+                    </Chip>
+                </RadioGroup>
             </fieldset>
 
-            <div className="corner-switch-row">
-                <label
-                    htmlFor={`${ids}-notify`}
-                    className="corner-switch-label"
-                >
-                    Tell everyone when something is added
-                    <span className="corner-form-hint">
-                        A notification goes to the others who have them turned
-                        on.
-                    </span>
-                </label>
-                <Switch
-                    id={`${ids}-notify`}
-                    checked={data.notify_on_add}
-                    onCheckedChange={(checked) =>
-                        setData('notify_on_add', checked)
-                    }
-                />
-            </div>
+            <SwitchRow
+                label="Tell everyone when something is added"
+                description="A notification goes to the others who have them turned on."
+                checked={data.notify_on_add}
+                onCheckedChange={(checked) => setData('notify_on_add', checked)}
+                className="corner-switch-row"
+                labelClassName="corner-switch-label"
+                descriptionClassName="corner-form-hint"
+            />
         </FormSheet>
     );
 }

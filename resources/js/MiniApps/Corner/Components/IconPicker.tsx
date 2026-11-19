@@ -1,4 +1,5 @@
 import * as Sentry from '@sentry/react';
+import { useVirtualizer } from '@tanstack/react-virtual';
 import { ChevronDown, Search } from 'lucide-react';
 import type { KeyboardEvent, ReactNode } from 'react';
 import {
@@ -11,7 +12,12 @@ import {
     useState,
 } from 'react';
 
+import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import {
+    NativeSelect,
+    NativeSelectOption,
+} from '@/components/ui/native-select';
 import {
     Popover,
     PopoverContent,
@@ -40,7 +46,6 @@ import {
     rememberIcon,
     searchIcons,
     sectionAt,
-    visibleRows,
 } from '@/MiniApps/Corner/lib/icon-picker';
 import ErrorState from '@/Shell/Components/ErrorState';
 import LoadingState from '@/Shell/Components/LoadingState';
@@ -129,10 +134,7 @@ export default function IconPicker({
                     <SheetContent
                         side="bottom"
                         className="corner-icon-sheet h-[80dvh] gap-0 p-0"
-                        onCloseAutoFocus={(event) => {
-                            event.preventDefault();
-                            trigger.current?.focus();
-                        }}
+                        finalFocus={trigger}
                     >
                         <SheetTitle className="corner-icon-sheet-title">
                             Choose an icon
@@ -149,14 +151,13 @@ export default function IconPicker({
 
     return (
         <Popover open={open} onOpenChange={setOpen}>
-            <PopoverTrigger asChild>{button}</PopoverTrigger>
+            <PopoverTrigger render={button} />
             <PopoverContent
                 align="start"
                 className="corner-icon-popover w-[372px] p-0"
-                role="dialog"
                 aria-label="Choose an icon"
                 // The panel focuses its own search field.
-                onOpenAutoFocus={(event) => event.preventDefault()}
+                initialFocus={false}
             >
                 {panel}
             </PopoverContent>
@@ -262,11 +263,14 @@ function IconBrowser({
     onChoose: (icon: string) => void;
     searchRef: React.RefObject<HTMLInputElement | null>;
 }) {
+    // The virtualizer hands back the same object with new rows on every scroll; the compiler's
+    // memoising would keep drawing the first ones.
+    'use no memo';
+
     const ids = useId();
     const [query, setQuery] = useState('');
     const [active, setActive] = useState(-1);
-    const [scrollTop, setScrollTop] = useState(0);
-    const [size, setSize] = useState({ width: 344, height: 300 });
+    const [width, setWidth] = useState(344);
     const scroller = useRef<HTMLDivElement>(null);
 
     // The grid shows each icon once, by its own name; a list may hold an older alias of it.
@@ -317,8 +321,8 @@ function IconBrowser({
         ];
     }, [query, catalog, names, firstRow]);
 
-    const columns = columnsFor(size.width);
-    const { rows, height } = useMemo(
+    const columns = columnsFor(width);
+    const { rows } = useMemo(
         () => layoutRows(sections, columns),
         [sections, columns],
     );
@@ -335,6 +339,20 @@ function IconBrowser({
         [rows],
     );
 
+    // Rows of a heading or a full line of icons: their heights are known, so nothing is measured.
+    const virtualizer = useVirtualizer({
+        count: rows.length,
+        getScrollElement: () => scroller.current,
+        estimateSize: (index) =>
+            rows[index].kind === 'heading' ? HEADING_HEIGHT : ROW_HEIGHT,
+        getItemKey: (index) => `${rows[index].section.key}-${rows[index].top}`,
+        overscan: 4,
+        // The sticky heading covers the top of the grid: a row brought into view clears it.
+        scrollPaddingStart: HEADING_HEIGHT,
+        initialRect: { width: 344, height: 300 },
+    });
+
+    // The columns follow the panel's width; the virtualizer follows its height itself.
     useLayoutEffect(() => {
         const element = scroller.current;
 
@@ -342,11 +360,7 @@ function IconBrowser({
             return;
         }
 
-        const measure = () =>
-            setSize({
-                width: element.clientWidth,
-                height: element.clientHeight,
-            });
+        const measure = () => setWidth(element.clientWidth || 344);
         measure();
         const observer = new ResizeObserver(measure);
         observer.observe(element);
@@ -360,25 +374,15 @@ function IconBrowser({
             : undefined;
 
     const reveal = (index: number) => {
-        const element = scroller.current;
-        const row = rows.find(
+        const at = rows.findIndex(
             (r) =>
                 r.kind === 'icons' &&
                 index >= r.first &&
                 index < r.first + r.icons.length,
         );
 
-        if (!element || !row) {
-            return;
-        }
-
-        if (row.top < element.scrollTop + HEADING_HEIGHT) {
-            element.scrollTop = Math.max(0, row.top - HEADING_HEIGHT);
-        } else if (
-            row.top + ROW_HEIGHT >
-            element.scrollTop + element.clientHeight
-        ) {
-            element.scrollTop = row.top + ROW_HEIGHT - element.clientHeight;
+        if (at >= 0) {
+            virtualizer.scrollToIndex(at, { align: 'auto' });
         }
     };
 
@@ -416,13 +420,14 @@ function IconBrowser({
             (row) => row.kind === 'heading' && row.section.key === key,
         );
 
-        if (heading && scroller.current) {
-            scroller.current.scrollTop = heading.top;
+        if (heading) {
+            // Its own heading takes the sticky one's place exactly.
+            virtualizer.scrollToOffset(heading.top);
         }
     };
 
-    const current = sectionAt(rows, scrollTop);
-    const shown = visibleRows(rows, scrollTop, size.height);
+    const current = sectionAt(rows, virtualizer.scrollOffset ?? 0);
+    const shown = virtualizer.getVirtualItems();
     const named = flat[active]?.icon ?? value;
     const searching = query.trim() !== '';
 
@@ -446,7 +451,7 @@ function IconBrowser({
                         // A new search starts at its best match, at the top.
                         setQuery(e.target.value);
                         setActive(e.target.value.trim() === '' ? -1 : 0);
-                        scroller.current?.scrollTo({ top: 0 });
+                        virtualizer.scrollToOffset(0);
                     }}
                     onKeyDown={onKeyDown}
                 />
@@ -455,40 +460,36 @@ function IconBrowser({
             {!searching && (
                 <label className="corner-icon-jump">
                     <span className="sr-only">Jump to a category</span>
-                    <select
+                    <NativeSelect
                         value={current?.key ?? ''}
                         onChange={(e) => jumpTo(e.target.value)}
-                        className="corner-icon-jump-select shell-field"
+                        wrapperClassName="w-full"
+                        className="corner-icon-jump-select"
                     >
                         {sections
                             .filter((section) => section.icons.length > 0)
                             .map((section) => (
-                                <option key={section.key} value={section.key}>
+                                <NativeSelectOption
+                                    key={section.key}
+                                    value={section.key}
+                                >
                                     {section.title}
-                                </option>
+                                </NativeSelectOption>
                             ))}
-                    </select>
+                    </NativeSelect>
                 </label>
             )}
 
-            <div
-                ref={scroller}
-                className="corner-icon-scroll"
-                onScroll={(e) =>
-                    setScrollTop(
-                        Math.floor(e.currentTarget.scrollTop / ROW_HEIGHT) *
-                            ROW_HEIGHT,
-                    )
-                }
-            >
+            <div ref={scroller} className="corner-icon-scroll">
                 {rows.length === 0 ? (
                     <div className="corner-icon-empty" role="status">
                         <p>No icon matches “{query.trim()}”.</p>
                         <p className="corner-form-hint">
                             Try a simpler word, like food, home or travel.
                         </p>
-                        <button
+                        <Button
                             type="button"
+                            variant="link"
                             className="corner-text-button"
                             onClick={() => {
                                 setQuery('');
@@ -496,7 +497,7 @@ function IconBrowser({
                             }}
                         >
                             Clear search
-                        </button>
+                        </Button>
                     </div>
                 ) : (
                     <>
@@ -513,12 +514,12 @@ function IconBrowser({
                             role="listbox"
                             aria-label={searching ? 'Matching icons' : 'Icons'}
                             className="corner-icon-canvas"
-                            style={{ height }}
+                            style={{ height: virtualizer.getTotalSize() }}
                         >
-                            {shown.map((row) => (
+                            {shown.map((virtual) => (
                                 <GridRow
-                                    key={`${row.section.key}-${row.top}`}
-                                    row={row}
+                                    key={virtual.key}
+                                    row={rows[virtual.index]}
                                     value={chosen}
                                     active={active}
                                     optionId={optionId}

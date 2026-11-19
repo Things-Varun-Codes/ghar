@@ -1,11 +1,10 @@
-import { Slot } from "@radix-ui/react-slot"
+import { Button as ButtonPrimitive } from "@base-ui/react/button"
 import { cva, type VariantProps } from "class-variance-authority"
-import * as React from "react"
 
 import { cn } from "@/lib/utils"
 
 const buttonVariants = cva(
-  "shell-btn inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-full text-base font-medium disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 [&_svg]:shrink-0 outline-none aria-invalid:border-destructive",
+  "shell-btn inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-full text-base font-medium disabled:pointer-events-none disabled:opacity-50 data-disabled:pointer-events-none data-disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 [&_svg]:shrink-0 outline-none aria-invalid:border-destructive",
   {
     variants: {
       variant: {
@@ -34,22 +33,20 @@ const buttonVariants = cva(
   }
 )
 
+/*
+ * A link drawn as a button is `<Link className={buttonVariants()}>`, not this: Base UI's Button
+ * gives whatever it renders role="button".
+ */
 function Button({
   className,
   variant,
   size,
-  asChild = false,
   ...props
-}: React.ComponentProps<"button"> &
-  VariantProps<typeof buttonVariants> & {
-    asChild?: boolean
-  }) {
-  const Comp = asChild ? Slot : "button"
-
+}: ButtonPrimitive.Props & VariantProps<typeof buttonVariants>) {
   return (
-    <Comp
+    <ButtonPrimitive
       data-slot="button"
-      className={cn(buttonVariants({ variant, size, className }))}
+      className={cn(buttonVariants({ variant, size }), className as string)}
       {...props}
     />
   )

@@ -8,6 +8,8 @@ use App\Shell\Models\User;
 use App\Shell\Support\ListPage;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\Request;
+use Inertia\ScrollProp;
+use Inertia\Support\Header;
 use Tests\TestCase;
 
 class ListPageTest extends TestCase
@@ -78,8 +80,9 @@ class ListPageTest extends TestCase
         $this->assertSame(['items', 'sort', 'q'], array_keys($props));
         $this->assertSame('oldest', $props['sort']);
         $this->assertSame('kerala', $props['q']);
-        $this->assertSame([$older->id, $newer->id], $props['items']['data']);
-        $this->assertSame(['all' => 2, 'active' => 2, 'done' => 0], $props['items']['counts']);
+        $this->assertInstanceOf(ScrollProp::class, $props['items']);
+        $this->assertSame([$older->id, $newer->id], $props['items']()['data']);
+        $this->assertSame(['all' => 2, 'active' => 2, 'done' => 0], $props['items']()['counts']);
     }
 
     public function test_a_status_column_adds_the_filter(): void
@@ -92,10 +95,27 @@ class ListPageTest extends TestCase
             ->props('items', 50, fn (Item $i) => $i->id);
 
         $this->assertSame('done', $props['filter']);
-        $this->assertSame([$done->id], $props['items']['data']);
-        $this->assertSame(['all' => 2, 'active' => 1, 'done' => 1], $props['items']['counts']);
+        $this->assertSame([$done->id], $props['items']()['data']);
+        $this->assertSame(['all' => 2, 'active' => 1, 'done' => 1], $props['items']()['counts']);
 
         $this->assertSame('all', $this->page(['filter' => 'bogus'])->status('done_at')->filter());
         $this->assertSame('all', $this->page(['filter' => 'done'])->filter());
+    }
+
+    public function test_any_response_but_a_load_more_starts_the_list_over(): void
+    {
+        $request = Request::create('/', 'GET');
+        $request->headers->set(Header::RESET, 'other');
+        ListPage::make($request, Item::query(), ListPage::chronological('added_at'))
+            ->props('items', 50, fn (Item $i) => $i->id);
+
+        $this->assertSame('other,items', $request->header(Header::RESET));
+
+        $loadMore = Request::create('/', 'GET');
+        $loadMore->headers->set(Header::INFINITE_SCROLL_MERGE_INTENT, 'append');
+        ListPage::make($loadMore, Item::query(), ListPage::chronological('added_at'))
+            ->props('items', 50, fn (Item $i) => $i->id);
+
+        $this->assertNull($loadMore->header(Header::RESET));
     }
 }

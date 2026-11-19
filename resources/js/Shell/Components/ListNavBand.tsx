@@ -2,6 +2,13 @@ import { Search, X } from 'lucide-react';
 import type { ReactNode } from 'react';
 import { useEffect, useRef, useState } from 'react';
 
+import { Pop } from '@/components/motion';
+import {
+    InputGroup,
+    InputGroupAddon,
+    InputGroupButton,
+    InputGroupInput,
+} from '@/components/ui/input-group';
 import ChoiceMenu from '@/Shell/Components/ChoiceMenu';
 import type { ChoiceItem } from '@/Shell/Components/ChoiceMenu';
 import { Spinner } from '@/Shell/Components/Spinner';
@@ -77,14 +84,11 @@ export default function ListNavBand({
 
     const searchNode =
         searchPlaceholder !== undefined ? (
-            <div className="list-nav-band-search">
-                <Search
-                    aria-hidden="true"
-                    size={16}
-                    strokeWidth={1.5}
-                    className="shell-list-search-icon"
-                />
-                <input
+            <InputGroup className="list-nav-band-search shell-list-search-group">
+                <InputGroupAddon className="shell-list-search-icon">
+                    <Search aria-hidden="true" size={16} strokeWidth={1.5} />
+                </InputGroupAddon>
+                <InputGroupInput
                     ref={searchInput}
                     type="search"
                     enterKeyHint="search"
@@ -101,17 +105,18 @@ export default function ListNavBand({
                     aria-label={searchPlaceholder}
                     className="shell-list-search"
                 />
-                {searchValue !== '' && (
-                    <button
-                        type="button"
-                        onClick={clearSearch}
-                        aria-label="Clear search"
-                        className="shell-list-search-clear shell-focus"
-                    >
-                        <X size={16} strokeWidth={1.5} aria-hidden="true" />
-                    </button>
-                )}
-            </div>
+                <InputGroupAddon align="inline-end">
+                    <Pop show={searchValue !== ''} className="inline-flex">
+                        <InputGroupButton
+                            onClick={clearSearch}
+                            aria-label="Clear search"
+                            className="shell-list-search-clear"
+                        >
+                            <X size={16} strokeWidth={1.5} aria-hidden="true" />
+                        </InputGroupButton>
+                    </Pop>
+                </InputGroupAddon>
+            </InputGroup>
         ) : null;
 
     const sortNode = sortItems ? (

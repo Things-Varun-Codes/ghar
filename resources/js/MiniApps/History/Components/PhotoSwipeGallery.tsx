@@ -45,6 +45,30 @@ const PhotoSwipeGallery = forwardRef<PhotoSwipeGalleryHandle, Props>(
         // Back closes the lightbox first; inside a moment's sheet it shares the sheet's entry.
         useOverlayHistory(isOpen, () => lightboxRef.current?.pswp?.close());
 
+        // The sheet under the lightbox also closes on Escape, so the lightbox takes the key
+        // before anything else sees it and closes only itself.
+        useEffect(() => {
+            if (!isOpen) {
+                return;
+            }
+
+            const onKeyDown = (e: KeyboardEvent) => {
+                if (e.key !== 'Escape') {
+                    return;
+                }
+
+                e.stopPropagation();
+                lightboxRef.current?.pswp?.close();
+            };
+
+            window.addEventListener('keydown', onKeyDown, { capture: true });
+
+            return () =>
+                window.removeEventListener('keydown', onKeyDown, {
+                    capture: true,
+                });
+        }, [isOpen]);
+
         const mediaSignature = useMemo(
             () => media.map((m) => m.id).join(','),
             [media],
@@ -72,7 +96,7 @@ const PhotoSwipeGallery = forwardRef<PhotoSwipeGalleryHandle, Props>(
                 dataSource,
                 pswpModule: () => import('photoswipe'),
                 bgOpacity: 0.95,
-                // trapFocus fights the Radix Sheet's FocusScope when opened from inside one,
+                // trapFocus fights the sheet's own focus trap when opened from inside one,
                 // deadlocking focus.
                 trapFocus: false,
             });
