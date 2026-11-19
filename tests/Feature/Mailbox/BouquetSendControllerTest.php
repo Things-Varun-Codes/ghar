@@ -39,7 +39,7 @@ class BouquetSendControllerTest extends TestCase
 
         $fakeBase64 = base64_encode(file_get_contents(public_path('img/placeholder-bouquet.jpg')));
 
-        $response = $this->actingAs($sender)->post('/apps/our-mailbox/bouquets', [
+        $response = $this->actingAs($sender)->post('/apps/our-exchange/bouquets', [
             'recipient_ids' => [$recipient->id],
             'flowers' => ['red_rose', 'peony'],
             'note' => 'for you',
@@ -48,7 +48,7 @@ class BouquetSendControllerTest extends TestCase
         ]);
 
         // store() lands the sender on their Sent flowers, with a toast.
-        $response->assertRedirect('/apps/our-mailbox/flowers?tab=sent');
+        $response->assertRedirect('/apps/our-exchange/flowers?tab=sent');
         $this->assertSuccessToast($response, 'Flowers sent.');
 
         // Exactly 1 bouquet row, and it lives in mailbox_bouquets (not mailbox_messages).
@@ -83,9 +83,9 @@ class BouquetSendControllerTest extends TestCase
                 $webPushMessage = $notification->toWebPush($recipient, $notification);
                 $messageArray = $webPushMessage->toArray();
 
-                return ($messageArray['tag'] ?? null) === 'our-mailbox:flowers'
+                return ($messageArray['tag'] ?? null) === 'our-exchange:flowers'
                     && str_contains($messageArray['body'] ?? '', 'You got a bouquet from')
-                    && str_starts_with($messageArray['data']['url'] ?? '', '/apps/our-mailbox/flowers?focus=');
+                    && str_starts_with($messageArray['data']['url'] ?? '', '/apps/our-exchange/flowers?focus=');
             }
         );
 
@@ -102,7 +102,7 @@ class BouquetSendControllerTest extends TestCase
 
     public function test_send_requires_authentication(): void
     {
-        $response = $this->postJson('/apps/our-mailbox/bouquets', [
+        $response = $this->postJson('/apps/our-exchange/bouquets', [
             'flowers' => ['red_rose'],
             'image' => base64_encode('test'),
             'mime' => 'image/jpeg',
@@ -129,7 +129,7 @@ class BouquetSendControllerTest extends TestCase
         $sender = User::factory()->create();
         $recipient = User::factory()->create();
 
-        $this->actingAs($sender)->post('/apps/our-mailbox/bouquets', [
+        $this->actingAs($sender)->post('/apps/our-exchange/bouquets', [
             'recipient_ids' => [$recipient->id],
             'flowers' => ['red_rose'],
             'image' => $image,
@@ -145,7 +145,7 @@ class BouquetSendControllerTest extends TestCase
         $sender = User::factory()->create();
         $recipient = User::factory()->create();
 
-        $this->actingAs($sender)->post('/apps/our-mailbox/bouquets', [
+        $this->actingAs($sender)->post('/apps/our-exchange/bouquets', [
             'recipient_ids' => [$recipient->id],
             'flowers' => ['red_rose'],
             'image' => str_repeat('A', 14 * 1024 * 1024),
@@ -161,7 +161,7 @@ class BouquetSendControllerTest extends TestCase
         $recipient = User::factory()->create();
         $png = base64_decode('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==');
 
-        $this->actingAs($sender)->post('/apps/our-mailbox/bouquets', [
+        $this->actingAs($sender)->post('/apps/our-exchange/bouquets', [
             'recipient_ids' => [$recipient->id],
             'flowers' => ['red_rose'],
             'image' => base64_encode($png),

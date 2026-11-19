@@ -4,7 +4,7 @@ import { pageTitle } from '@/lib/title';
 import CornerLayout, {
     CORNER_ROOM,
 } from '@/MiniApps/Corner/Layouts/CornerLayout';
-import { landing } from '@/routes/apps/our-corner';
+import { landing } from '@/routes/apps/our-shelf';
 
 interface Props {
     kind: 'list' | 'item';

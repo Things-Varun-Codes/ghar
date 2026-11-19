@@ -70,9 +70,9 @@ describe('goBack', () => {
             .spyOn(window.history, 'back')
             .mockImplementation(() => {});
 
-        recordNavigation('/apps/our-corner/songs?q=rain');
-        recordNavigation('/apps/our-corner/songs/4');
-        goBack('/apps/our-corner/songs');
+        recordNavigation('/apps/our-shelf/songs?q=rain');
+        recordNavigation('/apps/our-shelf/songs/4');
+        goBack('/apps/our-shelf/songs');
 
         expect(back).toHaveBeenCalledTimes(1);
         expect(router.visit).not.toHaveBeenCalled();
@@ -84,28 +84,28 @@ describe('goBack', () => {
             .mockImplementation(() => {});
 
         recordNavigation('/dashboard');
-        recordNavigation('/apps/our-corner/songs/4');
-        goBack('/apps/our-corner/songs');
+        recordNavigation('/apps/our-shelf/songs/4');
+        goBack('/apps/our-shelf/songs');
 
         expect(back).not.toHaveBeenCalled();
-        expect(router.visit).toHaveBeenCalledWith('/apps/our-corner/songs', {
+        expect(router.visit).toHaveBeenCalledWith('/apps/our-shelf/songs', {
             replace: true,
         });
     });
 
     it('replaces the entry on a first page with no history', () => {
-        recordNavigation('/apps/our-corner/songs/4');
-        goBack('/apps/our-corner/songs');
+        recordNavigation('/apps/our-shelf/songs/4');
+        goBack('/apps/our-shelf/songs');
 
-        expect(router.visit).toHaveBeenCalledWith('/apps/our-corner/songs', {
+        expect(router.visit).toHaveBeenCalledWith('/apps/our-shelf/songs', {
             replace: true,
         });
     });
 
     it('keeps the previous page across same-path visits', () => {
         recordNavigation('/dashboard');
-        recordNavigation('/apps/our-corner/songs');
-        recordNavigation('/apps/our-corner/songs?q=rain', 'replace');
+        recordNavigation('/apps/our-shelf/songs');
+        recordNavigation('/apps/our-shelf/songs?q=rain', 'replace');
 
         expect(previousPath()).toBe('/dashboard');
     });
@@ -115,11 +115,11 @@ describe('goBack', () => {
             .spyOn(window.history, 'back')
             .mockImplementation(() => {});
 
-        recordNavigation('/apps/our-corner');
-        recordNavigation('/apps/our-corner/songs');
-        recordNavigation('/apps/our-corner/songs/4');
-        recordNavigation('/apps/our-corner/songs', 'history');
-        goBack('/apps/our-corner');
+        recordNavigation('/apps/our-shelf');
+        recordNavigation('/apps/our-shelf/songs');
+        recordNavigation('/apps/our-shelf/songs/4');
+        recordNavigation('/apps/our-shelf/songs', 'history');
+        goBack('/apps/our-shelf');
 
         expect(back).toHaveBeenCalledTimes(1);
         expect(router.visit).not.toHaveBeenCalled();

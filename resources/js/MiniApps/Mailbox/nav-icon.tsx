@@ -1,1 +1,1 @@
-export { Mailbox as default } from 'lucide-react';
+export { HeartHandshake as default } from 'lucide-react';

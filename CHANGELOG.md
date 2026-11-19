@@ -13,7 +13,7 @@ Migrations only run forward.
 
 ### Added
 
-- Our Corner's lists are the household's own. Anyone can make a list, with a name, an icon from the
+- Our Shelf's lists are the household's own. Anyone can make a list, with a name, an icon from the
   whole lucide set, a word for done (loved, watched, read, cooked or anything) and a heart or a
   tick. Lists can be renamed and reordered; deleting one with other people's things in it takes an
   admin.
@@ -21,14 +21,14 @@ Migrations only run forward.
       with everything kept: who added each one, who marked it done and when, pictures, links,
       addresses and coordinates.
     - Old links, notifications and the links inside History moments keep working.
-- Our Corner with no lists yet (a new install, once the room is on) suggests lists to add in one
+- Our Shelf with no lists yet (a new install, once the room is on) suggests lists to add in one
   tap.
 - Every History moment has its own address, `/apps/our-history?moment={id}`, so a link can open one
   directly.
 - When the server can't be reached, Ghar shows its own offline page instead of the browser's error.
 - On a phone, a bar at the bottom holds Home and each room, and a bar at the top shows where you are
   with a way back. Settings and Admin are in the account menu there.
-- The admin chooses the rooms. Admin → Rooms turns Our History, Our Corner and Our Mailbox on or
+- The admin chooses the rooms. Admin → Rooms turns Our History, Our Shelf and Our Exchange on or
   off, and turns the Mailbox's notes, flowers, citations and coupons on or off one by one. A room
   that is off disappears from Home, the phone bar and the install shortcuts, its addresses stop
   working and it sends no notifications. What was written in it is kept and comes back when it is
@@ -43,24 +43,24 @@ Migrations only run forward.
 - Back closes an open sheet or dialog instead of leaving the page, and asks before it throws away a
   draft.
 - Challans are now called citations everywhere: the screens, the addresses, the database table and
-  the notification tag. Old `/apps/our-mailbox/challans` addresses redirect, and reference numbers
+  the notification tag. Old `/apps/our-exchange/challans` addresses redirect, and reference numbers
   already issued (`OC/2026/000007`) are unchanged.
     - The table is renamed when the new version starts. Back up first, as always.
-- Every item in every Our Corner list looks the same and can have a name, notes, a link, a picture
+- Every item in every Our Shelf list looks the same and can have a name, notes, a link, a picture
   and a place. Pasting a link to almost any page fills in its name and picture from what the page
   itself publishes; Corner no longer knows any site by name. A picture can also be pasted or
   removed. Pictures are fetched and served by your install, so browsers never contact other sites,
   and every fetch refuses addresses inside your own network.
-- A place in Our Corner is a pasted map link, coordinates or a typed name, and "Open in Maps" opens
-  it in the device's maps app. Our Corner no longer uses Google Places.
+- A place in Our Shelf is a pasted map link, coordinates or a typed name, and "Open in Maps" opens
+  it in the device's maps app. Our Shelf no longer uses Google Places.
 - Dates read "4 Jun 2024" everywhere.
 - Error reports to Sentry or Glitchtip carry the exact version, such as `1.2.0`, instead of `1`.
 - Pages open faster. A photo keeps the same link for an hour, so the browser reuses it; Home, Our
   Corner and the History tabs load the next page before you tap; and the first load is about a third
   smaller.
     - A link to a photo now lasts one to two hours instead of exactly one.
-- The History link picker searches every Our Corner list and every moment, and shows which list or
-  kind of thing each result is. It keeps finding moments while Our Corner is off. A link in a moment
+- The History link picker searches every Our Shelf list and every moment, and shows which list or
+  kind of thing each result is. It keeps finding moments while Our Shelf is off. A link in a moment
   shows the linked thing's current picture, so it follows a picture that changes or goes.
 - The app on a home screen takes its name from `APP_NAME`, like every other page. One that is
   already installed keeps its old name until it is installed again.
@@ -73,7 +73,7 @@ Migrations only run forward.
 - The wording across the app and its emails is shorter and plainer, and says "moment" instead of
   "event" everywhere.
 - A search that finds nothing says so and offers to clear it.
-- In Our Corner and Our Mailbox, the sheets for adding, editing and writing rise from the bottom on
+- In Our Shelf and Our Exchange, the sheets for adding, editing and writing rise from the bottom on
   any screen that has the phone layout, and slide in from the side from there up, like the rest of
   the house.
 
@@ -81,9 +81,9 @@ Migrations only run forward.
 
 - After filtering, sorting or searching a list, back went to the previous filter instead of the
   previous page.
-    - Going back from a thing in Our Corner returns to the list as you had filtered it.
-- The page for one thing in Our Corner collapsed on screens between 768 and 1100 pixels wide.
-- Saving a thing in Our Corner showed "Something went wrong" even when the form already said what to
+    - Going back from a thing in Our Shelf returns to the list as you had filtered it.
+- The page for one thing in Our Shelf collapsed on screens between 768 and 1100 pixels wide.
+- Saving a thing in Our Shelf showed "Something went wrong" even when the form already said what to
   fix, and saving a list's settings without a connection showed an error page instead of a message.
     - A problem with a field is shown beside that field only; a failed save says so in a short message
       and keeps what you entered.
@@ -93,11 +93,11 @@ Migrations only run forward.
     - The "Delete this moment?" question closes as soon as you confirm, like every other confirmation.
 - When the Timeline or the Gallery in Our History couldn't load more moments or photos, nothing said
   so and scrolling did nothing more.
-    - The end of the list now says "Couldn't load more." with a Try again button, as Our Corner and
-      Our Mailbox do.
+    - The end of the list now says "Couldn't load more." with a Try again button, as Our Shelf and
+      Our Exchange do.
     - While more is loading it reads "Loading more…".
-- Adding a lot to Our Corner could stop you sending notes, flowers, citations or coupons for a
-  minute, because the two rooms shared one limit on how often you can save. Our Mailbox now has its
+- Adding a lot to Our Shelf could stop you sending notes, flowers, citations or coupons for a
+  minute, because the two rooms shared one limit on how often you can save. Our Exchange now has its
   own.
 - After "Send & write another", closing the note sheet asked whether to discard the note even when
   nothing new had been written.
@@ -117,8 +117,8 @@ download the new `docker-compose.selfhost.yml` before `pull` and `up -d`.
 The first public release.
 
 - Our History: a timeline, gallery and calendar of moments, with photos and videos.
-- Our Corner: shared lists of songs, movies, places and things to do.
-- Our Mailbox: notes and flowers to one or more people, challans and coupons.
+- Our Shelf: shared lists of songs, movies, places and things to do.
+- Our Exchange: notes and flowers to one or more people, challans and coupons.
 - Invite-only accounts with an admin role, Web Push, a home-screen app (PWA) and short links for
   NFC tags.
 - Photos stay on your own disk by default, behind signed links that expire. Any S3-compatible

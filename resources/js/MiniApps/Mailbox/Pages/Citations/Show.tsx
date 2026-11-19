@@ -4,7 +4,7 @@ import type { CitationPayload } from '@/MiniApps/Mailbox/Components/CitationCard
 import MailboxLayout, {
     MAILBOX_ROOM,
 } from '@/MiniApps/Mailbox/Layouts/MailboxLayout';
-import { index } from '@/routes/apps/our-mailbox/citations';
+import { index } from '@/routes/apps/our-exchange/citations';
 import Page from '@/Shell/Components/Page';
 
 type Props = {

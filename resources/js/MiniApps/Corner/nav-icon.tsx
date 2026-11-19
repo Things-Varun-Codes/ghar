@@ -1,1 +1,1 @@
-export { Sofa as default } from 'lucide-react';
+export { LibraryBig as default } from 'lucide-react';

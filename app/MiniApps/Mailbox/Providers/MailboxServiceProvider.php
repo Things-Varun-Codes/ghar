@@ -74,15 +74,15 @@ class MailboxServiceProvider extends ServiceProvider
     {
         EntryTypes::register($rooms);
 
-        $ownedContent->register('mailbox_messages', ['sender_id'], 'Mailbox messages');
-        $ownedContent->register('mailbox_message_recipients', ['user_id'], 'Mailbox messages received');
-        $ownedContent->register('mailbox_citations', ['issuer_id', 'recipient_id'], 'Mailbox citations');
-        $ownedContent->register('mailbox_coupons', ['issuer_id', 'recipient_id'], 'Mailbox coupons');
-        $ownedContent->register('mailbox_bouquets', ['sender_id'], 'Mailbox flowers');
-        $ownedContent->register('mailbox_bouquet_recipients', ['user_id'], 'Mailbox flowers received');
+        $ownedContent->register('mailbox_messages', ['sender_id'], 'Exchange messages');
+        $ownedContent->register('mailbox_message_recipients', ['user_id'], 'Exchange messages received');
+        $ownedContent->register('mailbox_citations', ['issuer_id', 'recipient_id'], 'Exchange citations');
+        $ownedContent->register('mailbox_coupons', ['issuer_id', 'recipient_id'], 'Exchange coupons');
+        $ownedContent->register('mailbox_bouquets', ['sender_id'], 'Exchange flowers');
+        $ownedContent->register('mailbox_bouquet_recipients', ['user_id'], 'Exchange flowers received');
 
-        $summaries->register('our-mailbox', fn (User $user): string => DashboardLine::forUser($user));
-        $summaries->registerPreview('our-mailbox', fn (User $user): ?array => DashboardPreview::forUser($user));
+        $summaries->register('our-exchange', fn (User $user): string => DashboardLine::forUser($user));
+        $summaries->registerPreview('our-exchange', fn (User $user): ?array => DashboardPreview::forUser($user));
 
         RateLimiter::for('mailbox-mutations', Limits::perUser(30));
 

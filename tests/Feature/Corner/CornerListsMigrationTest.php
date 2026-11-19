@@ -42,7 +42,7 @@ class CornerListsMigrationTest extends TestCase
 
     private function migrate(string $direction): void
     {
-        $migration = require database_path('migrations/our-corner/2026_11_16_100000_replace_corner_tables_with_lists_and_items.php');
+        $migration = require database_path('migrations/our-shelf/2026_11_16_100000_replace_corner_tables_with_lists_and_items.php');
 
         $migration->{$direction}();
     }
@@ -232,11 +232,11 @@ class CornerListsMigrationTest extends TestCase
         $place = Item::query()->where('legacy_type', 'corner.place')->where('legacy_id', 40)->sole();
         $linkable = app(LinkableEntities::class);
 
-        $this->assertSame(url("/apps/our-corner/songs/{$song->id}"), $linkable->resolve('corner.song', 3)['deep_link_url']);
+        $this->assertSame(url("/apps/our-shelf/songs/{$song->id}"), $linkable->resolve('corner.song', 3)['deep_link_url']);
         $this->assertSame('The bakery on 4th Cross', $linkable->resolve('corner.place', 40)['title']);
 
         $this->actingAs($this->meera)
-            ->get('/apps/our-corner/songs/3')
+            ->get('/apps/our-shelf/songs/3')
             ->assertOk()
             ->assertInertia(fn (AssertableInertia $page) => $page
                 ->component('MiniApps/Corner/Pages/Item')
@@ -246,11 +246,11 @@ class CornerListsMigrationTest extends TestCase
                 ->has('mentioned_in', 1));
 
         $this->actingAs($this->meera)
-            ->get('/apps/our-corner/places/40')
+            ->get('/apps/our-shelf/places/40')
             ->assertInertia(fn (AssertableInertia $page) => $page->where('item.id', $place->id));
 
         $this->actingAs($this->meera)
-            ->get('/apps/our-corner')
+            ->get('/apps/our-shelf')
             ->assertInertia(fn (AssertableInertia $page) => $page
                 ->has('lists', 4)
                 ->where('lists.0.count', 3)
@@ -375,7 +375,7 @@ class CornerListsMigrationTest extends TestCase
 
     public function test_the_migrations_frozen_link_rules_match_linkkey_today(): void
     {
-        $migration = require database_path('migrations/our-corner/2026_11_16_100000_replace_corner_tables_with_lists_and_items.php');
+        $migration = require database_path('migrations/our-shelf/2026_11_16_100000_replace_corner_tables_with_lists_and_items.php');
         $call = fn (string $method, string $url): mixed => (fn () => static::{$method}($url))->bindTo(null, $migration::class)();
 
         $urls = [

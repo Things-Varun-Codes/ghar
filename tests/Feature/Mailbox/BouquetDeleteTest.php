@@ -32,7 +32,7 @@ class BouquetDeleteTest extends TestCase
         Storage::disk('s3')->assertExists($key);
 
         $response = $this->actingAs($sender)
-            ->delete("/apps/our-mailbox/flowers/{$bouquet->id}")
+            ->delete("/apps/our-exchange/flowers/{$bouquet->id}")
             ->assertRedirect();
         $this->assertSuccessToast($response, 'Flowers deleted.');
 
@@ -60,7 +60,7 @@ class BouquetDeleteTest extends TestCase
 
         // The recipient (non-sender) cannot delete the bouquet.
         $this->actingAs($recipient)
-            ->delete("/apps/our-mailbox/flowers/{$bouquet->id}")
+            ->delete("/apps/our-exchange/flowers/{$bouquet->id}")
             ->assertStatus(403);
 
         $this->assertDatabaseHas('mailbox_bouquets', ['id' => $bouquet->id]);

@@ -15,7 +15,7 @@ import {
     platformOf,
 } from '@/MiniApps/Corner/lib/maps';
 import type { CornerItem, CornerListInfo } from '@/MiniApps/Corner/lib/types';
-import { show as showList } from '@/routes/apps/our-corner/lists';
+import { show as showList } from '@/routes/apps/our-shelf/lists';
 
 type Props = {
     list: CornerListInfo;

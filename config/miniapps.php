@@ -25,10 +25,10 @@ return [
     ],
 
     [
-        'name' => 'Our Corner',
-        'nav_label' => 'Corner',
-        'slug' => 'our-corner',
-        'route' => '/apps/our-corner',
+        'name' => 'Our Shelf',
+        'nav_label' => 'Shelf',
+        'slug' => 'our-shelf',
+        'route' => '/apps/our-shelf',
         'description' => 'Shared lists you make together: songs, films, places, books, anything.',
         'provider' => CornerServiceProvider::class,
         'admin_only' => false,
@@ -36,10 +36,10 @@ return [
     ],
 
     [
-        'name' => 'Our Mailbox',
-        'nav_label' => 'Mailbox',
-        'slug' => 'our-mailbox',
-        'route' => '/apps/our-mailbox',
+        'name' => 'Our Exchange',
+        'nav_label' => 'Exchange',
+        'slug' => 'our-exchange',
+        'route' => '/apps/our-exchange',
         'description' => 'Notes, flowers, citations and coupons for each other.',
         'provider' => MailboxServiceProvider::class,
         'admin_only' => false,

@@ -13,7 +13,7 @@ your own disk. It is open source under the MIT licence. "Ghar" is the Hindi and 
 <p>
   <img src="docs/screenshots/dashboard.webp" alt="Ghar's Home screen, with a door for each app showing its latest photos, songs and notes" width="49%">
   <img src="docs/screenshots/timeline.webp" alt="Our History timeline with a moment, its photos and the songs and places linked to it" width="49%">
-  <img src="docs/screenshots/mailbox.webp" alt="Our Mailbox notes, handwritten on ruled paper" width="49%">
+  <img src="docs/screenshots/mailbox.webp" alt="Our Exchange notes, handwritten on ruled paper" width="49%">
   <img src="docs/screenshots/citation.webp" alt="A joke traffic ticket for leaving wet towels on the bed" width="49%">
 </p>
 
@@ -26,10 +26,10 @@ it are a few small apps for the things families keep track of together:
 
 - **Our History**: a timeline, gallery and calendar of the moments you want to remember, with photos
   and videos.
-- **Our Corner**: shared lists the household makes for itself (songs, films, places, books,
+- **Our Shelf**: shared lists the household makes for itself (songs, films, places, books,
   recipes, anything), each with its own icon and its own word for done: loved, watched, visited,
   read.
-- **Our Mailbox**: notes and bouquets of flowers to one or more people, coupons someone can redeem,
+- **Our Exchange**: notes and bouquets of flowers to one or more people, coupons someone can redeem,
   and citations. A citation is a joke traffic ticket, a mock
   official form for an offence such as leaving wet towels on the bed, with a penalty the recipient
   can mark as paid.
@@ -103,7 +103,7 @@ for these:
   account you set up.
 - **Web Push**: notifications travel through each browser's own push service, once someone turns
   them on.
-- **Links in Our Corner**: when someone pastes a link, the server reads that page for its name and
+- **Links in Our Shelf**: when someone pastes a link, the server reads that page for its name and
   picture (the page's own oEmbed, Open Graph or title tags), follows a short map link to find its
   coordinates, and fetches the picture to show it. Browsers only ever talk to your install: Ghar
   serves the picture itself, from a small cache that may be thrown away. These fetches go only to

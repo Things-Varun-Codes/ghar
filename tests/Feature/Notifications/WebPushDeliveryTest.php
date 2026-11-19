@@ -47,7 +47,7 @@ class WebPushDeliveryTest extends TestCase
         Http::fake([self::ENDPOINT => Http::response('', 201)]);
         $user = $this->subscribedUser();
 
-        $user->notifyNow(new GenericPushNotification(['app' => 'our-mailbox', 'body' => 'Open the mailbox'], ['push']));
+        $user->notifyNow(new GenericPushNotification(['app' => 'our-exchange', 'body' => 'Open the mailbox'], ['push']));
 
         Http::assertSent(fn (Request $request) => $request->url() === self::ENDPOINT
             && $request->method() === 'POST'
@@ -62,7 +62,7 @@ class WebPushDeliveryTest extends TestCase
         Http::fake([self::ENDPOINT => Http::response('', 410)]);
         $user = $this->subscribedUser();
 
-        $user->notifyNow(new GenericPushNotification(['app' => 'our-mailbox', 'body' => 'Open the mailbox'], ['push']));
+        $user->notifyNow(new GenericPushNotification(['app' => 'our-exchange', 'body' => 'Open the mailbox'], ['push']));
 
         $this->assertDatabaseMissing('push_subscriptions', ['endpoint' => self::ENDPOINT]);
     }

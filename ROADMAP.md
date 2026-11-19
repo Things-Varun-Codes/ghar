@@ -8,14 +8,14 @@ when work lands, delete lines when they stop being true.
 - **Shell** — Fortify auth, invite-only onboarding, Spatie roles, admin UI, settings, PWA, Web Push + email notifications (`Notify::send()`), household
   membership and per-app permissions, auth-gated `/go/{code}` short links (for NFC tags), `/healthz`,
   Sentry-compatible error reporting.
-- **Our History** — timeline, gallery (PhotoSwipe), calendar view, TipTap editor with Corner
+- **Our History** — timeline, gallery (PhotoSwipe), calendar view, TipTap editor with Shelf
   cross-link pills, media on local disk or any S3 bucket, typed or Google Places locations.
-- **Our Corner** — lists the household makes itself (name, any lucide icon, done word), items
+- **Our Shelf** — lists the household makes itself (name, any lucide icon, done word), items
   with a name, notes, link, picture and place, generic link previews behind fetch guards, a picture
   proxy, Open in Maps, deferred-delete Undo.
-- **Our Mailbox** — messages, AI bouquets (Cloudflare Workers AI), citations, coupons.
-- **Rooms the admin chooses** — Admin → Rooms turns History, Corner and Mailbox on or off at runtime
-  (data kept), and Mailbox's four entry types individually. A fresh install starts with none on; an
+- **Our Exchange** — messages, AI bouquets (Cloudflare Workers AI), citations, coupons.
+- **Rooms the admin chooses** — Admin → Rooms turns History, Shelf and Exchange on or off at runtime
+  (data kept), and Exchange's four entry types individually. A fresh install starts with none on; an
   upgrade keeps what it had.
 - **Quality gates** — Eloquent strict mode, GitHub Actions CI, lefthook hooks, route-drift check,
   Vitest unit tier, headless and fault-injection smoke, restrictive user-FK offboarding.
@@ -51,7 +51,7 @@ row is gone. Plan:
    unit tests.
 5. Pick and document a purge policy.
 
-Must hold: a restore keeps the original id (History `body_html` bakes `/apps/our-corner/{slug}/{id}`
+Must hold: a restore keeps the original id (History `body_html` bakes `/apps/our-shelf/{slug}/{id}`
 into stored pills, and pills from before custom lists find an item by its `legacy_id`); non-owner
 restore → 403.
 

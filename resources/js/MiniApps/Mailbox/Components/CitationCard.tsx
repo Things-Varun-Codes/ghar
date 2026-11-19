@@ -1,7 +1,7 @@
 import { Link } from '@inertiajs/react';
 
 import CitationActions from '@/MiniApps/Mailbox/Components/CitationActions';
-import { show } from '@/routes/apps/our-mailbox/citations';
+import { show } from '@/routes/apps/our-exchange/citations';
 
 export type CitationPayload = {
     id: number;

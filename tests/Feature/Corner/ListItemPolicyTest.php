@@ -53,8 +53,8 @@ class ListItemPolicyTest extends TestCase
     {
         $list = $this->listCalled($slug);
         $item = $this->itemIn($list, $this->adder, ['title' => 'Original']);
-        $page = "/apps/our-corner/{$list->slug}/{$item->id}";
-        $url = "/apps/our-corner/items/{$item->id}";
+        $page = "/apps/our-shelf/{$list->slug}/{$item->id}";
+        $url = "/apps/our-shelf/items/{$item->id}";
 
         $this->actingAs($this->member)->from($page)->patch($url, $update)->assertForbidden();
         $this->actingAs($this->member)->from($page)->delete($url)->assertForbidden();
@@ -74,7 +74,7 @@ class ListItemPolicyTest extends TestCase
             ->get($page)
             ->assertInertia(fn (AssertableInertia $p) => $p->where('item.can', ['update' => false, 'delete' => false]));
         $this->actingAs($this->member)
-            ->get("/apps/our-corner/{$list->slug}")
+            ->get("/apps/our-shelf/{$list->slug}")
             ->assertInertia(fn (AssertableInertia $p) => $p->where('items.data.0.can', ['update' => false, 'delete' => false]));
     }
 
@@ -84,11 +84,11 @@ class ListItemPolicyTest extends TestCase
     {
         $list = $this->listCalled($slug);
         $item = $this->itemIn($list, $this->adder);
-        $page = "/apps/our-corner/{$list->slug}/{$item->id}";
-        $url = "/apps/our-corner/items/{$item->id}";
+        $page = "/apps/our-shelf/{$list->slug}/{$item->id}";
+        $url = "/apps/our-shelf/items/{$item->id}";
 
         $this->actingAs($this->admin)
-            ->get("/apps/our-corner/{$list->slug}")
+            ->get("/apps/our-shelf/{$list->slug}")
             ->assertInertia(fn (AssertableInertia $p) => $p->where('items.data.0.can', ['update' => true, 'delete' => true]));
 
         $this->actingAs($this->admin)->from($page)->patch($url, $update)->assertRedirect($page);
@@ -103,8 +103,8 @@ class ListItemPolicyTest extends TestCase
     {
         $list = $this->listCalled($slug);
         $item = $this->itemIn($list, $this->adder);
-        $page = "/apps/our-corner/{$list->slug}/{$item->id}";
-        $url = "/apps/our-corner/items/{$item->id}";
+        $page = "/apps/our-shelf/{$list->slug}/{$item->id}";
+        $url = "/apps/our-shelf/items/{$item->id}";
 
         $this->actingAs($this->adder)
             ->get($page)
@@ -117,7 +117,7 @@ class ListItemPolicyTest extends TestCase
 
     public function test_toggling_an_item_that_does_not_exist_is_a_404(): void
     {
-        $this->actingAs($this->member)->patch('/apps/our-corner/items/999999999/toggle-done')->assertNotFound();
-        $this->actingAs($this->admin)->delete('/apps/our-corner/items/999999999')->assertNotFound();
+        $this->actingAs($this->member)->patch('/apps/our-shelf/items/999999999/toggle-done')->assertNotFound();
+        $this->actingAs($this->admin)->delete('/apps/our-shelf/items/999999999')->assertNotFound();
     }
 }

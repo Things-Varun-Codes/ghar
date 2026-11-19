@@ -38,7 +38,7 @@ class BouquetCatalogValidationTest extends TestCase
         $this->bindFake();
 
         $this->actingAs(User::factory()->create())
-            ->postJson('/apps/our-mailbox/bouquets/generate', ['flowers' => $flowers])
+            ->postJson('/apps/our-exchange/bouquets/generate', ['flowers' => $flowers])
             ->assertStatus(422);
     }
 }

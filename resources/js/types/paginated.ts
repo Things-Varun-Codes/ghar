@@ -6,7 +6,7 @@ export type Paginated<T> = {
     next_page_url: string | null;
     prev_page_url: string | null;
     // Populated by any surface whose controller resolves its list through
-    // the shared CursorList helper — Our Corner and all four Our Mailbox
+    // the shared CursorList helper — Our Shelf and all four Our Exchange
     // surfaces (Messages, Flowers, Citations, Coupons). Mailbox declares no status column, so its
     // figures arrive
     // degraded: `active` equals `all` and `done` is always 0. Stays optional

@@ -87,7 +87,7 @@ class DashboardSummariesTest extends TestCase
         Item::factory()->create(['list_id' => CornerList::factory()->create()->id, 'added_by_user_id' => $user->id, 'title' => 'Blue Tokai', 'added_at' => '2026-10-20 10:00:00']);
 
         $this->actingAs($user)->get('/dashboard')
-            ->assertInertia(fn ($p) => $p->where('summaries.our-corner', 'Latest: Blue Tokai'));
+            ->assertInertia(fn ($p) => $p->where('summaries.our-shelf', 'Latest: Blue Tokai'));
     }
 
     public function test_corner_line_is_absent_with_no_items(): void
@@ -95,7 +95,7 @@ class DashboardSummariesTest extends TestCase
         $user = User::factory()->create();
 
         $this->actingAs($user)->get('/dashboard')
-            ->assertInertia(fn ($p) => $p->missing('summaries.our-corner'));
+            ->assertInertia(fn ($p) => $p->missing('summaries.our-shelf'));
     }
 
     public function test_corner_line_shows_items_from_anyone_in_the_household(): void
@@ -105,7 +105,7 @@ class DashboardSummariesTest extends TestCase
         Item::factory()->create(['list_id' => CornerList::factory()->create()->id, 'added_by_user_id' => $adder->id, 'title' => 'Blue Tokai', 'added_at' => '2026-10-21 10:00:00']);
 
         $this->actingAs($reader)->get('/dashboard')
-            ->assertInertia(fn ($p) => $p->where('summaries.our-corner', 'Latest: Blue Tokai'));
+            ->assertInertia(fn ($p) => $p->where('summaries.our-shelf', 'Latest: Blue Tokai'));
     }
 
     public function test_mailbox_line_counts_unread_notes_and_citations_to_pay(): void
@@ -119,7 +119,7 @@ class DashboardSummariesTest extends TestCase
         Citation::factory()->create(['issuer_id' => $other->id, 'recipient_id' => $viewer->id]);
 
         $this->actingAs($viewer)->get('/dashboard')
-            ->assertInertia(fn ($p) => $p->where('summaries.our-mailbox', '3 unread notes · 1 citation to pay'));
+            ->assertInertia(fn ($p) => $p->where('summaries.our-exchange', '3 unread notes · 1 citation to pay'));
     }
 
     public function test_mailbox_line_grammar(): void
@@ -128,16 +128,16 @@ class DashboardSummariesTest extends TestCase
         $other = User::factory()->create();
 
         $this->actingAs($viewer)->get('/dashboard')
-            ->assertInertia(fn ($p) => $p->where('summaries.our-mailbox', 'All caught up'));
+            ->assertInertia(fn ($p) => $p->where('summaries.our-exchange', 'All caught up'));
 
         MailboxMessage::factory()->to($viewer)->create(['sender_id' => $other->id]);
         $this->actingAs($viewer)->get('/dashboard')
-            ->assertInertia(fn ($p) => $p->where('summaries.our-mailbox', '1 unread note'));
+            ->assertInertia(fn ($p) => $p->where('summaries.our-exchange', '1 unread note'));
 
         MailboxMessage::query()->delete();
         Citation::factory()->count(2)->create(['issuer_id' => $other->id, 'recipient_id' => $viewer->id]);
         $this->actingAs($viewer)->get('/dashboard')
-            ->assertInertia(fn ($p) => $p->where('summaries.our-mailbox', '2 citations to pay'));
+            ->assertInertia(fn ($p) => $p->where('summaries.our-exchange', '2 citations to pay'));
     }
 
     public function test_a_throwing_resolver_is_omitted_and_dashboard_still_renders(): void

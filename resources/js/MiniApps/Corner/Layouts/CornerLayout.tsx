@@ -2,7 +2,7 @@ import type { ReactNode } from 'react';
 
 import RoomScope from '@/Shell/Components/RoomScope';
 
-export const CORNER_ROOM = 'Our Corner';
+export const CORNER_ROOM = 'Our Shelf';
 
 type CornerLayoutProps = {
     children: ReactNode;
@@ -11,7 +11,7 @@ type CornerLayoutProps = {
 export default function CornerLayout({ children }: CornerLayoutProps) {
     return (
         <RoomScope
-            slug="our-corner"
+            slug="our-shelf"
             className="corner-page min-h-full bg-(--corner-bg) text-(--corner-ink)"
         >
             {children}

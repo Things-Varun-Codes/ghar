@@ -1,4 +1,4 @@
-[data-app='our-corner'] {
+[data-app='our-shelf'] {
     --corner-bg: var(--shell-bg);
     --corner-paper: var(--shell-surface);
     --corner-card: var(--shell-surface);
@@ -44,15 +44,15 @@
     --corner-hover-fill: var(--shell-hover-wash);
 }
 
-[data-app='our-corner'] .corner-page {
+[data-app='our-shelf'] .corner-page {
     background-color: var(--corner-bg);
     color: var(--corner-ink);
     min-height: 100vh;
 }
 
 /* Meta everywhere in the room: who added it, where it came from. */
-[data-app='our-corner'] .corner-hand-meta,
-[data-app='our-corner'] .corner-row-meta {
+[data-app='our-shelf'] .corner-hand-meta,
+[data-app='our-shelf'] .corner-row-meta {
     font-family: var(--corner-font);
     font-size: var(--text-meta);
     font-weight: 500;
@@ -60,7 +60,7 @@
     color: var(--corner-ink-soft);
 }
 
-[data-app='our-corner'] .corner-row-meta {
+[data-app='our-shelf'] .corner-row-meta {
     display: block;
     margin: 4px 0 0;
 }
@@ -68,7 +68,7 @@
 /* ── Cards and tiles ─────────────────────────────────────────────────────── */
 
 /* The house card with the room's sage wash: the wash is what makes it a shelf. */
-[data-app='our-corner'] .corner-card {
+[data-app='our-shelf'] .corner-card {
     background: var(--corner-tile-wash);
     color: var(--corner-ink);
     border: 1px solid var(--corner-border);
@@ -77,14 +77,14 @@
     font-family: var(--corner-font);
 }
 
-[data-app='our-corner'] a.corner-card:focus-visible {
+[data-app='our-shelf'] a.corner-card:focus-visible {
     outline: 2px solid var(--corner-action);
     outline-offset: 2px;
 }
 
 /* ── Row text ────────────────────────────────────────────────────────────── */
 
-[data-app='our-corner'] .corner-row-title {
+[data-app='our-shelf'] .corner-row-title {
     display: block;
     font-family: var(--corner-font);
     font-size: var(--text-body);
@@ -98,7 +98,7 @@
     padding: 2px 0;
 }
 
-[data-app='our-corner'] .corner-item-actions {
+[data-app='our-shelf'] .corner-item-actions {
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -109,7 +109,7 @@
 /* ── The sticker: what is done keeps its colour and earns a mark ─────────── */
 
 /* The tilt is part of the object. It never moves. */
-[data-app='our-corner'] .corner-sticker {
+[data-app='our-shelf'] .corner-sticker {
     display: inline-flex;
     align-items: center;
     gap: 4px;
@@ -129,10 +129,10 @@
 /* ── Controls ────────────────────────────────────────────────────────────── */
 
 /* The house pill: outlined unless it is the one action on the page. */
-[data-app='our-corner'] .corner-detail-action,
-[data-app='our-corner'] .corner-done-toggle,
-[data-app='our-corner'] .corner-detail-cta,
-[data-app='our-corner'] .corner-not-found-back {
+[data-app='our-shelf'] .corner-detail-action,
+[data-app='our-shelf'] .corner-done-toggle,
+[data-app='our-shelf'] .corner-detail-cta,
+[data-app='our-shelf'] .corner-not-found-back {
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -153,21 +153,21 @@
     box-shadow: none;
 }
 
-[data-app='our-corner'] .corner-detail-action:hover,
-[data-app='our-corner'] .corner-done-toggle:hover,
-[data-app='our-corner'] .corner-not-found-back:hover {
+[data-app='our-shelf'] .corner-detail-action:hover,
+[data-app='our-shelf'] .corner-done-toggle:hover,
+[data-app='our-shelf'] .corner-not-found-back:hover {
     background: var(--corner-hover-fill);
     border-color: color-mix(in oklab, var(--corner-ink) 32%, transparent);
     color: var(--corner-ink);
 }
 
-[data-app='our-corner'] .corner-detail-action--destructive,
-[data-app='our-corner'] .corner-detail-action--destructive:hover {
+[data-app='our-shelf'] .corner-detail-action--destructive,
+[data-app='our-shelf'] .corner-detail-action--destructive:hover {
     border-color: var(--corner-destructive);
     color: var(--corner-destructive);
 }
 
-[data-app='our-corner'] .corner-detail-action--destructive:hover {
+[data-app='our-shelf'] .corner-detail-action--destructive:hover {
     background: color-mix(
         in oklab,
         var(--corner-destructive) 6%,
@@ -175,13 +175,13 @@
     );
 }
 
-[data-app='our-corner'] .corner-detail-cta {
+[data-app='our-shelf'] .corner-detail-cta {
     border-color: transparent;
     background: var(--corner-action);
     color: var(--corner-action-fg);
 }
 
-[data-app='our-corner'] .corner-detail-cta:hover {
+[data-app='our-shelf'] .corner-detail-cta:hover {
     background: color-mix(
         in oklab,
         var(--corner-action) 86%,
@@ -190,14 +190,14 @@
 }
 
 /* Selected, not filled-for-action: the light sage marks what is already loved or done. */
-[data-app='our-corner'] .corner-done-toggle[data-state='on'],
-[data-app='our-corner'] .corner-done-toggle[data-state='on']:hover {
+[data-app='our-shelf'] .corner-done-toggle[data-state='on'],
+[data-app='our-shelf'] .corner-done-toggle[data-state='on']:hover {
     background: var(--corner-accent);
     color: var(--corner-accent-fg);
     border-color: transparent;
 }
 
-[data-app='our-corner'] .corner-done-toggle[data-state='on']:hover {
+[data-app='our-shelf'] .corner-done-toggle[data-state='on']:hover {
     background: color-mix(
         in oklab,
         var(--corner-accent) 86%,
@@ -206,12 +206,12 @@
 }
 
 /* In flight: taps are ignored until the server answers. */
-[data-app='our-corner'] .corner-done-toggle[aria-disabled='true'] {
+[data-app='our-shelf'] .corner-done-toggle[aria-disabled='true'] {
     cursor: progress;
     opacity: 0.7;
 }
 
-[data-app='our-corner'] .corner-done-toggle--icon {
+[data-app='our-shelf'] .corner-done-toggle--icon {
     flex-shrink: 0;
     min-width: 44px;
     width: 44px;
@@ -219,12 +219,12 @@
     padding: 0;
 }
 
-[data-app='our-corner'] .corner-done-toggle--icon svg {
+[data-app='our-shelf'] .corner-done-toggle--icon svg {
     width: 18px;
     height: 18px;
 }
 
-[data-app='our-corner'] .corner-icon-btn {
+[data-app='our-shelf'] .corner-icon-btn {
     display: flex;
     align-items: center;
     justify-content: center;
@@ -239,18 +239,18 @@
     height: 44px;
 }
 
-[data-app='our-corner'] .corner-icon-btn:hover,
-[data-app='our-corner'] .corner-icon-btn[data-state='open'] {
+[data-app='our-shelf'] .corner-icon-btn:hover,
+[data-app='our-shelf'] .corner-icon-btn[data-state='open'] {
     background: color-mix(in oklab, var(--corner-ink) 6%, transparent);
 }
 
 /* .shell-press draws the outline; Toggle's own ring would double it. */
-[data-app='our-corner'] .corner-done-toggle:focus-visible {
+[data-app='our-shelf'] .corner-done-toggle:focus-visible {
     box-shadow: none;
 }
 
-[data-app='our-corner'] .corner-backref-missing-toggle:focus-visible,
-[data-app='our-corner'] a.backref-card:focus-visible {
+[data-app='our-shelf'] .corner-backref-missing-toggle:focus-visible,
+[data-app='our-shelf'] a.backref-card:focus-visible {
     outline: 2px solid var(--corner-action);
     outline-offset: 2px;
     box-shadow: none;
@@ -260,36 +260,36 @@
 
 /* Sized by the room, not the viewport: one door a row on a phone, two on a tablet, four wide. */
 /* The container is the wrapper: a container query can't restyle the container itself. */
-[data-app='our-corner'] .corner-doors-wrap {
+[data-app='our-shelf'] .corner-doors-wrap {
     container: corner-doors / inline-size;
 }
 
-[data-app='our-corner'] .corner-doors {
+[data-app='our-shelf'] .corner-doors {
     display: grid;
     grid-template-columns: minmax(0, 1fr);
     gap: 12px;
 }
 
 @container corner-doors (min-width: 560px) {
-    [data-app='our-corner'] .corner-doors {
+    [data-app='our-shelf'] .corner-doors {
         grid-template-columns: repeat(2, minmax(0, 1fr));
         gap: 16px;
     }
 }
 
 @container corner-doors (min-width: 1040px) {
-    [data-app='our-corner'] .corner-doors {
+    [data-app='our-shelf'] .corner-doors {
         grid-template-columns: repeat(4, minmax(0, 1fr));
     }
 }
 
-[data-app='our-corner'] .corner-door {
+[data-app='our-shelf'] .corner-door {
     display: flex;
     flex-direction: column;
     min-width: 0;
 }
 
-[data-app='our-corner'] .corner-door-peek {
+[data-app='our-shelf'] .corner-door-peek {
     display: flex;
     height: 104px;
     border-radius: var(--corner-radius-inner);
@@ -298,12 +298,12 @@
 }
 
 @container corner-doors (min-width: 560px) {
-    [data-app='our-corner'] .corner-door-peek {
+    [data-app='our-shelf'] .corner-door-peek {
         height: 136px;
     }
 }
 
-[data-app='our-corner'] .corner-door-name {
+[data-app='our-shelf'] .corner-door-name {
     margin: 12px 4px 0;
     font-family: var(--corner-font-display);
     font-size: var(--text-title);
@@ -313,12 +313,12 @@
     color: var(--corner-ink);
 }
 
-[data-app='our-corner'] .corner-door-name .shell-card-link {
+[data-app='our-shelf'] .corner-door-name .shell-card-link {
     color: inherit;
     text-decoration: none;
 }
 
-[data-app='our-corner'] .corner-door-live {
+[data-app='our-shelf'] .corner-door-live {
     margin: 2px 4px 4px;
     font-size: var(--text-meta);
     font-weight: 500;
@@ -328,7 +328,7 @@
 }
 
 /* Pictures stand on the shelf at the peek's height; what doesn't fit is clipped. */
-[data-app='our-corner'] .corner-door-shelf {
+[data-app='our-shelf'] .corner-door-shelf {
     display: flex;
     gap: 6px;
     height: 100%;
@@ -337,7 +337,7 @@
 }
 
 /* A list without pictures: the latest few, like a scrap of a list. */
-[data-app='our-corner'] .corner-door-scrap {
+[data-app='our-shelf'] .corner-door-scrap {
     display: flex;
     flex-direction: column;
     justify-content: center;
@@ -348,7 +348,7 @@
     list-style: none;
 }
 
-[data-app='our-corner'] .corner-door-scrap li {
+[data-app='our-shelf'] .corner-door-scrap li {
     display: flex;
     align-items: center;
     min-width: 0;
@@ -357,7 +357,7 @@
     color: var(--corner-ink);
 }
 
-[data-app='our-corner'] .corner-door-scrap li::before {
+[data-app='our-shelf'] .corner-door-scrap li::before {
     content: '';
     flex: none;
     width: 6px;
@@ -367,19 +367,19 @@
     background: var(--corner-accent-text);
 }
 
-[data-app='our-corner'] .corner-door-scrap-title {
+[data-app='our-shelf'] .corner-door-scrap-title {
     min-width: 0;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
 }
 
-[data-app='our-corner'] .corner-door-scrap .corner-sticker {
+[data-app='our-shelf'] .corner-door-scrap .corner-sticker {
     flex: none;
 }
 
 /* An empty list: its icon alone. */
-[data-app='our-corner'] .corner-door-empty {
+[data-app='our-shelf'] .corner-door-empty {
     flex: none;
     color: var(--corner-accent-text);
     display: grid;
@@ -395,11 +395,11 @@
  * sidebar. Two columns need 760px of their own (at 1440 with the sidebar, about 1070px);
  * the art sits beside the text only when the article itself is 560px wide.
  */
-[data-app='our-corner'] .corner-detail {
+[data-app='our-shelf'] .corner-detail {
     container: corner-detail / inline-size;
 }
 
-[data-app='our-corner'] .corner-detail-grid {
+[data-app='our-shelf'] .corner-detail-grid {
     display: grid;
     grid-template-columns: minmax(0, 1fr);
     gap: 32px;
@@ -408,23 +408,23 @@
 }
 
 @container corner-detail (min-width: 760px) {
-    [data-app='our-corner'] .corner-detail-grid {
+    [data-app='our-shelf'] .corner-detail-grid {
         grid-template-columns: minmax(0, 1fr) 300px;
     }
 }
 
 @container corner-detail (min-width: 1000px) {
-    [data-app='our-corner'] .corner-detail-grid {
+    [data-app='our-shelf'] .corner-detail-grid {
         grid-template-columns: minmax(0, 1fr) 380px;
     }
 }
 
-[data-app='our-corner'] .corner-detail-main {
+[data-app='our-shelf'] .corner-detail-main {
     container: corner-detail-main / inline-size;
     min-width: 0;
 }
 
-[data-app='our-corner'] .corner-detail-article {
+[data-app='our-shelf'] .corner-detail-article {
     padding: 20px;
     border-radius: var(--corner-radius-card);
     border: 1px solid var(--corner-border);
@@ -434,24 +434,24 @@
 }
 
 @container corner-detail-main (min-width: 480px) {
-    [data-app='our-corner'] .corner-detail-article {
+    [data-app='our-shelf'] .corner-detail-article {
         padding: 24px;
     }
 }
 
-[data-app='our-corner'] .corner-detail-hero-media {
+[data-app='our-shelf'] .corner-detail-hero-media {
     display: flex;
     margin-bottom: 16px;
 }
 
-[data-app='our-corner'] .corner-detail-lede {
+[data-app='our-shelf'] .corner-detail-lede {
     margin: 0 0 8px 0;
     font-size: var(--text-body);
     line-height: 1.5;
     color: var(--corner-ink);
 }
 
-[data-app='our-corner'] .corner-detail-notes {
+[data-app='our-shelf'] .corner-detail-notes {
     margin: 0 0 16px 0;
     font-size: var(--text-body);
     line-height: 1.6;
@@ -459,7 +459,7 @@
     white-space: pre-wrap;
 }
 
-[data-app='our-corner'] .corner-detail-meta {
+[data-app='our-shelf'] .corner-detail-meta {
     margin: 0 0 24px 0;
     font-family: var(--corner-font);
     font-size: var(--text-meta);
@@ -468,7 +468,7 @@
     color: var(--corner-ink-soft);
 }
 
-[data-app='our-corner'] .corner-detail-coords {
+[data-app='our-shelf'] .corner-detail-coords {
     margin: 0 0 12px 0;
     font-size: var(--text-meta);
     font-weight: 500;
@@ -476,7 +476,7 @@
     color: var(--corner-ink-soft);
 }
 
-[data-app='our-corner'] .corner-detail-actions {
+[data-app='our-shelf'] .corner-detail-actions {
     display: flex;
     align-items: center;
     gap: 12px;
@@ -484,14 +484,14 @@
 }
 
 /* The pin. */
-[data-app='our-corner'] .corner-detail-place {
+[data-app='our-shelf'] .corner-detail-place {
     display: flex;
     gap: 12px;
     align-items: flex-start;
     margin-bottom: 8px;
 }
 
-[data-app='our-corner'] .corner-detail-place-icon {
+[data-app='our-shelf'] .corner-detail-place-icon {
     flex-shrink: 0;
     color: var(--corner-accent-text);
 }
@@ -499,14 +499,14 @@
 /* ── "Mentioned in" ──────────────────────────────────────────────────────── */
 
 /* Stacked under the item, a rule above it; beside the item, a rule between the columns. */
-[data-app='our-corner'] .backref-sidebar {
+[data-app='our-shelf'] .backref-sidebar {
     min-width: 0;
     padding-top: 24px;
     border-top: 1px solid var(--corner-border);
 }
 
 @container corner-detail (min-width: 760px) {
-    [data-app='our-corner'] .backref-sidebar {
+    [data-app='our-shelf'] .backref-sidebar {
         position: sticky;
         top: 16px;
         align-self: start;
@@ -516,7 +516,7 @@
     }
 }
 
-[data-app='our-corner'] .corner-backref-heading {
+[data-app='our-shelf'] .corner-backref-heading {
     margin: 0 0 16px 0;
     font-family: var(--corner-font-display);
     font-size: var(--text-title);
@@ -527,7 +527,7 @@
     color: var(--corner-ink);
 }
 
-[data-app='our-corner'] .corner-backref-empty {
+[data-app='our-shelf'] .corner-backref-empty {
     margin: 0;
     font-size: var(--text-small);
     font-weight: 400;
@@ -535,7 +535,7 @@
     color: var(--corner-ink-soft);
 }
 
-[data-app='our-corner'] .backref-card {
+[data-app='our-shelf'] .backref-card {
     display: block;
     padding: 12px 16px;
     background-color: var(--corner-card);
@@ -545,14 +545,14 @@
     font-family: var(--corner-font);
 }
 
-[data-app='our-corner'] .corner-backref-link {
+[data-app='our-shelf'] .corner-backref-link {
     display: flex;
     align-items: center;
     gap: 12px;
     text-decoration: none;
 }
 
-[data-app='our-corner'] .corner-backref-thumb {
+[data-app='our-shelf'] .corner-backref-thumb {
     width: 48px;
     height: 48px;
     object-fit: cover;
@@ -560,19 +560,19 @@
     flex-shrink: 0;
 }
 
-[data-app='our-corner'] .corner-backref-title {
+[data-app='our-shelf'] .corner-backref-title {
     font-size: var(--text-body);
     font-weight: 500;
     line-height: 1.4;
     color: var(--corner-ink);
 }
 
-[data-app='our-corner'] .corner-backref-removed {
+[data-app='our-shelf'] .corner-backref-removed {
     opacity: 0.65;
     cursor: not-allowed;
 }
 
-[data-app='our-corner'] .missing-banner {
+[data-app='our-shelf'] .missing-banner {
     display: flex;
     align-items: center;
     gap: 8px;
@@ -590,7 +590,7 @@
     font-family: var(--corner-font);
 }
 
-[data-app='our-corner'] .corner-backref-missing-toggle {
+[data-app='our-shelf'] .corner-backref-missing-toggle {
     display: block;
     width: 100%;
     background: transparent;
@@ -601,7 +601,7 @@
 
 /* ── Forms ───────────────────────────────────────────────────────────────── */
 
-[data-app='our-corner'] .corner-form-hint {
+[data-app='our-shelf'] .corner-form-hint {
     margin: 4px 0 0 0;
     font-size: var(--text-small);
     line-height: 1.5;
@@ -610,14 +610,14 @@
 
 /* ── Landing: a door's name, icon and menu ───────────────────────────────── */
 
-[data-app='our-corner'] .corner-door-head {
+[data-app='our-shelf'] .corner-door-head {
     display: flex;
     align-items: flex-start;
     gap: 4px;
     min-width: 0;
 }
 
-[data-app='our-corner'] .corner-door-head .corner-door-name {
+[data-app='our-shelf'] .corner-door-head .corner-door-name {
     flex: 1;
     min-width: 0;
     display: flex;
@@ -626,7 +626,7 @@
 }
 
 /* A household names its lists: a long name wraps to two lines and then stops. */
-[data-app='our-corner'] .corner-door-name .shell-card-link {
+[data-app='our-shelf'] .corner-door-name .shell-card-link {
     min-width: 0;
     display: -webkit-box;
     -webkit-box-orient: vertical;
@@ -635,20 +635,20 @@
     overflow-wrap: anywhere;
 }
 
-[data-app='our-corner'] .corner-door-icon {
+[data-app='our-shelf'] .corner-door-icon {
     flex: none;
     align-self: center;
     color: var(--corner-accent-text);
 }
 
-[data-app='our-corner'] .corner-door-head .corner-list-menu-btn {
+[data-app='our-shelf'] .corner-door-head .corner-list-menu-btn {
     margin-top: 4px;
     margin-right: -4px;
 }
 
 /* ── Landing: an empty room's suggestions ────────────────────────────────── */
 
-[data-app='our-corner'] .corner-suggestions {
+[data-app='our-shelf'] .corner-suggestions {
     display: flex;
     flex-direction: column;
     align-items: flex-start;
@@ -656,7 +656,7 @@
     max-width: 760px;
 }
 
-[data-app='our-corner'] .corner-suggestions-title {
+[data-app='our-shelf'] .corner-suggestions-title {
     margin: 0;
     font-family: var(--corner-font-display);
     font-size: var(--text-title);
@@ -665,7 +665,7 @@
     letter-spacing: var(--tracking-display);
 }
 
-[data-app='our-corner'] .corner-suggestions-body {
+[data-app='our-shelf'] .corner-suggestions-body {
     margin: 0;
     max-width: 56ch;
     font-size: var(--text-body);
@@ -673,7 +673,7 @@
     color: var(--corner-ink-soft);
 }
 
-[data-app='our-corner'] .corner-suggestion-grid {
+[data-app='our-shelf'] .corner-suggestion-grid {
     width: 100%;
     margin: 0;
     padding: 0;
@@ -683,7 +683,7 @@
     gap: 12px;
 }
 
-[data-app='our-corner'] .corner-suggestion {
+[data-app='our-shelf'] .corner-suggestion {
     width: 100%;
     min-height: 96px;
     display: flex;
@@ -700,28 +700,28 @@
     cursor: pointer;
 }
 
-[data-app='our-corner'] .corner-suggestion:hover {
+[data-app='our-shelf'] .corner-suggestion:hover {
     border-color: var(--corner-border-hover);
     background: var(--corner-tile-wash-strong);
 }
 
-[data-app='our-corner'] .corner-suggestion:disabled {
+[data-app='our-shelf'] .corner-suggestion:disabled {
     cursor: default;
     opacity: 0.6;
 }
 
-[data-app='our-corner'] .corner-suggestion-icon {
+[data-app='our-shelf'] .corner-suggestion-icon {
     margin-bottom: 4px;
     color: var(--corner-accent-text);
 }
 
-[data-app='our-corner'] .corner-suggestion-name {
+[data-app='our-shelf'] .corner-suggestion-name {
     font-size: var(--text-body);
     font-weight: 500;
     line-height: 1.3;
 }
 
-[data-app='our-corner'] .corner-suggestion-kind {
+[data-app='our-shelf'] .corner-suggestion-kind {
     font-size: var(--text-meta);
     font-weight: 500;
     color: var(--corner-ink-soft);
@@ -729,7 +729,7 @@
 
 /* ── List settings sheet ─────────────────────────────────────────────────── */
 
-[data-app='our-corner'] .corner-fieldset {
+[data-app='our-shelf'] .corner-fieldset {
     min-width: 0;
     margin: 0;
     padding: 0;
@@ -739,7 +739,7 @@
     gap: 10px;
 }
 
-[data-app='our-corner'] .corner-fieldset-legend {
+[data-app='our-shelf'] .corner-fieldset-legend {
     padding: 0;
     margin-bottom: 10px;
     font-size: var(--text-small);
@@ -747,13 +747,13 @@
     color: var(--corner-ink);
 }
 
-[data-app='our-corner'] .corner-chip-row {
+[data-app='our-shelf'] .corner-chip-row {
     display: flex;
     flex-wrap: wrap;
     gap: 8px;
 }
 
-[data-app='our-corner'] .corner-chip {
+[data-app='our-shelf'] .corner-chip {
     display: inline-flex;
     align-items: center;
     gap: 6px;
@@ -769,29 +769,29 @@
     cursor: pointer;
 }
 
-[data-app='our-corner'] .corner-chip:hover {
+[data-app='our-shelf'] .corner-chip:hover {
     background: var(--corner-hover-fill);
 }
 
-[data-app='our-corner'] .corner-chip[aria-checked='true'] {
+[data-app='our-shelf'] .corner-chip[aria-checked='true'] {
     border-color: var(--corner-accent-text);
     background: var(--corner-tile-wash-strong);
 }
 
-[data-app='our-corner'] .corner-word-pair {
+[data-app='our-shelf'] .corner-word-pair {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(min(180px, 100%), 1fr));
     gap: 12px;
 }
 
-[data-app='our-corner'] .corner-switch-row {
+[data-app='our-shelf'] .corner-switch-row {
     display: flex;
     align-items: flex-start;
     justify-content: space-between;
     gap: 16px;
 }
 
-[data-app='our-corner'] .corner-switch-label {
+[data-app='our-shelf'] .corner-switch-label {
     display: flex;
     flex-direction: column;
     font-size: var(--text-body);
@@ -799,13 +799,13 @@
     cursor: pointer;
 }
 
-[data-app='our-corner'] .corner-switch-label .corner-form-hint {
+[data-app='our-shelf'] .corner-switch-label .corner-form-hint {
     font-weight: 400;
 }
 
 /* ── One look for every item ─────────────────────────────────────────────── */
 
-[data-app='our-corner'] .corner-item-grid {
+[data-app='our-shelf'] .corner-item-grid {
     grid-template-columns: repeat(auto-fill, minmax(min(360px, 100%), 1fr));
 }
 
@@ -813,7 +813,7 @@
  * An item's picture, or its list's icon on the accent wash. The box has its size before the
  * picture arrives, so nothing shifts; a hairline keeps a pale picture's edge.
  */
-[data-app='our-corner'] .corner-thumb {
+[data-app='our-shelf'] .corner-thumb {
     position: relative;
     flex: none;
     display: inline-flex;
@@ -829,7 +829,7 @@
     color: var(--corner-accent-text);
 }
 
-[data-app='our-corner'] .corner-thumb::after {
+[data-app='our-shelf'] .corner-thumb::after {
     content: '';
     position: absolute;
     inset: 0;
@@ -838,35 +838,35 @@
     pointer-events: none;
 }
 
-[data-app='our-corner'] .corner-thumb--sm {
+[data-app='our-shelf'] .corner-thumb--sm {
     width: 44px;
     height: 44px;
 }
 
-[data-app='our-corner'] .corner-thumb--md {
+[data-app='our-shelf'] .corner-thumb--md {
     width: 72px;
     height: 72px;
 }
 
-[data-app='our-corner'] .corner-thumb--lg {
+[data-app='our-shelf'] .corner-thumb--lg {
     width: min(100%, 320px);
     aspect-ratio: 1;
     border-radius: var(--corner-radius-card);
 }
 
-[data-app='our-corner'] .corner-thumb-picture {
+[data-app='our-shelf'] .corner-thumb-picture {
     width: 100%;
     height: 100%;
     object-fit: cover;
 }
 
-[data-app='our-corner'] .corner-item-row {
+[data-app='our-shelf'] .corner-item-row {
     display: flex;
     align-items: flex-start;
     gap: 14px;
 }
 
-[data-app='our-corner'] .corner-item-main {
+[data-app='our-shelf'] .corner-item-main {
     flex: 1;
     display: flex;
     flex-direction: column;
@@ -875,19 +875,19 @@
     min-width: 0;
 }
 
-[data-app='our-corner'] .corner-item-link {
+[data-app='our-shelf'] .corner-item-link {
     max-width: 100%;
     color: inherit;
     text-decoration: none;
 }
 
-[data-app='our-corner'] .corner-item-main .corner-sticker {
+[data-app='our-shelf'] .corner-item-main .corner-sticker {
     margin: 2px 0;
 }
 
-[data-app='our-corner'] .corner-item-byline,
-[data-app='our-corner'] .corner-item-notes,
-[data-app='our-corner'] .corner-item-place {
+[data-app='our-shelf'] .corner-item-byline,
+[data-app='our-shelf'] .corner-item-notes,
+[data-app='our-shelf'] .corner-item-place {
     max-width: 100%;
     font-size: var(--text-small);
     line-height: 1.5;
@@ -897,18 +897,18 @@
     white-space: nowrap;
 }
 
-[data-app='our-corner'] .corner-item-place {
+[data-app='our-shelf'] .corner-item-place {
     display: inline-flex;
     align-items: center;
     gap: 4px;
 }
 
-[data-app='our-corner'] .corner-item-place svg {
+[data-app='our-shelf'] .corner-item-place svg {
     flex: none;
     color: var(--corner-accent-text);
 }
 
-[data-app='our-corner'] .corner-door-shelf > .corner-door-cover {
+[data-app='our-shelf'] .corner-door-shelf > .corner-door-cover {
     width: auto;
     height: 100%;
     aspect-ratio: 1;
@@ -921,7 +921,7 @@
 
 /* ── The add and edit sheet ──────────────────────────────────────────────── */
 
-[data-app='our-corner'] .corner-field-label {
+[data-app='our-shelf'] .corner-field-label {
     display: block;
     margin-bottom: 8px;
     font-size: var(--text-small);
@@ -929,26 +929,26 @@
     color: var(--corner-ink);
 }
 
-[data-app='our-corner'] .corner-picture-row {
+[data-app='our-shelf'] .corner-picture-row {
     display: flex;
     align-items: center;
     gap: 16px;
 }
 
-[data-app='our-corner'] .corner-picture-actions {
+[data-app='our-shelf'] .corner-picture-actions {
     display: flex;
     flex-wrap: wrap;
     gap: 4px 16px;
 }
 
-[data-app='our-corner'] .corner-picture-field {
+[data-app='our-shelf'] .corner-picture-field {
     display: flex;
     flex-direction: column;
     gap: 12px;
 }
 
 /* A quiet text button inside a form, for an optional step. */
-[data-app='our-corner'] .corner-text-button {
+[data-app='our-shelf'] .corner-text-button {
     display: inline-flex;
     align-items: center;
     gap: 6px;
@@ -963,17 +963,17 @@
     cursor: pointer;
 }
 
-[data-app='our-corner'] .corner-text-button:hover {
+[data-app='our-shelf'] .corner-text-button:hover {
     color: var(--corner-ink);
 }
 
-[data-app='our-corner'] .corner-text-button:focus-visible {
+[data-app='our-shelf'] .corner-text-button:focus-visible {
     outline: 2px solid var(--corner-action);
     outline-offset: 2px;
     border-radius: var(--radius-inner);
 }
 
-[data-app='our-corner'] .corner-form-note {
+[data-app='our-shelf'] .corner-form-note {
     display: flex;
     flex-wrap: wrap;
     align-items: center;
@@ -986,7 +986,7 @@
 
 /* ── The icon picker ─────────────────────────────────────────────────────── */
 
-[data-app='our-corner'] .corner-icon-trigger {
+[data-app='our-shelf'] .corner-icon-trigger {
     display: inline-flex;
     align-items: center;
     gap: 12px;
@@ -1001,15 +1001,15 @@
     cursor: pointer;
 }
 
-[data-app='our-corner'] .corner-icon-trigger:hover {
+[data-app='our-shelf'] .corner-icon-trigger:hover {
     background: var(--corner-hover-fill);
 }
 
-[data-app='our-corner'] .corner-icon-trigger[aria-expanded='true'] {
+[data-app='our-shelf'] .corner-icon-trigger[aria-expanded='true'] {
     border-color: var(--corner-accent-text);
 }
 
-[data-app='our-corner'] .corner-icon-trigger-mark {
+[data-app='our-shelf'] .corner-icon-trigger-mark {
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -1024,7 +1024,7 @@
     color: var(--corner-accent-text);
 }
 
-[data-app='our-corner'] .corner-icon-trigger-action {
+[data-app='our-shelf'] .corner-icon-trigger-action {
     display: inline-flex;
     align-items: center;
     gap: 2px;
@@ -1034,7 +1034,7 @@
     color: var(--corner-accent-text);
 }
 
-[data-app='our-corner'].corner-icon-popover {
+[data-app='our-shelf'].corner-icon-popover {
     background: var(--corner-paper);
     color: var(--corner-ink);
     border: 1px solid var(--corner-border);
@@ -1042,21 +1042,21 @@
     overflow: hidden;
 }
 
-[data-app='our-corner'].corner-icon-sheet {
+[data-app='our-shelf'].corner-icon-sheet {
     display: flex;
     flex-direction: column;
     background: var(--corner-paper);
     color: var(--corner-ink);
 }
 
-[data-app='our-corner'] .corner-icon-sheet-title {
+[data-app='our-shelf'] .corner-icon-sheet-title {
     padding: 18px 64px 4px 16px;
     font-family: var(--corner-font-display);
     font-size: var(--text-title);
     font-weight: 400;
 }
 
-[data-app='our-corner'] .corner-icon-panel {
+[data-app='our-shelf'] .corner-icon-panel {
     display: flex;
     flex-direction: column;
     gap: 8px;
@@ -1064,19 +1064,19 @@
     padding: 12px;
 }
 
-[data-app='our-corner'] .corner-icon-panel--roomy {
+[data-app='our-shelf'] .corner-icon-panel--roomy {
     flex: 1;
     min-height: 0;
     height: auto;
     padding: 8px 16px max(12px, env(safe-area-inset-bottom));
 }
 
-[data-app='our-corner'] .corner-icon-search {
+[data-app='our-shelf'] .corner-icon-search {
     position: relative;
     flex: none;
 }
 
-[data-app='our-corner'] .corner-icon-search > svg {
+[data-app='our-shelf'] .corner-icon-search > svg {
     position: absolute;
     top: 50%;
     left: 14px;
@@ -1085,15 +1085,15 @@
     pointer-events: none;
 }
 
-[data-app='our-corner'] .corner-icon-search input {
+[data-app='our-shelf'] .corner-icon-search input {
     padding-left: 38px;
 }
 
-[data-app='our-corner'] .corner-icon-jump {
+[data-app='our-shelf'] .corner-icon-jump {
     flex: none;
 }
 
-[data-app='our-corner'] .corner-icon-jump-select {
+[data-app='our-shelf'] .corner-icon-jump-select {
     width: 100%;
     min-height: 40px;
     padding: 0 12px;
@@ -1106,7 +1106,7 @@
 }
 
 /* One scrolling grid; only the rows near the visible band exist. */
-[data-app='our-corner'] .corner-icon-scroll {
+[data-app='our-shelf'] .corner-icon-scroll {
     position: relative;
     flex: 1;
     min-height: 0;
@@ -1114,12 +1114,12 @@
     overscroll-behavior: contain;
 }
 
-[data-app='our-corner'] .corner-icon-canvas {
+[data-app='our-shelf'] .corner-icon-canvas {
     position: relative;
 }
 
-[data-app='our-corner'] .corner-icon-heading,
-[data-app='our-corner'] .corner-icon-sticky {
+[data-app='our-shelf'] .corner-icon-heading,
+[data-app='our-shelf'] .corner-icon-sticky {
     display: flex;
     align-items: center;
     height: 32px;
@@ -1130,21 +1130,21 @@
     background: var(--corner-paper);
 }
 
-[data-app='our-corner'] .corner-icon-heading {
+[data-app='our-shelf'] .corner-icon-heading {
     position: absolute;
     left: 0;
     right: 0;
 }
 
 /* The heading of the category being scrolled through stays at the top. */
-[data-app='our-corner'] .corner-icon-sticky {
+[data-app='our-shelf'] .corner-icon-sticky {
     position: sticky;
     top: 0;
     z-index: 1;
     margin-bottom: -32px;
 }
 
-[data-app='our-corner'] .corner-icon-row {
+[data-app='our-shelf'] .corner-icon-row {
     position: absolute;
     left: 0;
     right: 0;
@@ -1152,7 +1152,7 @@
     gap: 4px;
 }
 
-[data-app='our-corner'] .corner-icon-option {
+[data-app='our-shelf'] .corner-icon-option {
     display: flex;
     align-items: center;
     justify-content: center;
@@ -1163,20 +1163,20 @@
     cursor: pointer;
 }
 
-[data-app='our-corner'] .corner-icon-option[data-active] {
+[data-app='our-shelf'] .corner-icon-option[data-active] {
     background: var(--corner-hover-fill);
     color: var(--corner-ink);
     outline: 2px solid var(--corner-action);
     outline-offset: -2px;
 }
 
-[data-app='our-corner'] .corner-icon-option[aria-selected='true'] {
+[data-app='our-shelf'] .corner-icon-option[aria-selected='true'] {
     border-color: var(--corner-accent-text);
     background: var(--corner-tile-wash-strong);
     color: var(--corner-accent-text);
 }
 
-[data-app='our-corner'] .corner-icon-footer {
+[data-app='our-shelf'] .corner-icon-footer {
     flex: none;
     margin: 0;
     padding-top: 6px;
@@ -1186,26 +1186,26 @@
     color: var(--corner-ink-soft);
 }
 
-[data-app='our-corner'] .corner-icon-empty,
-[data-app='our-corner'] .corner-icon-state {
+[data-app='our-shelf'] .corner-icon-empty,
+[data-app='our-shelf'] .corner-icon-state {
     padding: 24px 8px;
     text-align: center;
 }
 
-[data-app='our-corner'] .corner-icon-empty p {
+[data-app='our-shelf'] .corner-icon-empty p {
     margin: 0 0 4px;
 }
 
 /* ── "This isn't here anymore" ───────────────────────────────────────────── */
 
-[data-app='our-corner'] .corner-not-found {
+[data-app='our-shelf'] .corner-not-found {
     padding: 48px 24px;
     max-width: 520px;
     margin: 48px auto;
     text-align: center;
 }
 
-[data-app='our-corner'] .corner-not-found-card {
+[data-app='our-shelf'] .corner-not-found-card {
     padding: 32px 24px;
     background: var(--corner-paper);
     border: 1px solid var(--corner-border);
@@ -1213,7 +1213,7 @@
     color: var(--corner-ink);
 }
 
-[data-app='our-corner'] .corner-not-found-title {
+[data-app='our-shelf'] .corner-not-found-title {
     margin-bottom: 12px;
     font-family: var(--corner-font-display);
     font-size: var(--text-page);
@@ -1223,7 +1223,7 @@
     text-wrap: balance;
 }
 
-[data-app='our-corner'] .corner-not-found-body {
+[data-app='our-shelf'] .corner-not-found-body {
     margin: 0 0 24px 0;
     font-size: var(--text-body);
     line-height: 1.6;

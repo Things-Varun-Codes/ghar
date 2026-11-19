@@ -20,7 +20,7 @@ class ListsController
 
         FlashToast::success("Made {$list->name}.");
 
-        return redirect()->route('apps.our-corner.lists.show', $list->slug);
+        return redirect()->route('apps.our-shelf.lists.show', $list->slug);
     }
 
     public function update(SaveListRequest $request, CornerList $list): RedirectResponse
@@ -51,6 +51,6 @@ class ListsController
 
         FlashToast::success("Deleted {$list->name}.");
 
-        return redirect()->route('apps.our-corner.landing');
+        return redirect()->route('apps.our-shelf.landing');
     }
 }

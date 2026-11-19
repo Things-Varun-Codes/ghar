@@ -25,12 +25,12 @@ class CitationVisibilityTest extends TestCase
 
         foreach (['received', 'issued'] as $tab) {
             $this->actingAs($bystander)
-                ->get('/apps/our-mailbox/citations?tab='.$tab)
+                ->get('/apps/our-exchange/citations?tab='.$tab)
                 ->assertInertia(fn (Assert $page) => $page->has('citations.data', 0));
         }
 
         $this->actingAs($recipient)
-            ->get('/apps/our-mailbox/citations')
+            ->get('/apps/our-exchange/citations')
             ->assertInertia(fn (Assert $page) => $page->has('citations.data', 1));
     }
 
@@ -45,7 +45,7 @@ class CitationVisibilityTest extends TestCase
 
         // Received tab (default): the citation the partner issued TO primary.
         $this->actingAs($primary)
-            ->get('/apps/our-mailbox/citations')
+            ->get('/apps/our-exchange/citations')
             ->assertInertia(fn (Assert $page) => $page
                 ->where('tab', 'received')
                 ->has('citations.data', 1)
@@ -54,7 +54,7 @@ class CitationVisibilityTest extends TestCase
 
         // Issued tab: the citation primary issued to the partner.
         $this->actingAs($primary)
-            ->get('/apps/our-mailbox/citations?tab=issued')
+            ->get('/apps/our-exchange/citations?tab=issued')
             ->assertInertia(fn (Assert $page) => $page
                 ->where('tab', 'issued')
                 ->has('citations.data', 1)

@@ -13,7 +13,7 @@ use Illuminate\Support\Facades\Notification;
 use Tests\Feature\Corner\Concerns\MakesCornerLists;
 use Tests\TestCase;
 
-/** With Our Corner turned off, nothing of it shows anywhere, and nothing of it is lost. */
+/** With Our Shelf turned off, nothing of it shows anywhere, and nothing of it is lost. */
 class CornerRoomOffTest extends TestCase
 {
     use MakesCornerLists;
@@ -21,7 +21,7 @@ class CornerRoomOffTest extends TestCase
 
     private function turnCornerOff(): void
     {
-        app(Rooms::class)->set('our-corner', false);
+        app(Rooms::class)->set('our-shelf', false);
     }
 
     public function test_its_pages_and_home_door_are_gone_and_its_things_cannot_be_found(): void
@@ -31,16 +31,16 @@ class CornerRoomOffTest extends TestCase
         $item = $this->itemIn($songs, $user, ['title' => 'Rain on the Tin Roof']);
         $this->turnCornerOff();
 
-        $this->actingAs($user)->get('/apps/our-corner')->assertNotFound();
-        $this->get("/apps/our-corner/songs/{$item->id}")->assertNotFound();
+        $this->actingAs($user)->get('/apps/our-shelf')->assertNotFound();
+        $this->get("/apps/our-shelf/songs/{$item->id}")->assertNotFound();
         $this->get('/api/corner/link-preview?url='.urlencode('https://example.com/a'))->assertNotFound();
         $this->get('/api/corner/picture-preview?url='.urlencode('https://example.com/a.jpg'))->assertNotFound();
-        $this->get("/apps/our-corner/items/{$item->id}/picture?v=1")->assertNotFound();
+        $this->get("/apps/our-shelf/items/{$item->id}/picture?v=1")->assertNotFound();
 
         $this->get('/dashboard')->assertOk()->assertInertia(fn ($page) => $page
-            ->where('miniApps', fn ($apps) => collect($apps)->pluck('slug')->doesntContain('our-corner'))
-            ->where('summaries', fn ($s) => ! collect($s)->has('our-corner'))
-            ->where('previews', fn ($p) => ! collect($p)->has('our-corner'))
+            ->where('miniApps', fn ($apps) => collect($apps)->pluck('slug')->doesntContain('our-shelf'))
+            ->where('summaries', fn ($s) => ! collect($s)->has('our-shelf'))
+            ->where('previews', fn ($p) => ! collect($p)->has('our-shelf'))
         );
 
         $this->assertSame([], app(LinkableEntities::class)->search('rain'));
@@ -82,8 +82,8 @@ class CornerRoomOffTest extends TestCase
         $old = $this->itemIn($songs, $user, ['legacy_type' => 'corner.song', 'legacy_id' => 3]);
         $new = $this->itemIn($songs, $user);
 
-        $body = '<p>'.$this->pill('corner.song', 3, $old->title, '/apps/our-corner/songs/3')
-            .' and '.$this->pill('corner.item', $new->id, $new->title, "/apps/our-corner/songs/{$new->id}").'</p>';
+        $body = '<p>'.$this->pill('corner.song', 3, $old->title, '/apps/our-shelf/songs/3')
+            .' and '.$this->pill('corner.item', $new->id, $new->title, "/apps/our-shelf/songs/{$new->id}").'</p>';
 
         $this->actingAs($user)->post('/apps/our-history/events', [
             'occurred_on' => '2026-06-15',
@@ -112,8 +112,8 @@ class CornerRoomOffTest extends TestCase
         $this->assertStringContainsString('data-corner-type="corner.song"', (string) $event->refresh()->body_html);
         $this->assertStringContainsString('data-corner-type="corner.item"', (string) $event->body_html);
 
-        app(Rooms::class)->set('our-corner', true);
-        $this->get("/apps/our-corner/songs/{$new->id}")->assertOk()->assertInertia(fn ($page) => $page
+        app(Rooms::class)->set('our-shelf', true);
+        $this->get("/apps/our-shelf/songs/{$new->id}")->assertOk()->assertInertia(fn ($page) => $page
             ->where('mentioned_in.0.from_id', $event->id));
     }
 

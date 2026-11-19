@@ -13,7 +13,7 @@ function app(slug: string, prefix?: string): MiniApp {
 }
 
 const history = app('our-history', 'MiniApps/History/');
-const corner = app('our-corner', 'MiniApps/Corner/');
+const corner = app('our-shelf', 'MiniApps/Corner/');
 
 describe('activeMiniApp', () => {
     it('finds the room by the page component', () => {
@@ -21,9 +21,9 @@ describe('activeMiniApp', () => {
             activeMiniApp(
                 [history, corner],
                 'MiniApps/Corner/Pages/Songs/Show',
-                '/apps/our-corner/songs/4',
+                '/apps/our-shelf/songs/4',
             )?.slug,
-        ).toBe('our-corner');
+        ).toBe('our-shelf');
     });
 
     it('falls back to the URL for a shell page inside a room', () => {
@@ -31,17 +31,17 @@ describe('activeMiniApp', () => {
             activeMiniApp(
                 [history, corner],
                 'Shell/Pages/Error',
-                '/apps/our-corner/songs/999',
+                '/apps/our-shelf/songs/999',
             )?.slug,
-        ).toBe('our-corner');
+        ).toBe('our-shelf');
     });
 
     it('does not match a room whose route is only a prefix of the path', () => {
         expect(
             activeMiniApp(
-                [app('our-corner')],
+                [app('our-shelf')],
                 'Shell/Pages/Error',
-                '/apps/our-corner-two',
+                '/apps/our-shelf-two',
             ),
         ).toBeUndefined();
     });

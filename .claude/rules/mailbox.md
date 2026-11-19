@@ -3,27 +3,26 @@ paths:
     - 'app/MiniApps/Mailbox/**'
     - 'resources/js/MiniApps/Mailbox/**'
     - 'resources/css/themes/mailbox.css'
-    - 'routes/miniapps/our-mailbox.php'
-    - 'database/migrations/our-mailbox/**'
+    - 'routes/miniapps/our-exchange.php'
+    - 'database/migrations/our-exchange/**'
     - 'tests/Feature/Mailbox/**'
     - 'tests/Unit/Mailbox/**'
 ---
 
-## Our Mailbox
+## Our Exchange
 
-Slug `our-mailbox`; `App\MiniApps\Mailbox\`; `resources/js/MiniApps/Mailbox/`; routes
-`apps.our-mailbox.*` at `/apps/our-mailbox/*`. Holds the directional, non-linkable comms surfaces;
-Our Corner keeps the household's shared lists.
+Slug `our-exchange`; `App\MiniApps\Mailbox\`; `resources/js/MiniApps/Mailbox/`; routes
+`apps.our-exchange.*` at `/apps/our-exchange/*`. Holds the directional, non-linkable comms surfaces;
+Our Shelf keeps the household's shared lists.
 
 - **Entry types switch individually.** `App\MiniApps\Mailbox\Support\EntryTypes` registers notes
   (`messages`), `flowers`, `citations` and `coupons` as options of the room through
   `Rooms::registerOption()` from `MailboxServiceProvider::boot()`; an option with no row is on.
-  Routes sit behind `room:our-mailbox,{type}`, so an off type 404s and its writes (and so its push)
+  Routes sit behind `room:our-exchange,{type}`, so an off type 404s and its writes (and so its push)
   cannot happen; `MailboxSummary` / `MailboxPeeks` skip it. Rows are kept. `EntryTypes` holds
   each type's label and the landing order, and sends the landing the types that are on as
   `types` (`key`, `label`); `Pages/Landing.tsx` draws each door from its `DOORS` map (href, live
-  line, peek). A new type is one `EntryTypes` entry and one `DOORS` entry. The old `/apps/our-mailbox/challans/{id?}` addresses 301 to `citations`, because
-  delivered push notifications and bookmarks hold them.
+  line, peek). A new type is one `EntryTypes` entry and one `DOORS` entry.
 
 - Messages, Flowers, Citations and Coupons all resolve through `App\Shell\Support\ListPage` (over
   `CursorList`) with free-text `?q` and whitelisted `?sort` (`ListPage::chronological()`:
@@ -38,9 +37,9 @@ Our Corner keeps the household's shared lists.
   `ref_no` = `OC/{year}/{padded id}` (`OC` frozen). `ref_no`/`status`/`issuer_id` guarded;
   `offence` (≤120) and `penalty` (≤80) fillable. Lifecycle `issued → paid` only: recipient-only
   `pay`, issuer-only hard `delete` of an `issued` row; paid is locked. Push tag
-  `our-mailbox:citations`; bodies never leak offence/penalty/remarks. Drawn as an "official form"
+  `our-exchange:citations`; bodies never leak offence/penalty/remarks. Drawn as an "official form"
   (`--mailbox-citation-*` / `.mailbox-citation-*`, colours alias `--shell-*`).
-- **Our Mailbox** owns paper: ruled sheets with a red margin, the citation as an official form, the
+- **Our Exchange** owns paper: ruled sheets with a red margin, the citation as an official form, the
   coupon as a voucher. A note's body and a coupon's title are in Patrick Hand; what was filled in on
   a form (names, offence, penalty, remarks) is Newsreader italic; the printed parts are the sans at
   13px/500. The form reads as a form through its rules, boxes, seal and stamp, and the stamp is the

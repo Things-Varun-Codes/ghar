@@ -161,7 +161,7 @@ class DevDataSeeder extends Seeder
     private function seedShortLinks(Household $household): void
     {
         $links = [
-            ['pantry23', 'Pantry shopping list', url('/apps/our-corner/activities'), true],
+            ['pantry23', 'Pantry shopping list', url('/apps/our-shelf/activities'), true],
             ['garage23', 'Directions to the cabin', 'https://www.google.com/maps/dir/?api=1&destination=15.2993,74.1240', true],
             ['bench789', 'Old garden tag (retired)', url('/apps/our-history'), false],
         ];

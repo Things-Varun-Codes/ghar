@@ -3,7 +3,7 @@ import { pageTitle } from '@/lib/title';
 
 describe('pageTitle', () => {
     it('joins page and room with a middle dot', () => {
-        expect(pageTitle('Songs', 'Our Corner')).toBe('Songs · Our Corner');
+        expect(pageTitle('Songs', 'Our Shelf')).toBe('Songs · Our Shelf');
     });
 
     it('returns the page alone without a room', () => {

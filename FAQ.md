@@ -7,9 +7,9 @@ detail.
 
 Ghar is a private web app that one family or household runs for itself. Everyone signs in to the
 same place and finds the small apps the admin has turned on, out of three: Our History (a timeline, gallery and calendar of moments,
-with photos and videos), Our Corner (shared lists you make yourselves: songs, films, places, books, anything) and Our
-Mailbox (notes, bouquets of flowers, coupons and joke traffic tickets, sent to one or more people).
-The admin chooses which of the three apps a home has, and which kinds of mail the Mailbox offers,
+with photos and videos), Our Shelf (shared lists you make yourselves: songs, films, places, books, anything) and Our
+Exchange (notes, bouquets of flowers, coupons and joke traffic tickets, sent to one or more people).
+The admin chooses which of the three apps a home has, and which kinds of mail the Exchange offers,
 at Admin → Rooms. A new install starts with none on. Ghar is open source under the MIT licence. There is no hosted version: you run it yourself with
 Docker.
 
@@ -25,12 +25,12 @@ penalty the recipient can mark as paid.
 
 ## Can we keep lists other than songs and movies?
 
-Yes. Our Corner holds whatever lists your household makes: books, restaurants, recipes, board
+Yes. Our Shelf holds whatever lists your household makes: books, restaurants, recipes, board
 games, anything. Each list has a name, an icon and its own word for done (read, cooked, played).
 Every item can have a name, notes, a link, a picture and a place. Paste a link to almost any page
 and its name and picture fill in, when the page offers them; paste a map link, coordinates or just
 a place's name, and "Open in Maps" opens it in your phone's maps app. Until the first list is made,
-Our Corner offers a few to add in one tap.
+Our Shelf offers a few to add in one tap.
 
 Anyone can make a list. Its maker or an admin can change it. Its maker can delete it while
 everything in it is theirs; once someone else has added to it, deleting it takes an admin.
@@ -53,7 +53,7 @@ serve`, which needs no open ports.
 ## Can two households share one Ghar install?
 
 No. One install is one household. Everyone with an account is a member of it, and the moments in Our
-History and the lists in Our Corner are shared by all of them. Relatives in another house can be
+History and the lists in Our Shelf are shared by all of them. Relatives in another house can be
 invited like anyone else if you want them to see all of that. Two households that should stay
 separate need two installs, each in its own folder with its own `.env`, port and address.
 
@@ -72,7 +72,7 @@ and a video up to 96 MB.
 No. Ghar's code has no analytics or telemetry, and the fonts are served by your own install rather
 than by Google. A running install does contact a few outside services to do its job: your mail
 provider, for invites and password resets; browser push services, to deliver Web Push; the page
-behind a link someone adds in Our Corner, to read its name and picture (your install serves the
+behind a link someone adds in Our Shelf, to read its name and picture (your install serves the
 picture itself, so browsers never contact that site, and it never fetches from addresses inside
 your own network); and a breached-password list when someone sets a
 password, to which only the first five characters of the password's hash are sent. Google Places,
@@ -100,7 +100,7 @@ because database migrations only run forward, and try a restore once before you 
 An admin sends an invitation from Admin, Invites. There is no sign-up page. The link in the email
 works once and expires after 7 days; resending the invite replaces the old link. To remove someone,
 an admin deletes the account from the admin's Users page. Ghar refuses to delete a person who still
-owns Our Corner items or Our Mailbox mail, and says what is in the way.
+owns Our Shelf items or Our Exchange mail, and says what is in the way.
 
 ## Does Ghar work offline?
 

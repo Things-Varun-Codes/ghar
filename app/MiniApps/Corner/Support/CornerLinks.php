@@ -18,13 +18,13 @@ use Illuminate\Support\Collection;
  */
 final class CornerLinks
 {
-    public const ROOM = 'our-corner';
+    public const ROOM = 'our-shelf';
 
     public const TYPE = 'corner.item';
 
     public const LEGACY_TYPES = ['corner.song', 'corner.movie', 'corner.activity', 'corner.place'];
 
-    private const LABEL = 'Our Corner';
+    private const LABEL = 'Our Shelf';
 
     private const PICKER_LIMIT = 20;
 
@@ -68,7 +68,7 @@ final class CornerLinks
 
     public static function urlFor(string $slug, int $id): string
     {
-        return route('apps.our-corner.items.show', [$slug, $id]);
+        return route('apps.our-shelf.items.show', [$slug, $id]);
     }
 
     /** @return list<array{id: int, title: string, group: string, thumbnail_url: ?string, icon: string, deep_link_url: string}> */

@@ -56,7 +56,7 @@ class DashboardPreviewsTest extends TestCase
             ->get('/dashboard')
             ->assertInertia(fn (AssertableInertia $page) => $page
                 // Drawn through this app's picture route, never from the other site.
-                ->where('previews.our-corner.images', [$new->pictureUrl(), $old->pictureUrl()])
+                ->where('previews.our-shelf.images', [$new->pictureUrl(), $old->pictureUrl()])
             );
     }
 
@@ -70,8 +70,8 @@ class DashboardPreviewsTest extends TestCase
         $this->actingAs($this->me)
             ->get('/dashboard')
             ->assertInertia(fn (AssertableInertia $page) => $page
-                ->where('previews.our-mailbox.note', 'Dinner at 8?')
-                ->where('previews.our-mailbox.note_from', 'From Partner')
+                ->where('previews.our-exchange.note', 'Dinner at 8?')
+                ->where('previews.our-exchange.note_from', 'From Partner')
             );
 
         $this->assertNull($note->readAtFor($this->me));
@@ -86,18 +86,18 @@ class DashboardPreviewsTest extends TestCase
 
         $this->actingAs($this->me)
             ->get('/dashboard')
-            ->assertInertia(fn (AssertableInertia $page) => $page->missing('previews.our-mailbox'));
+            ->assertInertia(fn (AssertableInertia $page) => $page->missing('previews.our-exchange'));
     }
 
     public function test_a_throwing_resolver_just_shows_no_glimpse(): void
     {
-        app(DashboardSummaries::class)->registerPreview('our-corner', function (): array {
+        app(DashboardSummaries::class)->registerPreview('our-shelf', function (): array {
             throw new RuntimeException('boom');
         });
 
         $this->actingAs($this->me)
             ->get('/dashboard')
             ->assertOk()
-            ->assertInertia(fn (AssertableInertia $page) => $page->missing('previews.our-corner'));
+            ->assertInertia(fn (AssertableInertia $page) => $page->missing('previews.our-shelf'));
     }
 }

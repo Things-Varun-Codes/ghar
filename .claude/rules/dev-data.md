@@ -13,7 +13,7 @@ paths:
 The seed has every state: moments by all four people (photos on the local media disk, Corner links, more
 than one Timeline and Gallery page), Corner items done and not done by different people, 62 Songs
 (past the 50-row page), Corner lists as an upgraded install has them (Songs, Movies, Places and
-Activities: no maker, old ids in `legacy_id`, so `/apps/our-corner/songs/1` and the old-style pills
+Activities: no maker, old ids in `legacy_id`, so `/apps/our-shelf/songs/1` and the old-style pills
 on "Diwali on the terrace" resolve) plus Ravi's Books (only his items: he may delete it), Meera's
 long-named restaurants list (Kabir added to it: she may edit it, only an admin may delete it),
 Kabir's empty Board games with notifications off, and Meera's Weekend ideas (an icon from the full

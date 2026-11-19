@@ -42,8 +42,8 @@ class MiniAppGuestRedirectTest extends TestCase
     private function countDeclaredMutatingRoutesInSource(): int
     {
         $files = [
-            base_path('routes/miniapps/our-corner.php'),
-            base_path('routes/miniapps/our-mailbox.php'),
+            base_path('routes/miniapps/our-shelf.php'),
+            base_path('routes/miniapps/our-exchange.php'),
         ];
 
         $count = 0;

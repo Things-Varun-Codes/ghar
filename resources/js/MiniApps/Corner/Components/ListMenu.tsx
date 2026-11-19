@@ -12,7 +12,7 @@ import { useMenuAction } from '@/hooks/use-menu-action';
 import { mutationOptions } from '@/lib/mutation';
 import ListSettingsSheet from '@/MiniApps/Corner/Components/ListSettingsSheet';
 import type { CornerListInfo } from '@/MiniApps/Corner/lib/types';
-import { destroy, move } from '@/routes/apps/our-corner/lists';
+import { destroy, move } from '@/routes/apps/our-shelf/lists';
 import ConfirmDialog from '@/Shell/Components/ConfirmDialog';
 
 const COMPONENT = 'Corner/ListMenu';

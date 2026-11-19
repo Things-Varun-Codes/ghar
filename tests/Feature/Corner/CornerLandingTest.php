@@ -19,7 +19,7 @@ class CornerLandingTest extends TestCase
     public function test_a_fresh_install_has_no_lists_and_may_make_one(): void
     {
         $this->actingAs(User::factory()->create())
-            ->get('/apps/our-corner')
+            ->get('/apps/our-shelf')
             ->assertOk()
             ->assertInertia(fn (AssertableInertia $page) => $page
                 ->component('MiniApps/Corner/Pages/Landing')
@@ -51,7 +51,7 @@ class CornerLandingTest extends TestCase
         $this->itemIn($activities, $user, ['title' => 'Pottery', 'added_at' => now()]);
 
         $this->actingAs($user)
-            ->get('/apps/our-corner')
+            ->get('/apps/our-shelf')
             ->assertInertia(fn (AssertableInertia $page) => $page
                 ->has('lists', 3)
                 ->where('lists.0.id', $songs->id)
@@ -85,7 +85,7 @@ class CornerLandingTest extends TestCase
                     ['title' => 'Old walk', 'done' => false, 'picture_url' => null],
                 ]));
 
-        $this->assertStringStartsWith("/apps/our-corner/items/{$covers[6]->id}/picture?v=", (string) $covers[6]->pictureUrl());
+        $this->assertStringStartsWith("/apps/our-shelf/items/{$covers[6]->id}/picture?v=", (string) $covers[6]->pictureUrl());
     }
 
     public function test_empty_lists_have_empty_peeks(): void
@@ -94,7 +94,7 @@ class CornerLandingTest extends TestCase
         $this->places();
 
         $this->actingAs(User::factory()->create())
-            ->get('/apps/our-corner')
+            ->get('/apps/our-shelf')
             ->assertInertia(fn (AssertableInertia $page) => $page
                 ->where('lists.0.peek', [])
                 ->where('lists.1.peek', [])
@@ -111,7 +111,7 @@ class CornerLandingTest extends TestCase
         $queries = function () use ($user): int {
             DB::flushQueryLog();
             DB::enableQueryLog();
-            $this->actingAs($user)->get('/apps/our-corner')->assertOk();
+            $this->actingAs($user)->get('/apps/our-shelf')->assertOk();
             DB::disableQueryLog();
 
             return count(DB::getQueryLog());

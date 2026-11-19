@@ -35,7 +35,7 @@ class AdminRoomsPageTest extends TestCase
             ->assertInertia(fn ($page) => $page
                 ->component('Shell/Pages/Admin/Rooms')
                 ->has('rooms', count(config('miniapps')))
-                ->where('rooms', fn ($rooms) => collect($rooms)->firstWhere('slug', 'our-mailbox')['options'] !== []
+                ->where('rooms', fn ($rooms) => collect($rooms)->firstWhere('slug', 'our-exchange')['options'] !== []
                     && collect($rooms)->firstWhere('slug', 'our-history')['options'] === [])
             );
     }
@@ -45,25 +45,25 @@ class AdminRoomsPageTest extends TestCase
         $admin = User::factory()->admin()->create();
 
         $this->actingAs($admin)
-            ->patch(route('admin.rooms.update', 'our-corner'), ['enabled' => false])
+            ->patch(route('admin.rooms.update', 'our-shelf'), ['enabled' => false])
             ->assertRedirect(route('admin.rooms.index'));
-        $this->assertDatabaseHas('room_settings', ['key' => 'our-corner', 'enabled' => false]);
+        $this->assertDatabaseHas('room_settings', ['key' => 'our-shelf', 'enabled' => false]);
 
         app()->forgetScopedInstances();
-        $this->get('/apps/our-corner')->assertNotFound();
+        $this->get('/apps/our-shelf')->assertNotFound();
 
-        $this->patch(route('admin.rooms.update', 'our-corner'), ['enabled' => true]);
+        $this->patch(route('admin.rooms.update', 'our-shelf'), ['enabled' => true]);
         app()->forgetScopedInstances();
-        $this->get('/apps/our-corner')->assertOk();
+        $this->get('/apps/our-shelf')->assertOk();
     }
 
     public function test_validation_and_unknown_targets(): void
     {
         $this->actingAs(User::factory()->admin()->create());
 
-        $this->patch(route('admin.rooms.update', 'our-corner'), [])->assertSessionHasErrors('enabled');
+        $this->patch(route('admin.rooms.update', 'our-shelf'), [])->assertSessionHasErrors('enabled');
         $this->patch(route('admin.rooms.update', 'nope'), ['enabled' => true])->assertNotFound();
-        $this->patch(route('admin.rooms.update', 'our-mailbox'), ['enabled' => true, 'option' => 'nope'])->assertNotFound();
+        $this->patch(route('admin.rooms.update', 'our-exchange'), ['enabled' => true, 'option' => 'nope'])->assertNotFound();
         $this->patch(route('admin.rooms.update', 'our-history'), ['enabled' => true, 'option' => 'messages'])->assertNotFound();
     }
 }

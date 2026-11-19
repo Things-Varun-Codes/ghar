@@ -2,7 +2,7 @@ import { Link } from '@inertiajs/react';
 
 import { cn } from '@/lib/utils';
 import CouponActions from '@/MiniApps/Mailbox/Components/CouponActions';
-import { show } from '@/routes/apps/our-mailbox/coupons';
+import { show } from '@/routes/apps/our-exchange/coupons';
 
 type CouponStatus = 'issued' | 'requested' | 'depleted';
 

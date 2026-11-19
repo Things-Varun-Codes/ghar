@@ -44,7 +44,7 @@ export default function CitationArtifact({
                         Department of the Household
                     </div>
                     <div className="mailbox-citation-sub">
-                        Our Mailbox · Citations registry
+                        Our Exchange · Citations registry
                     </div>
                 </div>
             </div>

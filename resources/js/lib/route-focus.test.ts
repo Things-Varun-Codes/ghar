@@ -7,7 +7,7 @@ const get = { method: 'get', preserveScroll: false };
 function change(overrides: Partial<RouteChange>): RouteChange {
     return {
         previousPath: '/dashboard',
-        nextPath: '/apps/our-corner',
+        nextPath: '/apps/our-shelf',
         visit: get,
         sameHeading: false,
         focusLost: true,
@@ -28,8 +28,8 @@ describe('routeFocusAction', () => {
         expect(
             routeFocusAction(
                 change({
-                    previousPath: '/apps/our-corner/songs',
-                    nextPath: '/apps/our-corner/songs',
+                    previousPath: '/apps/our-shelf/songs',
+                    nextPath: '/apps/our-shelf/songs',
                 }),
             ),
         ).toBe('none');

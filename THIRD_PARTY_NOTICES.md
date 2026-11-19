@@ -9,11 +9,11 @@ image, also carries other people's work under their own licences.
 so Ghar serves them itself and nobody's browser asks Google for them. That makes every image a
 copy of the fonts, and their licences ask for the notices below to travel with them.
 
-| Typeface       | Where Ghar uses it                           | Licence                   |
-| -------------- | -------------------------------------------- | ------------------------- |
-| Hanken Grotesk | Interface and body text                      | SIL Open Font License 1.1 |
-| Newsreader     | The wordmark, titles, dates                  | SIL Open Font License 1.1 |
-| Patrick Hand   | Note bodies and coupon titles in Our Mailbox | SIL Open Font License 1.1 |
+| Typeface       | Where Ghar uses it                            | Licence                   |
+| -------------- | --------------------------------------------- | ------------------------- |
+| Hanken Grotesk | Interface and body text                       | SIL Open Font License 1.1 |
+| Newsreader     | The wordmark, titles, dates                   | SIL Open Font License 1.1 |
+| Patrick Hand   | Note bodies and coupon titles in Our Exchange | SIL Open Font License 1.1 |
 
 - Hanken Grotesk: Copyright 2021 The Hanken Grotesk Project Authors
   (https://github.com/marcologous/hanken-grotesk)

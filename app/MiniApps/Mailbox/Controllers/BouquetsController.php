@@ -93,7 +93,7 @@ class BouquetsController
 
         FlashToast::success('Flowers sent.');
 
-        return redirect('/apps/our-mailbox/flowers?tab=sent');
+        return redirect('/apps/our-exchange/flowers?tab=sent');
     }
 
     public function destroy(Request $request, Bouquet $bouquet): RedirectResponse

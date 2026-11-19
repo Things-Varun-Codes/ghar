@@ -7,10 +7,10 @@ import MailboxLayout, {
     MAILBOX_ROOM,
 } from '@/MiniApps/Mailbox/Layouts/MailboxLayout';
 import { monogram } from '@/MiniApps/Mailbox/lib/monogram';
-import { index as citationsIndex } from '@/routes/apps/our-mailbox/citations';
-import { index as couponsIndex } from '@/routes/apps/our-mailbox/coupons';
-import { index as flowersIndex } from '@/routes/apps/our-mailbox/flowers';
-import { index as messagesIndex } from '@/routes/apps/our-mailbox/messages';
+import { index as citationsIndex } from '@/routes/apps/our-exchange/citations';
+import { index as couponsIndex } from '@/routes/apps/our-exchange/coupons';
+import { index as flowersIndex } from '@/routes/apps/our-exchange/flowers';
+import { index as messagesIndex } from '@/routes/apps/our-exchange/messages';
 import EmptyState from '@/Shell/Components/EmptyState';
 import Page from '@/Shell/Components/Page';
 import RoomDoor from '@/Shell/Components/RoomDoor';
@@ -308,7 +308,7 @@ export default function Landing({
             <Page title={MAILBOX_ROOM} documentTitle={MAILBOX_ROOM} backChevron>
                 {types.length === 0 && (
                     <EmptyState
-                        title="Nothing is switched on in the Mailbox"
+                        title="Nothing is switched on in the Exchange"
                         body="An admin can turn on notes, flowers, coupons and citations."
                     />
                 )}

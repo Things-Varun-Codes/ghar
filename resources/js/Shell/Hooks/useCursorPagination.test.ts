@@ -88,7 +88,7 @@ describe('useCursorPagination', () => {
         window.history.replaceState(
             null,
             '',
-            '/apps/our-corner/songs?filter=active',
+            '/apps/our-shelf/songs?filter=active',
         );
 
         const initial: CursorPaginator<Item> = {
@@ -108,7 +108,7 @@ describe('useCursorPagination', () => {
         });
 
         const [url] = lastCall();
-        expect(url).toBe('/apps/our-corner/songs?filter=active&sort=recent');
+        expect(url).toBe('/apps/our-shelf/songs?filter=active&sort=recent');
     });
 
     it('navigate deletes a key on undefined or empty-string value, and drops the question mark when the last param is removed', () => {
@@ -127,22 +127,22 @@ describe('useCursorPagination', () => {
         window.history.replaceState(
             null,
             '',
-            '/apps/our-corner/songs?filter=active',
+            '/apps/our-shelf/songs?filter=active',
         );
         act(() => {
             result.current.navigate({ filter: undefined });
         });
-        expect(lastCall()[0]).toBe('/apps/our-corner/songs');
+        expect(lastCall()[0]).toBe('/apps/our-shelf/songs');
 
         window.history.replaceState(
             null,
             '',
-            '/apps/our-corner/songs?filter=active',
+            '/apps/our-shelf/songs?filter=active',
         );
         act(() => {
             result.current.navigate({ filter: '' });
         });
-        expect(lastCall()[0]).toBe('/apps/our-corner/songs');
+        expect(lastCall()[0]).toBe('/apps/our-shelf/songs');
     });
 
     it('Mode-B request options carry preserveScroll:false, preserveState:true, and NO only key at all', () => {

@@ -28,14 +28,14 @@ class CitationLifecycleTest extends TestCase
         Notification::fake();
         [$issuer, $recipient] = $this->seedPair();
 
-        $response = $this->actingAs($issuer)->post('/apps/our-mailbox/citations', [
+        $response = $this->actingAs($issuer)->post('/apps/our-exchange/citations', [
             'recipient_ids' => [$recipient->id],
             'offence' => 'Replied with just k',
             'penalty' => '3 hugs',
         ]);
 
         $citation = Citation::firstOrFail();
-        $response->assertRedirect("/apps/our-mailbox/citations/{$citation->id}");
+        $response->assertRedirect("/apps/our-exchange/citations/{$citation->id}");
         $this->assertSuccessToast($response, 'Citation issued.');
 
         $this->assertSame(Citation::STATUS_ISSUED, $citation->status);
@@ -57,7 +57,7 @@ class CitationLifecycleTest extends TestCase
         ]);
 
         $response = $this->actingAs($recipient)
-            ->patch("/apps/our-mailbox/citations/{$citation->id}/pay")
+            ->patch("/apps/our-exchange/citations/{$citation->id}/pay")
             ->assertRedirect();
         $this->assertSuccessToast($response, 'Citation paid.');
 
@@ -97,13 +97,13 @@ class CitationLifecycleTest extends TestCase
         $second = User::factory()->create();
         $bystander = User::factory()->create();
 
-        $response = $this->actingAs($issuer)->post('/apps/our-mailbox/citations', [
+        $response = $this->actingAs($issuer)->post('/apps/our-exchange/citations', [
             'recipient_ids' => [$first->id, $second->id],
             'offence' => 'Hogged the remote',
             'penalty' => 'Make tea',
         ]);
 
-        $response->assertRedirect('/apps/our-mailbox/citations?tab=issued');
+        $response->assertRedirect('/apps/our-exchange/citations?tab=issued');
         $this->assertSuccessToast($response, '2 citations issued.');
 
         $this->assertSame(
@@ -121,8 +121,8 @@ class CitationLifecycleTest extends TestCase
         [$issuer] = $this->seedPair();
 
         $this->actingAs($issuer)
-            ->from('/apps/our-mailbox/citations')
-            ->post('/apps/our-mailbox/citations', [
+            ->from('/apps/our-exchange/citations')
+            ->post('/apps/our-exchange/citations', [
                 'recipient_ids' => [$issuer->id],
                 'offence' => 'Hogged the remote',
                 'penalty' => 'Make tea',

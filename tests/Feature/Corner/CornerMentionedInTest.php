@@ -45,7 +45,7 @@ class CornerMentionedInTest extends TestCase
         $this->recordRef($event->id, 'corner.item', $item->id);
 
         $this->actingAs($this->user)
-            ->get("/apps/our-corner/{$list->slug}/{$item->id}")
+            ->get("/apps/our-shelf/{$list->slug}/{$item->id}")
             ->assertOk()
             ->assertInertia(fn (AssertableInertia $page) => $page
                 ->component('MiniApps/Corner/Pages/Item')
@@ -75,7 +75,7 @@ class CornerMentionedInTest extends TestCase
 
         foreach ([3, $song->id] as $id) {
             $this->actingAs($this->user)
-                ->get("/apps/our-corner/songs/{$id}")
+                ->get("/apps/our-shelf/songs/{$id}")
                 ->assertInertia(fn (AssertableInertia $page) => $page
                     ->where('item.id', $song->id)
                     ->has('mentioned_in', 3)
@@ -92,7 +92,7 @@ class CornerMentionedInTest extends TestCase
         $this->recordRef(999999, 'corner.item', $item->id);
 
         $this->actingAs($this->user)
-            ->get("/apps/our-corner/{$list->slug}/{$item->id}")
+            ->get("/apps/our-shelf/{$list->slug}/{$item->id}")
             ->assertInertia(fn (AssertableInertia $page) => $page
                 ->has('mentioned_in', 1)
                 ->where('mentioned_in.0.from_type', 'history.event')
@@ -105,7 +105,7 @@ class CornerMentionedInTest extends TestCase
         $item = $this->itemIn($list, $this->user);
 
         $this->actingAs($this->user)
-            ->get("/apps/our-corner/{$list->slug}/{$item->id}")
+            ->get("/apps/our-shelf/{$list->slug}/{$item->id}")
             ->assertInertia(fn (AssertableInertia $page) => $page->has('mentioned_in', 0));
     }
 
@@ -121,7 +121,7 @@ class CornerMentionedInTest extends TestCase
 
         foreach ([$a, $b] as $item) {
             $this->actingAs($this->user)
-                ->get("/apps/our-corner/{$list->slug}/{$item->id}")
+                ->get("/apps/our-shelf/{$list->slug}/{$item->id}")
                 ->assertInertia(fn (AssertableInertia $page) => $page
                     ->has('mentioned_in', 1)
                     ->where('mentioned_in.0.from_id', $event->id));

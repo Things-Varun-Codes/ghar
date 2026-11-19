@@ -22,7 +22,7 @@ class CitationRefNoUniquenessTest extends TestCase
 
         $refNos = [];
         for ($i = 0; $i < 8; $i++) {
-            $this->actingAs($issuer)->post('/apps/our-mailbox/citations', [
+            $this->actingAs($issuer)->post('/apps/our-exchange/citations', [
                 'recipient_ids' => [$recipient->id],
                 'offence' => 'Replied with just k',
                 'penalty' => '2 kisses',

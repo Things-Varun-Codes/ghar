@@ -27,8 +27,8 @@ class CitationAuthorizationTest extends TestCase
         [$issuer] = $this->seedPair();
 
         $this->actingAs($issuer)
-            ->from('/apps/our-mailbox/citations')
-            ->post('/apps/our-mailbox/citations', [
+            ->from('/apps/our-exchange/citations')
+            ->post('/apps/our-exchange/citations', [
                 'penalty' => '',
             ])
             ->assertSessionHasErrors(['offence', 'penalty']);
@@ -41,8 +41,8 @@ class CitationAuthorizationTest extends TestCase
         [$issuer] = $this->seedPair();
 
         $this->actingAs($issuer)
-            ->from('/apps/our-mailbox/citations')
-            ->post('/apps/our-mailbox/citations', [
+            ->from('/apps/our-exchange/citations')
+            ->post('/apps/our-exchange/citations', [
                 'offence' => str_repeat('a', 121),
                 'penalty' => '3 hugs',
             ])
@@ -56,8 +56,8 @@ class CitationAuthorizationTest extends TestCase
         [$issuer] = $this->seedPair();
 
         $this->actingAs($issuer)
-            ->from('/apps/our-mailbox/citations')
-            ->post('/apps/our-mailbox/citations', [
+            ->from('/apps/our-exchange/citations')
+            ->post('/apps/our-exchange/citations', [
                 'offence' => 'Left on read',
                 'penalty' => str_repeat('b', 81),
             ])
@@ -71,7 +71,7 @@ class CitationAuthorizationTest extends TestCase
         Notification::fake();
         [$issuer, $recipient] = $this->seedPair();
 
-        $this->actingAs($issuer)->post('/apps/our-mailbox/citations', [
+        $this->actingAs($issuer)->post('/apps/our-exchange/citations', [
             'recipient_ids' => [$recipient->id],
             'offence' => 'Replied with just k',
             'penalty' => '3 kisses',
@@ -97,7 +97,7 @@ class CitationAuthorizationTest extends TestCase
 
         // The issuer is not the recipient → cannot pay their own citation.
         $this->actingAs($issuer)
-            ->patch("/apps/our-mailbox/citations/{$citation->id}/pay")
+            ->patch("/apps/our-exchange/citations/{$citation->id}/pay")
             ->assertForbidden();
 
         $this->assertSame(Citation::STATUS_ISSUED, $citation->fresh()->status);
@@ -113,7 +113,7 @@ class CitationAuthorizationTest extends TestCase
 
         // Paid is terminal — even the recipient can't pay again (policy gate).
         $this->actingAs($recipient)
-            ->patch("/apps/our-mailbox/citations/{$citation->id}/pay")
+            ->patch("/apps/our-exchange/citations/{$citation->id}/pay")
             ->assertForbidden();
 
         $this->assertSame(Citation::STATUS_PAID, $citation->fresh()->status);
@@ -128,8 +128,8 @@ class CitationAuthorizationTest extends TestCase
         ]);
 
         $response = $this->actingAs($issuer)
-            ->delete("/apps/our-mailbox/citations/{$citation->id}")
-            ->assertRedirect('/apps/our-mailbox/citations');
+            ->delete("/apps/our-exchange/citations/{$citation->id}")
+            ->assertRedirect('/apps/our-exchange/citations');
         $this->assertSuccessToast($response, 'Citation withdrawn.');
 
         // Hard delete — gone for both parties.
@@ -145,7 +145,7 @@ class CitationAuthorizationTest extends TestCase
         ]);
 
         $this->actingAs($issuer)
-            ->delete("/apps/our-mailbox/citations/{$citation->id}")
+            ->delete("/apps/our-exchange/citations/{$citation->id}")
             ->assertForbidden();
 
         $this->assertDatabaseHas('mailbox_citations', ['id' => $citation->id]);
@@ -161,7 +161,7 @@ class CitationAuthorizationTest extends TestCase
 
         // The recipient is not the issuer → cannot withdraw it.
         $this->actingAs($recipient)
-            ->delete("/apps/our-mailbox/citations/{$citation->id}")
+            ->delete("/apps/our-exchange/citations/{$citation->id}")
             ->assertForbidden();
 
         $this->assertDatabaseHas('mailbox_citations', ['id' => $citation->id]);
@@ -177,7 +177,7 @@ class CitationAuthorizationTest extends TestCase
 
         // Recipient of an issued row → [pay].
         $this->actingAs($recipient)
-            ->get("/apps/our-mailbox/citations/{$issued->id}")
+            ->get("/apps/our-exchange/citations/{$issued->id}")
             ->assertInertia(fn (Assert $page) => $page
                 ->component('MiniApps/Mailbox/Pages/Citations/Show')
                 ->where('citation.ref_no', $issued->ref_no)
@@ -187,7 +187,7 @@ class CitationAuthorizationTest extends TestCase
 
         // Issuer of the same issued row → [delete] (withdraw before it's paid).
         $this->actingAs($issuer)
-            ->get("/apps/our-mailbox/citations/{$issued->id}")
+            ->get("/apps/our-exchange/citations/{$issued->id}")
             ->assertInertia(fn (Assert $page) => $page
                 ->where('citation.available_actions', ['delete'])
             );
@@ -198,7 +198,7 @@ class CitationAuthorizationTest extends TestCase
             'recipient_id' => $recipient->id,
         ]);
         $this->actingAs($recipient)
-            ->get("/apps/our-mailbox/citations/{$paid->id}")
+            ->get("/apps/our-exchange/citations/{$paid->id}")
             ->assertInertia(fn (Assert $page) => $page
                 ->where('citation.available_actions', [])
             );

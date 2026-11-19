@@ -1,4 +1,4 @@
-[data-app='our-mailbox'] {
+[data-app='our-exchange'] {
     --mailbox-bg: var(--shell-bg);
     --mailbox-paper: var(--shell-surface);
     --mailbox-card: var(--shell-surface);
@@ -111,7 +111,7 @@
     );
 }
 
-[data-app='our-mailbox'] .mailbox-page {
+[data-app='our-exchange'] .mailbox-page {
     background-color: var(--mailbox-bg);
     color: var(--mailbox-ink);
     min-height: 100vh;
@@ -119,7 +119,7 @@
 
 /* ── Shared type ─────────────────────────────────────────────────────── */
 
-[data-app='our-mailbox'] .mailbox-hand {
+[data-app='our-exchange'] .mailbox-hand {
     font-family: var(--mailbox-font-hand);
     font-weight: 400;
     font-size: var(--mailbox-hand-size);
@@ -127,7 +127,7 @@
     line-height: var(--mailbox-rule-step);
 }
 
-[data-app='our-mailbox'] .mailbox-hand-meta {
+[data-app='our-exchange'] .mailbox-hand-meta {
     font-family: var(--mailbox-font-sans);
     font-size: var(--text-meta);
     color: var(--mailbox-ink-soft);
@@ -135,7 +135,7 @@
 }
 
 /* A new note or bouquet says so in words; the dot only helps the eye find it. */
-[data-app='our-mailbox'] .mailbox-unread {
+[data-app='our-exchange'] .mailbox-unread {
     display: inline-flex;
     align-items: center;
     gap: 4px;
@@ -145,7 +145,7 @@
     font-weight: 500;
     color: var(--mailbox-accent-text);
 }
-[data-app='our-mailbox'] .mailbox-unread::before {
+[data-app='our-exchange'] .mailbox-unread::before {
     content: '';
     width: 8px;
     height: 8px;
@@ -155,7 +155,7 @@
 
 /* ── Cards ───────────────────────────────────────────────────────────── */
 
-[data-app='our-mailbox'] .mailbox-card {
+[data-app='our-exchange'] .mailbox-card {
     background: var(--mailbox-card);
     color: var(--mailbox-ink);
     border: 1px solid var(--mailbox-border);
@@ -164,12 +164,12 @@
 }
 
 @media (max-width: 639px) {
-    [data-app='our-mailbox'] .mailbox-card {
+    [data-app='our-exchange'] .mailbox-card {
         padding: 20px;
     }
 }
 
-[data-app='our-mailbox'] .mailbox-card.mailbox-note {
+[data-app='our-exchange'] .mailbox-card.mailbox-note {
     position: relative;
     background-color: var(--mailbox-card);
     background-image: var(--mailbox-paper-bg-image);
@@ -182,24 +182,25 @@
 }
 
 /* A note or bouquet a notification pointed at: ringed, so the eye lands on it. */
-[data-app='our-mailbox'] .mailbox-bouquet.focused {
+[data-app='our-exchange'] .mailbox-bouquet.focused {
     box-shadow: 0 0 0 2px var(--mailbox-accent-text);
 }
-[data-app='our-mailbox'] .mailbox-card.mailbox-note.focused {
+[data-app='our-exchange'] .mailbox-card.mailbox-note.focused {
     box-shadow:
         0 0 0 2px var(--mailbox-accent-text),
         var(--mailbox-paper-shadow);
 }
-[data-app='our-mailbox'] .focused:focus {
+[data-app='our-exchange'] .focused:focus {
     outline: none;
 }
 
 /* Paper doesn't shrink: pressing the card's own link sets the lifted card back down. */
-[data-app='our-mailbox'] .mailbox-card.shell-lift:has(.shell-card-link:active) {
+[data-app='our-exchange']
+    .mailbox-card.shell-lift:has(.shell-card-link:active) {
     transform: none;
 }
 
-[data-app='our-mailbox'] .mailbox-status-pill {
+[data-app='our-exchange'] .mailbox-status-pill {
     font-size: var(--text-meta);
     font-weight: 500;
     line-height: 1.5;
@@ -208,8 +209,8 @@
     white-space: nowrap;
 }
 
-[data-app='our-mailbox'] .mailbox-card-menu,
-[data-app='our-mailbox'] .mailbox-card-menu-square {
+[data-app='our-exchange'] .mailbox-card-menu,
+[data-app='our-exchange'] .mailbox-card-menu-square {
     position: relative;
     flex: none;
     width: 32px;
@@ -225,17 +226,17 @@
     transition: background-color var(--dur-out) var(--ease-ui);
 }
 /* The button stays 32px so the note keeps its rule rhythm; .shell-hit-44 keeps the tap area. */
-[data-app='our-mailbox'] .mailbox-card-menu:hover,
-[data-app='our-mailbox'] .mailbox-card-menu-square:hover,
-[data-app='our-mailbox'] .mailbox-card-menu[data-state='open'],
-[data-app='our-mailbox'] .mailbox-card-menu-square[data-state='open'] {
+[data-app='our-exchange'] .mailbox-card-menu:hover,
+[data-app='our-exchange'] .mailbox-card-menu-square:hover,
+[data-app='our-exchange'] .mailbox-card-menu[data-state='open'],
+[data-app='our-exchange'] .mailbox-card-menu-square[data-state='open'] {
     background: color-mix(in oklab, var(--mailbox-ink) 8%, transparent);
 }
 
 /* ── Landing: a door per pile, each showing the top of it ────────────── */
 
 /* Sized by the room, not the viewport: one door a row on a phone, two on a tablet, four wide. */
-[data-app='our-mailbox'] .mailbox-doors {
+[data-app='our-exchange'] .mailbox-doors {
     container: mailbox-doors / inline-size;
     display: grid;
     grid-template-columns: minmax(0, 1fr);
@@ -243,26 +244,26 @@
 }
 
 @container mailbox-doors (min-width: 560px) {
-    [data-app='our-mailbox'] .mailbox-doors {
+    [data-app='our-exchange'] .mailbox-doors {
         grid-template-columns: repeat(2, minmax(0, 1fr));
         gap: 16px;
     }
 }
 
 @container mailbox-doors (min-width: 1040px) {
-    [data-app='our-mailbox'] .mailbox-doors {
+    [data-app='our-exchange'] .mailbox-doors {
         grid-template-columns: repeat(4, minmax(0, 1fr));
     }
 }
 
-[data-app='our-mailbox'] .mailbox-card.mailbox-door {
+[data-app='our-exchange'] .mailbox-card.mailbox-door {
     display: flex;
     flex-direction: column;
     min-width: 0;
     padding: 12px;
 }
 
-[data-app='our-mailbox'] .mailbox-door-peek {
+[data-app='our-exchange'] .mailbox-door-peek {
     position: relative;
     display: flex;
     height: 112px;
@@ -272,12 +273,12 @@
 }
 
 @container mailbox-doors (min-width: 560px) {
-    [data-app='our-mailbox'] .mailbox-door-peek {
+    [data-app='our-exchange'] .mailbox-door-peek {
         height: 136px;
     }
 }
 
-[data-app='our-mailbox'] .mailbox-door-name {
+[data-app='our-exchange'] .mailbox-door-name {
     margin: 12px 4px 0;
     font-family: var(--mailbox-font-display);
     font-weight: 400;
@@ -287,12 +288,12 @@
     color: var(--mailbox-ink);
 }
 
-[data-app='our-mailbox'] .mailbox-door-name .shell-card-link {
+[data-app='our-exchange'] .mailbox-door-name .shell-card-link {
     color: inherit;
     text-decoration: none;
 }
 
-[data-app='our-mailbox'] .mailbox-door-live {
+[data-app='our-exchange'] .mailbox-door-live {
     margin: 2px 4px 4px;
     font-size: var(--text-meta);
     font-weight: 500;
@@ -301,11 +302,11 @@
     color: var(--mailbox-ink-soft);
 }
 
-[data-app='our-mailbox'] .mailbox-door-live--alert {
+[data-app='our-exchange'] .mailbox-door-live--alert {
     color: var(--mailbox-accent-text);
 }
 
-[data-app='our-mailbox'] .mailbox-door-empty {
+[data-app='our-exchange'] .mailbox-door-empty {
     display: grid;
     place-items: center;
     width: 100%;
@@ -313,7 +314,7 @@
 }
 
 /* Notes: a scrap of the ruled sheet, written on the same rules as a note. */
-[data-app='our-mailbox'] .mailbox-door-note {
+[data-app='our-exchange'] .mailbox-door-note {
     width: 100%;
     padding: 4px 16px 0 44px;
     background-color: var(--mailbox-paper);
@@ -324,7 +325,7 @@
     border-radius: inherit;
 }
 
-[data-app='our-mailbox'] .mailbox-door-note-body {
+[data-app='our-exchange'] .mailbox-door-note-body {
     margin: 0;
     font-family: var(--mailbox-font-hand);
     font-weight: 400;
@@ -339,7 +340,7 @@
     overflow: hidden;
 }
 
-[data-app='our-mailbox'] .mailbox-door-note-from {
+[data-app='our-exchange'] .mailbox-door-note-from {
     margin: 0;
     font-size: var(--text-meta);
     line-height: var(--mailbox-rule-step);
@@ -347,7 +348,7 @@
 }
 
 /* Flowers: the latest bouquet itself. */
-[data-app='our-mailbox'] .mailbox-door-bouquet {
+[data-app='our-exchange'] .mailbox-door-bouquet {
     width: 100%;
     height: 100%;
     object-fit: cover;
@@ -356,13 +357,13 @@
 }
 
 @media (hover: hover) and (pointer: fine) {
-    [data-app='our-mailbox'] .mailbox-door:hover .mailbox-door-bouquet {
+    [data-app='our-exchange'] .mailbox-door:hover .mailbox-door-bouquet {
         transform: scale(1.03);
     }
 }
 
 /* Citations: the top of the form, with its stamp. */
-[data-app='our-mailbox'] .mailbox-door-citation {
+[data-app='our-exchange'] .mailbox-door-citation {
     --mailbox-citation-seal-size: 40px;
     position: relative;
     width: 100%;
@@ -372,31 +373,31 @@
     overflow: hidden;
 }
 
-[data-app='our-mailbox'] .mailbox-door-citation .mailbox-citation-masthead {
+[data-app='our-exchange'] .mailbox-door-citation .mailbox-citation-masthead {
     gap: 12px;
     padding: 10px 14px;
 }
 
-[data-app='our-mailbox']
+[data-app='our-exchange']
     .mailbox-door-citation
     .mailbox-citation-seal
     .mailbox-citation-monogram {
     font-size: var(--text-meta);
 }
 
-[data-app='our-mailbox'] .mailbox-door-citation .mailbox-citation-title {
+[data-app='our-exchange'] .mailbox-door-citation .mailbox-citation-title {
     font-size: var(--text-small);
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
 }
 
-[data-app='our-mailbox'] .mailbox-door-citation .mailbox-citation-sub {
+[data-app='our-exchange'] .mailbox-door-citation .mailbox-citation-sub {
     margin-top: 0;
     font-variant-numeric: tabular-nums;
 }
 
-[data-app='our-mailbox'] .mailbox-written.mailbox-door-citation-offence {
+[data-app='our-exchange'] .mailbox-written.mailbox-door-citation-offence {
     margin: 0;
     padding: 8px 112px 0 14px;
     font-size: var(--text-body);
@@ -405,7 +406,7 @@
     text-overflow: ellipsis;
 }
 
-[data-app='our-mailbox'] .mailbox-door-citation .mailbox-citation-stamp {
+[data-app='our-exchange'] .mailbox-door-citation .mailbox-citation-stamp {
     top: auto;
     right: 12px;
     bottom: 8px;
@@ -415,7 +416,7 @@
 }
 
 /* Coupons: the stub, with what is left on it. */
-[data-app='our-mailbox'] .mailbox-door-coupon {
+[data-app='our-exchange'] .mailbox-door-coupon {
     display: flex;
     flex-direction: column;
     justify-content: space-between;
@@ -426,7 +427,7 @@
     border-radius: inherit;
 }
 
-[data-app='our-mailbox'] .mailbox-door-coupon-title {
+[data-app='our-exchange'] .mailbox-door-coupon-title {
     font-family: var(--mailbox-coupon-font-display);
     font-weight: 400;
     font-size: var(--mailbox-hand-size);
@@ -440,7 +441,7 @@
     overflow: hidden;
 }
 
-[data-app='our-mailbox'] .mailbox-door-coupon-foot {
+[data-app='our-exchange'] .mailbox-door-coupon-foot {
     display: flex;
     flex-wrap: wrap;
     align-items: center;
@@ -453,34 +454,34 @@
     color: var(--mailbox-ink-soft);
 }
 
-[data-app='our-mailbox'] .mailbox-door-coupon-foot .mailbox-coupon-stamp {
+[data-app='our-exchange'] .mailbox-door-coupon-foot .mailbox-coupon-stamp {
     margin-left: auto;
 }
 
 /* ── Feeds ───────────────────────────────────────────────────────────── */
 
-[data-app='our-mailbox'] .mailbox-feed {
+[data-app='our-exchange'] .mailbox-feed {
     margin-top: 16px;
     display: flex;
     flex-direction: column;
     gap: 16px;
 }
 
-[data-app='our-mailbox'] .mailbox-feed:has(> .mailbox-note),
-[data-app='our-mailbox'] .mailbox-feed:has(> .mailbox-bouquet) {
+[data-app='our-exchange'] .mailbox-feed:has(> .mailbox-note),
+[data-app='our-exchange'] .mailbox-feed:has(> .mailbox-bouquet) {
     display: grid;
     gap: 24px;
     align-items: start;
     grid-template-columns: repeat(auto-fill, minmax(min(100%, 340px), 1fr));
 }
 
-[data-app='our-mailbox'] .mailbox-feed > :not(article) {
+[data-app='our-exchange'] .mailbox-feed > :not(article) {
     grid-column: 1 / -1;
 }
 
 /* ── Notes ───────────────────────────────────────────────────────────── */
 
-[data-app='our-mailbox'] .mailbox-note-body {
+[data-app='our-exchange'] .mailbox-note-body {
     font-family: var(--mailbox-font-hand);
     font-weight: 400;
     font-size: var(--mailbox-hand-size);
@@ -491,14 +492,14 @@
     word-break: break-word;
 }
 
-[data-app='our-mailbox'] .mailbox-note-meta {
+[data-app='our-exchange'] .mailbox-note-meta {
     font-family: var(--mailbox-font-sans);
     font-size: var(--text-meta);
     margin: 0;
     color: var(--mailbox-ink-soft);
 }
 
-[data-app='our-mailbox'] .mailbox-composer-paper {
+[data-app='our-exchange'] .mailbox-composer-paper {
     background-color: var(--mailbox-card);
     background-image: var(--mailbox-paper-bg-image);
     background-attachment: local;
@@ -507,14 +508,14 @@
 
 /* ── Bouquets ────────────────────────────────────────────────────────── */
 
-[data-app='our-mailbox'] .mailbox-bouquet {
+[data-app='our-exchange'] .mailbox-bouquet {
     display: flex;
     flex-direction: column;
     gap: 12px;
     padding: 16px;
 }
 
-[data-app='our-mailbox'] .mailbox-bouquet-image-button {
+[data-app='our-exchange'] .mailbox-bouquet-image-button {
     position: relative;
     display: block;
     width: 100%;
@@ -526,16 +527,16 @@
     background: transparent;
     cursor: pointer;
 }
-[data-app='our-mailbox'] .mailbox-bouquet-image-button img {
+[data-app='our-exchange'] .mailbox-bouquet-image-button img {
     transition: transform var(--dur-media) var(--ease-ui);
 }
 @media (hover: hover) and (pointer: fine) {
-    [data-app='our-mailbox'] .mailbox-bouquet-image-button:hover img {
+    [data-app='our-exchange'] .mailbox-bouquet-image-button:hover img {
         transform: scale(1.03);
     }
 }
 
-[data-app='our-mailbox'] .mailbox-bouquet-expand {
+[data-app='our-exchange'] .mailbox-bouquet-expand {
     position: absolute;
     right: 8px;
     bottom: 8px;
@@ -550,7 +551,7 @@
 }
 
 /* The few words sent with a bouquet are a note body. */
-[data-app='our-mailbox'] .mailbox-bouquet-note {
+[data-app='our-exchange'] .mailbox-bouquet-note {
     font-family: var(--mailbox-font-hand);
     font-weight: 400;
     font-size: var(--mailbox-hand-size-small);
@@ -561,7 +562,7 @@
     word-break: break-word;
 }
 
-[data-app='our-mailbox'] .mailbox-bouquet-flowers {
+[data-app='our-exchange'] .mailbox-bouquet-flowers {
     font-family: var(--mailbox-font-sans);
     font-size: var(--text-small);
     margin: 0;
@@ -569,14 +570,14 @@
     line-height: 1.5;
 }
 
-[data-app='our-mailbox'] .mailbox-bouquet-meta {
+[data-app='our-exchange'] .mailbox-bouquet-meta {
     font-family: var(--mailbox-font-sans);
     font-size: var(--text-meta);
     margin: 0;
     color: var(--mailbox-ink-soft);
 }
 
-[data-app='our-mailbox'].mailbox-bouquet-lightbox {
+[data-app='our-exchange'].mailbox-bouquet-lightbox {
     background: var(--mailbox-bg);
     display: flex;
     align-items: center;
@@ -587,7 +588,7 @@
     border: none;
 }
 
-[data-app='our-mailbox'] .mailbox-lightbox-image {
+[data-app='our-exchange'] .mailbox-lightbox-image {
     display: block;
     max-width: 90vw;
     max-height: 80vh;
@@ -597,12 +598,12 @@
 
 /* ── Citation: an official form, told by its rules, boxes, seal and stamp ─ */
 
-[data-app='our-mailbox'] .mailbox-artifact-page {
+[data-app='our-exchange'] .mailbox-artifact-page {
     max-width: 640px;
     margin-inline: auto;
 }
 
-[data-app='our-mailbox'] .mailbox-citation-doc {
+[data-app='our-exchange'] .mailbox-citation-doc {
     position: relative;
     background: var(--mailbox-paper);
     color: var(--mailbox-ink);
@@ -615,7 +616,7 @@
     margin: 0 auto;
 }
 
-[data-app='our-mailbox'] .mailbox-citation-watermark {
+[data-app='our-exchange'] .mailbox-citation-watermark {
     position: absolute;
     inset: 0;
     display: grid;
@@ -623,7 +624,7 @@
     pointer-events: none;
     overflow: hidden;
 }
-[data-app='our-mailbox'] .mailbox-citation-watermark span {
+[data-app='our-exchange'] .mailbox-citation-watermark span {
     font-family: var(--mailbox-font-display);
     font-size: 190px;
     font-weight: 400;
@@ -634,7 +635,7 @@
     white-space: nowrap;
 }
 
-[data-app='our-mailbox'] .mailbox-citation-masthead {
+[data-app='our-exchange'] .mailbox-citation-masthead {
     position: relative;
     z-index: 2;
     display: flex;
@@ -644,7 +645,7 @@
     background: var(--mailbox-citation-masthead-bg);
     border-bottom: 2px solid var(--mailbox-ink);
 }
-[data-app='our-mailbox'] .mailbox-citation-title {
+[data-app='our-exchange'] .mailbox-citation-title {
     font-family: var(--mailbox-citation-font);
     font-size: var(--text-subhead);
     font-weight: 500;
@@ -652,7 +653,7 @@
     text-wrap: balance;
     color: var(--mailbox-ink);
 }
-[data-app='our-mailbox'] .mailbox-citation-sub {
+[data-app='our-exchange'] .mailbox-citation-sub {
     font-size: var(--text-meta);
     font-weight: 500;
     letter-spacing: 0.01em;
@@ -660,7 +661,7 @@
     color: var(--mailbox-ink-soft);
 }
 
-[data-app='our-mailbox'] .mailbox-citation-seal {
+[data-app='our-exchange'] .mailbox-citation-seal {
     position: relative;
     flex: none;
     width: var(--mailbox-citation-seal-size);
@@ -673,7 +674,7 @@
     font-family: var(--mailbox-citation-font);
     line-height: 1;
 }
-[data-app='our-mailbox'] .mailbox-citation-seal::before {
+[data-app='our-exchange'] .mailbox-citation-seal::before {
     content: '';
     position: absolute;
     inset: 4px;
@@ -681,12 +682,12 @@
     border: 1px dashed var(--mailbox-citation-seal-color);
     opacity: 0.6;
 }
-[data-app='our-mailbox'] .mailbox-citation-seal .mailbox-citation-monogram {
+[data-app='our-exchange'] .mailbox-citation-seal .mailbox-citation-monogram {
     font-size: var(--text-subhead);
     font-weight: 500;
 }
 
-[data-app='our-mailbox'] .mailbox-citation-confidential {
+[data-app='our-exchange'] .mailbox-citation-confidential {
     position: absolute;
     top: 8px;
     right: 16px;
@@ -703,7 +704,7 @@
 }
 
 /* The stamp is the form's one device in capitals. */
-[data-app='our-mailbox'] .mailbox-citation-stamp {
+[data-app='our-exchange'] .mailbox-citation-stamp {
     position: absolute;
     top: 104px;
     right: 24px;
@@ -726,13 +727,13 @@
 }
 
 @media (max-width: 520px) {
-    [data-app='our-mailbox'] .mailbox-citation-masthead {
+    [data-app='our-exchange'] .mailbox-citation-masthead {
         padding: 40px 16px 16px;
     }
-    [data-app='our-mailbox'] .mailbox-citation-body {
+    [data-app='our-exchange'] .mailbox-citation-body {
         padding: 24px 16px;
     }
-    [data-app='our-mailbox'] .mailbox-citation-stamp {
+    [data-app='our-exchange'] .mailbox-citation-stamp {
         top: 124px;
         right: 16px;
         font-size: var(--text-body);
@@ -740,19 +741,19 @@
         border-width: 3px;
     }
 }
-[data-app='our-mailbox'] .mailbox-citation-stamp--issued {
+[data-app='our-exchange'] .mailbox-citation-stamp--issued {
     color: var(--mailbox-destructive);
 }
-[data-app='our-mailbox'] .mailbox-citation-stamp--paid {
+[data-app='our-exchange'] .mailbox-citation-stamp--paid {
     color: var(--mailbox-accent-text);
 }
 
-[data-app='our-mailbox'] .mailbox-citation-body {
+[data-app='our-exchange'] .mailbox-citation-body {
     position: relative;
     z-index: 2;
     padding: 24px;
 }
-[data-app='our-mailbox'] .mailbox-citation-refrow {
+[data-app='our-exchange'] .mailbox-citation-refrow {
     display: flex;
     flex-direction: column;
     align-items: flex-start;
@@ -764,7 +765,7 @@
     line-height: 1.5;
     color: var(--mailbox-ink);
 }
-[data-app='our-mailbox'] .mailbox-citation-refrow strong {
+[data-app='our-exchange'] .mailbox-citation-refrow strong {
     display: inline-block;
     min-width: 56px;
     margin-right: 8px;
@@ -774,16 +775,16 @@
     color: var(--mailbox-ink-soft);
 }
 
-[data-app='our-mailbox'] .mailbox-citation-fieldset {
+[data-app='our-exchange'] .mailbox-citation-fieldset {
     border: 1px solid var(--mailbox-citation-faint);
     border-radius: var(--mailbox-paper-radius);
     padding: 12px 16px 16px;
     margin: 0 0 16px;
 }
-[data-app='our-mailbox'] .mailbox-citation-fieldset:last-child {
+[data-app='our-exchange'] .mailbox-citation-fieldset:last-child {
     margin-bottom: 0;
 }
-[data-app='our-mailbox'] .mailbox-citation-legend {
+[data-app='our-exchange'] .mailbox-citation-legend {
     font-family: var(--mailbox-citation-font);
     font-size: var(--text-meta);
     font-weight: 500;
@@ -791,12 +792,12 @@
     padding: 0 8px;
     color: var(--mailbox-ink-soft);
 }
-[data-app='our-mailbox'] .mailbox-citation-grid2 {
+[data-app='our-exchange'] .mailbox-citation-grid2 {
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 12px 16px;
 }
-[data-app='our-mailbox'] .mailbox-citation-field-label {
+[data-app='our-exchange'] .mailbox-citation-field-label {
     font-family: var(--mailbox-citation-font);
     font-size: var(--text-meta);
     font-weight: 500;
@@ -805,9 +806,9 @@
     margin-bottom: 4px;
 }
 /* What was filled in reads as ink on the printed form. */
-[data-app='our-mailbox'] .mailbox-citation-field-value,
-[data-app='our-mailbox'] .mailbox-citation-field-value--hand,
-[data-app='our-mailbox'] .mailbox-citation-penalty {
+[data-app='our-exchange'] .mailbox-citation-field-value,
+[data-app='our-exchange'] .mailbox-citation-field-value--hand,
+[data-app='our-exchange'] .mailbox-citation-penalty {
     font-family: var(--mailbox-font-display);
     font-style: italic;
     font-weight: 400;
@@ -818,14 +819,14 @@
     overflow-wrap: anywhere;
 }
 
-[data-app='our-mailbox'] .mailbox-citation-penalty {
+[data-app='our-exchange'] .mailbox-citation-penalty {
     background: var(--mailbox-citation-masthead-bg);
     border: 1px dashed var(--mailbox-citation-faint);
     border-radius: var(--mailbox-paper-radius);
     padding: 12px 16px;
 }
 
-[data-app='our-mailbox'] .mailbox-citation-footer {
+[data-app='our-exchange'] .mailbox-citation-footer {
     position: relative;
     z-index: 2;
     border-top: 1px solid var(--mailbox-border);
@@ -835,14 +836,14 @@
     line-height: 1.5;
     color: var(--mailbox-ink-soft);
 }
-[data-app='our-mailbox'] .mailbox-citation-footer .mailbox-citation-heart {
+[data-app='our-exchange'] .mailbox-citation-footer .mailbox-citation-heart {
     display: inline-block;
     vertical-align: -2px;
     color: var(--mailbox-destructive);
 }
 
 /* The offence as the title of a citation in the list. */
-[data-app='our-mailbox'] .mailbox-written {
+[data-app='our-exchange'] .mailbox-written {
     font-family: var(--mailbox-font-display);
     font-style: italic;
     font-weight: 400;
@@ -855,7 +856,7 @@
 
 /* ── Coupon: a voucher with punch squares and a tear-off stub ─────────── */
 
-[data-app='our-mailbox'] .mailbox-coupon-doc {
+[data-app='our-exchange'] .mailbox-coupon-doc {
     position: relative;
     background: var(--mailbox-paper);
     color: var(--mailbox-ink);
@@ -867,11 +868,11 @@
     max-width: 640px;
     margin: 0 auto;
 }
-[data-app='our-mailbox'] .mailbox-coupon-doc.is-depleted {
+[data-app='our-exchange'] .mailbox-coupon-doc.is-depleted {
     opacity: 0.7;
 }
 
-[data-app='our-mailbox'] .mailbox-coupon-head {
+[data-app='our-exchange'] .mailbox-coupon-head {
     position: relative;
     border-radius: calc(var(--mailbox-paper-radius) - 1.5px)
         calc(var(--mailbox-paper-radius) - 1.5px) 0 0;
@@ -879,7 +880,7 @@
     background: var(--mailbox-coupon-tint);
     border-bottom: 2px solid var(--mailbox-ink);
 }
-[data-app='our-mailbox'] .mailbox-coupon-eyebrow {
+[data-app='our-exchange'] .mailbox-coupon-eyebrow {
     font-family: var(--mailbox-coupon-font-mono);
     font-size: var(--text-eyebrow);
     font-weight: 500;
@@ -887,7 +888,7 @@
     color: var(--mailbox-coupon-seal);
     padding-right: 64px;
 }
-[data-app='our-mailbox'] .mailbox-coupon-title {
+[data-app='our-exchange'] .mailbox-coupon-title {
     font-family: var(--mailbox-coupon-font-display);
     font-weight: 400;
     font-size: 28px;
@@ -898,7 +899,7 @@
     text-wrap: balance;
     overflow-wrap: anywhere;
 }
-[data-app='our-mailbox'] .mailbox-coupon-desc {
+[data-app='our-exchange'] .mailbox-coupon-desc {
     font-family: var(--mailbox-font-display);
     font-style: italic;
     font-weight: 400;
@@ -906,7 +907,7 @@
     color: var(--mailbox-ink);
     line-height: 1.5;
 }
-[data-app='our-mailbox'] .mailbox-coupon-seal {
+[data-app='our-exchange'] .mailbox-coupon-seal {
     position: absolute;
     top: 16px;
     right: 24px;
@@ -922,10 +923,10 @@
     font-size: var(--text-body);
 }
 
-[data-app='our-mailbox'] .mailbox-coupon-body {
+[data-app='our-exchange'] .mailbox-coupon-body {
     padding: 24px;
 }
-[data-app='our-mailbox'] .mailbox-coupon-punchlabel {
+[data-app='our-exchange'] .mailbox-coupon-punchlabel {
     font-family: var(--mailbox-coupon-font-mono);
     font-size: var(--text-meta);
     font-weight: 500;
@@ -934,7 +935,7 @@
     margin-bottom: 16px;
     text-align: center;
 }
-[data-app='our-mailbox'] .mailbox-coupon-grid {
+[data-app='our-exchange'] .mailbox-coupon-grid {
     display: flex;
     gap: 12px;
     justify-content: center;
@@ -942,7 +943,7 @@
     margin-bottom: 4px;
 }
 /* 56px so the 13px square number and the tick both fit without touching. */
-[data-app='our-mailbox'] .mailbox-coupon-box {
+[data-app='our-exchange'] .mailbox-coupon-box {
     position: relative;
     box-sizing: border-box;
     width: 56px;
@@ -958,7 +959,7 @@
     line-height: 1;
     color: var(--mailbox-coupon-seal);
 }
-[data-app='our-mailbox'] .mailbox-coupon-box .mailbox-coupon-box-n {
+[data-app='our-exchange'] .mailbox-coupon-box .mailbox-coupon-box-n {
     position: absolute;
     top: 2px;
     left: 4px;
@@ -967,15 +968,15 @@
     font-variant-numeric: tabular-nums;
     color: var(--mailbox-ink-soft);
 }
-[data-app='our-mailbox'] .mailbox-coupon-box.is-checked {
+[data-app='our-exchange'] .mailbox-coupon-box.is-checked {
     border-color: var(--mailbox-coupon-seal);
     background: var(--mailbox-coupon-tint);
 }
-[data-app='our-mailbox'] .mailbox-coupon-box.is-checked .mailbox-coupon-check {
+[data-app='our-exchange'] .mailbox-coupon-box.is-checked .mailbox-coupon-check {
     display: inline-flex;
     transform: rotate(-9deg);
 }
-[data-app='our-mailbox'] .mailbox-coupon-box.is-next {
+[data-app='our-exchange'] .mailbox-coupon-box.is-next {
     border-style: dashed;
     border-color: var(--mailbox-accent-text);
     background: color-mix(
@@ -984,14 +985,14 @@
         var(--mailbox-paper)
     );
 }
-[data-app='our-mailbox'] .mailbox-coupon-remaining {
+[data-app='our-exchange'] .mailbox-coupon-remaining {
     text-align: center;
     font-family: var(--mailbox-coupon-font-mono);
     font-size: var(--text-small);
     color: var(--mailbox-ink-soft);
     margin-top: 16px;
 }
-[data-app='our-mailbox'] .mailbox-coupon-remaining b {
+[data-app='our-exchange'] .mailbox-coupon-remaining b {
     font-family: var(--mailbox-font-display);
     font-weight: 400;
     font-size: var(--text-title);
@@ -1001,7 +1002,7 @@
     color: var(--mailbox-ink);
 }
 
-[data-app='our-mailbox'] .mailbox-coupon-stamp {
+[data-app='our-exchange'] .mailbox-coupon-stamp {
     display: inline-block;
     margin-left: 12px;
     font-family: var(--mailbox-coupon-font-mono);
@@ -1015,17 +1016,17 @@
     transform: rotate(-3deg);
     opacity: 0.84;
 }
-[data-app='our-mailbox'] .mailbox-coupon-stamp--requested {
+[data-app='our-exchange'] .mailbox-coupon-stamp--requested {
     color: var(--mailbox-accent-text);
 }
-[data-app='our-mailbox'] .mailbox-coupon-stamp--depleted {
+[data-app='our-exchange'] .mailbox-coupon-stamp--depleted {
     color: var(--mailbox-ink-soft);
 }
-[data-app='our-mailbox'] .mailbox-coupon-stamp--expired {
+[data-app='our-exchange'] .mailbox-coupon-stamp--expired {
     color: var(--mailbox-ink-soft);
 }
 
-[data-app='our-mailbox'] .mailbox-coupon-await {
+[data-app='our-exchange'] .mailbox-coupon-await {
     display: flex;
     align-items: center;
     justify-content: center;
@@ -1046,7 +1047,7 @@
     line-height: 1.5;
     text-align: center;
 }
-[data-app='our-mailbox'] .mailbox-coupon-await svg {
+[data-app='our-exchange'] .mailbox-coupon-await svg {
     flex: none;
     color: var(--mailbox-accent-text);
 }
@@ -1056,7 +1057,7 @@
  * page colour laid over the doc's border and ring, edged by an arc that carries the border into
  * the bite, so no line runs through it. Not a mask: the perforation moves as the stub wraps.
  */
-[data-app='our-mailbox'] .mailbox-coupon-foot {
+[data-app='our-exchange'] .mailbox-coupon-foot {
     position: relative;
     display: flex;
     justify-content: space-between;
@@ -1069,8 +1070,8 @@
     font-size: var(--text-body);
     color: var(--mailbox-ink-soft);
 }
-[data-app='our-mailbox'] .mailbox-coupon-foot::before,
-[data-app='our-mailbox'] .mailbox-coupon-foot::after {
+[data-app='our-exchange'] .mailbox-coupon-foot::before,
+[data-app='our-exchange'] .mailbox-coupon-foot::after {
     --notch-edge: calc(
         24px + 1.5px + 1px
     ); /* stub margin, doc border, paper ring */
@@ -1081,7 +1082,7 @@
     height: 18px;
     pointer-events: none;
 }
-[data-app='our-mailbox'] .mailbox-coupon-foot::before {
+[data-app='our-exchange'] .mailbox-coupon-foot::before {
     left: calc(-1 * var(--notch-edge));
     background: radial-gradient(
         circle at 1px 50%,
@@ -1090,7 +1091,7 @@
         transparent 8.5px
     );
 }
-[data-app='our-mailbox'] .mailbox-coupon-foot::after {
+[data-app='our-exchange'] .mailbox-coupon-foot::after {
     right: calc(-1 * var(--notch-edge));
     background: radial-gradient(
         circle at calc(100% - 1px) 50%,
@@ -1099,25 +1100,25 @@
         transparent 8.5px
     );
 }
-[data-app='our-mailbox'] .mailbox-coupon-foot .mailbox-coupon-foot-lbl {
+[data-app='our-exchange'] .mailbox-coupon-foot .mailbox-coupon-foot-lbl {
     display: block;
     margin-bottom: 4px;
     font-size: var(--text-meta);
     font-weight: 500;
     letter-spacing: 0.01em;
 }
-[data-app='our-mailbox'] .mailbox-coupon-foot .mailbox-coupon-foot-val {
+[data-app='our-exchange'] .mailbox-coupon-foot .mailbox-coupon-foot-val {
     color: var(--mailbox-ink);
     font-size: var(--text-body);
     font-variant-numeric: tabular-nums;
 }
 
-[data-app='our-mailbox'] .mailbox-coupon-pips {
+[data-app='our-exchange'] .mailbox-coupon-pips {
     display: flex;
     gap: 4px;
     flex-wrap: wrap;
 }
-[data-app='our-mailbox'] .mailbox-coupon-pip {
+[data-app='our-exchange'] .mailbox-coupon-pip {
     width: 14px;
     height: 14px;
     border-radius: 3px;
@@ -1125,12 +1126,12 @@
         color-mix(in oklab, var(--mailbox-coupon-seal) 45%, transparent);
     background: var(--mailbox-paper);
 }
-[data-app='our-mailbox'] .mailbox-coupon-pip.is-checked {
+[data-app='our-exchange'] .mailbox-coupon-pip.is-checked {
     border-color: var(--mailbox-coupon-seal);
     background: var(--mailbox-coupon-seal);
 }
 
-[data-app='our-mailbox'] .mailbox-coupon-card-title {
+[data-app='our-exchange'] .mailbox-coupon-card-title {
     text-decoration: none;
     color: var(--mailbox-ink);
     font-family: var(--mailbox-coupon-font-display);
@@ -1143,21 +1144,21 @@
 /* ── Sheets and forms ────────────────────────────────────────────────── */
 
 /* The shell's form sheet; only its close takes the room's softer ink. */
-[data-app='our-mailbox'].shell-form-sheet-content {
+[data-app='our-exchange'].shell-form-sheet-content {
     --overlay-close-ink: var(--mailbox-ink-soft);
     --overlay-close-hover: var(--mailbox-hover-wash);
 }
 
-[data-app='our-mailbox'] .mailbox-recipients {
+[data-app='our-exchange'] .mailbox-recipients {
     border: 0;
     margin: 0;
     padding: 0;
     min-width: 0;
 }
 
-[data-app='our-mailbox'] .mailbox-field-label,
-[data-app='our-mailbox'] .mailbox-form-field > label,
-[data-app='our-mailbox'] .mailbox-recipients-legend {
+[data-app='our-exchange'] .mailbox-field-label,
+[data-app='our-exchange'] .mailbox-form-field > label,
+[data-app='our-exchange'] .mailbox-recipients-legend {
     display: block;
     padding: 0;
     margin: 0 0 8px;
@@ -1167,43 +1168,43 @@
     color: var(--mailbox-ink);
 }
 
-[data-app='our-mailbox'] .mailbox-recipient-list {
+[data-app='our-exchange'] .mailbox-recipient-list {
     display: flex;
     flex-wrap: wrap;
     gap: 8px;
 }
 
-[data-app='our-mailbox'] .mailbox-recipient-solo {
+[data-app='our-exchange'] .mailbox-recipient-solo {
     margin: 0;
     font-size: var(--text-body);
     color: var(--mailbox-ink);
 }
 
 /* FormField's label, required mark, error and helper, in the room's own type. */
-[data-app='our-mailbox'] .mailbox-required,
-[data-app='our-mailbox'] .mailbox-form-field > label > span {
+[data-app='our-exchange'] .mailbox-required,
+[data-app='our-exchange'] .mailbox-form-field > label > span {
     margin-left: 2px;
     color: var(--mailbox-destructive);
 }
 
-[data-app='our-mailbox'] .mailbox-recipients-error,
-[data-app='our-mailbox'] .mailbox-field-error,
-[data-app='our-mailbox'] .mailbox-form-field > p[role='alert'] {
+[data-app='our-exchange'] .mailbox-recipients-error,
+[data-app='our-exchange'] .mailbox-field-error,
+[data-app='our-exchange'] .mailbox-form-field > p[role='alert'] {
     margin: 8px 0 0;
     font-size: var(--text-small);
     line-height: 1.5;
     color: var(--mailbox-destructive);
 }
 
-[data-app='our-mailbox'] .mailbox-field-helper,
-[data-app='our-mailbox'] .mailbox-form-field > p:not([role='alert']) {
+[data-app='our-exchange'] .mailbox-field-helper,
+[data-app='our-exchange'] .mailbox-form-field > p:not([role='alert']) {
     margin: 8px 0 0;
     font-size: var(--text-small);
     line-height: 1.5;
     color: var(--mailbox-ink-soft);
 }
 
-[data-app='our-mailbox'] .mailbox-char-count {
+[data-app='our-exchange'] .mailbox-char-count {
     margin: 4px 0 0;
     text-align: right;
     font-size: var(--text-meta);
@@ -1211,15 +1212,15 @@
     font-variant-numeric: tabular-nums;
     color: var(--mailbox-ink-soft);
 }
-[data-app='our-mailbox'] .mailbox-char-count[data-tone='warn'] {
+[data-app='our-exchange'] .mailbox-char-count[data-tone='warn'] {
     color: var(--mailbox-amber-warn);
 }
-[data-app='our-mailbox'] .mailbox-char-count[data-tone='limit'] {
+[data-app='our-exchange'] .mailbox-char-count[data-tone='limit'] {
     color: var(--mailbox-destructive);
 }
 
-[data-app='our-mailbox'] .mailbox-recipient-chip,
-[data-app='our-mailbox'] .mailbox-flower-chip {
+[data-app='our-exchange'] .mailbox-recipient-chip,
+[data-app='our-exchange'] .mailbox-flower-chip {
     display: inline-flex;
     align-items: center;
     gap: 8px;
@@ -1229,25 +1230,25 @@
     color: var(--mailbox-ink);
     cursor: pointer;
 }
-[data-app='our-mailbox'] .mailbox-recipient-chip {
+[data-app='our-exchange'] .mailbox-recipient-chip {
     min-height: 44px;
     padding: 0 16px;
     font-size: var(--text-body);
 }
-[data-app='our-mailbox'] .mailbox-flower-chip {
+[data-app='our-exchange'] .mailbox-flower-chip {
     min-height: 44px;
     padding: 0 16px;
     font-size: var(--text-small);
 }
 
 /* Selected is a wash, a darker edge and a tick, so it never rests on colour alone. */
-[data-app='our-mailbox'] .mailbox-recipient-chip:has(input:checked),
-[data-app='our-mailbox'] .mailbox-flower-chip[aria-pressed='true'] {
+[data-app='our-exchange'] .mailbox-recipient-chip:has(input:checked),
+[data-app='our-exchange'] .mailbox-flower-chip[aria-pressed='true'] {
     border-color: var(--mailbox-accent-text);
     background-color: var(--mailbox-selected-wash);
 }
-[data-app='our-mailbox'] .mailbox-recipient-chip:has(input:checked)::before,
-[data-app='our-mailbox'] .mailbox-flower-chip[aria-pressed='true']::before {
+[data-app='our-exchange'] .mailbox-recipient-chip:has(input:checked)::before,
+[data-app='our-exchange'] .mailbox-flower-chip[aria-pressed='true']::before {
     content: '';
     width: 5px;
     height: 10px;
@@ -1257,7 +1258,7 @@
     transform: rotate(45deg);
 }
 
-[data-app='our-mailbox'] .mailbox-check-label {
+[data-app='our-exchange'] .mailbox-check-label {
     display: flex;
     align-items: center;
     gap: 8px;
@@ -1266,16 +1267,16 @@
     color: var(--mailbox-ink);
     cursor: pointer;
 }
-[data-app='our-mailbox'] .mailbox-check-label input {
+[data-app='our-exchange'] .mailbox-check-label input {
     width: 20px;
     height: 20px;
     accent-color: var(--mailbox-action);
 }
 
-[data-app='our-mailbox'] .mailbox-field,
-[data-app='our-mailbox'] .mailbox-bouquet-mood-input,
-[data-app='our-mailbox'] .mailbox-bouquet-note-input,
-[data-app='our-mailbox'] .mailbox-note-input {
+[data-app='our-exchange'] .mailbox-field,
+[data-app='our-exchange'] .mailbox-bouquet-mood-input,
+[data-app='our-exchange'] .mailbox-bouquet-note-input,
+[data-app='our-exchange'] .mailbox-note-input {
     display: block;
     width: 100%;
     min-width: 0;
@@ -1290,15 +1291,15 @@
     border-radius: var(--radius-field);
     padding: 8px 16px;
 }
-[data-app='our-mailbox'] .mailbox-field::placeholder,
-[data-app='our-mailbox'] .mailbox-bouquet-mood-input::placeholder,
-[data-app='our-mailbox'] .mailbox-bouquet-note-input::placeholder,
-[data-app='our-mailbox'] .mailbox-note-input::placeholder {
+[data-app='our-exchange'] .mailbox-field::placeholder,
+[data-app='our-exchange'] .mailbox-bouquet-mood-input::placeholder,
+[data-app='our-exchange'] .mailbox-bouquet-note-input::placeholder,
+[data-app='our-exchange'] .mailbox-note-input::placeholder {
     color: var(--mailbox-ink-soft);
 }
 
 /* Textareas grow with what's written; the sheet body scrolls. */
-[data-app='our-mailbox']
+[data-app='our-exchange']
     :is(
         textarea.mailbox-field,
         .mailbox-bouquet-note-input,
@@ -1307,13 +1308,13 @@
     field-sizing: content;
 }
 
-[data-app='our-mailbox'] textarea.mailbox-field {
+[data-app='our-exchange'] textarea.mailbox-field {
     padding: 12px 16px;
     resize: vertical;
     min-height: 96px;
 }
 
-[data-app='our-mailbox'] .mailbox-bouquet-note-input {
+[data-app='our-exchange'] .mailbox-bouquet-note-input {
     font-family: var(--mailbox-font-hand);
     font-size: var(--mailbox-hand-size-small);
     line-height: 28px;
@@ -1323,7 +1324,7 @@
 }
 
 /* The sheet a note is written on: same paper, rules and corners as the note it becomes. */
-[data-app='our-mailbox'] .mailbox-note-input {
+[data-app='our-exchange'] .mailbox-note-input {
     font-family: var(--mailbox-font-hand);
     font-size: var(--mailbox-hand-size);
     line-height: var(--mailbox-rule-step);
@@ -1338,20 +1339,20 @@
  * The room's fields carry .shell-field. This also gives every other input here, such as the
  * list search, the same focus, drawn in full at once.
  */
-[data-app='our-mailbox'] textarea:focus-visible,
-[data-app='our-mailbox'] input:focus-visible {
+[data-app='our-exchange'] textarea:focus-visible,
+[data-app='our-exchange'] input:focus-visible {
     outline: none;
     border-color: var(--mailbox-action);
     box-shadow: var(--mailbox-field-focus);
 }
-[data-app='our-mailbox'] input[type='checkbox']:focus-visible {
+[data-app='our-exchange'] input[type='checkbox']:focus-visible {
     outline: 2px solid var(--mailbox-action);
     outline-offset: 2px;
     box-shadow: none;
 }
 
-[data-app='our-mailbox'] #citation-date,
-[data-app='our-mailbox'] #coupon-expiry {
+[data-app='our-exchange'] #citation-date,
+[data-app='our-exchange'] #coupon-expiry {
     -webkit-appearance: none;
     appearance: none;
     min-width: 0;
@@ -1361,12 +1362,12 @@
 }
 
 @media (max-width: 720px) {
-    [data-app='our-mailbox'] .citation-incident-grid {
+    [data-app='our-exchange'] .citation-incident-grid {
         grid-template-columns: minmax(0, 1fr);
     }
 }
 
-[data-app='our-mailbox'] .mailbox-coupon-quantity {
+[data-app='our-exchange'] .mailbox-coupon-quantity {
     font-family: var(--mailbox-font-display);
     font-weight: 400;
     font-size: var(--text-title);
@@ -1378,7 +1379,7 @@
     color: var(--mailbox-ink);
 }
 
-[data-app='our-mailbox'] .mailbox-bouquet-stage {
+[data-app='our-exchange'] .mailbox-bouquet-stage {
     border-radius: var(--radius-field);
     overflow: hidden;
     border: 1px solid var(--mailbox-border);
@@ -1390,11 +1391,11 @@
     justify-content: center;
 }
 
-[data-app='our-mailbox'] .mailbox-bouquet-stage > .shell-skeleton {
+[data-app='our-exchange'] .mailbox-bouquet-stage > .shell-skeleton {
     border-radius: 0;
 }
 
-[data-app='our-mailbox'] .mailbox-link-retry {
+[data-app='our-exchange'] .mailbox-link-retry {
     min-height: 44px;
     padding: 0 8px;
     background: transparent;
@@ -1410,10 +1411,10 @@
 
 /* ── Buttons: pills; one filled per view, the rest outlined ──────────── */
 
-[data-app='our-mailbox'] .mailbox-btn-neutral,
-[data-app='our-mailbox'] .mailbox-btn-primary,
-[data-app='our-mailbox'] .mailbox-btn-primary-row,
-[data-app='our-mailbox'] .mailbox-btn-send-another {
+[data-app='our-exchange'] .mailbox-btn-neutral,
+[data-app='our-exchange'] .mailbox-btn-primary,
+[data-app='our-exchange'] .mailbox-btn-primary-row,
+[data-app='our-exchange'] .mailbox-btn-send-another {
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -1431,32 +1432,32 @@
     cursor: pointer;
 }
 
-[data-app='our-mailbox'] .mailbox-btn-primary {
+[data-app='our-exchange'] .mailbox-btn-primary {
     border-color: transparent;
     background: var(--mailbox-action);
     color: var(--mailbox-action-fg);
 }
 
 /* Dense row actions on a list card. */
-[data-app='our-mailbox'] .mailbox-btn-primary-row,
-[data-app='our-mailbox'] .mailbox-card .mailbox-btn-neutral {
+[data-app='our-exchange'] .mailbox-btn-primary-row,
+[data-app='our-exchange'] .mailbox-card .mailbox-btn-neutral {
     min-height: 36px;
     padding: 0 16px;
     font-size: var(--text-small);
 }
 @media (pointer: coarse) {
-    [data-app='our-mailbox'] .mailbox-btn-primary-row,
-    [data-app='our-mailbox'] .mailbox-card .mailbox-btn-neutral {
+    [data-app='our-exchange'] .mailbox-btn-primary-row,
+    [data-app='our-exchange'] .mailbox-card .mailbox-btn-neutral {
         min-height: 44px;
     }
 }
 
 /* Withdrawing asks first, so it stays outlined: only the label says what it is. */
-[data-app='our-mailbox'] .mailbox-btn-danger {
+[data-app='our-exchange'] .mailbox-btn-danger {
     color: var(--mailbox-destructive);
 }
 
-[data-app='our-mailbox'] .mailbox-coupon-step {
+[data-app='our-exchange'] .mailbox-coupon-step {
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -1471,22 +1472,24 @@
     cursor: pointer;
 }
 
-[data-app='our-mailbox']
+[data-app='our-exchange']
     :is(
         .mailbox-btn-neutral,
         .mailbox-btn-primary-row,
         .mailbox-btn-send-another,
         .mailbox-coupon-step
     ):hover,
-[data-app='our-mailbox'] .mailbox-recipient-chip:not(:has(input:checked)):hover,
-[data-app='our-mailbox'] .mailbox-flower-chip:not([aria-pressed='true']):hover {
+[data-app='our-exchange']
+    .mailbox-recipient-chip:not(:has(input:checked)):hover,
+[data-app='our-exchange']
+    .mailbox-flower-chip:not([aria-pressed='true']):hover {
     background-color: var(--mailbox-hover-wash);
     border-color: color-mix(in oklab, var(--mailbox-ink) 32%, transparent);
 }
-[data-app='our-mailbox'] .mailbox-btn-neutral.mailbox-btn-danger:hover {
+[data-app='our-exchange'] .mailbox-btn-neutral.mailbox-btn-danger:hover {
     border-color: var(--mailbox-destructive);
 }
-[data-app='our-mailbox'] .mailbox-btn-primary:hover {
+[data-app='our-exchange'] .mailbox-btn-primary:hover {
     background-color: color-mix(
         in oklab,
         var(--mailbox-action) 86%,
@@ -1494,7 +1497,7 @@
     );
 }
 
-[data-app='our-mailbox']
+[data-app='our-exchange']
     :is(
         .mailbox-btn-neutral,
         .mailbox-btn-primary,
@@ -1505,32 +1508,32 @@
     ):disabled {
     cursor: not-allowed;
 }
-[data-app='our-mailbox'] .mailbox-btn-send-another:disabled,
-[data-app='our-mailbox'] .mailbox-coupon-step:disabled {
+[data-app='our-exchange'] .mailbox-btn-send-another:disabled,
+[data-app='our-exchange'] .mailbox-coupon-step:disabled {
     opacity: 0.5;
 }
-[data-app='our-mailbox'] .mailbox-flower-chip:disabled {
+[data-app='our-exchange'] .mailbox-flower-chip:disabled {
     opacity: 0.45;
 }
 
 /* ── Focus: one ring, drawn at once ──────────────────────────────────── */
 
-[data-app='our-mailbox']
+[data-app='our-exchange']
     :is(
         .mailbox-link-retry,
         .mailbox-card-menu,
         .mailbox-card-menu-square,
         .mailbox-bouquet-image-button
     ):focus-visible,
-[data-app='our-mailbox'] .mailbox-recipient-chip:has(input:focus-visible) {
+[data-app='our-exchange'] .mailbox-recipient-chip:has(input:focus-visible) {
     outline: 2px solid var(--mailbox-action);
     outline-offset: 2px;
     box-shadow: none;
 }
 
 @media (prefers-reduced-motion: reduce) {
-    [data-app='our-mailbox'] .mailbox-bouquet-image-button img,
-    [data-app='our-mailbox'] .mailbox-door-bouquet {
+    [data-app='our-exchange'] .mailbox-bouquet-image-button img,
+    [data-app='our-exchange'] .mailbox-door-bouquet {
         transform: none !important;
         transition: none;
     }

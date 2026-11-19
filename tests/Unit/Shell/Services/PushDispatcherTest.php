@@ -24,10 +24,10 @@ class PushDispatcherTest extends TestCase
 
         app(PushDispatcher::class)->toHousehold(
             $actor,
-            'our-corner',
-            'our-corner:songs',
+            'our-shelf',
+            'our-shelf:songs',
             'Alice added a song',
-            '/apps/our-corner/songs',
+            '/apps/our-shelf/songs',
         );
 
         foreach ([$first, $second] as $member) {
@@ -37,9 +37,9 @@ class PushDispatcherTest extends TestCase
                 function (GenericPushNotification $notification) use ($member) {
                     $array = $notification->toWebPush($member, $notification)->toArray();
 
-                    return ($array['tag'] ?? null) === 'our-corner:songs'
+                    return ($array['tag'] ?? null) === 'our-shelf:songs'
                         && ($array['body'] ?? null) === 'Alice added a song'
-                        && ($array['data']['url'] ?? null) === '/apps/our-corner/songs';
+                        && ($array['data']['url'] ?? null) === '/apps/our-shelf/songs';
                 }
             );
         }
@@ -53,7 +53,7 @@ class PushDispatcherTest extends TestCase
 
         $actor = User::factory()->create();
 
-        app(PushDispatcher::class)->toHousehold($actor, 'our-corner', 'our-corner:songs', 'body', '/apps/our-corner');
+        app(PushDispatcher::class)->toHousehold($actor, 'our-shelf', 'our-shelf:songs', 'body', '/apps/our-shelf');
 
         Notification::assertNothingSent();
     }
@@ -67,10 +67,10 @@ class PushDispatcherTest extends TestCase
 
         app(PushDispatcher::class)->toUsers(
             [$recipient],
-            'our-mailbox',
-            'our-mailbox:messages',
+            'our-exchange',
+            'our-exchange:messages',
             'You got a note from Alice',
-            '/apps/our-mailbox/messages?focus=1',
+            '/apps/our-exchange/messages?focus=1',
         );
 
         Notification::assertSentTo($recipient, GenericPushNotification::class);

@@ -28,8 +28,8 @@ class CouponAuthorizationTest extends TestCase
         [$issuer] = $this->seedPair();
 
         $this->actingAs($issuer)
-            ->from('/apps/our-mailbox/coupons')
-            ->post('/apps/our-mailbox/coupons', [
+            ->from('/apps/our-exchange/coupons')
+            ->post('/apps/our-exchange/coupons', [
                 'quantity' => 2,
             ])
             ->assertSessionHasErrors('title');
@@ -42,8 +42,8 @@ class CouponAuthorizationTest extends TestCase
         [$issuer] = $this->seedPair();
 
         $this->actingAs($issuer)
-            ->from('/apps/our-mailbox/coupons')
-            ->post('/apps/our-mailbox/coupons', [
+            ->from('/apps/our-exchange/coupons')
+            ->post('/apps/our-exchange/coupons', [
                 'title' => str_repeat('a', 81),
                 'quantity' => 1,
             ])
@@ -58,13 +58,13 @@ class CouponAuthorizationTest extends TestCase
 
         // Zero and over-cap both rejected.
         $this->actingAs($issuer)
-            ->from('/apps/our-mailbox/coupons')
-            ->post('/apps/our-mailbox/coupons', ['title' => 'Back rub', 'quantity' => 0])
+            ->from('/apps/our-exchange/coupons')
+            ->post('/apps/our-exchange/coupons', ['title' => 'Back rub', 'quantity' => 0])
             ->assertSessionHasErrors('quantity');
 
         $this->actingAs($issuer)
-            ->from('/apps/our-mailbox/coupons')
-            ->post('/apps/our-mailbox/coupons', ['title' => 'Back rub', 'quantity' => 21])
+            ->from('/apps/our-exchange/coupons')
+            ->post('/apps/our-exchange/coupons', ['title' => 'Back rub', 'quantity' => 21])
             ->assertSessionHasErrors('quantity');
 
         $this->assertDatabaseCount('mailbox_coupons', 0);
@@ -75,8 +75,8 @@ class CouponAuthorizationTest extends TestCase
         [$issuer] = $this->seedPair();
 
         $this->actingAs($issuer)
-            ->from('/apps/our-mailbox/coupons')
-            ->post('/apps/our-mailbox/coupons', [
+            ->from('/apps/our-exchange/coupons')
+            ->post('/apps/our-exchange/coupons', [
                 'title' => 'Back rub',
                 'quantity' => 1,
                 'expires_at' => now()->subDay()->toDateString(),
@@ -91,7 +91,7 @@ class CouponAuthorizationTest extends TestCase
         Notification::fake();
         [$issuer, $recipient] = $this->seedPair();
 
-        $this->actingAs($issuer)->post('/apps/our-mailbox/coupons', [
+        $this->actingAs($issuer)->post('/apps/our-exchange/coupons', [
             'recipient_ids' => [$recipient->id],
             'title' => 'Back massage',
             'quantity' => 2,
@@ -120,7 +120,7 @@ class CouponAuthorizationTest extends TestCase
 
         // The issuer is not the recipient → cannot request their own coupon.
         $this->actingAs($issuer)
-            ->patch("/apps/our-mailbox/coupons/{$coupon->id}/request")
+            ->patch("/apps/our-exchange/coupons/{$coupon->id}/request")
             ->assertForbidden();
 
         $this->assertSame(Coupon::STATUS_ISSUED, $coupon->fresh()->status);
@@ -138,7 +138,7 @@ class CouponAuthorizationTest extends TestCase
         ]);
 
         $this->actingAs($recipient)
-            ->patch("/apps/our-mailbox/coupons/{$coupon->id}/request")
+            ->patch("/apps/our-exchange/coupons/{$coupon->id}/request")
             ->assertForbidden();
 
         $this->assertSame(Coupon::STATUS_REQUESTED, $coupon->fresh()->status);
@@ -154,7 +154,7 @@ class CouponAuthorizationTest extends TestCase
         ]);
 
         $this->actingAs($recipient)
-            ->patch("/apps/our-mailbox/coupons/{$coupon->id}/request")
+            ->patch("/apps/our-exchange/coupons/{$coupon->id}/request")
             ->assertForbidden();
 
         $this->assertSame(Coupon::STATUS_ISSUED, $coupon->fresh()->status);
@@ -170,7 +170,7 @@ class CouponAuthorizationTest extends TestCase
         ]);
 
         $this->actingAs($recipient)
-            ->patch("/apps/our-mailbox/coupons/{$coupon->id}/request")
+            ->patch("/apps/our-exchange/coupons/{$coupon->id}/request")
             ->assertForbidden();
 
         $this->assertSame(Coupon::STATUS_DEPLETED, $coupon->fresh()->status);
@@ -187,7 +187,7 @@ class CouponAuthorizationTest extends TestCase
         ]);
 
         $response = $this->actingAs($recipient)
-            ->patch("/apps/our-mailbox/coupons/{$coupon->id}/cancel")
+            ->patch("/apps/our-exchange/coupons/{$coupon->id}/cancel")
             ->assertRedirect();
         $this->assertSuccessToast($response, 'Request cancelled.');
 
@@ -209,7 +209,7 @@ class CouponAuthorizationTest extends TestCase
 
         // The recipient cannot fulfill their own request.
         $this->actingAs($recipient)
-            ->patch("/apps/our-mailbox/coupons/{$coupon->id}/fulfill")
+            ->patch("/apps/our-exchange/coupons/{$coupon->id}/fulfill")
             ->assertForbidden();
 
         $this->assertSame(Coupon::STATUS_REQUESTED, $coupon->fresh()->status);
@@ -225,8 +225,8 @@ class CouponAuthorizationTest extends TestCase
         ]);
 
         $response = $this->actingAs($issuer)
-            ->delete("/apps/our-mailbox/coupons/{$coupon->id}")
-            ->assertRedirect('/apps/our-mailbox/coupons');
+            ->delete("/apps/our-exchange/coupons/{$coupon->id}")
+            ->assertRedirect('/apps/our-exchange/coupons');
         $this->assertSuccessToast($response, 'Coupon withdrawn.');
 
         // Hard delete — gone for both parties.
@@ -244,7 +244,7 @@ class CouponAuthorizationTest extends TestCase
 
         // Withdraw is issued-only — a pending request must be fulfilled/cancelled first.
         $this->actingAs($issuer)
-            ->delete("/apps/our-mailbox/coupons/{$coupon->id}")
+            ->delete("/apps/our-exchange/coupons/{$coupon->id}")
             ->assertForbidden();
 
         $this->assertDatabaseHas('mailbox_coupons', ['id' => $coupon->id]);
@@ -260,7 +260,7 @@ class CouponAuthorizationTest extends TestCase
         ]);
 
         $this->actingAs($recipient)
-            ->delete("/apps/our-mailbox/coupons/{$coupon->id}")
+            ->delete("/apps/our-exchange/coupons/{$coupon->id}")
             ->assertForbidden();
 
         $this->assertDatabaseHas('mailbox_coupons', ['id' => $coupon->id]);
@@ -277,7 +277,7 @@ class CouponAuthorizationTest extends TestCase
 
         // Recipient of an issued row → [request].
         $this->actingAs($recipient)
-            ->get("/apps/our-mailbox/coupons/{$issued->id}")
+            ->get("/apps/our-exchange/coupons/{$issued->id}")
             ->assertInertia(fn (Assert $page) => $page
                 ->component('MiniApps/Mailbox/Pages/Coupons/Show')
                 ->where('coupon.code', $issued->code)
@@ -288,7 +288,7 @@ class CouponAuthorizationTest extends TestCase
 
         // Issuer of the same issued row → [delete] (withdraw).
         $this->actingAs($issuer)
-            ->get("/apps/our-mailbox/coupons/{$issued->id}")
+            ->get("/apps/our-exchange/coupons/{$issued->id}")
             ->assertInertia(fn (Assert $page) => $page
                 ->where('coupon.available_actions', ['delete'])
             );
@@ -300,12 +300,12 @@ class CouponAuthorizationTest extends TestCase
             'expires_at' => null,
         ]);
         $this->actingAs($recipient)
-            ->get("/apps/our-mailbox/coupons/{$requested->id}")
+            ->get("/apps/our-exchange/coupons/{$requested->id}")
             ->assertInertia(fn (Assert $page) => $page
                 ->where('coupon.available_actions', ['cancel'])
             );
         $this->actingAs($issuer)
-            ->get("/apps/our-mailbox/coupons/{$requested->id}")
+            ->get("/apps/our-exchange/coupons/{$requested->id}")
             ->assertInertia(fn (Assert $page) => $page
                 ->where('coupon.available_actions', ['fulfill'])
             );
@@ -317,7 +317,7 @@ class CouponAuthorizationTest extends TestCase
             'expires_at' => null,
         ]);
         $this->actingAs($recipient)
-            ->get("/apps/our-mailbox/coupons/{$depleted->id}")
+            ->get("/apps/our-exchange/coupons/{$depleted->id}")
             ->assertInertia(fn (Assert $page) => $page
                 ->where('coupon.available_actions', [])
             );
@@ -338,7 +338,7 @@ class CouponAuthorizationTest extends TestCase
         // The recipient sees the coupon flagged expired AND gets no request  action — so the
         // UI can show "Expired" instead of a silent, actionless  "Ready" card.
         $this->actingAs($recipient)
-            ->get("/apps/our-mailbox/coupons/{$coupon->id}")
+            ->get("/apps/our-exchange/coupons/{$coupon->id}")
             ->assertOk()
             ->assertInertia(fn (Assert $page) => $page
                 ->where('coupon.is_expired', true)

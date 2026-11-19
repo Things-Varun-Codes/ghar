@@ -64,8 +64,8 @@ class CornerListsTest extends TestCase
         $this->movies();
 
         $this->actingAs($this->member)
-            ->post('/apps/our-corner/lists', $this->payload(['name' => '  Board   games ', 'icon' => 'dices', 'notify_on_add' => false, 'done_icon' => 'heart']))
-            ->assertRedirect('/apps/our-corner/board-games')
+            ->post('/apps/our-shelf/lists', $this->payload(['name' => '  Board   games ', 'icon' => 'dices', 'notify_on_add' => false, 'done_icon' => 'heart']))
+            ->assertRedirect('/apps/our-shelf/board-games')
             ->assertSessionHas(SessionKey::FLASH_DATA, ['toast' => ['type' => 'success', 'message' => 'Made Board games.']]);
 
         $list = CornerList::query()->where('slug', 'board-games')->sole();
@@ -79,7 +79,7 @@ class CornerListsTest extends TestCase
         $this->assertSame(2, $list->position);
 
         $this->actingAs($this->member)
-            ->get('/apps/our-corner/board-games')
+            ->get('/apps/our-shelf/board-games')
             ->assertInertia(fn (AssertableInertia $page) => $page
                 ->component('MiniApps/Corner/Pages/List')
                 ->where('list.slug', 'board-games')
@@ -88,7 +88,7 @@ class CornerListsTest extends TestCase
 
     public function test_the_first_list_on_an_empty_shelf_takes_the_first_place(): void
     {
-        $this->actingAs($this->member)->post('/apps/our-corner/lists', $this->payload())->assertSessionHasNoErrors();
+        $this->actingAs($this->member)->post('/apps/our-shelf/lists', $this->payload())->assertSessionHasNoErrors();
 
         $this->assertSame(0, CornerList::query()->sole()->position);
     }
@@ -123,16 +123,16 @@ class CornerListsTest extends TestCase
 
     public function test_a_taken_slug_gets_the_next_free_number(): void
     {
-        $this->actingAs($this->member)->post('/apps/our-corner/lists', $this->payload(['name' => 'Books']))->assertRedirect('/apps/our-corner/books');
-        $this->actingAs($this->member)->post('/apps/our-corner/lists', $this->payload(['name' => 'Books']))->assertRedirect('/apps/our-corner/books-2');
-        $this->actingAs($this->member)->post('/apps/our-corner/lists', $this->payload(['name' => 'books!']))->assertRedirect('/apps/our-corner/books-3');
+        $this->actingAs($this->member)->post('/apps/our-shelf/lists', $this->payload(['name' => 'Books']))->assertRedirect('/apps/our-shelf/books');
+        $this->actingAs($this->member)->post('/apps/our-shelf/lists', $this->payload(['name' => 'Books']))->assertRedirect('/apps/our-shelf/books-2');
+        $this->actingAs($this->member)->post('/apps/our-shelf/lists', $this->payload(['name' => 'books!']))->assertRedirect('/apps/our-shelf/books-3');
 
         // A list whose own name ends in a number doesn't confuse the count.
         CornerList::query()->where('slug', 'books-2')->delete();
-        $this->actingAs($this->member)->post('/apps/our-corner/lists', $this->payload(['name' => 'Books']))->assertRedirect('/apps/our-corner/books-2');
+        $this->actingAs($this->member)->post('/apps/our-shelf/lists', $this->payload(['name' => 'Books']))->assertRedirect('/apps/our-shelf/books-2');
 
-        $this->actingAs($this->member)->post('/apps/our-corner/lists', $this->payload(['name' => 'Lists']))->assertRedirect('/apps/our-corner/lists-list');
-        $this->actingAs($this->member)->post('/apps/our-corner/lists', $this->payload(['name' => 'Lists']))->assertRedirect('/apps/our-corner/lists-list-2');
+        $this->actingAs($this->member)->post('/apps/our-shelf/lists', $this->payload(['name' => 'Lists']))->assertRedirect('/apps/our-shelf/lists-list');
+        $this->actingAs($this->member)->post('/apps/our-shelf/lists', $this->payload(['name' => 'Lists']))->assertRedirect('/apps/our-shelf/lists-list-2');
 
         $this->assertSame(
             ['books', 'books-2', 'books-3', 'lists-list', 'lists-list-2'],
@@ -149,11 +149,11 @@ class CornerListsTest extends TestCase
 
     public function test_a_list_whose_slug_is_reserved_still_works_at_its_address(): void
     {
-        $this->actingAs($this->member)->post('/apps/our-corner/lists', $this->payload(['name' => 'Items']))->assertRedirect('/apps/our-corner/items-list');
+        $this->actingAs($this->member)->post('/apps/our-shelf/lists', $this->payload(['name' => 'Items']))->assertRedirect('/apps/our-shelf/items-list');
 
         $this->actingAs($this->member)
-            ->post('/apps/our-corner/items-list', ['title' => 'A thing'])
-            ->assertRedirect('/apps/our-corner/items-list');
+            ->post('/apps/our-shelf/items-list', ['title' => 'A thing'])
+            ->assertRedirect('/apps/our-shelf/items-list');
 
         $this->assertSame(1, CornerList::query()->where('slug', 'items-list')->sole()->items()->count());
     }
@@ -181,9 +181,9 @@ class CornerListsTest extends TestCase
     public function test_a_list_is_validated(array $overrides, string $field): void
     {
         $this->actingAs($this->member)
-            ->from('/apps/our-corner')
-            ->post('/apps/our-corner/lists', $this->payload($overrides))
-            ->assertRedirect('/apps/our-corner')
+            ->from('/apps/our-shelf')
+            ->post('/apps/our-shelf/lists', $this->payload($overrides))
+            ->assertRedirect('/apps/our-shelf')
             ->assertSessionHasErrors([$field]);
 
         $this->assertSame(0, CornerList::count());
@@ -191,7 +191,7 @@ class CornerListsTest extends TestCase
 
     public function test_created_by_and_position_cannot_be_sent(): void
     {
-        $this->actingAs($this->member)->post('/apps/our-corner/lists', $this->payload([
+        $this->actingAs($this->member)->post('/apps/our-shelf/lists', $this->payload([
             'slug' => 'chosen',
             'created_by_user_id' => $this->admin->id,
             'position' => 99,
@@ -210,8 +210,8 @@ class CornerListsTest extends TestCase
         $list = $this->listBy($this->creator, ['name' => 'Books', 'slug' => 'books']);
 
         $this->actingAs($this->creator)
-            ->from('/apps/our-corner/books')
-            ->patch("/apps/our-corner/lists/{$list->id}", $this->payload([
+            ->from('/apps/our-shelf/books')
+            ->patch("/apps/our-shelf/lists/{$list->id}", $this->payload([
                 'name' => 'Novels',
                 'icon' => 'book',
                 'done_label' => 'Read',
@@ -220,7 +220,7 @@ class CornerListsTest extends TestCase
                 'notify_on_add' => false,
                 'slug' => 'novels',
             ]))
-            ->assertRedirect('/apps/our-corner/books')
+            ->assertRedirect('/apps/our-shelf/books')
             ->assertSessionHasNoErrors()
             ->assertSessionHas(SessionKey::FLASH_DATA, ['toast' => ['type' => 'success', 'message' => 'Saved.']]);
 
@@ -250,7 +250,7 @@ class CornerListsTest extends TestCase
         $list = $this->listBy($this->creator);
 
         $this->actingAs($this->creator)
-            ->patch("/apps/our-corner/lists/{$list->id}", $this->payload(['icon' => $sent]))
+            ->patch("/apps/our-shelf/lists/{$list->id}", $this->payload(['icon' => $sent]))
             ->assertSessionHasNoErrors();
 
         $this->assertSame($stored, $list->fresh()->icon);
@@ -261,14 +261,14 @@ class CornerListsTest extends TestCase
         $list = $this->listBy($this->creator, ['icon' => 'music']);
 
         $this->actingAs($this->creator)
-            ->from("/apps/our-corner/{$list->slug}")
-            ->patch("/apps/our-corner/lists/{$list->id}", $this->payload(['icon' => 'definitely-not-lucide']))
+            ->from("/apps/our-shelf/{$list->slug}")
+            ->patch("/apps/our-shelf/lists/{$list->id}", $this->payload(['icon' => 'definitely-not-lucide']))
             ->assertSessionHasErrors(['icon' => 'Choose one of the icons.']);
         $this->assertSame('music', $list->fresh()->icon);
 
         // A client that still sends a kind is not refused for it; it just isn't kept.
         $this->actingAs($this->creator)
-            ->patch("/apps/our-corner/lists/{$list->id}", $this->payload(['kind' => 'link']))
+            ->patch("/apps/our-shelf/lists/{$list->id}", $this->payload(['kind' => 'link']))
             ->assertSessionHasNoErrors();
         $this->assertArrayNotHasKey('kind', $list->fresh()->getAttributes());
     }
@@ -280,7 +280,7 @@ class CornerListsTest extends TestCase
 
         foreach ([$mine, $songs] as $list) {
             $this->actingAs($this->admin)
-                ->patch("/apps/our-corner/lists/{$list->id}", $this->payload(['name' => 'By admin']))
+                ->patch("/apps/our-shelf/lists/{$list->id}", $this->payload(['name' => 'By admin']))
                 ->assertSessionHasNoErrors();
 
             $this->assertSame('By admin', $list->fresh()->name);
@@ -294,7 +294,7 @@ class CornerListsTest extends TestCase
 
         foreach ([$mine, $songs] as $list) {
             $this->actingAs($this->member)
-                ->patch("/apps/our-corner/lists/{$list->id}", $this->payload(['name' => 'Hijacked']))
+                ->patch("/apps/our-shelf/lists/{$list->id}", $this->payload(['name' => 'Hijacked']))
                 ->assertForbidden();
 
             $this->assertNotSame('Hijacked', $list->fresh()->name);
@@ -302,14 +302,14 @@ class CornerListsTest extends TestCase
 
         // The creator of one list has no say over the four original ones.
         $this->actingAs($this->creator)
-            ->patch("/apps/our-corner/lists/{$songs->id}", $this->payload())
+            ->patch("/apps/our-shelf/lists/{$songs->id}", $this->payload())
             ->assertForbidden();
     }
 
     public function test_changing_a_list_that_does_not_exist_is_a_404(): void
     {
         $this->actingAs($this->admin)
-            ->patch('/apps/our-corner/lists/999999999', $this->payload())
+            ->patch('/apps/our-shelf/lists/999999999', $this->payload())
             ->assertNotFound();
     }
 
@@ -323,17 +323,17 @@ class CornerListsTest extends TestCase
         $order = fn (): array => CornerList::query()->orderBy('position')->orderBy('id')->pluck('id')->all();
 
         $this->actingAs($this->member)
-            ->from('/apps/our-corner')
-            ->patch("/apps/our-corner/lists/{$c->id}/move", ['direction' => 'up'])
-            ->assertRedirect('/apps/our-corner');
+            ->from('/apps/our-shelf')
+            ->patch("/apps/our-shelf/lists/{$c->id}/move", ['direction' => 'up'])
+            ->assertRedirect('/apps/our-shelf');
         $this->assertSame([$a->id, $c->id, $b->id], $order());
 
-        $this->actingAs($this->member)->patch("/apps/our-corner/lists/{$a->id}/move", ['direction' => 'down']);
+        $this->actingAs($this->member)->patch("/apps/our-shelf/lists/{$a->id}/move", ['direction' => 'down']);
         $this->assertSame([$c->id, $a->id, $b->id], $order());
 
         // Past either end is a no-op.
-        $this->actingAs($this->member)->patch("/apps/our-corner/lists/{$c->id}/move", ['direction' => 'up'])->assertSessionHasNoErrors();
-        $this->actingAs($this->member)->patch("/apps/our-corner/lists/{$b->id}/move", ['direction' => 'down'])->assertSessionHasNoErrors();
+        $this->actingAs($this->member)->patch("/apps/our-shelf/lists/{$c->id}/move", ['direction' => 'up'])->assertSessionHasNoErrors();
+        $this->actingAs($this->member)->patch("/apps/our-shelf/lists/{$b->id}/move", ['direction' => 'down'])->assertSessionHasNoErrors();
         $this->assertSame([$c->id, $a->id, $b->id], $order());
         $this->assertSame([0, 1, 2], CornerList::query()->orderBy('position')->pluck('position')->all());
     }
@@ -344,7 +344,7 @@ class CornerListsTest extends TestCase
         $b = $this->listBy($this->creator, ['position' => 5]);
         $c = $this->listBy($this->creator, ['position' => 40]);
 
-        $this->actingAs($this->member)->patch("/apps/our-corner/lists/{$b->id}/move", ['direction' => 'up']);
+        $this->actingAs($this->member)->patch("/apps/our-shelf/lists/{$b->id}/move", ['direction' => 'up']);
 
         $this->assertSame(
             [$b->id => 0, $a->id => 1, $c->id => 2],
@@ -357,10 +357,10 @@ class CornerListsTest extends TestCase
         $a = $this->listBy($this->creator, ['position' => 1]);
         $b = $this->listBy($this->creator, ['position' => 0]);
 
-        $this->actingAs($this->member)->patch("/apps/our-corner/lists/{$a->id}/move", ['direction' => 'up']);
+        $this->actingAs($this->member)->patch("/apps/our-shelf/lists/{$a->id}/move", ['direction' => 'up']);
 
         $this->actingAs($this->member)
-            ->get('/apps/our-corner')
+            ->get('/apps/our-shelf')
             ->assertInertia(fn (AssertableInertia $page) => $page
                 ->where('lists.0.id', $a->id)
                 ->where('lists.1.id', $b->id));
@@ -372,12 +372,12 @@ class CornerListsTest extends TestCase
 
         foreach ([[], ['direction' => 'sideways']] as $payload) {
             $this->actingAs($this->member)
-                ->from('/apps/our-corner')
-                ->patch("/apps/our-corner/lists/{$list->id}/move", $payload)
+                ->from('/apps/our-shelf')
+                ->patch("/apps/our-shelf/lists/{$list->id}/move", $payload)
                 ->assertSessionHasErrors(['direction']);
         }
 
-        $this->actingAs($this->member)->patch('/apps/our-corner/lists/999999999/move', ['direction' => 'up'])->assertNotFound();
+        $this->actingAs($this->member)->patch('/apps/our-shelf/lists/999999999/move', ['direction' => 'up'])->assertNotFound();
     }
 
     // Deleting
@@ -388,9 +388,9 @@ class CornerListsTest extends TestCase
         $item = $this->itemIn($list, $this->creator);
 
         $this->actingAs($this->creator)
-            ->from("/apps/our-corner/{$list->slug}")
-            ->delete("/apps/our-corner/lists/{$list->id}")
-            ->assertRedirect('/apps/our-corner')
+            ->from("/apps/our-shelf/{$list->slug}")
+            ->delete("/apps/our-shelf/lists/{$list->id}")
+            ->assertRedirect('/apps/our-shelf')
             ->assertSessionHas(SessionKey::FLASH_DATA, ['toast' => ['type' => 'success', 'message' => 'Deleted Mine.']]);
 
         $this->assertModelMissing($list);
@@ -403,12 +403,12 @@ class CornerListsTest extends TestCase
         $this->itemIn($list, $this->creator);
         $theirs = $this->itemIn($list, $this->member);
 
-        $this->actingAs($this->creator)->delete("/apps/our-corner/lists/{$list->id}")->assertForbidden();
+        $this->actingAs($this->creator)->delete("/apps/our-shelf/lists/{$list->id}")->assertForbidden();
         $this->assertModelExists($list);
 
         // Once that item is gone it's theirs to delete again.
         $theirs->delete();
-        $this->actingAs($this->creator)->delete("/apps/our-corner/lists/{$list->id}")->assertRedirect('/apps/our-corner');
+        $this->actingAs($this->creator)->delete("/apps/our-shelf/lists/{$list->id}")->assertRedirect('/apps/our-shelf');
         $this->assertModelMissing($list);
     }
 
@@ -421,8 +421,8 @@ class CornerListsTest extends TestCase
         $this->itemIn($songs, $this->member);
         $keep = $this->itemIn($this->movies(), $this->member);
 
-        $this->actingAs($this->admin)->delete("/apps/our-corner/lists/{$list->id}")->assertRedirect('/apps/our-corner');
-        $this->actingAs($this->admin)->delete("/apps/our-corner/lists/{$songs->id}")->assertRedirect('/apps/our-corner');
+        $this->actingAs($this->admin)->delete("/apps/our-shelf/lists/{$list->id}")->assertRedirect('/apps/our-shelf');
+        $this->actingAs($this->admin)->delete("/apps/our-shelf/lists/{$songs->id}")->assertRedirect('/apps/our-shelf');
 
         $this->assertModelMissing($list);
         $this->assertModelMissing($songs);
@@ -435,7 +435,7 @@ class CornerListsTest extends TestCase
         $songs = $this->songs();
 
         foreach ([$empty, $songs] as $list) {
-            $this->actingAs($this->member)->delete("/apps/our-corner/lists/{$list->id}")->assertForbidden();
+            $this->actingAs($this->member)->delete("/apps/our-shelf/lists/{$list->id}")->assertForbidden();
             $this->assertModelExists($list);
         }
     }
@@ -447,8 +447,8 @@ class CornerListsTest extends TestCase
         $leaver->delete();
 
         $this->assertNull($list->fresh()->created_by_user_id);
-        $this->actingAs($this->member)->delete("/apps/our-corner/lists/{$list->id}")->assertForbidden();
-        $this->actingAs($this->admin)->delete("/apps/our-corner/lists/{$list->id}")->assertRedirect('/apps/our-corner');
+        $this->actingAs($this->member)->delete("/apps/our-shelf/lists/{$list->id}")->assertForbidden();
+        $this->actingAs($this->admin)->delete("/apps/our-shelf/lists/{$list->id}")->assertRedirect('/apps/our-shelf');
     }
 
     // What the pages tell each viewer
@@ -458,7 +458,7 @@ class CornerListsTest extends TestCase
         $list = $this->listBy($this->creator);
         $this->itemIn($list, $this->creator);
 
-        $can = fn (User $viewer) => $this->actingAs($viewer)->get("/apps/our-corner/{$list->slug}");
+        $can = fn (User $viewer) => $this->actingAs($viewer)->get("/apps/our-shelf/{$list->slug}");
 
         $can($this->creator)->assertInertia(fn (AssertableInertia $page) => $page
             ->where('list.can', ['update' => true, 'delete' => true])
@@ -487,13 +487,13 @@ class CornerListsTest extends TestCase
         $item = $this->itemIn($list, $this->member);
 
         $this->actingAs($this->creator)
-            ->get("/apps/our-corner/{$list->slug}/{$item->id}")
+            ->get("/apps/our-shelf/{$list->slug}/{$item->id}")
             ->assertInertia(fn (AssertableInertia $page) => $page
                 ->where('list.can', ['update' => true, 'delete' => false])
                 ->where('list.delete_needs_admin', true));
 
         $this->actingAs($this->creator)
-            ->get('/apps/our-corner')
+            ->get('/apps/our-shelf')
             ->assertInertia(fn (AssertableInertia $page) => $page
                 ->where('can.create', true)
                 ->where('lists.0.id', $list->id)
@@ -501,7 +501,7 @@ class CornerListsTest extends TestCase
                 ->where('lists.0.delete_needs_admin', true));
 
         $this->actingAs($this->member)
-            ->get('/apps/our-corner')
+            ->get('/apps/our-shelf')
             ->assertInertia(fn (AssertableInertia $page) => $page
                 ->where('can.create', true)
                 ->where('lists.0.can', ['update' => false, 'delete' => false])

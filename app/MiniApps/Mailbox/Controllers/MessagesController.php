@@ -52,7 +52,7 @@ class MessagesController
 
         FlashToast::success('Note sent.');
 
-        return redirect('/apps/our-mailbox/messages?tab=sent');
+        return redirect('/apps/our-exchange/messages?tab=sent');
     }
 
     public function destroy(Request $request, MailboxMessage $message): RedirectResponse

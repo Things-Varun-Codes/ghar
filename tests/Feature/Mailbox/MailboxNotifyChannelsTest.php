@@ -22,7 +22,7 @@ class MailboxNotifyChannelsTest extends TestCase
         /** @var User $recipient */
         $recipient = User::factory()->create();
 
-        $this->actingAs($sender)->post('/apps/our-mailbox/messages', [
+        $this->actingAs($sender)->post('/apps/our-exchange/messages', [
             'recipient_ids' => [$recipient->id],
             'body' => 'push-only contract',
         ])->assertRedirect();
@@ -44,12 +44,12 @@ class MailboxNotifyChannelsTest extends TestCase
         /** @var User $recipient */
         $recipient = User::factory()->create();
 
-        $response = $this->actingAs($sender)->post('/apps/our-mailbox/messages', [
+        $response = $this->actingAs($sender)->post('/apps/our-exchange/messages', [
             'recipient_ids' => [$recipient->id],
             'body' => 'no subscriptions on the recipient',
         ]);
 
-        $response->assertRedirect('/apps/our-mailbox/messages?tab=sent');
+        $response->assertRedirect('/apps/our-exchange/messages?tab=sent');
         $this->assertDatabaseHas('mailbox_messages', [
             'sender_id' => $sender->id,
             'body' => 'no subscriptions on the recipient',

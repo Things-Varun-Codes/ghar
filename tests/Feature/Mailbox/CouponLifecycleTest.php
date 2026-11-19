@@ -27,14 +27,14 @@ class CouponLifecycleTest extends TestCase
         Notification::fake();
         [$issuer, $recipient] = $this->seedPair();
 
-        $response = $this->actingAs($issuer)->post('/apps/our-mailbox/coupons', [
+        $response = $this->actingAs($issuer)->post('/apps/our-exchange/coupons', [
             'recipient_ids' => [$recipient->id],
             'title' => 'Back massage',
             'quantity' => 2,
         ]);
 
         $coupon = Coupon::firstOrFail();
-        $response->assertRedirect("/apps/our-mailbox/coupons/{$coupon->id}");
+        $response->assertRedirect("/apps/our-exchange/coupons/{$coupon->id}");
         $this->assertSuccessToast($response, 'Coupon sent.');
 
         $this->assertSame(Coupon::STATUS_ISSUED, $coupon->status);
@@ -58,7 +58,7 @@ class CouponLifecycleTest extends TestCase
         ]);
 
         $response = $this->actingAs($recipient)
-            ->patch("/apps/our-mailbox/coupons/{$coupon->id}/request")
+            ->patch("/apps/our-exchange/coupons/{$coupon->id}/request")
             ->assertRedirect();
         $this->assertSuccessToast($response, 'Coupon requested.');
 
@@ -80,7 +80,7 @@ class CouponLifecycleTest extends TestCase
         ]);
 
         $response = $this->actingAs($issuer)
-            ->patch("/apps/our-mailbox/coupons/{$coupon->id}/fulfill")
+            ->patch("/apps/our-exchange/coupons/{$coupon->id}/fulfill")
             ->assertRedirect();
         $this->assertSuccessToast($response, 'Coupon fulfilled.');
 
@@ -104,8 +104,8 @@ class CouponLifecycleTest extends TestCase
         ]);
 
         // First redemption: request → fulfill → back to issued, remaining 1.
-        $this->actingAs($recipient)->patch("/apps/our-mailbox/coupons/{$coupon->id}/request");
-        $this->actingAs($issuer)->patch("/apps/our-mailbox/coupons/{$coupon->id}/fulfill");
+        $this->actingAs($recipient)->patch("/apps/our-exchange/coupons/{$coupon->id}/request");
+        $this->actingAs($issuer)->patch("/apps/our-exchange/coupons/{$coupon->id}/fulfill");
 
         $coupon->refresh();
         $this->assertSame(Coupon::STATUS_ISSUED, $coupon->status);
@@ -113,8 +113,8 @@ class CouponLifecycleTest extends TestCase
         $this->assertSame(1, $coupon->remaining());
 
         // Second redemption: request → fulfill the last unit → depleted.
-        $this->actingAs($recipient)->patch("/apps/our-mailbox/coupons/{$coupon->id}/request");
-        $this->actingAs($issuer)->patch("/apps/our-mailbox/coupons/{$coupon->id}/fulfill");
+        $this->actingAs($recipient)->patch("/apps/our-exchange/coupons/{$coupon->id}/request");
+        $this->actingAs($issuer)->patch("/apps/our-exchange/coupons/{$coupon->id}/fulfill");
 
         $coupon->refresh();
         $this->assertSame(Coupon::STATUS_DEPLETED, $coupon->status);
@@ -129,13 +129,13 @@ class CouponLifecycleTest extends TestCase
         $second = User::factory()->create();
         $bystander = User::factory()->create();
 
-        $response = $this->actingAs($issuer)->post('/apps/our-mailbox/coupons', [
+        $response = $this->actingAs($issuer)->post('/apps/our-exchange/coupons', [
             'recipient_ids' => [$first->id, $second->id],
             'title' => 'Movie pick',
             'quantity' => 1,
         ]);
 
-        $response->assertRedirect('/apps/our-mailbox/coupons?tab=issued');
+        $response->assertRedirect('/apps/our-exchange/coupons?tab=issued');
         $this->assertSuccessToast($response, '2 coupons sent.');
 
         $this->assertSame(
@@ -153,8 +153,8 @@ class CouponLifecycleTest extends TestCase
         [$issuer] = $this->seedPair();
 
         $this->actingAs($issuer)
-            ->from('/apps/our-mailbox/coupons')
-            ->post('/apps/our-mailbox/coupons', [
+            ->from('/apps/our-exchange/coupons')
+            ->post('/apps/our-exchange/coupons', [
                 'recipient_ids' => [$issuer->id],
                 'title' => 'Movie pick',
                 'quantity' => 1,

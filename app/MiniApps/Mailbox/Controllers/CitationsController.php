@@ -59,12 +59,12 @@ class CitationsController
         if ($citations->count() === 1) {
             FlashToast::success('Citation issued.');
 
-            return redirect()->route('apps.our-mailbox.citations.show', $citations->first());
+            return redirect()->route('apps.our-exchange.citations.show', $citations->first());
         }
 
         FlashToast::success("{$citations->count()} citations issued.");
 
-        return redirect()->route('apps.our-mailbox.citations.index', ['tab' => 'issued']);
+        return redirect()->route('apps.our-exchange.citations.index', ['tab' => 'issued']);
     }
 
     public function pay(Request $request, Citation $citation, PayCitation $action): RedirectResponse
@@ -87,6 +87,6 @@ class CitationsController
         FlashToast::success('Citation withdrawn.');
 
         return redirect()
-            ->route('apps.our-mailbox.citations.index');
+            ->route('apps.our-exchange.citations.index');
     }
 }

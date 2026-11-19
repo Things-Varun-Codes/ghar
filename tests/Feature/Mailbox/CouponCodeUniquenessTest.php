@@ -21,7 +21,7 @@ class CouponCodeUniquenessTest extends TestCase
         $recipient = User::factory()->create();
 
         for ($i = 0; $i < 8; $i++) {
-            $this->actingAs($issuer)->post('/apps/our-mailbox/coupons', [
+            $this->actingAs($issuer)->post('/apps/our-exchange/coupons', [
                 'recipient_ids' => [$recipient->id],
                 'title' => 'Back massage',
                 'quantity' => 1,

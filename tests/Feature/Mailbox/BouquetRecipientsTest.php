@@ -32,12 +32,12 @@ class BouquetRecipientsTest extends TestCase
         $second = User::factory()->create();
         $bystander = User::factory()->create();
 
-        $this->actingAs($sender)->post('/apps/our-mailbox/bouquets', [
+        $this->actingAs($sender)->post('/apps/our-exchange/bouquets', [
             'recipient_ids' => [$first->id, $second->id],
             'flowers' => ['red_rose'],
             'image' => base64_encode(file_get_contents(public_path('img/placeholder-bouquet.jpg'))),
             'mime' => 'image/jpeg',
-        ])->assertRedirect('/apps/our-mailbox/flowers?tab=sent');
+        ])->assertRedirect('/apps/our-exchange/flowers?tab=sent');
 
         $bouquet = Bouquet::firstOrFail();
 
@@ -45,7 +45,7 @@ class BouquetRecipientsTest extends TestCase
         Notification::assertSentTo($second, GenericPushNotification::class);
         Notification::assertNotSentTo($bystander, GenericPushNotification::class);
 
-        $this->actingAs($first)->get('/apps/our-mailbox/flowers')->assertOk();
+        $this->actingAs($first)->get('/apps/our-exchange/flowers')->assertOk();
 
         $this->assertNotNull($bouquet->readAtFor($first));
         $this->assertNull($bouquet->readAtFor($second));
@@ -56,8 +56,8 @@ class BouquetRecipientsTest extends TestCase
         $sender = User::factory()->create();
 
         $this->actingAs($sender)
-            ->from('/apps/our-mailbox/flowers')
-            ->post('/apps/our-mailbox/bouquets', [
+            ->from('/apps/our-exchange/flowers')
+            ->post('/apps/our-exchange/bouquets', [
                 'recipient_ids' => [$sender->id],
                 'flowers' => ['red_rose'],
                 'image' => base64_encode(file_get_contents(public_path('img/placeholder-bouquet.jpg'))),
@@ -78,15 +78,15 @@ class BouquetRecipientsTest extends TestCase
 
         foreach (['received', 'sent'] as $tab) {
             $this->actingAs($bystander)
-                ->get('/apps/our-mailbox/flowers?tab='.$tab)
+                ->get('/apps/our-exchange/flowers?tab='.$tab)
                 ->assertInertia(fn ($page) => $page->has('bouquets.data', 0));
         }
 
         $this->actingAs($bystander)
-            ->get('/apps/our-mailbox')
+            ->get('/apps/our-exchange')
             ->assertInertia(fn ($page) => $page->where('mailboxSummary.counts.flowers', 0));
 
-        $this->actingAs($bystander)->delete("/apps/our-mailbox/flowers/{$bouquet->id}")->assertForbidden();
+        $this->actingAs($bystander)->delete("/apps/our-exchange/flowers/{$bouquet->id}")->assertForbidden();
         $this->assertModelExists($bouquet);
     }
 }

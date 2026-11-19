@@ -23,8 +23,8 @@ body:
       label: Where it belongs
       options:
         - Our History
-        - Our Corner
-        - Our Mailbox
+        - Our Shelf
+        - Our Exchange
         - The shell (login, settings, admin, notifications)
         - Self-hosting and deployment
         - A new mini app

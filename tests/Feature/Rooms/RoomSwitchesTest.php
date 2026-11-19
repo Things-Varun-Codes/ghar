@@ -51,12 +51,12 @@ class RoomSwitchesTest extends TestCase
 
         $this->get('/dashboard')->assertOk()->assertInertia(fn ($page) => $page
             ->where('miniApps', fn ($apps) => collect($apps)->pluck('slug')->doesntContain('our-history')
-                && collect($apps)->pluck('slug')->contains('our-corner'))
+                && collect($apps)->pluck('slug')->contains('our-shelf'))
             ->where('summaries', fn ($s) => ! collect($s)->has('our-history'))
             ->where('previews', fn ($p) => ! collect($p)->has('our-history'))
         );
 
-        $this->get('/apps/our-corner')->assertOk();
+        $this->get('/apps/our-shelf')->assertOk();
     }
 
     public function test_turning_a_room_off_and_on_again_keeps_its_data(): void
@@ -84,16 +84,16 @@ class RoomSwitchesTest extends TestCase
     public function test_a_room_that_is_off_sends_no_push(): void
     {
         Notification::fake();
-        $this->turnOff('our-mailbox');
+        $this->turnOff('our-exchange');
         $sender = User::factory()->create();
         $recipient = User::factory()->create();
 
         app(\App\Shell\Services\PushDispatcher::class)
-            ->toUsers([$recipient], 'our-mailbox', 'our-mailbox:citations', 'body', '/apps/our-mailbox');
+            ->toUsers([$recipient], 'our-exchange', 'our-exchange:citations', 'body', '/apps/our-exchange');
 
         Notification::assertNothingSent();
 
-        $this->actingAs($sender)->post('/apps/our-mailbox/citations', [
+        $this->actingAs($sender)->post('/apps/our-exchange/citations', [
             'recipient_ids' => [$recipient->id],
             'offence' => 'x',
             'penalty' => 'y',
@@ -118,7 +118,7 @@ class RoomSwitchesTest extends TestCase
         $this->assertTrue($this->rooms()->canEnter($admin, 'our-history'));
         $this->assertFalse($this->rooms()->canEnter($user, 'our-history'));
         $this->assertFalse($this->rooms()->canEnter(null, 'our-history'));
-        $this->assertTrue($this->rooms()->canEnter($user, 'our-corner'));
+        $this->assertTrue($this->rooms()->canEnter($user, 'our-shelf'));
 
         $this->actingAs($user)->get('/apps/our-history')->assertNotFound();
         $this->get('/dashboard')->assertOk()->assertInertia(fn ($page) => $page
@@ -160,7 +160,7 @@ class RoomSwitchesTest extends TestCase
         $urls = collect($this->get('/manifest.webmanifest')->json('shortcuts'))->pluck('url');
 
         $this->assertNotContains('/apps/our-history', $urls->all());
-        $this->assertContains('/apps/our-corner', $urls->all());
+        $this->assertContains('/apps/our-shelf', $urls->all());
     }
 
     public function test_a_fresh_install_starts_with_no_rooms_and_home_says_so(): void

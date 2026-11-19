@@ -74,7 +74,7 @@ class LinkedThingsTest extends TestCase
             ->where('events.data.0.links', fn ($links) => isset($links["corner.item:{$item->id}"])
                 && ! isset($links["corner.item:{$gone->id}"])));
 
-        app(Rooms::class)->set('our-corner', false);
+        app(Rooms::class)->set('our-shelf', false);
 
         $this->get('/apps/our-history')->assertInertia(fn (AssertableInertia $page) => $page
             ->where('events.data.0.links', []));

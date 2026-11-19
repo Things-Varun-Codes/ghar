@@ -19,7 +19,7 @@ vi.mock('@inertiajs/react', () => ({
 const story =
     '<p><span data-corner-type="corner.song" data-corner-id="5" data-corner-title="Rain"' +
     ' data-corner-thumbnail="https://images.example.com/old.jpg"' +
-    ' data-corner-href="/apps/our-corner/songs/5">Rain</span></p>';
+    ' data-corner-href="/apps/our-shelf/songs/5">Rain</span></p>';
 
 function picture(container: HTMLElement): string | null {
     return container.querySelector('img')?.getAttribute('src') ?? null;
@@ -37,7 +37,7 @@ describe('a link in a story', () => {
                 links={{
                     'corner.song:5': {
                         thumbnail_url:
-                            '/apps/our-corner/items/105/picture?v=abc',
+                            '/apps/our-shelf/items/105/picture?v=abc',
                         icon: 'music',
                     },
                 }}
@@ -45,7 +45,7 @@ describe('a link in a story', () => {
         );
 
         expect(picture(container)).toBe(
-            `${window.location.origin}/apps/our-corner/items/105/picture?v=abc`,
+            `${window.location.origin}/apps/our-shelf/items/105/picture?v=abc`,
         );
     });
 
@@ -67,7 +67,7 @@ describe('a link in a story', () => {
 
         expect(picture(container)).toBe('https://images.example.com/old.jpg');
         expect(container.querySelector('a')?.getAttribute('href')).toContain(
-            '/apps/our-corner/songs/5',
+            '/apps/our-shelf/songs/5',
         );
     });
 
@@ -79,7 +79,7 @@ describe('a link in a story', () => {
                 links={{
                     'corner.song:5': {
                         thumbnail_url:
-                            '/apps/our-corner/items/105/picture?v=abc',
+                            '/apps/our-shelf/items/105/picture?v=abc',
                     },
                 }}
             />,

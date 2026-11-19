@@ -22,12 +22,12 @@ class MessagesTest extends TestCase
         /** @var User $recipient */
         $recipient = User::factory()->create();
 
-        $response = $this->actingAs($sender)->post('/apps/our-mailbox/messages', [
+        $response = $this->actingAs($sender)->post('/apps/our-exchange/messages', [
             'recipient_ids' => [$recipient->id],
             'body' => 'Hi from the test suite',
         ]);
 
-        $response->assertRedirect('/apps/our-mailbox/messages?tab=sent');
+        $response->assertRedirect('/apps/our-exchange/messages?tab=sent');
         $this->assertSuccessToast($response, 'Note sent.');
 
         $message = MailboxMessage::firstOrFail();
@@ -47,7 +47,7 @@ class MessagesTest extends TestCase
                 $messageArray = $webPushMessage->toArray();
                 $body = $messageArray['body'] ?? '';
 
-                return ($messageArray['tag'] ?? null) === 'our-mailbox:messages'
+                return ($messageArray['tag'] ?? null) === 'our-exchange:messages'
                     && str_contains($body, 'You got a note from')
                     && str_contains($body, 'Alice')
                     && ! str_contains($body, 'Hi from the test suite');
@@ -66,8 +66,8 @@ class MessagesTest extends TestCase
         $sender = User::factory()->create();
 
         $response = $this->actingAs($sender)
-            ->from('/apps/our-mailbox/messages')
-            ->post('/apps/our-mailbox/messages', [
+            ->from('/apps/our-exchange/messages')
+            ->post('/apps/our-exchange/messages', [
                 'recipient_ids' => [User::factory()->create()->id],
                 'body' => str_repeat('a', 700),
             ]);
@@ -86,8 +86,8 @@ class MessagesTest extends TestCase
         User::factory()->create();
 
         $response = $this->actingAs($sender)
-            ->from('/apps/our-mailbox/messages')
-            ->post('/apps/our-mailbox/messages', [
+            ->from('/apps/our-exchange/messages')
+            ->post('/apps/our-exchange/messages', [
                 'body' => '',
             ]);
 
@@ -110,7 +110,7 @@ class MessagesTest extends TestCase
 
         $this->assertNull($message->readAtFor($recipient));
 
-        $this->actingAs($recipient)->get('/apps/our-mailbox/messages')->assertOk();
+        $this->actingAs($recipient)->get('/apps/our-exchange/messages')->assertOk();
 
         $this->assertNotNull($message->readAtFor($recipient));
     }
@@ -133,7 +133,7 @@ class MessagesTest extends TestCase
             'posted_at' => now(),
         ]);
 
-        $received = $this->actingAs($u2)->get('/apps/our-mailbox/messages?tab=received');
+        $received = $this->actingAs($u2)->get('/apps/our-exchange/messages?tab=received');
         $received->assertOk();
         $received->assertInertia(
             fn ($page) => $page
@@ -143,7 +143,7 @@ class MessagesTest extends TestCase
                 ->where('messages.data.0.body', 'note from u1 to u2'),
         );
 
-        $sent = $this->actingAs($u2)->get('/apps/our-mailbox/messages?tab=sent');
+        $sent = $this->actingAs($u2)->get('/apps/our-exchange/messages?tab=sent');
         $sent->assertOk();
         $sent->assertInertia(
             fn ($page) => $page
@@ -161,8 +161,8 @@ class MessagesTest extends TestCase
         User::factory()->create();
 
         $this->actingAs($user)
-            ->from('/apps/our-mailbox/messages')
-            ->post('/apps/our-mailbox/messages', ['recipient_ids' => [$user->id], 'body' => 'note to self'])
+            ->from('/apps/our-exchange/messages')
+            ->post('/apps/our-exchange/messages', ['recipient_ids' => [$user->id], 'body' => 'note to self'])
             ->assertSessionHasErrors('recipient_ids.0');
 
         $this->assertDatabaseCount('mailbox_messages', 0);
@@ -175,13 +175,13 @@ class MessagesTest extends TestCase
         User::factory()->create();
 
         $this->actingAs($sender)
-            ->from('/apps/our-mailbox/messages')
-            ->post('/apps/our-mailbox/messages', ['body' => 'to nobody'])
+            ->from('/apps/our-exchange/messages')
+            ->post('/apps/our-exchange/messages', ['body' => 'to nobody'])
             ->assertSessionHasErrors('recipient_ids');
 
         $this->actingAs($sender)
-            ->from('/apps/our-mailbox/messages')
-            ->post('/apps/our-mailbox/messages', ['recipient_ids' => [999999], 'body' => 'to a ghost'])
+            ->from('/apps/our-exchange/messages')
+            ->post('/apps/our-exchange/messages', ['recipient_ids' => [999999], 'body' => 'to a ghost'])
             ->assertSessionHasErrors('recipient_ids.0');
 
         $this->assertDatabaseCount('mailbox_messages', 0);
@@ -197,11 +197,11 @@ class MessagesTest extends TestCase
         $bystander = User::factory()->create();
 
         $this->actingAs($sender)
-            ->post('/apps/our-mailbox/messages', [
+            ->post('/apps/our-exchange/messages', [
                 'recipient_ids' => [$first->id, $second->id],
                 'body' => 'Family dinner on Sunday',
             ])
-            ->assertRedirect('/apps/our-mailbox/messages?tab=sent');
+            ->assertRedirect('/apps/our-exchange/messages?tab=sent');
 
         $message = MailboxMessage::firstOrFail();
 
@@ -211,13 +211,13 @@ class MessagesTest extends TestCase
         Notification::assertNotSentTo($sender, GenericPushNotification::class);
 
         // Only the first recipient opens their Received tab.
-        $this->actingAs($first)->get('/apps/our-mailbox/messages')->assertOk();
+        $this->actingAs($first)->get('/apps/our-exchange/messages')->assertOk();
 
         $this->assertNotNull($message->readAtFor($first));
         $this->assertNull($message->readAtFor($second));
 
         $this->actingAs($second)
-            ->get('/apps/our-mailbox')
+            ->get('/apps/our-exchange')
             ->assertInertia(fn ($page) => $page->where('mailboxSummary.unread_messages', 1));
     }
 
@@ -234,19 +234,19 @@ class MessagesTest extends TestCase
 
         foreach (['received', 'sent'] as $tab) {
             $this->actingAs($bystander)
-                ->get('/apps/our-mailbox/messages?tab='.$tab)
+                ->get('/apps/our-exchange/messages?tab='.$tab)
                 ->assertInertia(fn ($page) => $page->has('messages.data', 0));
         }
 
         $this->actingAs($bystander)
-            ->get('/apps/our-mailbox')
+            ->get('/apps/our-exchange')
             ->assertInertia(fn ($page) => $page
                 ->where('mailboxSummary.counts.messages', 0)
                 ->where('mailboxSummary.unread_messages', 0)
                 ->where('mailboxPeeks.notes', null));
 
         $this->actingAs($recipient)
-            ->get('/apps/our-mailbox/messages?tab=received')
+            ->get('/apps/our-exchange/messages?tab=received')
             ->assertInertia(fn ($page) => $page
                 ->has('messages.data', 1)
                 ->where('messages.data.0.recipients.0.id', $recipient->id));
@@ -258,7 +258,7 @@ class MessagesTest extends TestCase
         $other = User::factory()->create(['name' => 'Kabir']);
 
         $this->actingAs($me)
-            ->get('/apps/our-mailbox/messages')
+            ->get('/apps/our-exchange/messages')
             ->assertInertia(fn ($page) => $page
                 ->where('members', [['id' => $other->id, 'name' => 'Kabir']]));
     }
@@ -272,7 +272,7 @@ class MessagesTest extends TestCase
         /** @var User $recipient */
         $recipient = User::factory()->create();
 
-        $this->actingAs($sender)->post('/apps/our-mailbox/messages', [
+        $this->actingAs($sender)->post('/apps/our-exchange/messages', [
             'recipient_ids' => [$recipient->id],
             'body' => 'check focus param',
         ])->assertRedirect();
@@ -287,7 +287,7 @@ class MessagesTest extends TestCase
                 $messageArray = $webPushMessage->toArray();
                 $url = $messageArray['data']['url'] ?? '';
 
-                return $url === "/apps/our-mailbox/messages?focus={$message->id}";
+                return $url === "/apps/our-exchange/messages?focus={$message->id}";
             }
         );
     }
@@ -306,7 +306,7 @@ class MessagesTest extends TestCase
 
         foreach (['received' => $recipient, 'sent' => $sender] as $tab => $viewer) {
             $this->actingAs($viewer)
-                ->get('/apps/our-mailbox/messages?tab='.$tab)
+                ->get('/apps/our-exchange/messages?tab='.$tab)
                 ->assertOk()
                 ->assertInertia(fn ($page) => $page
                     ->component('MiniApps/Mailbox/Pages/Messages')
@@ -334,10 +334,10 @@ class MessagesTest extends TestCase
         ]);
 
         $response = $this->actingAs($sender)
-            ->from('/apps/our-mailbox/messages')
-            ->delete('/apps/our-mailbox/messages/'.$message->id);
+            ->from('/apps/our-exchange/messages')
+            ->delete('/apps/our-exchange/messages/'.$message->id);
 
-        $response->assertRedirect('/apps/our-mailbox/messages');
+        $response->assertRedirect('/apps/our-exchange/messages');
         $this->assertSuccessToast($response, 'Note deleted.');
 
         $this->assertDatabaseMissing('mailbox_messages', ['id' => $message->id]);
@@ -357,8 +357,8 @@ class MessagesTest extends TestCase
         ]);
 
         $response = $this->actingAs($recipient)
-            ->from('/apps/our-mailbox/messages')
-            ->delete('/apps/our-mailbox/messages/'.$message->id);
+            ->from('/apps/our-exchange/messages')
+            ->delete('/apps/our-exchange/messages/'.$message->id);
 
         $response->assertForbidden();
 

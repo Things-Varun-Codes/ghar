@@ -20,11 +20,11 @@ use Illuminate\Support\ServiceProvider;
 
 class CornerServiceProvider extends ServiceProvider
 {
-    public const SLUG = 'our-corner';
+    public const SLUG = 'our-shelf';
 
     public function boot(LinkableEntities $linkable, DashboardSummaries $summaries, UserOwnedContent $ownedContent): void
     {
-        $ownedContent->register('corner_items', ['added_by_user_id'], 'Corner items');
+        $ownedContent->register('corner_items', ['added_by_user_id'], 'Shelf items');
 
         $summaries->register(self::SLUG, fn (User $user): ?string => DashboardLine::forUser($user));
         $summaries->registerPreview(self::SLUG, fn (User $user): ?array => DashboardPreview::forUser($user));

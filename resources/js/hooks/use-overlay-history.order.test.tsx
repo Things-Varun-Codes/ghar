@@ -22,7 +22,7 @@ describe('overlay history listener order', () => {
      * dispatch in that order too, so only an earlier install keeps the back away from Inertia.
      */
     it('stops a back before a listener added after install', () => {
-        window.history.replaceState({ page: {} }, '', '/apps/our-corner');
+        window.history.replaceState({ page: {} }, '', '/apps/our-shelf');
         installOverlayHistory();
         const inertiaPopstate = vi.fn();
         window.addEventListener('popstate', inertiaPopstate, { capture: true });
