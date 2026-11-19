@@ -20,6 +20,8 @@ Every invited user is a household member (`App\Shell\Services\Household`: `membe
 | Surface                                | Who sees it        | Who may change it                                           |
 | -------------------------------------- | ------------------ | ----------------------------------------------------------- |
 | History moments (`EventPolicy`)        | Everyone           | Edit, delete, media: creator or admin                       |
+| History reactions                      | Everyone           | React: anyone, own reactions only                           |
+| History comments (`CommentPolicy`)     | Everyone           | Comment: anyone. Delete: author or admin. No editing        |
 | Corner lists (`CornerListPolicy`)      | Everyone           | Make: anyone. Edit: maker or admin. Delete: see `corner.md` |
 | Corner items (`ListItemPolicy`)        | Everyone           | Edit, delete: adder or admin. Mark done: anyone             |
 | Profile picture, birthday              | Everyone           | Picture: own; an admin may remove. Birthday: own or admin   |
@@ -48,8 +50,9 @@ Every invited user is a household member (`App\Shell\Services\Household`: `membe
   (`ValidatesRecipients`). A coupon or citation has one recipient, so several ids issue one row each.
 - **Push:** `PushDispatcher::toHousehold($actor, …)` for new moments and Corner items;
   `toUsers($recipients, …)` for Mailbox, through `MailboxPush`, which builds the `our-exchange:{type}`
-  tag and the link. Never hand-roll a recipient query.
+  tag and the link, and for a History comment (`AddComment`: the moment's creator and earlier
+  commenters, minus the commenter). Never hand-roll a recipient query. Reactions send nothing.
 - **Push timing — two accepted shapes, don't "harmonize" them.** Corner (`AddItem`) dispatches
   inside `DB::afterCommit(...)` within the transaction. Mailbox (`CreateMessage`, `IssueCitation`
-  etc.) dispatches on the line after `DB::transaction(...)` returns. Both guarantee no push for a
-  rolled-back write.
+  etc.) and History (`EventsController::store`, `AddComment`) dispatch on the line after
+  `DB::transaction(...)` returns. Both guarantee no push for a rolled-back write.
