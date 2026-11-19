@@ -1,4 +1,5 @@
 import type { FormEvent, ReactNode } from 'react';
+import { Fade } from '@/components/motion';
 import {
     Drawer,
     DrawerContent,
@@ -101,11 +102,14 @@ export default function FormSheet({
                     </div>
 
                     <div className="shell-form-sheet-footer">
-                        {hint && (
-                            <p id={hintId} className="shell-form-sheet-hint">
+                        <Fade
+                            show={Boolean(hint)}
+                            className="shell-form-sheet-hint"
+                        >
+                            <p id={hintId} className="m-0">
                                 {hint}
                             </p>
-                        )}
+                        </Fade>
                         <div className="shell-form-sheet-actions">{footer}</div>
                     </div>
                 </form>

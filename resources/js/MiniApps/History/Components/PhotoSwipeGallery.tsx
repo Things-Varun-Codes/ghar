@@ -72,7 +72,7 @@ const PhotoSwipeGallery = forwardRef<PhotoSwipeGalleryHandle, Props>(
                 dataSource,
                 pswpModule: () => import('photoswipe'),
                 bgOpacity: 0.95,
-                // trapFocus fights the Radix Sheet's FocusScope when opened from inside one,
+                // trapFocus fights the sheet's own focus trap when opened from inside one,
                 // deadlocking focus.
                 trapFocus: false,
             });

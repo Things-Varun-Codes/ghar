@@ -117,7 +117,7 @@ function AlertDialogDescription({
   )
 }
 
-/* The confirming button: runs its onClick, then closes, as Radix's Action did. */
+/* The confirming button: runs its onClick, then closes the dialog. */
 function AlertDialogAction({
   className,
   ...props

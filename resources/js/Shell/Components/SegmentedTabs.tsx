@@ -1,4 +1,10 @@
 import { Link } from '@inertiajs/react';
+import {
+    Tabs,
+    TabsIndicator,
+    TabsList,
+    TabsTrigger,
+} from '@/components/ui/tabs';
 
 type SegmentedTabItem<T extends string> = {
     key: T;
@@ -49,31 +55,28 @@ export default function SegmentedTabs<T extends string>(
     if (props.mode === 'tablist-client') {
         const { onChange, panelId } = props;
 
+        // Arrows move focus and Enter or a click chooses: each choice is a server visit, so
+        // arrowing across must not fire one per key. The pill glides to the chosen tab.
         return (
-            <div
-                role="tablist"
-                aria-label={ariaLabel}
-                className="shell-segmented"
+            <Tabs
+                value={active}
+                onValueChange={(value) => onChange(value as T)}
+                className="contents"
             >
-                {items.map((item) => {
-                    const isActive = item.key === active;
-
-                    return (
-                        <button
+                <TabsList aria-label={ariaLabel} className="shell-segmented">
+                    {items.map((item) => (
+                        <TabsTrigger
                             key={item.key}
-                            type="button"
-                            role="tab"
-                            aria-selected={isActive}
+                            value={item.key}
                             aria-controls={panelId}
-                            data-active={isActive ? '' : undefined}
-                            onClick={() => onChange(item.key)}
                             className="shell-segmented-item shell-focus"
                         >
                             {renderLabel(item)}
-                        </button>
-                    );
-                })}
-            </div>
+                        </TabsTrigger>
+                    ))}
+                    <TabsIndicator className="shell-segmented-indicator" />
+                </TabsList>
+            </Tabs>
         );
     }
 

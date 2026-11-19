@@ -2,6 +2,7 @@ import { Link } from '@inertiajs/react';
 import type { ComponentProps, ReactNode } from 'react';
 import { useId } from 'react';
 
+import { SettleItem } from '@/components/motion';
 import { cn } from '@/lib/utils';
 
 type Props = {
@@ -23,6 +24,11 @@ type Props = {
     /* Beside the heading, wrapped with it in `headClassName`: a menu. */
     aside?: ReactNode;
     headClassName?: string;
+    /*
+     * Its place among the landing's doors. Inside a Settle, the doors of a landing just opened
+     * rise in one after another; the motion is on a wrapper, since the card lifts on hover.
+     */
+    settleIndex?: number;
 };
 
 /* A card on a room's landing that opens one of its pages from anywhere on it. */
@@ -39,6 +45,7 @@ export default function RoomDoor({
     nameBefore,
     aside,
     headClassName,
+    settleIndex,
 }: Props) {
     const liveId = useId();
 
@@ -56,7 +63,7 @@ export default function RoomDoor({
         </h2>
     );
 
-    return (
+    const door = (
         <article className={cn(className, 'shell-card-stretch shell-lift')}>
             <div className={peekClassName} aria-hidden="true">
                 {peek}
@@ -73,5 +80,13 @@ export default function RoomDoor({
                 {live}
             </p>
         </article>
+    );
+
+    return settleIndex === undefined ? (
+        door
+    ) : (
+        <SettleItem index={settleIndex} className="grid">
+            {door}
+        </SettleItem>
     );
 }

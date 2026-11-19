@@ -2049,3 +2049,25 @@ button[type='submit'][data-slot='button'] {
     font-weight: 500;
     line-height: 1;
 }
+
+/* Client tabs (SegmentedTabs tablist-client): the chosen fill is one pill that glides. */
+.shell-segmented[data-slot='tabs-list'] {
+    position: relative;
+}
+
+.shell-segmented[data-slot='tabs-list'] .shell-segmented-item {
+    position: relative;
+    z-index: 1;
+}
+
+.shell-segmented[data-slot='tabs-list'] .shell-segmented-item[data-active] {
+    background-color: transparent;
+    border-color: transparent;
+}
+
+.shell-segmented-indicator {
+    z-index: 0;
+    background-color: var(--shell-accent);
+    border: 1.5px solid var(--shell-accent-text);
+    border-radius: var(--radius-pill);
+}
