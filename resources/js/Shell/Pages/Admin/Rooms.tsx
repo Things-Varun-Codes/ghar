@@ -1,11 +1,12 @@
 import { router } from '@inertiajs/react';
-import { useId, useState } from 'react';
+import { useState } from 'react';
 
-import { Switch } from '@/components/ui/switch';
+import { Separator } from '@/components/ui/separator';
 import { mutationOptions } from '@/lib/mutation';
 import * as roomsRoutes from '@/routes/admin/rooms';
 import EmptyState from '@/Shell/Components/EmptyState';
 import Page from '@/Shell/Components/Page';
+import SwitchRow from '@/Shell/Components/SwitchRow';
 
 type RoomOption = {
     key: string;
@@ -23,58 +24,6 @@ type Room = {
 };
 
 type Props = { rooms: Room[] };
-
-function SwitchRow({
-    label,
-    description,
-    checked,
-    disabled,
-    onChange,
-    title = false,
-}: {
-    label: string;
-    description: string;
-    checked: boolean;
-    disabled: boolean;
-    onChange: (next: boolean) => void;
-    title?: boolean;
-}) {
-    const labelId = useId();
-    const descriptionId = useId();
-
-    return (
-        <div className="flex items-start justify-between gap-4">
-            <div className="min-w-0 flex-1">
-                {title ? (
-                    <h2 id={labelId} className="os-admin-section-title">
-                        {label}
-                    </h2>
-                ) : (
-                    <p id={labelId} className="os-settings-row-label">
-                        {label}
-                    </p>
-                )}
-                {description && (
-                    <p
-                        id={descriptionId}
-                        className="os-settings-row-status mt-1"
-                    >
-                        {description}
-                    </p>
-                )}
-            </div>
-            <div className="shrink-0 pt-1">
-                <Switch
-                    checked={checked}
-                    disabled={disabled}
-                    onCheckedChange={onChange}
-                    aria-labelledby={labelId}
-                    aria-describedby={description ? descriptionId : undefined}
-                />
-            </div>
-        </div>
-    );
-}
 
 export default function Rooms({ rooms }: Props) {
     const [pending, setPending] = useState<Set<string>>(new Set());
@@ -132,28 +81,36 @@ export default function Rooms({ rooms }: Props) {
                             className="os-admin-surface border p-6"
                         >
                             <SwitchRow
-                                title
+                                id={`room-${room.slug}`}
                                 label={room.name}
                                 description={room.description}
                                 checked={room.enabled}
                                 disabled={pending.has(room.slug)}
-                                onChange={(next) => toggle(room, next)}
+                                onCheckedChange={(next) => toggle(room, next)}
+                                labelClassName="os-admin-section-title"
+                                descriptionClassName="os-settings-row-status"
                             />
 
                             {room.enabled && room.options.length > 0 && (
-                                <ul className="mt-5 flex flex-col gap-4 border-t pt-5">
+                                <Separator className="my-5" />
+                            )}
+                            {room.enabled && room.options.length > 0 && (
+                                <ul className="flex flex-col gap-4">
                                     {room.options.map((option) => (
                                         <li key={option.key}>
                                             <SwitchRow
+                                                id={`room-${room.slug}-${option.key}`}
                                                 label={option.label}
                                                 description={option.description}
                                                 checked={option.enabled}
                                                 disabled={pending.has(
                                                     `${room.slug}:${option.key}`,
                                                 )}
-                                                onChange={(next) =>
+                                                onCheckedChange={(next) =>
                                                     toggle(room, next, option)
                                                 }
+                                                labelClassName="os-settings-row-label"
+                                                descriptionClassName="os-settings-row-status"
                                             />
                                         </li>
                                     ))}

@@ -51,7 +51,7 @@ export default function Password() {
                                 onChange={(e) =>
                                     setData('current_password', e.target.value)
                                 }
-                                className="os-settings-input shell-field block w-full px-3 py-2.5 outline-none"
+                                className="os-settings-input"
                                 autoComplete="current-password"
                                 required
                             />
@@ -69,7 +69,7 @@ export default function Password() {
                                 onChange={(e) =>
                                     setData('password', e.target.value)
                                 }
-                                className="os-settings-input shell-field block w-full px-3 py-2.5 outline-none"
+                                className="os-settings-input"
                                 autoComplete="new-password"
                                 required
                             />
@@ -89,7 +89,7 @@ export default function Password() {
                                         e.target.value,
                                     )
                                 }
-                                className="os-settings-input shell-field block w-full px-3 py-2.5 outline-none"
+                                className="os-settings-input"
                                 autoComplete="new-password"
                                 required
                             />

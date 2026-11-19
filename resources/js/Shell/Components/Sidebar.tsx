@@ -7,7 +7,12 @@ import {
     Shield,
 } from 'lucide-react';
 import type { ReactNode } from 'react';
-import { useId, useState } from 'react';
+import { useState } from 'react';
+import {
+    Collapsible,
+    CollapsibleContent,
+    CollapsibleTrigger,
+} from '@/components/ui/collapsible';
 import { dashboard } from '@/routes';
 import HeartMark from '@/Shell/Components/HeartMark';
 import type { ShellNavItem } from '@/Shell/Components/shell-nav';
@@ -16,9 +21,12 @@ import {
     SETTINGS_ITEMS,
     isRouteActive,
 } from '@/Shell/Components/shell-nav';
+import type { Auth } from '@/types/auth';
 
 type SharedProps = {
-    auth: { user: { name: string; email: string; roles: string[] } | null };
+    auth: Auth;
+    name: string;
+    version?: { label: string; url: string | null } | null;
 };
 
 export default function Sidebar() {
@@ -126,7 +134,6 @@ function NavGroup({
     url: string;
 }) {
     const [open, setOpen] = useState(hasActiveChild);
-    const listId = useId();
 
     const [seenUrl, setSeenUrl] = useState(url);
 
@@ -141,19 +148,13 @@ function NavGroup({
     const Chevron = open ? ChevronDown : ChevronRight;
 
     return (
-        <li>
-            <button
-                type="button"
-                className="shell-focus shell-nav-item shell-nav-group-toggle flex w-full items-center gap-3 px-3"
-                aria-expanded={open}
-                aria-controls={listId}
-                onClick={() => setOpen((prev) => !prev)}
-            >
+        <Collapsible render={<li />} open={open} onOpenChange={setOpen}>
+            <CollapsibleTrigger className="shell-focus shell-nav-item shell-nav-group-toggle flex w-full items-center gap-3 px-3">
                 <span aria-hidden="true">{icon}</span>
                 <span className="flex-1 text-left">{label}</span>
                 <Chevron size={16} strokeWidth={1.5} aria-hidden="true" />
-            </button>
-            <ul id={listId} hidden={!open} className="space-y-0.5">
+            </CollapsibleTrigger>
+            <CollapsibleContent render={<ul />} className="space-y-0.5">
                 {items.map((item) => (
                     <SubNavItem
                         key={item.href}
@@ -162,8 +163,8 @@ function NavGroup({
                         active={isRouteActive(url, item.href)}
                     />
                 ))}
-            </ul>
-        </li>
+            </CollapsibleContent>
+        </Collapsible>
     );
 }
 

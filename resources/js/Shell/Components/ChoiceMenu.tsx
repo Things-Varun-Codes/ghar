@@ -3,7 +3,8 @@ import { Check, ChevronDown } from 'lucide-react';
 import {
     DropdownMenu,
     DropdownMenuContent,
-    DropdownMenuItem,
+    DropdownMenuRadioGroup,
+    DropdownMenuRadioItem,
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { cn } from '@/lib/utils';
@@ -45,7 +46,7 @@ type Props = {
     classNames?: ChoiceMenuClassNames;
 };
 
-/* A "Label: value" button that opens the choices, the chosen one ticked. */
+/* A "Label: value" button that opens the choices as radio items, the chosen one ticked. */
 export default function ChoiceMenu({
     label,
     value,
@@ -79,22 +80,28 @@ export default function ChoiceMenu({
                 />
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className={classNames.menu}>
-                {items.map(({ key, label: itemLabel, hint }) => {
-                    const isActive = key === value;
-
-                    return (
-                        <DropdownMenuItem
+                <DropdownMenuRadioGroup
+                    value={value}
+                    onValueChange={(next) => handleSelect(String(next))}
+                >
+                    {items.map(({ key, label: itemLabel, hint }) => (
+                        <DropdownMenuRadioItem
                             key={key}
-                            onClick={() => handleSelect(key)}
-                            className={classNames.item}
+                            value={key}
+                            closeOnClick
+                            className={cn(
+                                'group/choice',
+                                // The tick is drawn here, in the room's colour.
+                                '[&_[data-slot=dropdown-menu-radio-item-indicator]]:hidden',
+                                classNames.item,
+                            )}
                         >
                             <span>
                                 <span
                                     className={cn(
-                                        'block',
+                                        'block font-normal group-data-checked/choice:font-medium',
                                         classNames.itemLabel,
                                     )}
-                                    style={{ fontWeight: isActive ? 500 : 400 }}
                                 >
                                     {itemLabel}
                                 </span>
@@ -104,7 +111,7 @@ export default function ChoiceMenu({
                                     </span>
                                 )}
                             </span>
-                            {isActive && (
+                            {key === value && (
                                 <Check
                                     aria-hidden="true"
                                     size={14}
@@ -112,9 +119,9 @@ export default function ChoiceMenu({
                                     className={cn('shrink-0', classNames.check)}
                                 />
                             )}
-                        </DropdownMenuItem>
-                    );
-                })}
+                        </DropdownMenuRadioItem>
+                    ))}
+                </DropdownMenuRadioGroup>
             </DropdownMenuContent>
         </DropdownMenu>
     );
