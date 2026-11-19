@@ -25,7 +25,8 @@ Rules that aren't obvious from the code:
   `history.css` stays.
 - **PhotoSwipe inside the EventSheet:** the Drawer's `onOpenChange` cancels an `outside-press`
   whose target is inside `.pswp` (`EventSheet.tsx`), or the next-arrow click and mobile swipes
-  close the sheet. Its scrolling body is `data-base-ui-swipe-ignore`, so the editor and the photo
+  close the sheet. The lightbox takes Escape in the capture phase while it's open
+  (`PhotoSwipeGallery.tsx`), so Escape closes it and not the sheet too. Its scrolling body is `data-base-ui-swipe-ignore`, so the editor and the photo
   grid keep their drags and only the frame swipes the sheet closed.
 - **Links in a story never name another room.** The editor offers the picker while
   `useLinking().searchable`; `BodyHtml` draws a pill as a link (and its picture) only while
