@@ -44,3 +44,20 @@ Our Shelf keeps the household's shared lists.
   a form (names, offence, penalty, remarks) is Newsreader italic; the printed parts are the sans at
   13px/500. The form reads as a form through its rules, boxes, seal and stamp, and the stamp is the
   only thing set in capitals.
+- **Coupons** expire by the household's calendar: `Coupon::isExpired()` compares `expires_at` as a
+  date string with `Region::today()`, and `IssueCouponRequest` refuses a date before it. Never
+  compare it with `now()`, which is the server's clock.
+- **Faces.** `MessageResource`, `BouquetResource` and `DescribesIssuedToOne` send people as
+  `Person::of()` (`{id, name, avatar_url}`). A note or bouquet's meta line (`MailMeta`) shows the
+  sender's face, or the recipients as an `AvatarGroup` on what you sent, and the recipient chips
+  show each person's face. The citation and coupon forms name people in ink, with no faces; the
+  landing peeks stay plain strings.
+- **Controls.** The recipient picker stays native checkboxes in a `FieldSet` (a toggle group would
+  announce people as pressed buttons); flowers are a `ToggleGroup` with the cap of five in
+  `onValueChange` and the chosen flowers' meanings printed under the chips (the tooltip is a
+  pointer extra). `CitationActions.test.tsx` finds the confirm by its exact text: add no text node
+  inside an action button.
+- **Motion.** The citation's stamp and a coupon's tick and stamp `Pop` on a state change only,
+  from a slot (`.mailbox-citation-stamp-slot`, `.mailbox-coupon-stamp-slot`) that carries the
+  scale, so the stamp keeps its tilt. Their pay, request and fulfil visits keep state
+  (`preserveState: true`), or the page would remount and the change would never be seen.
