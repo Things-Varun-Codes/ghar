@@ -34,8 +34,8 @@ const buttonVariants = cva(
 )
 
 /*
- * Pass `render={<Link … />}` with `nativeButton={false}` to draw a link as a button; there is no
- * asChild.
+ * A link drawn as a button is `<Link className={buttonVariants()}>`, not this: Base UI's Button
+ * gives whatever it renders role="button".
  */
 function Button({
   className,

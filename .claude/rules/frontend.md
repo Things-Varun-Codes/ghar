@@ -38,9 +38,10 @@ paths:
   were added, and Inertia's would otherwise reload the page and drop the draft first. A History moment is addressable at
   `/apps/our-history?moment={id}`.
 - **Controls are shadcn on Base UI** (`components/ui`, style `base-vega`). Compose with `render`,
-  never `asChild`: `<Button nativeButton={false} render={<Link href=… />}>`, a trigger's own
-  props on `DropdownMenuTrigger` itself. A menu item acts in `onClick`; one that opens a dialog
-  just sets the dialog's state there. Base UI returns focus to whatever had it before an overlay
+  never `asChild`; a trigger's own props go on `DropdownMenuTrigger` itself. A link that looks
+  like a button is a `Link` (or `<a>`) with `buttonVariants()`, not a `Button`: Base UI's Button
+  gives whatever it renders `role="button"`, so a screen reader would hear the link as a button.
+  A menu item acts in `onClick`; one that opens a dialog just sets the dialog's state there. Base UI returns focus to whatever had it before an overlay
   opened; pass `finalFocus` for another target and `initialFocus={false}` for a panel that
   focuses itself. State is in data attributes (`data-open`, `data-checked`, `data-pressed`,
   `data-popup-open`, `data-active`, `data-highlighted`), which room CSS targets. A `Select` given

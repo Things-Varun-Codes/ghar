@@ -2,7 +2,7 @@ import { Link } from '@inertiajs/react';
 import { ExternalLink, MapPin, MoreHorizontal } from 'lucide-react';
 
 import { Reveal } from '@/components/motion';
-import { Button } from '@/components/ui/button';
+import { Button, buttonVariants } from '@/components/ui/button';
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -15,6 +15,7 @@ import {
     TooltipContent,
     TooltipTrigger,
 } from '@/components/ui/tooltip';
+import { cn } from '@/lib/utils';
 import { DoneGlyph, DoneSticker } from '@/MiniApps/Corner/Components/DoneMark';
 import ItemThumb from '@/MiniApps/Corner/Components/ItemThumb';
 import { useItemActions } from '@/MiniApps/Corner/Hooks/useItemActions';
@@ -144,19 +145,18 @@ function ItemCardBody({
                         <Tooltip>
                             <TooltipTrigger
                                 render={
-                                    <Button
-                                        variant="ghost"
-                                        size="icon"
-                                        nativeButton={false}
-                                        render={
-                                            <a
-                                                href={item.url}
-                                                target="_blank"
-                                                rel="noopener noreferrer"
-                                            />
-                                        }
+                                    <a
+                                        href={item.url}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
                                         aria-label={`Open the link for ${item.title}`}
-                                        className="corner-icon-btn shell-press"
+                                        className={cn(
+                                            buttonVariants({
+                                                variant: 'ghost',
+                                                size: 'icon',
+                                            }),
+                                            'corner-icon-btn shell-press',
+                                        )}
                                     />
                                 }
                             >

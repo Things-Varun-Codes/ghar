@@ -1,9 +1,10 @@
 import { Link, router, usePage } from '@inertiajs/react';
 import { useState } from 'react';
 import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
+import { Button, buttonVariants } from '@/components/ui/button';
 import { formatDate } from '@/lib/dates';
 import { roleLabel } from '@/lib/roles';
+import { cn } from '@/lib/utils';
 import * as invites from '@/routes/admin/invites';
 import * as usersRoutes from '@/routes/admin/users';
 import AdminCollection from '@/Shell/Components/AdminCollection';
@@ -75,15 +76,16 @@ export default function UsersIndex({ users }: Props) {
 
     const renderActions = (user: User) => (
         <div className="flex items-center gap-2">
-            <Button
-                nativeButton={false}
-                render={<Link href={usersRoutes.edit.url({ user: user.id })} />}
+            <Link
+                href={usersRoutes.edit.url({ user: user.id })}
+                className={cn(
+                    buttonVariants({ variant: 'outline' }),
+                    'os-admin-row-action os-admin-fill-accent shell-press',
+                )}
                 aria-label={`Edit ${user.name}`}
-                variant="outline"
-                className="os-admin-row-action os-admin-fill-accent shell-press"
             >
                 Edit
-            </Button>
+            </Link>
             <Button
                 type="button"
                 variant="outline"

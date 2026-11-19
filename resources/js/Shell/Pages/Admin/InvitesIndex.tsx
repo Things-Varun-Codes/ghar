@@ -3,7 +3,7 @@ import { MailPlus } from 'lucide-react';
 import { useState } from 'react';
 import type { FormEventHandler } from 'react';
 import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
+import { Button, buttonVariants } from '@/components/ui/button';
 import {
     Dialog,
     DialogContent,
@@ -341,15 +341,18 @@ export default function InvitesIndex({ invites }: Props) {
                 backChevron
                 actions={
                     <>
-                        <Button
-                            nativeButton={false}
-                            render={<Link href={users.index.url()} />}
-                            variant="outline"
-                            size="sm"
-                            className="os-admin-fill-accent shell-press"
+                        <Link
+                            href={users.index.url()}
+                            className={cn(
+                                buttonVariants({
+                                    variant: 'outline',
+                                    size: 'sm',
+                                }),
+                                'os-admin-fill-accent shell-press',
+                            )}
                         >
                             View users
-                        </Button>
+                        </Link>
                         <Button
                             type="button"
                             size="sm"

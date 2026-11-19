@@ -1,7 +1,8 @@
 import { Head, Link, usePage } from '@inertiajs/react';
 
 import { Settle, SettleItem } from '@/components/motion';
-import { Button } from '@/components/ui/button';
+import { buttonVariants } from '@/components/ui/button';
+import { cn } from '@/lib/utils';
 import * as rooms from '@/routes/admin/rooms';
 import DesktopIcon from '@/Shell/Components/DesktopIcon';
 import EmptyState from '@/Shell/Components/EmptyState';
@@ -75,13 +76,12 @@ export default function Dashboard() {
                         title="This home has no rooms yet"
                         body="Choose the ones you want. You can change them whenever you like."
                         action={
-                            <Button
-                                className="shell-press"
-                                nativeButton={false}
-                                render={<Link href={rooms.index.url()} />}
+                            <Link
+                                href={rooms.index.url()}
+                                className={cn(buttonVariants(), 'shell-press')}
                             >
                                 Choose rooms
-                            </Button>
+                            </Link>
                         }
                     />
                 ) : (

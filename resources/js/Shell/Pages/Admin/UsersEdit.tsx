@@ -1,7 +1,7 @@
 import { Link, router, useForm, usePage } from '@inertiajs/react';
 import { useState } from 'react';
 import type { FormEventHandler } from 'react';
-import { Button } from '@/components/ui/button';
+import { Button, buttonVariants } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
     Select,
@@ -180,14 +180,15 @@ export default function UsersEdit({ user }: Props) {
                             >
                                 Save changes
                             </SubmitButton>
-                            <Button
-                                nativeButton={false}
-                                render={<Link href={users.index.url()} />}
-                                variant="ghost"
-                                className="os-admin-cancel-link shell-press px-5"
+                            <Link
+                                href={users.index.url()}
+                                className={cn(
+                                    buttonVariants({ variant: 'ghost' }),
+                                    'os-admin-cancel-link shell-press px-5',
+                                )}
                             >
                                 Cancel
-                            </Button>
+                            </Link>
                         </div>
                     </form>
                 </div>

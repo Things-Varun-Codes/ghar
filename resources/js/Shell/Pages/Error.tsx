@@ -1,7 +1,8 @@
 import { Link, usePage } from '@inertiajs/react';
 
-import { Button } from '@/components/ui/button';
+import { buttonVariants } from '@/components/ui/button';
 import { pathOf } from '@/lib/url';
+import { cn } from '@/lib/utils';
 import { dashboard } from '@/routes';
 import Page from '@/Shell/Components/Page';
 import type { MiniApp } from '@/types/miniapp';
@@ -37,22 +38,24 @@ export default function ErrorPage({ status }: Props) {
                 <p className="shell-error-body">{copy.body}</p>
                 <p className="mt-6 flex flex-wrap gap-3">
                     {room && (
-                        <Button
-                            nativeButton={false}
-                            render={<Link href={room.route} />}
-                            className="shell-press"
+                        <Link
+                            href={room.route}
+                            className={cn(buttonVariants(), 'shell-press')}
                         >
                             Go to {room.name}
-                        </Button>
+                        </Link>
                     )}
-                    <Button
-                        nativeButton={false}
-                        render={<Link href={dashboard().url} />}
-                        variant={room ? 'outline' : 'default'}
-                        className="shell-press"
+                    <Link
+                        href={dashboard().url}
+                        className={cn(
+                            buttonVariants({
+                                variant: room ? 'outline' : 'default',
+                            }),
+                            'shell-press',
+                        )}
                     >
                         Back to Home
-                    </Button>
+                    </Link>
                 </p>
             </Page>
         </>
