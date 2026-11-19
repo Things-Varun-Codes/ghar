@@ -80,6 +80,11 @@
     box-shadow: var(--history-focus-ring);
 }
 
+/* A field with things inside its frame draws the ring on the frame, not on its input. */
+[data-app='our-history'] [data-slot='input-group-control']:focus-visible {
+    box-shadow: none;
+}
+
 [data-app='our-history'] .history-gallery-controls {
     flex-wrap: wrap;
 }
@@ -279,6 +284,7 @@
         .history-btn-keep-editing,
         .history-btn-discard,
         .history-btn-add-first,
+        .history-btn-post,
         .history-clear-filters
     ) {
     display: inline-flex;
@@ -318,6 +324,7 @@
         .history-btn-keep-media,
         .history-btn-keep-event,
         .history-btn-keep-editing,
+        .history-btn-post,
         .history-clear-filters
     ) {
     color: var(--history-ink);
@@ -332,8 +339,9 @@
         .history-btn-keep-media,
         .history-btn-keep-event,
         .history-btn-keep-editing,
+        .history-btn-post,
         .history-clear-filters
-    ):hover {
+    ):hover:not(:disabled) {
     background-color: var(--history-hover);
     border-color: color-mix(in oklab, var(--history-ink) 32%, transparent);
 }
@@ -716,35 +724,20 @@
     border-radius: var(--radius-pill);
 }
 
+/* Compact: a dateline, the title, one line of the story and quiet counts, so a screen holds many. */
 [data-app='our-history'] .history-event-card {
     position: relative;
     background-color: var(--history-card);
     border: 1px solid var(--history-rule);
     border-radius: var(--history-radius-card);
-    padding: 20px;
-    margin-bottom: 16px;
+    padding: 14px 16px;
+    margin-bottom: 10px;
 }
 
-/* Whatever comes last in a card sits on the card's own padding, not on its margin as well. */
-[data-app='our-history'] .history-event-card > :is(header, div):last-child {
-    margin-bottom: 0;
-}
-
-[data-app='our-history'] .history-event-card > header {
-    margin-bottom: 16px;
-}
-
-/* The place belongs to the title, so it sits closer to it than to the story. */
-[data-app='our-history']
-    .history-event-card
-    > header:has(+ .history-card-location) {
-    margin-bottom: 8px;
-}
-
-/* Centred on the date line: card padding + half the line, less half the dot. */
+/* Centred on the 22px dateline: card padding + half the line, less half the dot. */
 [data-app='our-history'] .history-timeline-marker {
     position: absolute;
-    top: 24px;
+    top: 18px;
     width: 14px;
     height: 14px;
     border-radius: 50%;
@@ -757,12 +750,157 @@
 
 @variant md {
     [data-app='our-history'] .history-event-card {
-        padding: 24px;
+        padding: 16px 20px;
     }
 
     [data-app='our-history'] .history-timeline-marker {
-        top: 28px;
+        top: 20px;
     }
+}
+
+[data-app='our-history'] .history-moment-head {
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+}
+
+[data-app='our-history'] .history-moment-main {
+    flex: 1 1 auto;
+    min-width: 0;
+}
+
+[data-app='our-history'] .history-moment-dateline {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    column-gap: 12px;
+    row-gap: 2px;
+    min-height: 22px;
+    margin: 0 0 2px 0;
+}
+
+[data-app='our-history'] .history-moment-dateline .history-card-date {
+    margin: 0;
+}
+
+[data-app='our-history'] .history-moment-creator {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-family: var(--history-font-sans);
+    font-size: var(--text-meta);
+    line-height: 1.4;
+    color: var(--history-ink-soft);
+}
+
+[data-app='our-history'] .history-moment-excerpt {
+    margin: 4px 0 0 0;
+    font-family: var(--history-font-sans);
+    font-size: var(--text-small);
+    line-height: 1.5;
+    color: var(--history-ink-soft);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Open, the details carry the whole story, so its one line steps aside. */
+[data-app='our-history']
+    .history-moment--story-cut[data-open]
+    .history-moment-excerpt {
+    display: none;
+}
+
+[data-app='our-history'] .history-moment-thumb {
+    flex: 0 0 auto;
+    width: 56px;
+    height: 56px;
+    object-fit: cover;
+    border-radius: var(--history-radius-cell);
+    background: var(--history-accent-soft);
+}
+
+[data-app='our-history'] .history-moment-meta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    column-gap: 14px;
+    row-gap: 4px;
+    margin-top: 8px;
+}
+
+[data-app='our-history'] .history-moment-meta > p {
+    margin: 0;
+}
+
+[data-app='our-history'] .history-moment-count {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-family: var(--history-font-sans);
+    font-size: var(--text-meta);
+    font-variant-numeric: tabular-nums;
+    line-height: 1.4;
+    color: var(--history-ink-soft);
+}
+
+/* 32px to keep the card short; .shell-hit-44's recipe gives it the 44px touch target. */
+[data-app='our-history'] .history-moment-toggle {
+    margin-left: auto;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    min-height: 32px;
+    padding: 0 10px 0 12px;
+    border: 0;
+    border-radius: var(--radius-pill);
+    background: transparent;
+    font-family: var(--history-font-sans);
+    font-size: var(--text-meta);
+    font-weight: 500;
+    color: var(--history-accent-ink-strong);
+    cursor: pointer;
+    transition: background-color var(--dur-out) var(--ease-ui);
+}
+
+[data-app='our-history'] .history-moment-toggle::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: max(100%, 44px);
+    height: max(100%, 44px);
+    translate: -50% -50%;
+}
+
+@media (hover: hover) {
+    [data-app='our-history'] .history-moment-toggle:hover {
+        background-color: var(--history-accent-soft);
+        transition-duration: var(--dur-in);
+    }
+}
+
+[data-app='our-history'] .history-moment-chevron {
+    transition: transform var(--dur-card) var(--ease-ui);
+}
+
+[data-app='our-history']
+    .history-moment-toggle[data-panel-open]
+    .history-moment-chevron {
+    transform: rotate(180deg);
+}
+
+[data-app='our-history'] .history-moment-details > :first-child {
+    margin-top: 12px;
+}
+
+/* Thumbnails, not the sheet's photos: the card stays a line in a list. */
+[data-app='our-history'] .history-moment-media {
+    max-width: 420px;
+}
+
+[data-app='our-history'] .history-moment-media > * {
+    margin-top: 0;
 }
 
 /* A card that opens the moment lifts (.shell-lift); its dot stays on the rail. */
@@ -791,7 +929,7 @@
 
 [data-app='our-history'] .history-card-title {
     font-family: var(--history-font-display);
-    font-size: 22px;
+    font-size: var(--text-subhead);
     font-weight: 400;
     line-height: 1.2;
     text-wrap: balance;
@@ -844,46 +982,23 @@
 }
 
 [data-app='our-history'] .history-card-location {
-    margin: 0 0 16px 0;
+    margin: 0;
+}
+
+[data-app='our-history'] .history-birthday-label {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin: 0;
+    font-family: var(--history-font-display);
+    font-style: italic;
+    font-size: var(--text-small);
+    line-height: 1.4;
+    color: var(--history-accent-ink-strong);
 }
 
 [data-app='our-history'] .history-read-location {
     margin: 8px 0 0 0;
-}
-
-[data-app='our-history'] .history-event-body-clamp {
-    display: -webkit-box;
-    -webkit-box-orient: vertical;
-    -webkit-line-clamp: 3;
-    line-clamp: 3;
-    overflow: hidden;
-}
-
-[data-app='our-history'] .history-continue-link {
-    background: transparent;
-    border: none;
-    cursor: pointer;
-    color: var(--history-accent-ink-strong);
-    font-family: var(--history-font-sans);
-    font-weight: 500;
-    font-size: var(--text-small);
-    padding: 0 16px;
-    min-height: 44px;
-    border-radius: var(--radius-pill);
-    display: inline-flex;
-    align-items: center;
-    gap: 4px;
-}
-
-[data-app='our-history'] .history-continue-link:hover {
-    background-color: var(--history-accent-soft);
-}
-
-[data-app='our-history'] .history-continue-link:focus-visible {
-    outline: none;
-    box-shadow:
-        0 0 0 2px var(--history-card),
-        0 0 0 4px var(--history-action);
 }
 
 [data-app='our-history'] .history-skeleton-block {
@@ -1353,6 +1468,225 @@
     padding-bottom: 8px;
 }
 
+/* ---- Reactions and comments, in the sheet under the photos ---- */
+
+[data-app='our-history'] .history-reactions {
+    margin-top: 24px;
+}
+
+/* Six fit on one line on a 360px phone. */
+[data-app='our-history'] .history-reaction-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+/* On the ui Toggle (44px); pressed is the viewer's own, an accent wash with ink on it. */
+[data-app='our-history'] .history-reaction {
+    gap: 6px;
+    padding: 0 10px;
+    border: 1px solid var(--history-control-border);
+    background-color: var(--history-card);
+    color: var(--history-ink);
+    font-family: var(--history-font-sans);
+    font-size: var(--text-small);
+    font-variant-numeric: tabular-nums;
+}
+
+[data-app='our-history'] .history-reaction[data-pressed] {
+    background-color: var(--history-accent-soft);
+    border-color: var(--history-accent);
+    color: var(--history-on-accent);
+}
+
+@media (hover: hover) {
+    [data-app='our-history'] .history-reaction:hover {
+        background-color: var(--history-hover);
+    }
+
+    [data-app='our-history'] .history-reaction[data-pressed]:hover {
+        background-color: var(--history-accent-soft);
+        border-color: var(--history-ink-soft);
+    }
+}
+
+[data-app='our-history'] .history-reaction[data-pending] {
+    opacity: 0.7;
+    cursor: progress;
+}
+
+/* The system's colour emoji, not a web face: the glyphs are the server's, drawn as sent. */
+[data-app='our-history'] :is(.history-reaction-glyph, .history-reaction-emoji) {
+    font-family:
+        'Apple Color Emoji', 'Segoe UI Emoji', 'Noto Color Emoji', sans-serif;
+    font-size: 18px;
+    line-height: 1;
+}
+
+[data-app='our-history'] .history-reaction-emoji {
+    font-size: var(--text-small);
+}
+
+[data-app='our-history'] .history-reaction-count {
+    display: inline-block;
+    min-width: 1ch;
+    font-weight: 500;
+}
+
+[data-app='our-history'] .history-reaction-people {
+    list-style: none;
+    margin: 12px 0 0 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+[data-app='our-history'] .history-reaction-people-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-family: var(--history-font-sans);
+    font-size: var(--text-meta);
+    line-height: 1.4;
+    color: var(--history-ink-soft);
+}
+
+[data-app='our-history'] .history-reaction-faces {
+    display: inline-flex;
+}
+
+/* Faces overlap a little, each ringed in the page so the edge reads. */
+[data-app='our-history'] .history-reaction-faces > * {
+    box-shadow: 0 0 0 2px var(--history-bg);
+}
+
+[data-app='our-history'] .history-reaction-faces > * + * {
+    margin-left: -4px;
+}
+
+[data-app='our-history'] .history-comments {
+    margin-top: 32px;
+}
+
+[data-app='our-history'] .history-section-title {
+    font-family: var(--history-font-display);
+    font-size: var(--text-subhead);
+    font-weight: 400;
+    line-height: 1.2;
+    color: var(--history-ink);
+    margin: 0 0 12px 0;
+}
+
+[data-app='our-history'] .history-section-count {
+    font-family: var(--history-font-sans);
+    font-size: var(--text-meta);
+    color: var(--history-ink-soft);
+}
+
+[data-app='our-history'] .history-comment-list {
+    list-style: none;
+    margin: 0 0 16px 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+[data-app='our-history'] .history-comment {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+}
+
+[data-app='our-history'] .history-comment-main {
+    flex: 1 1 auto;
+    min-width: 0;
+}
+
+[data-app='our-history'] .history-comment-meta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    column-gap: 8px;
+    margin: 0 0 2px 0;
+    font-family: var(--history-font-sans);
+    font-size: var(--text-meta);
+    line-height: 1.4;
+    color: var(--history-ink-soft);
+}
+
+[data-app='our-history'] .history-comment-author {
+    font-weight: 500;
+    color: var(--history-ink);
+}
+
+/* Plain text as it was typed: its line breaks stay, nothing in it is markup. */
+[data-app='our-history'] .history-comment-body {
+    margin: 0;
+    font-family: var(--history-font-sans);
+    font-size: var(--text-body);
+    line-height: 1.5;
+    color: var(--history-ink);
+    white-space: pre-line;
+    overflow-wrap: anywhere;
+}
+
+[data-app='our-history'] .history-comment-delete {
+    flex: 0 0 auto;
+    margin: -6px -8px 0 0;
+    color: var(--history-ink-soft);
+    border-radius: var(--radius-pill);
+}
+
+@media (hover: hover) {
+    [data-app='our-history'] .history-comment-delete:hover {
+        color: var(--history-destructive);
+        background-color: var(--history-destructive-soft);
+    }
+}
+
+[data-app='our-history'] .history-comment-input {
+    min-height: 88px;
+    background-color: var(--history-card);
+    font-family: var(--history-font-sans);
+    color: var(--history-ink);
+}
+
+[data-app='our-history'] .history-comment-actions {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 8px;
+}
+
+[data-app='our-history'] .history-btn-post:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+}
+
+/* ---- The birthday question under the form's date ---- */
+
+[data-app='our-history'] .history-birthday-question {
+    margin-top: 16px;
+}
+
+[data-app='our-history'] .history-birthday-choices {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 20px;
+}
+
+[data-app='our-history'] .history-birthday-choice {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    min-height: 44px;
+    font-family: var(--history-font-sans);
+    font-size: var(--text-body);
+    color: var(--history-ink);
+    cursor: pointer;
+}
+
 /* ---- The form ---- */
 
 [data-app='our-history'] .history-form-layout {
@@ -1669,7 +2003,7 @@
     pointer-events: auto;
 }
 
-[data-app='our-history'] .history-cal-otd {
+[data-app='our-history'] .history-otd {
     background: var(--history-card);
     border: 1px solid var(--history-rule);
     border-radius: var(--history-radius-card);
@@ -1678,12 +2012,12 @@
 }
 
 @variant md {
-    [data-app='our-history'] .history-cal-otd {
+    [data-app='our-history'] .history-otd {
         padding: 24px;
     }
 }
 
-[data-app='our-history'] .history-cal-otd-head {
+[data-app='our-history'] .history-otd-head {
     display: flex;
     align-items: center;
     gap: 8px;
@@ -1694,20 +2028,20 @@
     margin-bottom: 16px;
 }
 
-[data-app='our-history'] .history-cal-otd-dot {
+[data-app='our-history'] .history-otd-dot {
     width: 8px;
     height: 8px;
     border-radius: var(--radius-pill);
     background: var(--history-accent);
 }
 
-[data-app='our-history'] .history-cal-otd-row {
+[data-app='our-history'] .history-otd-row {
     display: flex;
     gap: 12px;
     flex-wrap: wrap;
 }
 
-[data-app='our-history'] .history-cal-otd-card {
+[data-app='our-history'] .history-otd-card {
     display: flex;
     align-items: center;
     gap: 12px;
@@ -1722,12 +2056,12 @@
     text-align: left;
 }
 
-[data-app='our-history'] .history-cal-otd-card:hover {
+[data-app='our-history'] .history-otd-card:hover {
     background: var(--history-accent-soft);
     border-color: var(--history-lift-border);
 }
 
-[data-app='our-history'] .history-cal-otd-thumb {
+[data-app='our-history'] .history-otd-thumb {
     width: 48px;
     height: 48px;
     border-radius: var(--radius-inner);
@@ -1737,21 +2071,21 @@
     background-position: center;
 }
 
-[data-app='our-history'] .history-cal-otd-text {
+[data-app='our-history'] .history-otd-text {
     display: flex;
     flex-direction: column;
     min-width: 0;
     line-height: 1.4;
 }
 
-[data-app='our-history'] .history-cal-otd-year {
+[data-app='our-history'] .history-otd-year {
     font-size: var(--text-meta);
     font-weight: 500;
     font-variant-numeric: tabular-nums;
     color: var(--history-accent-ink-strong);
 }
 
-[data-app='our-history'] .history-cal-otd-title {
+[data-app='our-history'] .history-otd-title {
     font-size: var(--text-body);
     color: var(--history-ink);
     overflow: hidden;
@@ -1759,12 +2093,18 @@
     white-space: nowrap;
 }
 
-[data-app='our-history'] .history-cal-otd-sub {
+[data-app='our-history'] .history-otd-sub {
     font-size: var(--text-meta);
     color: var(--history-ink-soft);
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+}
+
+[data-app='our-history'] .history-otd-face {
+    display: inline-flex;
+    vertical-align: -5px;
+    margin-right: 4px;
 }
 
 [data-app='our-history'] .history-cal-yearnav {

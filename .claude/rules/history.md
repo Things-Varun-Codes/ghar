@@ -14,9 +14,23 @@ Rules that aren't obvious from the code:
 
 - **History EventForm is the stacked 5-row layout** in
   `resources/js/MiniApps/History/Components/EventForm.tsx` (the old 240px sidebar form is gone).
+  When the date is a member's birthday (`lib/birthdays.ts`, the server's Feb 29 rule), "Is this
+  Meera's birthday?" appears under the date in the same row; changing the date off that day clears
+  the answer.
 - **Our History** — tender journal feel: the display face for dates, titles and year banners, the
   sans for the story. Timeline cards are quiet reading surfaces (no Edit/Delete on the card;
-  the whole card opens the EventSheet, where management lives).
+  the whole card opens the EventSheet, where management lives). They are compact: dateline and
+  creator, title, one line of the story, and non-interactive reaction and comment counts;
+  "Details" (the ui Collapsible) opens the rest of the story and the photos in place. Only the
+  first page settles in (`Settle`); rows loaded later appear in place.
+- **The sheet reads the open moment from the page's props, never a copy.** Timeline and Calendar
+  hold its id and look it up through `useFreshMoments`, which also patches every loaded copy (a
+  card, an "On this day" tile) from the fresh `moment` a reaction or comment answers with
+  (`lib/momentVisit.ts`). An unsent comment is a draft for the sheet's close gate; the sheet holds
+  it, so it survives Edit.
+- **Reactions are the ui Toggle** (`aria-pressed` is the viewer's own; the people who reacted are
+  printed under the row and are each toggle's description). Comments are plain text in
+  `white-space: pre-line`, never HTML.
 - **History accessibility contract:** text on accent fills uses `--history-on-accent` (ink, never
   white); body links and accent text ≤14px use `--history-accent-ink-strong` — plain
   `--history-accent-ink` is for ≥18px display text only. Every interactive pill, chip and icon button

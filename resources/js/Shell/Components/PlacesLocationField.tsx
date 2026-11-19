@@ -1,7 +1,13 @@
 import { usePage } from '@inertiajs/react';
 import { APIProvider, useMapsLibrary } from '@vis.gl/react-google-maps';
-import { MapPin, Search, X } from 'lucide-react';
+import { MapPin, X } from 'lucide-react';
 import { useCallback, useEffect, useRef, useState } from 'react';
+import {
+    Command,
+    CommandInput,
+    CommandItem,
+    CommandList,
+} from '@/components/ui/command';
 
 type StructuredLocation = {
     place_id: string;
@@ -17,6 +23,8 @@ export type SelectedLocationView = {
 };
 
 type PlacesLocationFieldProps = {
+    /* The field's name, said by screen readers: cmdk owns the input's id, so no <label for>. */
+    label?: string;
     onSelect: (loc: StructuredLocation | null) => void;
     value: SelectedLocationView | null;
 };
@@ -40,10 +48,11 @@ function displayLabel(view: SelectedLocationView): string {
 }
 
 type AutocompleteInputProps = {
+    label: string;
     onSelect: (loc: StructuredLocation) => void;
 };
 
-function AutocompleteInput({ onSelect }: AutocompleteInputProps) {
+function AutocompleteInput({ label, onSelect }: AutocompleteInputProps) {
     const places = useMapsLibrary('places');
     const [query, setQuery] = useState('');
     const [suggestions, setSuggestions] = useState<
@@ -154,6 +163,7 @@ function AutocompleteInput({ onSelect }: AutocompleteInputProps) {
     }, [places, query]);
 
     const visibleSuggestions = query.trim().length < 2 ? [] : suggestions;
+    const listOpen = open && visibleSuggestions.length > 0;
 
     useEffect(() => {
         if (!open) {
@@ -209,78 +219,86 @@ function AutocompleteInput({ onSelect }: AutocompleteInputProps) {
         }
     }
 
+    // cmdk moves through the suggestions with the arrow keys and picks with Enter; Google has
+    // already matched them, so it doesn't filter.
     return (
-        <div
-            data-test="location-field"
+        <Command
             ref={wrapperRef}
-            className="shell-places-root"
-        >
-            <div className="shell-field-focus shell-places-field">
-                <Search
-                    aria-hidden="true"
-                    size={14}
-                    strokeWidth={1.5}
-                    color="var(--shell-text-muted)"
-                    className="shrink-0"
-                />
-                <input
-                    type="text"
-                    value={query}
-                    onChange={(e) => setQuery(e.target.value)}
-                    onFocus={() => {
-                        if (visibleSuggestions.length > 0) {
-                            setOpen(true);
-                        }
-                    }}
-                    placeholder="Search for a place"
-                    autoComplete="off"
-                    className="shell-places-input"
-                />
-            </div>
+            data-test="location-field"
+            shouldFilter={false}
+            loop
+            label={label}
+            onKeyDown={(e) => {
+                if (listOpen) {
+                    // Escape closes the suggestions first, not the sheet around the form.
+                    if (e.key === 'Escape') {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        setOpen(false);
+                    }
 
-            {open && visibleSuggestions.length > 0 && (
-                <ul role="listbox" className="shell-places-suggestions">
-                    {visibleSuggestions.map((s) => (
-                        <li
-                            key={s.placeId}
-                            role="option"
-                            aria-selected="false"
-                            onMouseDown={(e) => {
-                                e.preventDefault();
-                                pick(s);
-                            }}
-                            className="shell-places-option"
-                            onMouseEnter={(e) => {
-                                e.currentTarget.style.backgroundColor =
-                                    'color-mix(in oklch, var(--shell-accent) 25%, var(--shell-bg))';
-                            }}
-                            onMouseLeave={(e) => {
-                                e.currentTarget.style.backgroundColor =
-                                    'transparent';
-                            }}
-                        >
-                            <MapPin
-                                aria-hidden="true"
-                                size={14}
-                                strokeWidth={1.5}
-                                color="var(--shell-text-muted)"
-                                className="mt-0.5 shrink-0"
-                            />
-                            <div className="min-w-0 flex-1">
-                                <div className="shell-places-main">
-                                    {s.mainText}
-                                </div>
-                                {s.secondaryText && (
-                                    <div className="shell-places-secondary">
-                                        {s.secondaryText}
-                                    </div>
-                                )}
+                    return;
+                }
+
+                if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+                    setOpen(true);
+                } else if (e.key === 'Enter') {
+                    // Nothing on show to pick, and a search box doesn't save the form.
+                    e.preventDefault();
+                }
+            }}
+            className="shell-places-root overflow-visible rounded-none bg-transparent p-0 [&_[data-slot=command-input-wrapper]]:p-0"
+        >
+            {/* cmdk sets the input's id and names it with `label`; the group draws its focus. */}
+            <CommandInput
+                data-slot="input-group-control"
+                className="pr-3 pl-2"
+                value={query}
+                onValueChange={(next) => {
+                    setQuery(next);
+                    setOpen(true);
+                }}
+                onFocus={() => {
+                    if (visibleSuggestions.length > 0) {
+                        setOpen(true);
+                    }
+                }}
+                placeholder="Search for a place"
+            />
+
+            <CommandList
+                hidden={!listOpen}
+                aria-label="Places"
+                className="shell-places-suggestions"
+            >
+                {visibleSuggestions.map((s) => (
+                    <CommandItem
+                        key={s.placeId}
+                        value={s.placeId}
+                        onSelect={() => pick(s)}
+                        className="items-start"
+                    >
+                        <MapPin
+                            aria-hidden="true"
+                            size={14}
+                            strokeWidth={1.5}
+                            color="var(--shell-text-muted)"
+                            className="mt-1 shrink-0"
+                        />
+                        <div className="min-w-0 flex-1">
+                            <div className="shell-places-main">
+                                {s.mainText}
                             </div>
-                        </li>
-                    ))}
-                </ul>
-            )}
-        </div>
+                            {s.secondaryText && (
+                                <div className="shell-places-secondary">
+                                    {s.secondaryText}
+                                </div>
+                            )}
+                        </div>
+                    </CommandItem>
+                ))}
+            </CommandList>
+        </Command>
     );
 }
 
@@ -336,6 +354,7 @@ export function ManualLocationInput({
 }
 
 export default function PlacesLocationField({
+    label = 'Search for a place',
     onSelect,
     value,
 }: PlacesLocationFieldProps) {
@@ -372,7 +391,10 @@ export default function PlacesLocationField({
 
     return (
         <APIProvider apiKey={apiKey}>
-            <AutocompleteInput onSelect={(loc) => onSelect(loc)} />
+            <AutocompleteInput
+                label={label}
+                onSelect={(loc) => onSelect(loc)}
+            />
         </APIProvider>
     );
 }

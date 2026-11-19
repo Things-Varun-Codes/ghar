@@ -1,8 +1,11 @@
 import { MapPin } from 'lucide-react';
 import { useMemo, useRef } from 'react';
-import type { HistoryEvent } from '@/MiniApps/History/lib/types';
+import { displayLocation } from '@/MiniApps/History/lib/moment';
+import type { EventComment, HistoryEvent } from '@/MiniApps/History/lib/types';
 import ActivityStrip from './ActivityStrip';
+import BirthdayLabel from './BirthdayLabel';
 import BodyHtml from './BodyHtml';
+import CommentsSection from './CommentsSection';
 import MediaGrid from './MediaGrid';
 import type { MediaItem } from './MediaGrid';
 import PhotoSwipeGallery from './PhotoSwipeGallery';
@@ -10,12 +13,21 @@ import type {
     GalleryMediaItem,
     PhotoSwipeGalleryHandle,
 } from './PhotoSwipeGallery';
+import ReactionsRow from './ReactionsRow';
 
 type Props = {
     event: HistoryEvent;
+    commentDraft: string;
+    onCommentDraftChange: (draft: string) => void;
+    onDeleteComment: (comment: EventComment) => void;
 };
 
-export default function EventReadView({ event }: Props) {
+export default function EventReadView({
+    event,
+    commentDraft,
+    onCommentDraftChange,
+    onDeleteComment,
+}: Props) {
     const lightboxRef = useRef<PhotoSwipeGalleryHandle>(null);
 
     const renderableMedia = useMemo(
@@ -48,6 +60,8 @@ export default function EventReadView({ event }: Props) {
         [renderableMedia, event.title, event.date_label],
     );
 
+    const place = displayLocation(event);
+
     return (
         <div>
             {event.date_label && (
@@ -58,43 +72,24 @@ export default function EventReadView({ event }: Props) {
                 <h2 className="history-read-title">{event.title}</h2>
             )}
 
-            {(() => {
-                const { location_name, location_address, location_freetext } =
-                    event;
+            {event.birthday_of && (
+                <div className="mt-3">
+                    <BirthdayLabel person={event.birthday_of} />
+                </div>
+            )}
 
-                let displayLocation: string | null = null;
-
-                if (
-                    location_name &&
-                    location_address &&
-                    !location_address.includes(location_name)
-                ) {
-                    displayLocation = location_name;
-                } else if (location_name && !location_address) {
-                    displayLocation = location_name;
-                } else if (location_address) {
-                    displayLocation = location_address;
-                } else if (location_freetext) {
-                    displayLocation = location_freetext;
-                }
-
-                if (!displayLocation) {
-                    return null;
-                }
-
-                return (
-                    <p className="history-read-location">
-                        <MapPin
-                            aria-hidden="true"
-                            size={14}
-                            strokeWidth={1.5}
-                            color="var(--history-ink-soft)"
-                            className="shrink-0"
-                        />
-                        <span>{displayLocation}</span>
-                    </p>
-                );
-            })()}
+            {place && (
+                <p className="history-read-location">
+                    <MapPin
+                        aria-hidden="true"
+                        size={14}
+                        strokeWidth={1.5}
+                        color="var(--history-ink-soft)"
+                        className="shrink-0"
+                    />
+                    <span>{place}</span>
+                </p>
+            )}
 
             {event.body_html && (
                 <div className="mt-6">
@@ -121,6 +116,15 @@ export default function EventReadView({ event }: Props) {
             {lightboxMedia.length > 0 && (
                 <PhotoSwipeGallery ref={lightboxRef} media={lightboxMedia} />
             )}
+
+            <ReactionsRow event={event} />
+
+            <CommentsSection
+                event={event}
+                draft={commentDraft}
+                onDraftChange={onCommentDraftChange}
+                onDelete={onDeleteComment}
+            />
 
             {event.changes.length > 0 && (
                 <div className="history-activity-strip-divider">
