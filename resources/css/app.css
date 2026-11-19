@@ -2038,11 +2038,15 @@ button[type='submit'][data-slot='button'] {
  * for everyone. The size utilities set the box and the initials' type size.
  */
 .shell-avatar {
-    background-color: var(--accent);
+    background-color: color-mix(
+        in oklab,
+        var(--shell-accent) 35%,
+        var(--shell-surface)
+    );
 }
 
 .shell-avatar-initials {
-    color: var(--foreground);
+    color: var(--shell-accent-fg);
     font-weight: 500;
     line-height: 1;
 }
