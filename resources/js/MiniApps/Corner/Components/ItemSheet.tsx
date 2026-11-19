@@ -1,8 +1,11 @@
 import { useForm } from '@inertiajs/react';
 import { ImageOff, RotateCw } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useEffect, useId, useState } from 'react';
 
+import { Reveal } from '@/components/motion';
+import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Skeleton } from '@/components/ui/skeleton';
 import { formSubmitOptions } from '@/lib/mutation';
 import ItemThumb from '@/MiniApps/Corner/Components/ItemThumb';
 import NotesField from '@/MiniApps/Corner/Components/NotesField';
@@ -12,7 +15,6 @@ import { store, update } from '@/routes/apps/our-shelf/items';
 import { preview as picturePreview } from '@/routes/apps/our-shelf/picture';
 import FormField from '@/Shell/Components/FormField';
 import FormSheet from '@/Shell/Components/FormSheet';
-import LoadingState from '@/Shell/Components/LoadingState';
 import SubmitButton from '@/Shell/Components/SubmitButton';
 
 type Props = {
@@ -76,6 +78,7 @@ function shapeOf(item?: CornerItem): FormShape {
  */
 export default function ItemSheet({ list, open, onOpenChange, item }: Props) {
     const isEdit = item !== undefined;
+    const pictureLabelId = useId();
     const form = useForm<FormShape>(shapeOf(item));
     const { data, setData, post, patch, processing, errors, reset } = form;
     const { isDirty } = form;
@@ -188,23 +191,40 @@ export default function ItemSheet({ list, open, onOpenChange, item }: Props) {
                 />
             </FormField>
 
-            {link.preview.kind === 'loading' && (
-                <LoadingState rows={1} variant="card" />
-            )}
+            <div className="corner-reveal-slot corner-reveal-slot--link">
+                {/* Shaped like what it is reading for: a picture and a name. */}
+                <Reveal
+                    show={link.preview.kind === 'loading'}
+                    className="corner-reveal"
+                >
+                    <div role="status" className="corner-link-reading">
+                        <Skeleton className="corner-link-reading-thumb" />
+                        <div className="corner-link-reading-lines">
+                            <Skeleton className="h-4 w-3/5 rounded-[6px]" />
+                            <Skeleton className="h-3.5 w-2/5 rounded-[6px]" />
+                        </div>
+                        <span className="sr-only">Reading the page…</span>
+                    </div>
+                </Reveal>
 
-            {link.preview.kind === 'error' && (
-                <p role="status" className="corner-form-note">
-                    {link.preview.message}
-                    <button
-                        type="button"
-                        className="corner-text-button"
-                        onClick={() => link.retry(data.url)}
-                    >
-                        <RotateCw aria-hidden="true" size={14} />
-                        Try again
-                    </button>
-                </p>
-            )}
+                <Reveal
+                    show={link.preview.kind === 'error'}
+                    className="corner-reveal"
+                >
+                    <p role="status" className="corner-form-note">
+                        {link.preview.kind === 'error' && link.preview.message}
+                        <Button
+                            type="button"
+                            variant="link"
+                            className="corner-text-button"
+                            onClick={() => link.retry(data.url)}
+                        >
+                            <RotateCw aria-hidden="true" size={14} />
+                            Try again
+                        </Button>
+                    </p>
+                </Reveal>
+            </div>
 
             <FormField label="Name" name="title" error={errors.title}>
                 <Input
@@ -222,8 +242,14 @@ export default function ItemSheet({ list, open, onOpenChange, item }: Props) {
                 />
             </FormField>
 
-            <div className="corner-picture-field">
-                <span className="corner-field-label">Picture</span>
+            <div
+                className="corner-picture-field"
+                role="group"
+                aria-labelledby={pictureLabelId}
+            >
+                <span id={pictureLabelId} className="corner-field-label">
+                    Picture
+                </span>
                 <div className="corner-picture-row">
                     <ItemThumb
                         pictureUrl={pictureSrc}
@@ -256,32 +282,38 @@ export default function ItemSheet({ list, open, onOpenChange, item }: Props) {
                         )}
                     </div>
                 </div>
-                {(pictureFieldOpen || errors.image_url) && (
-                    <FormField
-                        label="Picture address"
-                        name="image_url"
-                        error={errors.image_url}
+                <div className="corner-reveal-slot">
+                    <Reveal
+                        show={pictureFieldOpen || Boolean(errors.image_url)}
+                        className="corner-reveal"
                     >
-                        <Input
-                            id="image_url"
-                            type="url"
-                            inputMode="url"
-                            autoComplete="off"
-                            placeholder="https://… ending in .jpg, .png or similar"
-                            maxLength={2048}
-                            value={data.image_url}
-                            onChange={(e) => {
-                                setPictureChosen(true);
-                                setData((prev) => ({
-                                    ...prev,
-                                    image_url: e.target.value,
-                                    no_picture: e.target.value.trim() === '',
-                                }));
-                            }}
-                            className="text-(length:--text-body)"
-                        />
-                    </FormField>
-                )}
+                        <FormField
+                            label="Picture address"
+                            name="image_url"
+                            error={errors.image_url}
+                        >
+                            <Input
+                                id="image_url"
+                                type="url"
+                                inputMode="url"
+                                autoComplete="off"
+                                placeholder="https://… ending in .jpg, .png or similar"
+                                maxLength={2048}
+                                value={data.image_url}
+                                onChange={(e) => {
+                                    setPictureChosen(true);
+                                    setData((prev) => ({
+                                        ...prev,
+                                        image_url: e.target.value,
+                                        no_picture:
+                                            e.target.value.trim() === '',
+                                    }));
+                                }}
+                                className="text-(length:--text-body)"
+                            />
+                        </FormField>
+                    </Reveal>
+                </div>
             </div>
 
             <NotesField
@@ -307,23 +339,28 @@ export default function ItemSheet({ list, open, onOpenChange, item }: Props) {
                 />
             </FormField>
 
-            {data.location.trim() !== '' && (
-                <FormField
-                    label="Address (optional)"
-                    name="address"
-                    error={errors.address}
+            <div className="corner-reveal-slot">
+                <Reveal
+                    show={data.location.trim() !== ''}
+                    className="corner-reveal"
                 >
-                    <Input
-                        id="address"
-                        type="text"
-                        autoComplete="off"
-                        maxLength={1024}
-                        value={data.address}
-                        onChange={(e) => setData('address', e.target.value)}
-                        className="text-(length:--text-body)"
-                    />
-                </FormField>
-            )}
+                    <FormField
+                        label="Address (optional)"
+                        name="address"
+                        error={errors.address}
+                    >
+                        <Input
+                            id="address"
+                            type="text"
+                            autoComplete="off"
+                            maxLength={1024}
+                            value={data.address}
+                            onChange={(e) => setData('address', e.target.value)}
+                            className="text-(length:--text-body)"
+                        />
+                    </FormField>
+                </Reveal>
+            </div>
         </FormSheet>
     );
 }

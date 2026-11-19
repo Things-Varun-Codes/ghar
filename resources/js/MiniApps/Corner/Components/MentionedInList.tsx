@@ -2,6 +2,12 @@ import { Link } from '@inertiajs/react';
 import { Ban } from 'lucide-react';
 import { useState } from 'react';
 
+import {
+    Collapsible,
+    CollapsibleContent,
+    CollapsibleTrigger,
+} from '@/components/ui/collapsible';
+
 export type MentionedInRef = {
     from_type: string;
     from_id: number;
@@ -89,27 +95,28 @@ export default function MentionedInList({ mentionedIn }: Props) {
             )}
 
             {missing.length > 0 && (
-                <div className="missing-banner-wrapper">
-                    {!showMissing ? (
-                        <button
-                            type="button"
-                            className="missing-banner corner-backref-missing-toggle"
-                            onClick={() => setShowMissing(true)}
-                        >
-                            <Ban
-                                aria-hidden="true"
-                                size={16}
-                                strokeWidth={1.5}
-                                className="mr-1 inline-block align-[-3px]"
-                            />
-                            {missing.length}{' '}
-                            {missing.length === 1
-                                ? 'moment that mentioned this has'
-                                : 'moments that mentioned this have'}{' '}
-                            been removed.{' '}
-                            <span className="underline">Show anyway</span>
-                        </button>
-                    ) : (
+                <Collapsible
+                    open={showMissing}
+                    onOpenChange={setShowMissing}
+                    className="missing-banner-wrapper"
+                >
+                    <CollapsibleTrigger className="missing-banner corner-backref-missing-toggle">
+                        <Ban
+                            aria-hidden="true"
+                            size={16}
+                            strokeWidth={1.5}
+                            className="mr-1 inline-block align-[-3px]"
+                        />
+                        {missing.length}{' '}
+                        {missing.length === 1
+                            ? 'moment that mentioned this has'
+                            : 'moments that mentioned this have'}{' '}
+                        been removed.{' '}
+                        <span className="underline">
+                            {showMissing ? 'Hide' : 'Show anyway'}
+                        </span>
+                    </CollapsibleTrigger>
+                    <CollapsibleContent>
                         <ul className="mx-0 mt-2 mb-0 flex list-none flex-col gap-2 p-0">
                             {missing.map((ref) => (
                                 <li
@@ -127,8 +134,8 @@ export default function MentionedInList({ mentionedIn }: Props) {
                                 </li>
                             ))}
                         </ul>
-                    )}
-                </div>
+                    </CollapsibleContent>
+                </Collapsible>
             )}
         </aside>
     );

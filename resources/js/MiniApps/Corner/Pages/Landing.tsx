@@ -2,6 +2,7 @@ import { router } from '@inertiajs/react';
 import { Plus } from 'lucide-react';
 import { useState } from 'react';
 
+import { Settle, SettleItem, Slide } from '@/components/motion';
 import { Button } from '@/components/ui/button';
 import { mutationOptions } from '@/lib/mutation';
 import { count } from '@/lib/plural';
@@ -9,6 +10,7 @@ import { DoneSticker } from '@/MiniApps/Corner/Components/DoneMark';
 import ItemThumb from '@/MiniApps/Corner/Components/ItemThumb';
 import ListMenu from '@/MiniApps/Corner/Components/ListMenu';
 import ListSettingsSheet from '@/MiniApps/Corner/Components/ListSettingsSheet';
+import { useSheetSession } from '@/MiniApps/Corner/Hooks/useSheetSession';
 import CornerLayout from '@/MiniApps/Corner/Layouts/CornerLayout';
 import type { ListSettings } from '@/MiniApps/Corner/lib/presets';
 import { SUGGESTED_LISTS } from '@/MiniApps/Corner/lib/presets';
@@ -102,17 +104,20 @@ function DoorPeek({ door }: { door: Door }) {
 
 function CornerDoor({
     door,
+    index,
     first,
     last,
     prefetchOnMount,
 }: {
     door: Door;
+    index: number;
     first: boolean;
     last: boolean;
     prefetchOnMount: boolean;
 }) {
     return (
         <RoomDoor
+            settleIndex={index}
             href={show.url(door.slug)}
             prefetch={prefetchOnMount ? 'mount' : 'hover'}
             name={door.name}
@@ -176,35 +181,37 @@ function Suggestions({ onCustom }: { onCustom: () => void }) {
                 films to watch, places to go. Pick one to start, or make your
                 own.
             </p>
-            <ul className="corner-suggestion-grid">
-                {SUGGESTED_LISTS.map((preset) => {
-                    return (
-                        <li key={preset.name}>
-                            <button
-                                type="button"
-                                className="corner-suggestion shell-press"
-                                disabled={pending !== null}
-                                aria-busy={pending === preset.name}
-                                onClick={() => make(preset)}
-                            >
-                                <LinkableIcon
-                                    name={preset.icon}
-                                    size={22}
-                                    strokeWidth={1.5}
-                                    className="corner-suggestion-icon"
-                                />
-                                <span className="corner-suggestion-name">
-                                    {preset.name}
-                                </span>
-                                <span className="corner-suggestion-kind">
-                                    {preset.done_label} or{' '}
-                                    {preset.todo_label.toLowerCase()}
-                                </span>
-                            </button>
-                        </li>
-                    );
-                })}
-            </ul>
+            <Settle>
+                <ul className="corner-suggestion-grid">
+                    {SUGGESTED_LISTS.map((preset, i) => {
+                        return (
+                            <SettleItem as="li" key={preset.name} index={i}>
+                                <button
+                                    type="button"
+                                    className="corner-suggestion shell-press"
+                                    disabled={pending !== null}
+                                    aria-busy={pending === preset.name}
+                                    onClick={() => make(preset)}
+                                >
+                                    <LinkableIcon
+                                        name={preset.icon}
+                                        size={22}
+                                        strokeWidth={1.5}
+                                        className="corner-suggestion-icon"
+                                    />
+                                    <span className="corner-suggestion-name">
+                                        {preset.name}
+                                    </span>
+                                    <span className="corner-suggestion-kind">
+                                        {preset.done_label} or{' '}
+                                        {preset.todo_label.toLowerCase()}
+                                    </span>
+                                </button>
+                            </SettleItem>
+                        );
+                    })}
+                </ul>
+            </Settle>
             <Button
                 type="button"
                 variant="outline"
@@ -219,7 +226,7 @@ function Suggestions({ onCustom }: { onCustom: () => void }) {
 }
 
 export default function Landing({ lists, can }: Props) {
-    const [creating, setCreating] = useState(false);
+    const creating = useSheetSession<true>();
 
     return (
         <CornerLayout>
@@ -233,7 +240,7 @@ export default function Landing({ lists, can }: Props) {
                         <Button
                             type="button"
                             className="shell-press"
-                            onClick={() => setCreating(true)}
+                            onClick={() => creating.show(true)}
                         >
                             <Plus aria-hidden="true" size={16} />
                             New list
@@ -243,33 +250,38 @@ export default function Landing({ lists, can }: Props) {
             >
                 {lists.length === 0 ? (
                     can.create && (
-                        <Suggestions onCustom={() => setCreating(true)} />
+                        <Suggestions onCustom={() => creating.show(true)} />
                     )
                 ) : (
                     <div className="corner-doors-wrap">
-                        <div className="corner-doors">
-                            {lists.map((door, i) => (
-                                <CornerDoor
-                                    key={door.id}
-                                    door={door}
-                                    first={i === 0}
-                                    prefetchOnMount={i < PREFETCH_DOORS}
-                                    last={i === lists.length - 1}
-                                />
-                            ))}
-                        </div>
+                        <Settle>
+                            <div className="corner-doors">
+                                {lists.map((door, i) => (
+                                    // Moving a list earlier or later glides the doors to their places.
+                                    <Slide
+                                        key={door.id}
+                                        className="corner-door-slot"
+                                    >
+                                        <CornerDoor
+                                            door={door}
+                                            index={i}
+                                            first={i === 0}
+                                            prefetchOnMount={i < PREFETCH_DOORS}
+                                            last={i === lists.length - 1}
+                                        />
+                                    </Slide>
+                                ))}
+                            </div>
+                        </Settle>
                     </div>
                 )}
             </Page>
 
-            {creating && (
+            {creating.value && (
                 <ListSettingsSheet
-                    open
-                    onOpenChange={(next) => {
-                        if (!next) {
-                            setCreating(false);
-                        }
-                    }}
+                    key={creating.key}
+                    open={creating.open}
+                    onOpenChange={creating.onOpenChange}
                 />
             )}
         </CornerLayout>

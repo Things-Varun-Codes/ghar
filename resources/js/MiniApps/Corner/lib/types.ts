@@ -1,3 +1,5 @@
+import type { Person } from '@/types/person';
+
 export type DoneIcon = 'check' | 'heart';
 
 /* What the viewer may do to a list or an item. */
@@ -40,5 +42,5 @@ export type CornerItem = {
     address: string | null;
     is_done: boolean;
     can: ItemPermissions;
-    addedBy: { id: number; name: string };
+    addedBy: Person;
 };

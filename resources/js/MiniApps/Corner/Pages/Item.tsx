@@ -1,11 +1,12 @@
 import { router } from '@inertiajs/react';
 import { ArrowUpRight, MapPin } from 'lucide-react';
-import { useMemo, useState } from 'react';
+import { useMemo } from 'react';
 import DetailPage from '@/MiniApps/Corner/Components/DetailPage';
 import ItemSheet from '@/MiniApps/Corner/Components/ItemSheet';
 import ItemThumb from '@/MiniApps/Corner/Components/ItemThumb';
 import type { MentionedInRef } from '@/MiniApps/Corner/Components/MentionedInList';
 import { useItemActions } from '@/MiniApps/Corner/Hooks/useItemActions';
+import { useSheetSession } from '@/MiniApps/Corner/Hooks/useSheetSession';
 import CornerLayout from '@/MiniApps/Corner/Layouts/CornerLayout';
 import { bylineOf } from '@/MiniApps/Corner/lib/copy';
 import {
@@ -47,7 +48,7 @@ function ExternalCta({
 }
 
 export default function Item({ list, item, mentioned_in }: Props) {
-    const [editOpen, setEditOpen] = useState(false);
+    const editing = useSheetSession<true>();
     const listUrl = showList.url(list.slug);
     const maps = useMemo(
         () => mapsHref(item, platformOf(navigator.userAgent)),
@@ -68,13 +69,13 @@ export default function Item({ list, item, mentioned_in }: Props) {
                 title={item.title}
                 back={{ href: listUrl, label: list.name }}
                 can={item.can}
-                addedByName={item.addedBy.name}
+                addedBy={item.addedBy}
                 mentionedIn={mentioned_in}
                 isDone={item.is_done}
                 doneIcon={list.done_icon}
                 doneLabel={list.done_label}
                 itemActions={itemActions}
-                onEdit={() => setEditOpen(true)}
+                onEdit={() => editing.show(true)}
                 hero={
                     <ItemThumb
                         pictureUrl={item.picture_url}
@@ -138,16 +139,13 @@ export default function Item({ list, item, mentioned_in }: Props) {
                 }
             />
 
-            {item.can.update && editOpen && (
+            {item.can.update && editing.value && (
                 <ItemSheet
+                    key={editing.key}
                     list={list}
                     item={item}
-                    open
-                    onOpenChange={(next) => {
-                        if (!next) {
-                            setEditOpen(false);
-                        }
-                    }}
+                    open={editing.open}
+                    onOpenChange={editing.onOpenChange}
                 />
             )}
         </CornerLayout>

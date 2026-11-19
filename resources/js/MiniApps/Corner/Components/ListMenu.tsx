@@ -2,6 +2,7 @@ import { router } from '@inertiajs/react';
 import { MoreHorizontal } from 'lucide-react';
 import { useState } from 'react';
 
+import { Button } from '@/components/ui/button';
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -10,6 +11,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { mutationOptions } from '@/lib/mutation';
 import ListSettingsSheet from '@/MiniApps/Corner/Components/ListSettingsSheet';
+import { useSheetSession } from '@/MiniApps/Corner/Hooks/useSheetSession';
 import type { CornerListInfo } from '@/MiniApps/Corner/lib/types';
 import { destroy, move } from '@/routes/apps/our-shelf/lists';
 import ConfirmDialog from '@/Shell/Components/ConfirmDialog';
@@ -26,7 +28,7 @@ type Props = {
 
 /* Change, move or delete one list. The server decides who may; this only hides what they can't. */
 export default function ListMenu({ list, count, reorder }: Props) {
-    const [settingsOpen, setSettingsOpen] = useState(false);
+    const settings = useSheetSession<true>();
     const [confirmOpen, setConfirmOpen] = useState(false);
     const [pending, setPending] = useState(false);
 
@@ -76,6 +78,7 @@ export default function ListMenu({ list, count, reorder }: Props) {
         <>
             <DropdownMenu>
                 <DropdownMenuTrigger
+                    render={<Button variant="ghost" size="icon" />}
                     aria-label={`Options for ${list.name}`}
                     disabled={pending}
                     className="corner-icon-btn corner-list-menu-btn shell-press"
@@ -84,7 +87,7 @@ export default function ListMenu({ list, count, reorder }: Props) {
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
                     {list.can.update && (
-                        <DropdownMenuItem onClick={() => setSettingsOpen(true)}>
+                        <DropdownMenuItem onClick={() => settings.show(true)}>
                             List settings
                         </DropdownMenuItem>
                     )}
@@ -115,15 +118,12 @@ export default function ListMenu({ list, count, reorder }: Props) {
                 </DropdownMenuContent>
             </DropdownMenu>
 
-            {settingsOpen && (
+            {settings.value && (
                 <ListSettingsSheet
+                    key={settings.key}
                     list={list}
-                    open
-                    onOpenChange={(next) => {
-                        if (!next) {
-                            setSettingsOpen(false);
-                        }
-                    }}
+                    open={settings.open}
+                    onOpenChange={settings.onOpenChange}
                 />
             )}
 

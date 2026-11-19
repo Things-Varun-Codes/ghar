@@ -3,6 +3,7 @@
 namespace App\MiniApps\Corner\Http\Resources;
 
 use App\MiniApps\Corner\Models\Item;
+use App\Shell\Support\Person;
 use Illuminate\Support\Facades\Gate;
 
 class ItemResource
@@ -36,10 +37,7 @@ class ItemResource
                 'update' => Gate::allows('update', $item),
                 'delete' => Gate::allows('delete', $item),
             ],
-            'addedBy' => [
-                'id' => $item->addedBy->id,
-                'name' => $item->addedBy->name,
-            ],
+            'addedBy' => Person::of($item->addedBy),
         ];
     }
 }

@@ -1,6 +1,8 @@
 import { Link } from '@inertiajs/react';
 import { ExternalLink, MapPin, MoreHorizontal } from 'lucide-react';
 
+import { Reveal } from '@/components/motion';
+import { Button } from '@/components/ui/button';
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -8,14 +10,21 @@ import {
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Toggle } from '@/components/ui/toggle';
+import {
+    Tooltip,
+    TooltipContent,
+    TooltipTrigger,
+} from '@/components/ui/tooltip';
 import { DoneGlyph, DoneSticker } from '@/MiniApps/Corner/Components/DoneMark';
 import ItemThumb from '@/MiniApps/Corner/Components/ItemThumb';
 import { useItemActions } from '@/MiniApps/Corner/Hooks/useItemActions';
+import type { UseItemActionsReturn } from '@/MiniApps/Corner/Hooks/useItemActions';
 import { bylineOf } from '@/MiniApps/Corner/lib/copy';
 import { hasPlace, placeLabel } from '@/MiniApps/Corner/lib/maps';
 import type { CornerItem, CornerListInfo } from '@/MiniApps/Corner/lib/types';
 import { show } from '@/routes/apps/our-shelf/items';
 import AppCard from '@/Shell/Components/AppCard';
+import PersonAvatar from '@/Shell/Components/PersonAvatar';
 
 type Props = {
     list: CornerListInfo;
@@ -33,18 +42,37 @@ function firstLine(notes: string | null): string | null {
     return line.length > 90 ? `${line.slice(0, 90).trim()}…` : line;
 }
 
-/* The one card every item gets, whatever it holds. */
+/*
+ * The one card every item gets, whatever it holds. Removing it folds the card away while the
+ * Undo toast is up, and Undo opens it again; the actions stay here, so the timer outlives the
+ * folded card.
+ */
 export default function ItemCard({ list, item, onEdit }: Props) {
-    const { isPendingDelete, isTogglePending, handleToggleDone, handleDelete } =
-        useItemActions({
-            id: item.id,
-            title: item.title,
-        });
+    const actions = useItemActions({
+        id: item.id,
+        title: item.title,
+    });
 
-    if (isPendingDelete) {
-        return null;
-    }
+    return (
+        // The padding, taken back by the margin, keeps the lift and focus ring clear of the clip.
+        <Reveal show={!actions.isPendingDelete} className="-m-1 p-1">
+            <ItemCardBody
+                list={list}
+                item={item}
+                onEdit={onEdit}
+                actions={actions}
+            />
+        </Reveal>
+    );
+}
 
+function ItemCardBody({
+    list,
+    item,
+    onEdit,
+    actions,
+}: Props & { actions: UseItemActionsReturn }) {
+    const { isTogglePending, handleToggleDone, handleDelete } = actions;
     const isDone = item.is_done;
     const byline = bylineOf(item);
     const preview = firstLine(item.notes);
@@ -66,12 +94,12 @@ export default function ItemCard({ list, item, onEdit }: Props) {
                     >
                         <span className="corner-row-title">{item.title}</span>
                     </Link>
-                    {isDone && (
-                        <DoneSticker
-                            icon={list.done_icon}
-                            label={list.done_label}
-                        />
-                    )}
+                    <DoneSticker
+                        icon={list.done_icon}
+                        label={list.done_label}
+                        show={isDone}
+                        animated
+                    />
                     {byline && (
                         <span className="corner-item-byline">{byline}</span>
                     )}
@@ -88,43 +116,64 @@ export default function ItemCard({ list, item, onEdit }: Props) {
                             {placeLabel(item)}
                         </span>
                     )}
-                    <span className="corner-row-meta">
+                    <span className="corner-row-meta corner-added-by">
+                        <PersonAvatar person={item.addedBy} size={20} />
                         Added by {item.addedBy.name}
                     </span>
                 </div>
 
                 <div className="corner-item-actions">
-                    <Toggle
-                        className="corner-done-toggle corner-done-toggle--icon shell-press shell-hit-44"
-                        pressed={isDone}
-                        onPressedChange={handleToggleDone}
-                        aria-disabled={isTogglePending || undefined}
-                        aria-label={`${list.done_label}: ${item.title}`}
-                        title={list.done_label}
-                    >
-                        <DoneGlyph icon={list.done_icon} done={isDone} />
-                    </Toggle>
+                    <Tooltip>
+                        <TooltipTrigger
+                            render={
+                                <Toggle
+                                    className="corner-done-toggle corner-done-toggle--icon shell-press shell-hit-44"
+                                    pressed={isDone}
+                                    onPressedChange={handleToggleDone}
+                                    aria-disabled={isTogglePending || undefined}
+                                    aria-label={`${list.done_label}: ${item.title}`}
+                                />
+                            }
+                        >
+                            <DoneGlyph icon={list.done_icon} done={isDone} />
+                        </TooltipTrigger>
+                        <TooltipContent>{list.done_label}</TooltipContent>
+                    </Tooltip>
 
                     {item.url && (
-                        <a
-                            href={item.url}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            aria-label={`Open the link for ${item.title}`}
-                            title="Open the link"
-                            className="corner-icon-btn shell-press"
-                        >
-                            <ExternalLink
-                                aria-hidden="true"
-                                size={18}
-                                strokeWidth={1.5}
-                            />
-                        </a>
+                        <Tooltip>
+                            <TooltipTrigger
+                                render={
+                                    <Button
+                                        variant="ghost"
+                                        size="icon"
+                                        nativeButton={false}
+                                        render={
+                                            <a
+                                                href={item.url}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                            />
+                                        }
+                                        aria-label={`Open the link for ${item.title}`}
+                                        className="corner-icon-btn shell-press"
+                                    />
+                                }
+                            >
+                                <ExternalLink
+                                    aria-hidden="true"
+                                    size={18}
+                                    strokeWidth={1.5}
+                                />
+                            </TooltipTrigger>
+                            <TooltipContent>Open the link</TooltipContent>
+                        </Tooltip>
                     )}
 
                     {(item.can.update || item.can.delete) && (
                         <DropdownMenu>
                             <DropdownMenuTrigger
+                                render={<Button variant="ghost" size="icon" />}
                                 aria-label={`Actions for ${item.title}`}
                                 className="corner-icon-btn shell-press"
                             >
