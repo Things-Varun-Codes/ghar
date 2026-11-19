@@ -54,9 +54,9 @@ class CornerItemsEditTest extends TestCase
         ]);
 
         $this->actingAs($this->adder)
-            ->from("/apps/our-corner/songs/{$song->id}")
-            ->patch("/apps/our-corner/items/{$song->id}", ['url' => self::SONG])
-            ->assertRedirect("/apps/our-corner/songs/{$song->id}");
+            ->from("/apps/our-shelf/songs/{$song->id}")
+            ->patch("/apps/our-shelf/items/{$song->id}", ['url' => self::SONG])
+            ->assertRedirect("/apps/our-shelf/songs/{$song->id}");
 
         $this->assertDatabaseHas('corner_items', [
             'id' => $song->id,
@@ -79,7 +79,7 @@ class CornerItemsEditTest extends TestCase
         $site = $song->site_name;
 
         $this->actingAs($this->adder)
-            ->patch("/apps/our-corner/items/{$song->id}", ['url' => $song->url, 'title' => 'Renamed', 'notes' => 'Our wedding song', 'image_url' => $image])
+            ->patch("/apps/our-shelf/items/{$song->id}", ['url' => $song->url, 'title' => 'Renamed', 'notes' => 'Our wedding song', 'image_url' => $image])
             ->assertSessionHasNoErrors();
 
         $song->refresh();
@@ -92,7 +92,7 @@ class CornerItemsEditTest extends TestCase
 
         // A blank title on the same link keeps the title it had, and the picture it had.
         $this->actingAs($this->adder)
-            ->patch("/apps/our-corner/items/{$song->id}", ['url' => $song->url, 'title' => ''])
+            ->patch("/apps/our-shelf/items/{$song->id}", ['url' => $song->url, 'title' => ''])
             ->assertSessionHasNoErrors();
 
         $this->assertSame('Renamed', $song->fresh()->title);
@@ -100,7 +100,7 @@ class CornerItemsEditTest extends TestCase
 
         // Taking the picture away on purpose sticks.
         $this->actingAs($this->adder)
-            ->patch("/apps/our-corner/items/{$song->id}", ['url' => $song->url, 'title' => 'Renamed', 'no_picture' => true])
+            ->patch("/apps/our-shelf/items/{$song->id}", ['url' => $song->url, 'title' => 'Renamed', 'no_picture' => true])
             ->assertSessionHasNoErrors();
 
         $this->assertNull($song->fresh()->image_url);
@@ -112,12 +112,12 @@ class CornerItemsEditTest extends TestCase
         $song = $this->itemIn($this->songs(), $this->adder);
 
         $this->actingAs($this->adder)
-            ->from('/apps/our-corner/songs')
-            ->patch("/apps/our-corner/items/{$song->id}", ['url' => '', 'title' => ''])
+            ->from('/apps/our-shelf/songs')
+            ->patch("/apps/our-shelf/items/{$song->id}", ['url' => '', 'title' => ''])
             ->assertSessionHasErrors(['title']);
 
         $this->actingAs($this->adder)
-            ->patch("/apps/our-corner/items/{$song->id}", ['url' => '', 'title' => 'Just a name'])
+            ->patch("/apps/our-shelf/items/{$song->id}", ['url' => '', 'title' => 'Just a name'])
             ->assertSessionHasNoErrors();
 
         $this->assertDatabaseHas('corner_items', [
@@ -135,8 +135,8 @@ class CornerItemsEditTest extends TestCase
         $bUrl = $b->url;
 
         $this->actingAs($this->adder)
-            ->from('/apps/our-corner/songs')
-            ->patch("/apps/our-corner/items/{$b->id}", ['url' => self::SONG.'&utm_source=x'])
+            ->from('/apps/our-shelf/songs')
+            ->patch("/apps/our-shelf/items/{$b->id}", ['url' => self::SONG.'&utm_source=x'])
             ->assertSessionHasErrors(['url' => ItemDetails::DUPLICATE_LINK]);
 
         $b->refresh();
@@ -149,15 +149,15 @@ class CornerItemsEditTest extends TestCase
         $activity = $this->itemIn($this->activities(), $this->adder, ['title' => 'Old title', 'notes' => 'old notes']);
 
         $this->actingAs($this->adder)
-            ->patch("/apps/our-corner/items/{$activity->id}", ['title' => 'New title', 'notes' => 'new notes'])
+            ->patch("/apps/our-shelf/items/{$activity->id}", ['title' => 'New title', 'notes' => 'new notes'])
             ->assertRedirect();
 
         $this->assertDatabaseHas('corner_items', ['id' => $activity->id, 'title' => 'New title', 'notes' => 'new notes']);
         Notification::assertNothingSent();
 
         $this->actingAs($this->adder)
-            ->from('/apps/our-corner/activities')
-            ->patch("/apps/our-corner/items/{$activity->id}", ['title' => ''])
+            ->from('/apps/our-shelf/activities')
+            ->patch("/apps/our-shelf/items/{$activity->id}", ['title' => ''])
             ->assertSessionHasErrors(['title']);
     }
 
@@ -167,7 +167,7 @@ class CornerItemsEditTest extends TestCase
         $place = $this->itemIn($this->places(), $this->adder, ['title' => 'Old Cafe']);
 
         $this->actingAs($this->adder)
-            ->patch("/apps/our-corner/items/{$place->id}", [
+            ->patch("/apps/our-shelf/items/{$place->id}", [
                 'title' => 'New Cafe',
                 'location' => 'geo:40.7484,-73.9857?q=Empire+State+Building',
                 'address' => '20 W 34th St, New York, NY 10001',
@@ -187,7 +187,7 @@ class CornerItemsEditTest extends TestCase
 
         // Clearing the place clears its coordinates.
         $this->actingAs($this->adder)
-            ->patch("/apps/our-corner/items/{$place->id}", ['title' => 'New Cafe', 'location' => ''])
+            ->patch("/apps/our-shelf/items/{$place->id}", ['title' => 'New Cafe', 'location' => ''])
             ->assertSessionHasNoErrors();
 
         $this->assertDatabaseHas('corner_items', ['id' => $place->id, 'location_label' => null, 'lat' => null, 'lng' => null]);
@@ -210,7 +210,7 @@ class CornerItemsEditTest extends TestCase
         ]);
 
         $this->actingAs($this->adder)
-            ->patch("/apps/our-corner/items/{$place->id}", ['title' => 'Lalbagh gardens', 'location' => 'Lalbagh', 'notes' => 'Go early'])
+            ->patch("/apps/our-shelf/items/{$place->id}", ['title' => 'Lalbagh gardens', 'location' => 'Lalbagh', 'notes' => 'Go early'])
             ->assertSessionHasNoErrors();
 
         $this->assertDatabaseHas('corner_items', [
@@ -238,12 +238,12 @@ class CornerItemsEditTest extends TestCase
         ]);
 
         $this->actingAs($this->adder)
-            ->patch("/apps/our-corner/items/{$place->id}", ['title' => 'Lalbagh', 'location' => 'Cubbon Park'])
+            ->patch("/apps/our-shelf/items/{$place->id}", ['title' => 'Lalbagh', 'location' => 'Cubbon Park'])
             ->assertSessionHasNoErrors();
         $this->assertSame('ChIJlalbagh', $place->fresh()->place_id);
 
         $this->actingAs($this->adder)
-            ->patch("/apps/our-corner/items/{$place->id}", ['title' => 'Lalbagh'])
+            ->patch("/apps/our-shelf/items/{$place->id}", ['title' => 'Lalbagh'])
             ->assertSessionHasNoErrors();
         $this->assertSame('ChIJlalbagh', $place->fresh()->place_id);
     }
@@ -255,7 +255,7 @@ class CornerItemsEditTest extends TestCase
         $item = $this->itemIn($list, $this->adder);
 
         $this->actingAs($this->adder)
-            ->patch("/apps/our-corner/items/{$item->id}", [
+            ->patch("/apps/our-shelf/items/{$item->id}", [
                 'title' => 'Still here',
                 'list_id' => $other->id,
                 'added_by_user_id' => User::factory()->create()->id,
@@ -270,7 +270,7 @@ class CornerItemsEditTest extends TestCase
     public function test_editing_an_item_that_does_not_exist_is_a_404(): void
     {
         $this->actingAs($this->adder)
-            ->patch('/apps/our-corner/items/'.(Item::max('id') + 1000), ['title' => 'X'])
+            ->patch('/apps/our-shelf/items/'.(Item::max('id') + 1000), ['title' => 'X'])
             ->assertNotFound();
     }
 }

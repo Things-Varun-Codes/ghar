@@ -270,95 +270,95 @@ echo json_encode([
                 '/admin/shortlinks (NFC short links admin)',
         },
         {
-            path: '/apps/our-corner',
+            path: '/apps/our-shelf',
             auth: true,
-            description: '/apps/our-corner (Our Corner landing)',
+            description: '/apps/our-shelf (Our Shelf landing)',
         },
         {
-            path: `/apps/our-corner/${fixtures.corner.legacy.slug}`,
+            path: `/apps/our-shelf/${fixtures.corner.legacy.slug}`,
             auth: true,
             description:
-                '/apps/our-corner/{list} (a list past one page)',
+                '/apps/our-shelf/{list} (a list past one page)',
         },
         {
-            path: `/apps/our-corner/${fixtures.corner.longName.slug}`,
+            path: `/apps/our-shelf/${fixtures.corner.longName.slug}`,
             auth: true,
             description:
-                '/apps/our-corner/{list} (a list with a long name)',
+                '/apps/our-shelf/{list} (a list with a long name)',
         },
         {
-            path: `/apps/our-corner/${fixtures.corner.everything.slug}`,
+            path: `/apps/our-shelf/${fixtures.corner.everything.slug}`,
             auth: true,
             description:
-                '/apps/our-corner/{list} (links, pictures and places)',
+                '/apps/our-shelf/{list} (links, pictures and places)',
         },
         {
-            path: `/apps/our-corner/${fixtures.corner.everything.slug}/${fixtures.corner.everything.item}`,
+            path: `/apps/our-shelf/${fixtures.corner.everything.slug}/${fixtures.corner.everything.item}`,
             auth: true,
             description:
-                '/apps/our-corner/{list}/{item} (a link, a picture and a place)',
+                '/apps/our-shelf/{list}/{item} (a link, a picture and a place)',
         },
         {
-            path: `/apps/our-corner/${fixtures.corner.place.slug}/${fixtures.corner.place.item}`,
+            path: `/apps/our-shelf/${fixtures.corner.place.slug}/${fixtures.corner.place.item}`,
             auth: true,
             description:
-                '/apps/our-corner/{list}/{item} (a place with coordinates only)',
+                '/apps/our-shelf/{list}/{item} (a place with coordinates only)',
         },
         {
-            path: `/apps/our-corner/${fixtures.corner.nameOnly.slug}/${fixtures.corner.nameOnly.item}`,
+            path: `/apps/our-shelf/${fixtures.corner.nameOnly.slug}/${fixtures.corner.nameOnly.item}`,
             auth: true,
             description:
-                '/apps/our-corner/{list}/{item} (a name and nothing else)',
+                '/apps/our-shelf/{list}/{item} (a name and nothing else)',
         },
         {
-            path: `/apps/our-corner/${fixtures.corner.legacy.slug}/${fixtures.corner.legacy.item}`,
+            path: `/apps/our-shelf/${fixtures.corner.legacy.slug}/${fixtures.corner.legacy.item}`,
             auth: true,
             description:
-                '/apps/our-corner/{list}/{item} (an old link, by the id it had before lists)',
+                '/apps/our-shelf/{list}/{item} (an old link, by the id it had before lists)',
         },
         {
-            path: `/apps/our-corner/${fixtures.cornerEmptyList}`,
+            path: `/apps/our-shelf/${fixtures.cornerEmptyList}`,
             auth: true,
-            description: '/apps/our-corner/{list} (an empty list)',
+            description: '/apps/our-shelf/{list} (an empty list)',
         },
         {
-            path: '/apps/our-mailbox',
+            path: '/apps/our-exchange',
             auth: true,
-            description: '/apps/our-mailbox (Our Mailbox landing)',
+            description: '/apps/our-exchange (Our Exchange landing)',
         },
         {
-            path: '/apps/our-mailbox/messages',
+            path: '/apps/our-exchange/messages',
             auth: true,
-            description: '/apps/our-mailbox/messages (Messages)',
+            description: '/apps/our-exchange/messages (Messages)',
         },
         {
-            path: '/apps/our-mailbox/citations',
-            auth: true,
-            description:
-                '/apps/our-mailbox/citations (Citations index)',
-        },
-        {
-            path: `/apps/our-mailbox/citations/${fixtures.mailboxCitationId}`,
+            path: '/apps/our-exchange/citations',
             auth: true,
             description:
-                '/apps/our-mailbox/citations/{citation} (Citation artifact/show)',
+                '/apps/our-exchange/citations (Citations index)',
         },
         {
-            path: '/apps/our-mailbox/coupons',
-            auth: true,
-            description: '/apps/our-mailbox/coupons (Coupons index)',
-        },
-        {
-            path: `/apps/our-mailbox/coupons/${fixtures.mailboxCouponId}`,
+            path: `/apps/our-exchange/citations/${fixtures.mailboxCitationId}`,
             auth: true,
             description:
-                '/apps/our-mailbox/coupons/{coupon} (Coupon voucher artifact/show)',
+                '/apps/our-exchange/citations/{citation} (Citation artifact/show)',
         },
         {
-            path: '/apps/our-mailbox/flowers',
+            path: '/apps/our-exchange/coupons',
+            auth: true,
+            description: '/apps/our-exchange/coupons (Coupons index)',
+        },
+        {
+            path: `/apps/our-exchange/coupons/${fixtures.mailboxCouponId}`,
             auth: true,
             description:
-                '/apps/our-mailbox/flowers (Flowers index)',
+                '/apps/our-exchange/coupons/{coupon} (Coupon voucher artifact/show)',
+        },
+        {
+            path: '/apps/our-exchange/flowers',
+            auth: true,
+            description:
+                '/apps/our-exchange/flowers (Flowers index)',
         },
         // `before` runs the real scheduler and a worker, so the heartbeats are fresh.
         {

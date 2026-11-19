@@ -33,13 +33,13 @@ class HistoryCornerLinkRefTest extends TestCase
 
     private function pillFor(Item $item): string
     {
-        return $this->pill('corner.item', $item->id, $item->title, "/apps/our-corner/songs/{$item->id}");
+        return $this->pill('corner.item', $item->id, $item->title, "/apps/our-shelf/songs/{$item->id}");
     }
 
     /** A pill written before lists were customisable: the old type and the old id. */
     private function legacyPill(Item $item): string
     {
-        return $this->pill((string) $item->legacy_type, (int) $item->legacy_id, $item->title, "/apps/our-corner/songs/{$item->legacy_id}");
+        return $this->pill((string) $item->legacy_type, (int) $item->legacy_id, $item->title, "/apps/our-shelf/songs/{$item->legacy_id}");
     }
 
     private function pill(string $type, int $id, string $title, string $href): string
@@ -229,11 +229,11 @@ class HistoryCornerLinkRefTest extends TestCase
     {
         $actor = User::factory()->create();
         $body = '<p>'
-            .$this->pill('corner.song', 1, 'A song', '/apps/our-corner/songs/1')
-            .$this->pill('corner.movie', 2, 'A movie', '/apps/our-corner/movies/2')
-            .$this->pill('corner.activity', 3, 'An activity', '/apps/our-corner/activities/3')
-            .$this->pill('corner.place', 4, 'A place', '/apps/our-corner/places/4')
-            .$this->pill('corner.book', 5, 'Not a type', '/apps/our-corner/books/5')
+            .$this->pill('corner.song', 1, 'A song', '/apps/our-shelf/songs/1')
+            .$this->pill('corner.movie', 2, 'A movie', '/apps/our-shelf/movies/2')
+            .$this->pill('corner.activity', 3, 'An activity', '/apps/our-shelf/activities/3')
+            .$this->pill('corner.place', 4, 'A place', '/apps/our-shelf/places/4')
+            .$this->pill('corner.book', 5, 'Not a type', '/apps/our-shelf/books/5')
             .'</p>';
 
         $event = $this->createEventViaAction($actor, $body);

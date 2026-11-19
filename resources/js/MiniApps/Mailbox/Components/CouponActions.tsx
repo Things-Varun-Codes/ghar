@@ -8,7 +8,7 @@ import {
     destroy,
     fulfill,
     request,
-} from '@/routes/apps/our-mailbox/coupons';
+} from '@/routes/apps/our-exchange/coupons';
 import ConfirmDialog from '@/Shell/Components/ConfirmDialog';
 import SubmitButton from '@/Shell/Components/SubmitButton';
 

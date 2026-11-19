@@ -100,8 +100,8 @@ class PictureRouteTest extends TestCase
 
         $this->assertNull($none->pictureUrl());
 
-        $this->actingAs($this->user)->get("/apps/our-corner/items/{$none->id}/picture?v=x")->assertNotFound();
-        $this->actingAs($this->user)->get('/apps/our-corner/items/999999999/picture?v=x')->assertNotFound();
+        $this->actingAs($this->user)->get("/apps/our-shelf/items/{$none->id}/picture?v=x")->assertNotFound();
+        $this->actingAs($this->user)->get('/apps/our-shelf/items/999999999/picture?v=x')->assertNotFound();
         Http::assertNothingSent();
     }
 
@@ -151,7 +151,7 @@ class PictureRouteTest extends TestCase
         $item = $this->itemWithPicture();
         $first = $item->pictureUrl();
 
-        $this->assertStringStartsWith("/apps/our-corner/items/{$item->id}/picture?v=", (string) $first);
+        $this->assertStringStartsWith("/apps/our-shelf/items/{$item->id}/picture?v=", (string) $first);
         $this->assertSame($first, Item::pictureUrlFor($item->id, self::SOURCE));
 
         $item->update(['image_url' => 'https://images.example.com/other.png']);
@@ -166,7 +166,7 @@ class PictureRouteTest extends TestCase
 
         $this->get((string) $item->pictureUrl())->assertRedirect('/login');
 
-        app(Rooms::class)->set('our-corner', false);
+        app(Rooms::class)->set('our-shelf', false);
         $this->actingAs($this->user)->get((string) $item->pictureUrl())->assertNotFound();
         $this->actingAs($this->user)->get('/api/corner/picture-preview?url='.urlencode(self::SOURCE))->assertNotFound();
     }

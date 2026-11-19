@@ -27,7 +27,7 @@ class EntryTypeSwitchesTest extends TestCase
 
     private function turnOff(string $type): void
     {
-        app(Rooms::class)->setOption('our-mailbox', $type, false);
+        app(Rooms::class)->setOption('our-exchange', $type, false);
         app()->forgetScopedInstances();
     }
 
@@ -43,20 +43,20 @@ class EntryTypeSwitchesTest extends TestCase
         $user = User::factory()->create();
         $this->turnOff($type);
 
-        $this->actingAs($user)->get("/apps/our-mailbox/{$type}")->assertNotFound();
+        $this->actingAs($user)->get("/apps/our-exchange/{$type}")->assertNotFound();
 
-        $this->get('/apps/our-mailbox')->assertOk()->assertInertia(fn ($page) => $page
+        $this->get('/apps/our-exchange')->assertOk()->assertInertia(fn ($page) => $page
             ->where('types', fn ($types) => ! collect($types)->contains('key', $type) && count($types) === 3)
         );
 
         foreach (array_diff(array_column(self::types(), 0), [$type]) as $other) {
-            $this->get("/apps/our-mailbox/{$other}")->assertOk();
+            $this->get("/apps/our-exchange/{$other}")->assertOk();
         }
     }
 
     public function test_every_type_is_on_when_the_room_is_turned_on(): void
     {
-        $this->actingAs(User::factory()->create())->get('/apps/our-mailbox')->assertInertia(fn ($page) => $page
+        $this->actingAs(User::factory()->create())->get('/apps/our-exchange')->assertInertia(fn ($page) => $page
             ->where('types', [
                 ['key' => 'messages', 'label' => 'Notes'],
                 ['key' => 'flowers', 'label' => 'Flowers'],
@@ -73,17 +73,17 @@ class EntryTypeSwitchesTest extends TestCase
         $citation = Citation::factory()->create(['issuer_id' => $issuer->id, 'recipient_id' => $recipient->id]);
         $this->turnOff('citations');
 
-        $this->actingAs($issuer)->post('/apps/our-mailbox/citations', [
+        $this->actingAs($issuer)->post('/apps/our-exchange/citations', [
             'recipient_ids' => [$recipient->id], 'offence' => 'x', 'penalty' => 'y',
         ])->assertNotFound();
-        $this->actingAs($recipient)->patch("/apps/our-mailbox/citations/{$citation->id}/pay")->assertNotFound();
+        $this->actingAs($recipient)->patch("/apps/our-exchange/citations/{$citation->id}/pay")->assertNotFound();
 
         Notification::assertNotSentTo($recipient, GenericPushNotification::class);
         $this->assertDatabaseHas('mailbox_citations', ['id' => $citation->id, 'status' => 'issued']);
 
-        app(Rooms::class)->setOption('our-mailbox', 'citations', true);
+        app(Rooms::class)->setOption('our-exchange', 'citations', true);
         app()->forgetScopedInstances();
-        $this->get("/apps/our-mailbox/citations/{$citation->id}")->assertOk();
+        $this->get("/apps/our-exchange/citations/{$citation->id}")->assertOk();
     }
 
     public function test_the_other_types_still_push_while_one_is_off(): void
@@ -93,7 +93,7 @@ class EntryTypeSwitchesTest extends TestCase
         $issuer = User::factory()->create();
         $recipient = User::factory()->create();
 
-        $this->actingAs($issuer)->post('/apps/our-mailbox/citations', [
+        $this->actingAs($issuer)->post('/apps/our-exchange/citations', [
             'recipient_ids' => [$recipient->id], 'offence' => 'x', 'penalty' => 'y',
         ])->assertRedirect();
 
@@ -108,7 +108,7 @@ class EntryTypeSwitchesTest extends TestCase
         MailboxMessage::factory()->create(['sender_id' => $other->id]);
         $this->turnOff('citations');
 
-        $this->actingAs($user)->get('/apps/our-mailbox')->assertInertia(fn ($page) => $page
+        $this->actingAs($user)->get('/apps/our-exchange')->assertInertia(fn ($page) => $page
             ->where('mailboxSummary.counts.citations', 0)
             ->where('mailboxSummary.citations_action_needed', 0)
             ->where('mailboxPeeks.citations', null));
@@ -116,28 +116,17 @@ class EntryTypeSwitchesTest extends TestCase
 
     public function test_the_whole_room_off_hides_the_types(): void
     {
-        app(Rooms::class)->set('our-mailbox', false);
+        app(Rooms::class)->set('our-exchange', false);
         app()->forgetScopedInstances();
 
-        $this->actingAs(User::factory()->create())->get('/apps/our-mailbox/citations')->assertNotFound();
-    }
-
-    public function test_the_old_challan_addresses_redirect_to_citations(): void
-    {
-        $user = User::factory()->create();
-
-        $this->actingAs($user)->get('/apps/our-mailbox/challans')
-            ->assertStatus(301)->assertRedirect('/apps/our-mailbox/citations');
-        $this->get('/apps/our-mailbox/challans/42')
-            ->assertStatus(301)->assertRedirect('/apps/our-mailbox/citations/42');
-        $this->get('/apps/our-mailbox/challans/abc')->assertNotFound();
+        $this->actingAs(User::factory()->create())->get('/apps/our-exchange/citations')->assertNotFound();
     }
 
     public function test_issued_reference_numbers_survive_the_table_rename(): void
     {
         $citation = Citation::factory()->create(['ref_no' => 'OC/2025/000007']);
 
-        $migration = require base_path('database/migrations/our-mailbox/2026_11_16_100000_rename_mailbox_challans_to_citations.php');
+        $migration = require base_path('database/migrations/our-exchange/2026_11_16_100000_rename_mailbox_challans_to_citations.php');
         $migration->down();
         $this->assertTrue(Schema::hasTable('mailbox_challans'));
         $this->assertFalse(Schema::hasTable('mailbox_citations'));

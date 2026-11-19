@@ -6,10 +6,10 @@ const origin = 'https://ghar.example.com';
 
 describe('internalHref', () => {
     it.each([
-        ['/apps/our-corner/songs/3', `${origin}/apps/our-corner/songs/3`],
+        ['/apps/our-shelf/songs/3', `${origin}/apps/our-shelf/songs/3`],
         [
-            `${origin}/apps/our-corner/places/7`,
-            `${origin}/apps/our-corner/places/7`,
+            `${origin}/apps/our-shelf/places/7`,
+            `${origin}/apps/our-shelf/places/7`,
         ],
     ])('keeps %s', (href, expected) => {
         expect(internalHref(href, origin)).toBe(expected);
@@ -20,7 +20,7 @@ describe('internalHref', () => {
         ['//evil.example/x'],
         ['/\\evil.example/x'],
         ['\\\\evil.example/x'],
-        ['https://evil.example/apps/our-corner/songs/3'],
+        ['https://evil.example/apps/our-shelf/songs/3'],
         ['https://ghar.example.com.evil.example/'],
         ['javascript:alert(1)'],
         ['data:text/html,<script>alert(1)</script>'],

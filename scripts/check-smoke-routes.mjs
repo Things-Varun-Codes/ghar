@@ -18,7 +18,7 @@ const SKIP = {
         'JSON endpoint, no rendered page — smoke asserts a visible h1/h2, which does not apply.',
     'api/corner/picture-preview':
         'Returns an image fetched from the pasted address, not a page — no h1/h2 to assert, and smoke must not reach the network.',
-    'apps/our-corner/items/{item}/picture':
+    'apps/our-shelf/items/{item}/picture':
         "Returns an item's picture (an image, not a page) — no h1/h2 to assert, and a miss would fetch from the network.",
     'api/linkable/search':
         'JSON endpoint, no rendered page — smoke asserts a visible h1/h2, which does not apply.',
@@ -28,8 +28,6 @@ const SKIP = {
         'Fortify registers this route by default, but Ghar defines no confirmPasswordView anywhere in app/ or resources/js/ (grep confirms zero references), so the route cannot render. Delete this SKIP entry the day a confirm-password page is added.',
     'settings/email/verify':
         'Requires a valid URL::temporarySignedRoute signature plus user and email query params, then 302s to settings.profile on success — a signed action endpoint, not a page-mount surface.',
-    'apps/our-mailbox/challans/{id?}':
-        'Permanent redirect from the old citation address — nothing renders.',
     'go/{code}':
         '302 redirect to a stored external destination — nothing renders, so the page-mount assertion does not apply.',
 };

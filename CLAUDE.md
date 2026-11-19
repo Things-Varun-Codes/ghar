@@ -2,8 +2,8 @@
 
 **Ghar** is a private, auth-gated, self-hosted web platform for a family or household. A secure
 shell (dashboard + OS chrome) hosts self-contained mini apps.
-Installed today: **Our History** (timeline, gallery, calendar), **Our Corner** (lists the household
-defines: songs, films, places, books…) and **Our Mailbox** (messages, flowers, citations, coupons). **The admin
+Installed today: **Our History** (timeline, gallery, calendar), **Our Shelf** (lists the household
+defines: songs, films, places, books…) and **Our Exchange** (messages, flowers, citations, coupons). **The admin
 chooses which rooms a home has** at Admin → Rooms (`/admin/rooms`); a fresh install starts with none on.
 
 **Core value:** new mini apps can be added — and existing ones updated — without touching the
@@ -49,7 +49,7 @@ Password for every account: `ghar-local-dev`. Mail lands in Mailpit at `http://1
 | `admin@example.test` | Asha, the only admin    | Admin pages; editing anyone's moment or Corner item; last-admin guards. Has no special access to other people's mail.                 |
 | `ravi@example.test`  | Ravi, adult             | **Non-admin creator**: can edit "Monsoon drive to the coast" (his), can't edit "Meera's first pottery class". Sender of the fixtures. |
 | `meera@example.test` | Meera, adult            | **Recipient**: note 1, bouquet 1, coupon 1 and citation 1 are Ravi's to her alone. Can request the coupon and pay the citation.       |
-| `kabir@example.test` | Kabir, younger, no push | **Non-recipient**: `/apps/our-mailbox/citations/1` and `coupons/1` must 403; note 1 and bouquet 1 must not be listed.                 |
+| `kabir@example.test` | Kabir, younger, no push | **Non-recipient**: `/apps/our-exchange/citations/1` and `coupons/1` must 403; note 1 and bouquet 1 must not be listed.                |
 
 Every state the seed covers, with the ids to use, is in `.claude/rules/dev-data.md`.
 

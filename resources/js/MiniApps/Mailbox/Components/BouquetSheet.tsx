@@ -7,7 +7,7 @@ import type { FlowerEntry } from '@/MiniApps/Mailbox/Components/NoteCard';
 import type { HouseholdMember } from '@/MiniApps/Mailbox/Components/RecipientPicker';
 import RecipientPicker from '@/MiniApps/Mailbox/Components/RecipientPicker';
 import { useComposeForm } from '@/MiniApps/Mailbox/Hooks/useComposeForm';
-import { generate, store } from '@/routes/apps/our-mailbox/bouquets';
+import { generate, store } from '@/routes/apps/our-exchange/bouquets';
 import FormField from '@/Shell/Components/FormField';
 import FormSheet from '@/Shell/Components/FormSheet';
 import SubmitButton from '@/Shell/Components/SubmitButton';

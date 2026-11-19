@@ -5,7 +5,7 @@ use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
 /**
- * Our Mailbox coupons. Deleting a user who sent or received mail is refused
+ * Our Exchange coupons. Deleting a user who sent or received mail is refused
  * (RESTRICT): the mail is shared history, not a detail that can quietly
  * disappear.
  */

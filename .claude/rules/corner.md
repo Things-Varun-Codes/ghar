@@ -3,16 +3,16 @@ paths:
     - 'app/MiniApps/Corner/**'
     - 'resources/js/MiniApps/Corner/**'
     - 'resources/css/themes/corner.css'
-    - 'routes/miniapps/our-corner.php'
-    - 'database/migrations/our-corner/**'
+    - 'routes/miniapps/our-shelf.php'
+    - 'database/migrations/our-shelf/**'
     - 'scripts/lucide-icons.mjs'
     - 'tests/Feature/Corner/**'
     - 'tests/Fixtures/Corner/**'
 ---
 
-## Our Corner lists
+## Our Shelf lists
 
-Slug `our-corner`; `App\MiniApps\Corner\`; `resources/js/MiniApps/Corner/`. The household makes
+Slug `our-shelf`; `App\MiniApps\Corner\`; `resources/js/MiniApps/Corner/`. The household makes
 its own lists; nothing about Songs or Movies is hard-coded any more.
 
 - **Two tables.** `corner_lists` (name, `slug`, `icon`, `done_label`, `todo_label`, `done_icon`
@@ -32,7 +32,7 @@ its own lists; nothing about Songs or Movies is hard-coded any more.
   fetch returns null and the item is saved with what was typed; it is never an error to the person.
 - **Pictures are served by Corner**, never loaded from their source by the browser, so CSP
   `img-src` stays `'self' data: blob:` (plus the media bucket and maps origins when set). Pages draw
-  `picture_url` (`/apps/our-corner/items/{id}/picture?v=…`, private and immutable for a week); the
+  `picture_url` (`/apps/our-shelf/items/{id}/picture?v=…`, private and immutable for a week); the
   add sheet previews through `/api/corner/picture-preview`. `PictureCache` keeps the bytes under
   `storage/framework/cache/data/corner-pictures`, at most 64 MB and safe to delete. The seed
   primes it, so the dev database shows pictures offline.
@@ -49,9 +49,9 @@ its own lists; nothing about Songs or Movies is hard-coded any more.
 - **The slug never changes** after creation: notifications, History pills and NFC short links
   point at it. `lists` and `items` are reserved (`CreateList::RESERVED_SLUGS`) because the
   mutation routes use them at the same depth.
-- **Routes.** `/apps/our-corner/{slug}` is a list and `/apps/our-corner/{slug}/{id}` an item, both
+- **Routes.** `/apps/our-shelf/{slug}` is a list and `/apps/our-shelf/{slug}/{id}` an item, both
   looked up by hand so a missing one renders `EntityNotFound`. Mutations live at `lists/{id}`
-  and `items/{id}`; `POST /apps/our-corner/{slug}` adds to a list.
+  and `items/{id}`; `POST /apps/our-shelf/{slug}` adds to a list.
 - **Copy never needs a noun.** A list is named by the household, so copy reads "Add to Books",
   "3 things · 1 read", "Ravi added to Books: The Salt Road". Don't add singular/plural fields.
 - **Who may delete a list:** an admin always; its maker only while every item in it is theirs
@@ -61,7 +61,7 @@ its own lists; nothing about Songs or Movies is hard-coded any more.
 - **Lists from before custom lists.** The migration `2026_11_16_100000_…` moved the old four
   tables into lists `songs`, `movies`, `activities`, `places`, kept each row's old type and id in
   `legacy_type` / `legacy_id`, and started new ids above every old one. So
-  `/apps/our-corner/songs/5` finds id 5 in that list or, failing that, `legacy_id` 5. History
+  `/apps/our-shelf/songs/5` finds id 5 in that list or, failing that, `legacy_id` 5. History
   pills saved before then say `corner.song` (etc.) with the old id: those four types stay
   registered in `LinkableEntities` as resolve-only aliases (no `listing`, see `CornerLinks`), or
   History would drop them on the next save. New pills use `corner.item`. Never rewrite History's
@@ -69,18 +69,18 @@ its own lists; nothing about Songs or Movies is hard-coded any more.
 - **A fresh install has no lists.** The empty landing offers `SUGGESTED_LISTS`
   (`lib/presets.ts`), one tap each through the normal create endpoint.
 - **While the room is off** its routes 404, Home shows no door, push is dropped by
-  `PushDispatcher` and every Corner linkable type is registered with `room: 'our-corner'`, so
+  `PushDispatcher` and every Corner linkable type is registered with `room: 'our-shelf'`, so
   the picker finds none of its things (it still finds moments) and the shared `linking.types`
   leaves them out. The types stay registered, so History keeps both old and new pills (shown as
   plain text) when a moment is saved meanwhile.
-- **Our Corner** — a shelf of loved things, one look for every list. Its character is in its
+- **Our Shelf** — a shelf of loved things, one look for every list. Its character is in its
   objects, not its type or motion: `.corner-sticker` done flags (a fixed tilt, never animated), each
   item's picture in a rounded thumb (`ItemThumb`), and where there is no picture the list's own icon
   on an accent wash via `color-mix(in oklab, var(--shell-accent) N%, var(--shell-surface))` — never
   hex. Identity changes are CSS-only in `corner.css` over the shared components; don't fork
   Corner-specific React.
 
-## Our Corner item-actions contract
+## Our Shelf item-actions contract
 
 Applies to every list.
 

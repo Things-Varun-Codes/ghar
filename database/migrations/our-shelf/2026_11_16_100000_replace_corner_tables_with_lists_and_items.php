@@ -11,7 +11,7 @@ use Illuminate\Support\Facades\Schema;
  * a location. Postgres runs the whole migration in one transaction, so a failed count check below
  * rolls everything back and leaves the old tables as they were.
  *
- * History's stored links still say "corner.song 5" and /apps/our-corner/songs/5. Each moved
+ * History's stored links still say "corner.song 5" and /apps/our-shelf/songs/5. Each moved
  * item keeps that old pair in legacy_type / legacy_id, and new ids start above every old id,
  * so an id in an old URL can never also be a new item's id.
  */

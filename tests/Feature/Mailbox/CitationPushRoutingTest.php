@@ -26,7 +26,7 @@ class CitationPushRoutingTest extends TestCase
         Notification::fake();
         [$issuer, $recipient] = $this->seedPair();
 
-        $this->actingAs($issuer)->post('/apps/our-mailbox/citations', [
+        $this->actingAs($issuer)->post('/apps/our-exchange/citations', [
             'recipient_ids' => [$recipient->id],
             'offence' => 'Stole all the blankets in the night',
             'penalty' => 'a back rub',
@@ -40,7 +40,7 @@ class CitationPushRoutingTest extends TestCase
                 $body = $notification->toWebPush($recipient, $notification)->toArray()['body'] ?? '';
                 $tag = $notification->toWebPush($recipient, $notification)->toArray()['tag'] ?? null;
 
-                return $tag === 'our-mailbox:citations'
+                return $tag === 'our-exchange:citations'
                     && str_contains($body, 'Alice')
                     && str_contains($body, 'citation')
                     // No offence / penalty / remarks leak.
@@ -62,7 +62,7 @@ class CitationPushRoutingTest extends TestCase
             'recipient_id' => $recipient->id,
         ]);
 
-        $this->actingAs($recipient)->patch("/apps/our-mailbox/citations/{$citation->id}/pay");
+        $this->actingAs($recipient)->patch("/apps/our-exchange/citations/{$citation->id}/pay");
 
         Notification::assertSentTo(
             $issuer,
@@ -70,7 +70,7 @@ class CitationPushRoutingTest extends TestCase
             function (GenericPushNotification $notification) use ($issuer) {
                 $arr = $notification->toWebPush($issuer, $notification)->toArray();
 
-                return ($arr['tag'] ?? null) === 'our-mailbox:citations'
+                return ($arr['tag'] ?? null) === 'our-exchange:citations'
                     && str_contains($arr['body'] ?? '', 'Bob');
             }
         );

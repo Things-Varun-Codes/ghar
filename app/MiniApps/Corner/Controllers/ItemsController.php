@@ -87,7 +87,7 @@ class ItemsController
         FlashToast::success("Added to {$list->name}.");
 
         // No query string: a new item must show even if a search or filter was active.
-        return redirect()->route('apps.our-corner.lists.show', $list->slug);
+        return redirect()->route('apps.our-shelf.lists.show', $list->slug);
     }
 
     public function update(SaveItemRequest $request, Item $item, UpdateItem $action): RedirectResponse

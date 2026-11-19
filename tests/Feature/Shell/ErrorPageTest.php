@@ -28,7 +28,7 @@ class ErrorPageTest extends TestCase
         $citation = Citation::factory()->create(['issuer_id' => $issuer->id, 'recipient_id' => $recipient->id]);
 
         $this->actingAs($stranger)
-            ->get("/apps/our-mailbox/citations/{$citation->id}")
+            ->get("/apps/our-exchange/citations/{$citation->id}")
             ->assertForbidden()
             ->assertInertia(fn (Assert $page) => $page
                 ->component('Shell/Pages/Error')
@@ -47,7 +47,7 @@ class ErrorPageTest extends TestCase
         ]);
 
         $this->actingAs($stranger)
-            ->get("/apps/our-mailbox/coupons/{$coupon->id}")
+            ->get("/apps/our-exchange/coupons/{$coupon->id}")
             ->assertForbidden()
             ->assertInertia(fn (Assert $page) => $page
                 ->component('Shell/Pages/Error')
@@ -58,7 +58,7 @@ class ErrorPageTest extends TestCase
     public function test_missing_record_renders_the_in_shell_404_page(): void
     {
         $this->actingAs(User::factory()->create())
-            ->get('/apps/our-mailbox/citations/999999')
+            ->get('/apps/our-exchange/citations/999999')
             ->assertNotFound()
             ->assertInertia(fn (Assert $page) => $page
                 ->component('Shell/Pages/Error')
@@ -84,7 +84,7 @@ class ErrorPageTest extends TestCase
         $citation = Citation::factory()->create(['issuer_id' => $issuer->id, 'recipient_id' => $recipient->id]);
 
         $this->actingAs($stranger)
-            ->getJson("/apps/our-mailbox/citations/{$citation->id}")
+            ->getJson("/apps/our-exchange/citations/{$citation->id}")
             ->assertForbidden()
             ->assertHeader('Content-Type', 'application/json')
             ->assertJsonMissingPath('component');

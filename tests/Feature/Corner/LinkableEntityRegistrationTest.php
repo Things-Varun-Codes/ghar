@@ -86,9 +86,9 @@ class LinkableEntityRegistrationTest extends TestCase
         $this->assertSame('music', $results[$song->id]['icon']);
         $this->assertNull($results[$book->id]['thumbnail_url']);
         $this->assertSame('bookmark', $results[$book->id]['icon']);
-        $this->assertSame(route('apps.our-corner.items.show', ['songs', $song->id]), $results[$song->id]['deep_link_url']);
+        $this->assertSame(route('apps.our-shelf.items.show', ['songs', $song->id]), $results[$song->id]['deep_link_url']);
         $this->assertSame('Books we love', $results[$book->id]['group']);
-        $this->assertSame(url("/apps/our-corner/books/{$book->id}"), $results[$book->id]['deep_link_url']);
+        $this->assertSame(url("/apps/our-shelf/books/{$book->id}"), $results[$book->id]['deep_link_url']);
     }
 
     public function test_item_search_is_newest_first_and_capped(): void
@@ -126,7 +126,7 @@ class LinkableEntityRegistrationTest extends TestCase
             'title' => $song->title,
             'thumbnail_url' => $song->pictureUrl(),
             'icon' => 'music',
-            'deep_link_url' => url("/apps/our-corner/songs/{$song->id}"),
+            'deep_link_url' => url("/apps/our-shelf/songs/{$song->id}"),
         ], $snapshot);
     }
 
@@ -138,7 +138,7 @@ class LinkableEntityRegistrationTest extends TestCase
         $movie = $this->itemIn($movies, $this->user, ['legacy_type' => 'corner.movie', 'legacy_id' => 5]);
         $linkable = app(LinkableEntities::class);
 
-        $this->assertSame(url("/apps/our-corner/songs/{$song->id}"), $linkable->resolve('corner.song', 5)['deep_link_url']);
+        $this->assertSame(url("/apps/our-shelf/songs/{$song->id}"), $linkable->resolve('corner.song', 5)['deep_link_url']);
         $this->assertSame($movie->title, $linkable->resolve('corner.movie', 5)['title']);
         $this->assertNull($linkable->resolve('corner.place', 5));
         // An item's new id is not an old id.

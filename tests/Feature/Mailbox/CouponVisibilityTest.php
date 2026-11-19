@@ -25,12 +25,12 @@ class CouponVisibilityTest extends TestCase
 
         foreach (['received', 'issued'] as $tab) {
             $this->actingAs($bystander)
-                ->get('/apps/our-mailbox/coupons?tab='.$tab)
+                ->get('/apps/our-exchange/coupons?tab='.$tab)
                 ->assertInertia(fn (Assert $page) => $page->has('coupons.data', 0));
         }
 
         $this->actingAs($recipient)
-            ->get('/apps/our-mailbox/coupons')
+            ->get('/apps/our-exchange/coupons')
             ->assertInertia(fn (Assert $page) => $page->has('coupons.data', 1));
     }
 
@@ -44,7 +44,7 @@ class CouponVisibilityTest extends TestCase
 
         // Received tab (default): the coupon the partner issued TO primary.
         $this->actingAs($primary)
-            ->get('/apps/our-mailbox/coupons')
+            ->get('/apps/our-exchange/coupons')
             ->assertInertia(fn (Assert $page) => $page
                 ->where('tab', 'received')
                 ->has('coupons.data', 1)
@@ -53,7 +53,7 @@ class CouponVisibilityTest extends TestCase
 
         // Issued tab: the coupon primary issued to the partner.
         $this->actingAs($primary)
-            ->get('/apps/our-mailbox/coupons?tab=issued')
+            ->get('/apps/our-exchange/coupons?tab=issued')
             ->assertInertia(fn (Assert $page) => $page
                 ->where('tab', 'issued')
                 ->has('coupons.data', 1)

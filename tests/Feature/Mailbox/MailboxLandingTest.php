@@ -31,7 +31,7 @@ class MailboxLandingTest extends TestCase
         $user = User::factory()->create();
         User::factory()->create();
 
-        $response = $this->actingAs($user)->get('/apps/our-mailbox');
+        $response = $this->actingAs($user)->get('/apps/our-exchange');
 
         $response->assertOk();
         $response->assertInertia(
@@ -59,7 +59,7 @@ class MailboxLandingTest extends TestCase
             'posted_at' => now(),
         ]);
 
-        $response = $this->actingAs($recipient)->get('/apps/our-mailbox');
+        $response = $this->actingAs($recipient)->get('/apps/our-exchange');
 
         $response->assertOk();
         $response->assertInertia(
@@ -97,7 +97,7 @@ class MailboxLandingTest extends TestCase
             'posted_at' => now(),
         ]);
 
-        $response = $this->actingAs($recipient)->get('/apps/our-mailbox');
+        $response = $this->actingAs($recipient)->get('/apps/our-exchange');
 
         $response->assertOk();
         $response->assertInertia(
@@ -124,7 +124,7 @@ class MailboxLandingTest extends TestCase
         Citation::factory()->create(['issuer_id' => $stranger->id, 'recipient_id' => $partner->id]);
 
         $this->actingAs($user)
-            ->get('/apps/our-mailbox')
+            ->get('/apps/our-exchange')
             ->assertInertia(fn (Assert $page) => $page
                 ->component('MiniApps/Mailbox/Pages/Landing')
                 ->where('mailboxSummary.counts.citations', 2)
@@ -173,7 +173,7 @@ class MailboxLandingTest extends TestCase
         Coupon::factory()->create(['issuer_id' => $stranger->id, 'recipient_id' => $partner->id, 'expires_at' => null]);
 
         $this->actingAs($user)
-            ->get('/apps/our-mailbox')
+            ->get('/apps/our-exchange')
             ->assertInertia(fn (Assert $page) => $page
                 ->component('MiniApps/Mailbox/Pages/Landing')
                 ->where('mailboxSummary.counts.coupons', 2)
@@ -208,7 +208,7 @@ class MailboxLandingTest extends TestCase
         Bouquet::factory()->to($recipient)->create(['sender_id' => $sender->id, 'posted_at' => now()]);
 
         $this->actingAs($recipient)
-            ->get('/apps/our-mailbox')
+            ->get('/apps/our-exchange')
             ->assertInertia(fn (Assert $page) => $page
                 ->where('mailboxPeeks.notes.body', 'newest note')
                 ->where('mailboxPeeks.notes.from', 'Ravi')
@@ -254,7 +254,7 @@ class MailboxLandingTest extends TestCase
         ]);
 
         $this->actingAs($user)
-            ->get('/apps/our-mailbox')
+            ->get('/apps/our-exchange')
             ->assertInertia(fn (Assert $page) => $page
                 ->where('mailboxPeeks.citations.offence', 'Unpaid one')
                 ->where('mailboxPeeks.citations.status', Citation::STATUS_ISSUED)
@@ -277,7 +277,7 @@ class MailboxLandingTest extends TestCase
         Coupon::factory()->create(['issuer_id' => $sender->id, 'recipient_id' => $recipient->id, 'expires_at' => null]);
 
         $this->actingAs($bystander)
-            ->get('/apps/our-mailbox')
+            ->get('/apps/our-exchange')
             ->assertInertia(fn (Assert $page) => $page
                 ->where('mailboxPeeks.notes', null)
                 ->where('mailboxPeeks.flowers', null)

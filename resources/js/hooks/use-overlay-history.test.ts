@@ -196,11 +196,11 @@ describe('useOverlayHistory state machine', () => {
         const overlays = createOverlayHistory(browser.env);
         const id = overlays.open(() => {}, ['moment', '3']);
 
-        browser.navigate('/apps/our-corner/songs/4');
+        browser.navigate('/apps/our-shelf/songs/4');
         overlays.close(id); // the page unmounted
         browser.settle();
 
-        expect(browser.url()).toBe('/apps/our-corner/songs/4');
+        expect(browser.url()).toBe('/apps/our-shelf/songs/4');
         expect(browser.entries).toHaveLength(3);
     });
 

@@ -156,7 +156,7 @@ async function installFaultRoute(page, handler) {
 }
 
 const songTileSelector =
-    '#corner-list-panel a[href^="/apps/our-corner/songs/"]';
+    '#corner-list-panel a[href^="/apps/our-shelf/songs/"]';
 // Reassigned for the History case: the failure helpers read whichever list is under test.
 let pendingRowSelector = '#corner-list-panel [role="status"]';
 let alertRowSelector = '#corner-list-panel [role="alert"]';
@@ -268,7 +268,7 @@ async function main() {
         await login(page, BASE_URL, DEV_ACCOUNTS.admin, DEV_PASSWORD);
         pass('login');
 
-        await page.goto(`${BASE_URL}/apps/our-corner/songs`, {
+        await page.goto(`${BASE_URL}/apps/our-shelf/songs`, {
             waitUntil: 'networkidle',
         });
 

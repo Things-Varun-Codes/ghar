@@ -61,12 +61,12 @@ class CouponsController
         if ($coupons->count() === 1) {
             FlashToast::success('Coupon sent.');
 
-            return redirect()->route('apps.our-mailbox.coupons.show', $coupons->first());
+            return redirect()->route('apps.our-exchange.coupons.show', $coupons->first());
         }
 
         FlashToast::success("{$coupons->count()} coupons sent.");
 
-        return redirect()->route('apps.our-mailbox.coupons.index', ['tab' => 'issued']);
+        return redirect()->route('apps.our-exchange.coupons.index', ['tab' => 'issued']);
     }
 
     public function request(Request $request, Coupon $coupon, RequestCoupon $action): RedirectResponse
@@ -111,6 +111,6 @@ class CouponsController
         FlashToast::success('Coupon withdrawn.');
 
         return redirect()
-            ->route('apps.our-mailbox.coupons.index');
+            ->route('apps.our-exchange.coupons.index');
     }
 }

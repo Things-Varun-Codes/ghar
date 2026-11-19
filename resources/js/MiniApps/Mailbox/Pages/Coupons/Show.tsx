@@ -4,7 +4,7 @@ import type { CouponPayload } from '@/MiniApps/Mailbox/Components/CouponCard';
 import MailboxLayout, {
     MAILBOX_ROOM,
 } from '@/MiniApps/Mailbox/Layouts/MailboxLayout';
-import { index } from '@/routes/apps/our-mailbox/coupons';
+import { index } from '@/routes/apps/our-exchange/coupons';
 import Page from '@/Shell/Components/Page';
 
 type Props = {

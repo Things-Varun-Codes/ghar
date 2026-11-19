@@ -15,7 +15,7 @@ import { useItemActions } from '@/MiniApps/Corner/Hooks/useItemActions';
 import { bylineOf } from '@/MiniApps/Corner/lib/copy';
 import { hasPlace, placeLabel } from '@/MiniApps/Corner/lib/maps';
 import type { CornerItem, CornerListInfo } from '@/MiniApps/Corner/lib/types';
-import { show } from '@/routes/apps/our-corner/items';
+import { show } from '@/routes/apps/our-shelf/items';
 import AppCard from '@/Shell/Components/AppCard';
 
 type Props = {
@@ -55,7 +55,7 @@ export default function ItemCard({ list, item, onEdit }: Props) {
         <AppCard
             base="corner-card"
             variant="list"
-            data-app="our-corner"
+            data-app="our-shelf"
             className="corner-item shell-card-stretch shell-lift"
         >
             <div className="corner-item-row">

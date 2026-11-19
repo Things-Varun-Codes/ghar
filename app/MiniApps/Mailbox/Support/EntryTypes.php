@@ -6,12 +6,12 @@ use App\Shell\Services\Rooms;
 
 /**
  * The four kinds of mail. The admin can turn each off while Mailbox stays on; its rows are
- * kept. Routes are gated by `room:our-mailbox,{type}`; anything that reads across types (the
+ * kept. Routes are gated by `room:our-exchange,{type}`; anything that reads across types (the
  * landing, Home's door) asks here.
  */
 final class EntryTypes
 {
-    public const ROOM = 'our-mailbox';
+    public const ROOM = 'our-exchange';
 
     public const MESSAGES = 'messages';
 

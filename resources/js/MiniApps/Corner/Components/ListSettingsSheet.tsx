@@ -15,7 +15,7 @@ import {
     TODO_FOR_DONE,
 } from '@/MiniApps/Corner/lib/presets';
 import type { CornerListInfo } from '@/MiniApps/Corner/lib/types';
-import { store, update } from '@/routes/apps/our-corner/lists';
+import { store, update } from '@/routes/apps/our-shelf/lists';
 import FormField from '@/Shell/Components/FormField';
 import FormSheet from '@/Shell/Components/FormSheet';
 import HeartMark from '@/Shell/Components/HeartMark';

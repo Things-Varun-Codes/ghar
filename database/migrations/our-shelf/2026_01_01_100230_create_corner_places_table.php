@@ -5,7 +5,7 @@ use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
 /**
- * An Our Corner list. Deleting a user who added items is refused (RESTRICT):
+ * An Our Shelf list. Deleting a user who added items is refused (RESTRICT):
  * authorship is part of the shared history. "Done by" only degrades to null.
  */
 return new class extends Migration

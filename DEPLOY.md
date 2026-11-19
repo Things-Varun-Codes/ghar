@@ -281,11 +281,11 @@ than 90 days are pruned weekly.
   `VAPID_SUBJECT` defaults to `APP_URL`; a `mailto:` address works too. On iOS, push needs the app
   added to the Home Screen first (Share, Add to Home Screen).
 - **Location search** in Our History uses Google Places when `GOOGLE_MAPS_API_KEY` is set. Without
-  it, people type places in by hand. Our Corner never needs it: a place there is a pasted map link,
+  it, people type places in by hand. Our Shelf never needs it: a place there is a pasted map link,
   coordinates or a typed name. To set it up, enable **Places API (New)** and
   **Maps JavaScript API** in Google Cloud (billing must be linked), create an API key restricted to
   your site's URL and to those two APIs, then set it and restart.
-- **AI flower pictures** in Our Mailbox use Cloudflare Workers AI:
+- **AI flower pictures** in Our Exchange use Cloudflare Workers AI:
   `BOUQUET_IMAGE_PROVIDER=cloudflare` with `CLOUDFLARE_ACCOUNT_ID` and a token scoped to Workers AI
   in `CLOUDFLARE_WORKERS_AI_TOKEN`. `fake` draws a placeholder instead. The setting has no default,
   so an unset provider fails loudly rather than quietly serving placeholders.

@@ -3,7 +3,7 @@ import CharCount from '@/MiniApps/Mailbox/Components/CharCount';
 import type { HouseholdMember } from '@/MiniApps/Mailbox/Components/RecipientPicker';
 import RecipientPicker from '@/MiniApps/Mailbox/Components/RecipientPicker';
 import { useComposeForm } from '@/MiniApps/Mailbox/Hooks/useComposeForm';
-import { store } from '@/routes/apps/our-mailbox/citations';
+import { store } from '@/routes/apps/our-exchange/citations';
 import FormField from '@/Shell/Components/FormField';
 import FormSheet from '@/Shell/Components/FormSheet';
 import SubmitButton from '@/Shell/Components/SubmitButton';

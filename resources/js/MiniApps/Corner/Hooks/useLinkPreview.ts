@@ -1,6 +1,6 @@
 import * as Sentry from '@sentry/react';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { preview as linkPreview } from '@/routes/apps/our-corner/link';
+import { preview as linkPreview } from '@/routes/apps/our-shelf/link';
 
 /* What a pasted page says about itself. */
 export type LinkFound = {

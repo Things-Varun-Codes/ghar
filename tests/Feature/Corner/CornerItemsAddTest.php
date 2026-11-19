@@ -75,9 +75,9 @@ class CornerItemsAddTest extends TestCase
         $list = $this->listCalled($slug);
 
         $this->actingAs($adder)
-            ->from("/apps/our-corner/{$list->slug}?q=zzz&filter=done")
-            ->post("/apps/our-corner/{$list->slug}", $payload)
-            ->assertRedirect("/apps/our-corner/{$list->slug}")
+            ->from("/apps/our-shelf/{$list->slug}?q=zzz&filter=done")
+            ->post("/apps/our-shelf/{$list->slug}", $payload)
+            ->assertRedirect("/apps/our-shelf/{$list->slug}")
             ->assertSessionHas(SessionKey::FLASH_DATA, ['toast' => ['type' => 'success', 'message' => "Added to {$list->name}."]]);
 
         $item = Item::query()->sole();
@@ -88,7 +88,7 @@ class CornerItemsAddTest extends TestCase
         $this->assertNull($item->legacy_type);
         $this->assertNull($item->legacy_id);
 
-        $itemUrl = "/apps/our-corner/{$list->slug}/{$item->id}";
+        $itemUrl = "/apps/our-shelf/{$list->slug}/{$item->id}";
 
         Notification::assertSentTo(
             $recipient,
@@ -96,7 +96,7 @@ class CornerItemsAddTest extends TestCase
             function (GenericPushNotification $n) use ($recipient, $itemUrl, $list, $title) {
                 $webPush = $n->toWebPush($recipient, $n)->toArray();
 
-                return ($webPush['tag'] ?? null) === "our-corner:{$list->slug}"
+                return ($webPush['tag'] ?? null) === "our-shelf:{$list->slug}"
                     && ($webPush['body'] ?? null) === "Alice added to {$list->name}: {$title}"
                     && ($webPush['data']['url'] ?? null) === $itemUrl;
             }
@@ -113,8 +113,8 @@ class CornerItemsAddTest extends TestCase
         $list = CornerList::factory()->create(['notify_on_add' => false]);
 
         $this->actingAs($adder)
-            ->post("/apps/our-corner/{$list->slug}", ['title' => 'Muted'])
-            ->assertRedirect("/apps/our-corner/{$list->slug}");
+            ->post("/apps/our-shelf/{$list->slug}", ['title' => 'Muted'])
+            ->assertRedirect("/apps/our-shelf/{$list->slug}");
 
         $this->assertDatabaseHas('corner_items', ['list_id' => $list->id, 'title' => 'Muted']);
         Notification::assertNothingSent();
@@ -147,7 +147,7 @@ class CornerItemsAddTest extends TestCase
     public function test_adding_to_a_list_that_does_not_exist_is_a_404(): void
     {
         $this->actingAs(User::factory()->create())
-            ->post('/apps/our-corner/no-such-list', ['title' => 'X'])
+            ->post('/apps/our-shelf/no-such-list', ['title' => 'X'])
             ->assertNotFound();
 
         $this->assertSame(0, Item::count());
@@ -159,12 +159,12 @@ class CornerItemsAddTest extends TestCase
         $adder = User::factory()->create();
         $list = $this->activities();
 
-        $this->actingAs($adder)->post("/apps/our-corner/{$list->slug}", [
+        $this->actingAs($adder)->post("/apps/our-shelf/{$list->slug}", [
             'title' => 'Hiking',
             'notes' => 'Bring water and snacks; start before sunrise.',
         ])->assertRedirect();
 
-        $this->actingAs($adder)->post("/apps/our-corner/{$list->slug}", [
+        $this->actingAs($adder)->post("/apps/our-shelf/{$list->slug}", [
             'title' => 'Swimming',
             'notes' => '   ',
         ])->assertRedirect();
@@ -178,8 +178,8 @@ class CornerItemsAddTest extends TestCase
         $list = $this->activities();
 
         $this->actingAs(User::factory()->create())
-            ->from("/apps/our-corner/{$list->slug}")
-            ->post("/apps/our-corner/{$list->slug}", ['title' => 'Long', 'notes' => str_repeat('a', 2001)])
+            ->from("/apps/our-shelf/{$list->slug}")
+            ->post("/apps/our-shelf/{$list->slug}", ['title' => 'Long', 'notes' => str_repeat('a', 2001)])
             ->assertSessionHasErrors(['notes' => 'Notes are limited to 2000 characters.']);
 
         $this->assertSame(0, Item::count());
@@ -193,13 +193,13 @@ class CornerItemsAddTest extends TestCase
         $user = User::factory()->create();
 
         $this->actingAs($user)
-            ->from("/apps/our-corner/{$list->slug}")
-            ->post("/apps/our-corner/{$list->slug}", ['title' => '  '])
+            ->from("/apps/our-shelf/{$list->slug}")
+            ->post("/apps/our-shelf/{$list->slug}", ['title' => '  '])
             ->assertSessionHasErrors(['title' => 'Give it a name, or paste a link to take one from.']);
         $this->assertSame(0, Item::count());
 
         $this->actingAs($user)
-            ->post("/apps/our-corner/{$list->slug}", ['url' => 'https://example.com/a-recipe'])
+            ->post("/apps/our-shelf/{$list->slug}", ['url' => 'https://example.com/a-recipe'])
             ->assertSessionHasNoErrors();
         $this->assertSame(1, Item::count());
     }
@@ -212,14 +212,14 @@ class CornerItemsAddTest extends TestCase
 
         foreach (['not-a-url', 'javascript:alert(1)', 'ftp://example.com/song.mp3'] as $bad) {
             $this->actingAs($user)
-                ->from('/apps/our-corner/songs')
-                ->post('/apps/our-corner/songs', ['title' => 'X', 'url' => $bad])
+                ->from('/apps/our-shelf/songs')
+                ->post('/apps/our-shelf/songs', ['title' => 'X', 'url' => $bad])
                 ->assertSessionHasErrors(['url' => "That doesn't look like a web address."]);
         }
 
         $this->actingAs($user)
-            ->from('/apps/our-corner/songs')
-            ->post('/apps/our-corner/songs', ['title' => 'X', 'image_url' => 'data:image/png;base64,AAAA'])
+            ->from('/apps/our-shelf/songs')
+            ->post('/apps/our-shelf/songs', ['title' => 'X', 'image_url' => 'data:image/png;base64,AAAA'])
             ->assertSessionHasErrors(['image_url' => "That doesn't look like the address of a picture."]);
 
         $this->assertSame(0, $list->items()->count());
@@ -235,7 +235,7 @@ class CornerItemsAddTest extends TestCase
         $adder = User::factory()->create();
         $list = $this->songs();
 
-        $this->actingAs($adder)->post('/apps/our-corner/songs', ['url' => self::SONG])->assertRedirect('/apps/our-corner/songs');
+        $this->actingAs($adder)->post('/apps/our-shelf/songs', ['url' => self::SONG])->assertRedirect('/apps/our-shelf/songs');
 
         $this->assertDatabaseHas('corner_items', [
             'list_id' => $list->id,
@@ -256,7 +256,7 @@ class CornerItemsAddTest extends TestCase
         $this->songs();
 
         $this->actingAs(User::factory()->create())
-            ->post('/apps/our-corner/songs', [
+            ->post('/apps/our-shelf/songs', [
                 'url' => self::SONG,
                 'title' => 'Our song',
                 'image_url' => 'https://photos.example.org/us.jpg',
@@ -277,7 +277,7 @@ class CornerItemsAddTest extends TestCase
         $this->songs();
 
         $this->actingAs(User::factory()->create())
-            ->post('/apps/our-corner/songs', ['url' => self::SONG, 'no_picture' => true])
+            ->post('/apps/our-shelf/songs', ['url' => self::SONG, 'no_picture' => true])
             ->assertSessionHasNoErrors();
 
         $item = Item::query()->sole();
@@ -293,7 +293,7 @@ class CornerItemsAddTest extends TestCase
         $this->activities();
 
         $this->actingAs(User::factory()->create())
-            ->post('/apps/our-corner/activities', ['url' => 'https://photos.example.org/kite.jpg', 'title' => 'Kite day'])
+            ->post('/apps/our-shelf/activities', ['url' => 'https://photos.example.org/kite.jpg', 'title' => 'Kite day'])
             ->assertSessionHasNoErrors();
 
         $this->assertDatabaseHas('corner_items', [
@@ -312,7 +312,7 @@ class CornerItemsAddTest extends TestCase
 
         $url = 'https://www.example.com/watch?v=timeoutVid1';
 
-        $this->actingAs($adder)->post('/apps/our-corner/songs', ['url' => $url])->assertRedirect('/apps/our-corner/songs');
+        $this->actingAs($adder)->post('/apps/our-shelf/songs', ['url' => $url])->assertRedirect('/apps/our-shelf/songs');
 
         $this->assertDatabaseHas('corner_items', [
             'title' => $url,
@@ -335,7 +335,7 @@ class CornerItemsAddTest extends TestCase
         $url = 'https://intranet.example.com/admin';
 
         $this->actingAs(User::factory()->create())
-            ->post('/apps/our-corner/songs', ['url' => $url])
+            ->post('/apps/our-shelf/songs', ['url' => $url])
             ->assertSessionHasNoErrors();
 
         $this->assertDatabaseHas('corner_items', ['title' => $url, 'site_name' => 'intranet.example.com', 'image_url' => null]);
@@ -350,15 +350,15 @@ class CornerItemsAddTest extends TestCase
         User::factory()->create();
         $list = $this->songs();
 
-        $this->actingAs($adder)->post('/apps/our-corner/songs', ['url' => self::SONG]);
+        $this->actingAs($adder)->post('/apps/our-shelf/songs', ['url' => self::SONG]);
         $this->assertSame(1, $list->items()->count());
         Notification::assertSentTimes(GenericPushNotification::class, 1);
 
         // Written differently, but the same page.
         $this->actingAs($adder)
-            ->from('/apps/our-corner/songs')
-            ->post('/apps/our-corner/songs', ['url' => 'HTTPS://Music.Example.com:443/watch/?utm_source=chat&v=abc123#t=30'])
-            ->assertRedirect('/apps/our-corner/songs')
+            ->from('/apps/our-shelf/songs')
+            ->post('/apps/our-shelf/songs', ['url' => 'HTTPS://Music.Example.com:443/watch/?utm_source=chat&v=abc123#t=30'])
+            ->assertRedirect('/apps/our-shelf/songs')
             ->assertSessionHasErrors(['url' => ItemDetails::DUPLICATE_LINK]);
 
         $this->assertSame(1, $list->items()->count());
@@ -373,8 +373,8 @@ class CornerItemsAddTest extends TestCase
         $this->songs();
         $other = CornerList::factory()->create();
 
-        $this->actingAs($adder)->post('/apps/our-corner/songs', ['url' => self::SONG])->assertSessionHasNoErrors();
-        $this->actingAs($adder)->post("/apps/our-corner/{$other->slug}", ['url' => self::SONG])->assertSessionHasNoErrors();
+        $this->actingAs($adder)->post('/apps/our-shelf/songs', ['url' => self::SONG])->assertSessionHasNoErrors();
+        $this->actingAs($adder)->post("/apps/our-shelf/{$other->slug}", ['url' => self::SONG])->assertSessionHasNoErrors();
 
         $this->assertSame(2, Item::where('url_key', LinkKey::for(self::SONG))->count());
     }
@@ -384,7 +384,7 @@ class CornerItemsAddTest extends TestCase
         Notification::fake();
         $list = $this->activities();
 
-        $this->actingAs(User::factory()->create())->post("/apps/our-corner/{$list->slug}", [
+        $this->actingAs(User::factory()->create())->post("/apps/our-shelf/{$list->slug}", [
             'title' => 'Picnic',
             'url_key' => 'forged',
             'site_name' => 'Forged',
@@ -417,11 +417,11 @@ class CornerItemsAddTest extends TestCase
         $this->places();
         $map = 'https://maps.example.com/maps/place/Sydney+Opera+House/@-33.8567844,151.2152967,17z';
 
-        $this->actingAs(User::factory()->create())->post('/apps/our-corner/places', [
+        $this->actingAs(User::factory()->create())->post('/apps/our-shelf/places', [
             'title' => 'The Opera House',
             'location' => $map,
             'address' => 'Bennelong Point, Sydney NSW 2000',
-        ])->assertRedirect('/apps/our-corner/places');
+        ])->assertRedirect('/apps/our-shelf/places');
 
         $this->assertDatabaseHas('corner_items', [
             'title' => 'The Opera House',
@@ -442,8 +442,8 @@ class CornerItemsAddTest extends TestCase
         $this->places();
 
         $this->actingAs(User::factory()->create())
-            ->post('/apps/our-corner/places', ['title' => 'Bakery', 'location' => 'The bakery on 4th Cross', 'address' => ''])
-            ->assertRedirect('/apps/our-corner/places');
+            ->post('/apps/our-shelf/places', ['title' => 'Bakery', 'location' => 'The bakery on 4th Cross', 'address' => ''])
+            ->assertRedirect('/apps/our-shelf/places');
 
         $place = Item::query()->sole();
         $this->assertSame('The bakery on 4th Cross', $place->location_label);
@@ -461,7 +461,7 @@ class CornerItemsAddTest extends TestCase
         $this->places();
 
         $this->actingAs(User::factory()->create())
-            ->post('/apps/our-corner/places', ['title' => 'Off the map', 'location' => '91, 0'])
+            ->post('/apps/our-shelf/places', ['title' => 'Off the map', 'location' => '91, 0'])
             ->assertSessionHasNoErrors();
 
         $place = Item::query()->sole();
@@ -474,7 +474,7 @@ class CornerItemsAddTest extends TestCase
         Notification::fake();
         $this->places();
 
-        $this->actingAs(User::factory()->create())->post('/apps/our-corner/places', [
+        $this->actingAs(User::factory()->create())->post('/apps/our-shelf/places', [
             'title' => 'Precision Probe',
             'location' => '12.3456789, -98.7654321',
         ])->assertRedirect();

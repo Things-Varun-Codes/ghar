@@ -33,7 +33,7 @@ class CouponPushRoutingTest extends TestCase
             'expires_at' => null,
         ]);
 
-        $this->actingAs($recipient)->patch("/apps/our-mailbox/coupons/{$coupon->id}/request");
+        $this->actingAs($recipient)->patch("/apps/our-exchange/coupons/{$coupon->id}/request");
 
         Notification::assertSentTo(
             $issuer,
@@ -41,7 +41,7 @@ class CouponPushRoutingTest extends TestCase
             function (GenericPushNotification $notification) use ($issuer) {
                 $arr = $notification->toWebPush($issuer, $notification)->toArray();
 
-                return ($arr['tag'] ?? null) === 'our-mailbox:coupons'
+                return ($arr['tag'] ?? null) === 'our-exchange:coupons'
                     && str_contains($arr['body'] ?? '', 'Bob')
                     && str_contains($arr['body'] ?? '', 'coupon')
                     // No title leak.
@@ -62,7 +62,7 @@ class CouponPushRoutingTest extends TestCase
             'expires_at' => null,
         ]);
 
-        $this->actingAs($issuer)->patch("/apps/our-mailbox/coupons/{$coupon->id}/fulfill");
+        $this->actingAs($issuer)->patch("/apps/our-exchange/coupons/{$coupon->id}/fulfill");
 
         Notification::assertSentTo(
             $recipient,
@@ -70,7 +70,7 @@ class CouponPushRoutingTest extends TestCase
             function (GenericPushNotification $notification) use ($recipient) {
                 $arr = $notification->toWebPush($recipient, $notification)->toArray();
 
-                return ($arr['tag'] ?? null) === 'our-mailbox:coupons'
+                return ($arr['tag'] ?? null) === 'our-exchange:coupons'
                     && str_contains($arr['body'] ?? '', 'Alice')
                     && ! str_contains($arr['body'] ?? '', 'Secret leak title');
             }
@@ -88,14 +88,14 @@ class CouponPushRoutingTest extends TestCase
             'recipient_id' => $recipient->id,
             'expires_at' => null,
         ]);
-        $this->actingAs($recipient)->patch("/apps/our-mailbox/coupons/{$requested->id}/cancel");
+        $this->actingAs($recipient)->patch("/apps/our-exchange/coupons/{$requested->id}/cancel");
 
         $issued = Coupon::factory()->create([
             'issuer_id' => $issuer->id,
             'recipient_id' => $recipient->id,
             'expires_at' => null,
         ]);
-        $this->actingAs($issuer)->delete("/apps/our-mailbox/coupons/{$issued->id}");
+        $this->actingAs($issuer)->delete("/apps/our-exchange/coupons/{$issued->id}");
 
         Notification::assertNothingSent();
     }

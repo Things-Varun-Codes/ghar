@@ -4,8 +4,8 @@ import { hasParam, pathOf, withParam, withoutParam } from './url';
 
 describe('pathOf', () => {
     it('drops the query, hash and trailing slash', () => {
-        expect(pathOf('/apps/our-corner/songs/?q=x#top')).toBe(
-            '/apps/our-corner/songs',
+        expect(pathOf('/apps/our-shelf/songs/?q=x#top')).toBe(
+            '/apps/our-shelf/songs',
         );
         expect(pathOf('/')).toBe('/');
         expect(pathOf('/?q=x')).toBe('/');
@@ -23,8 +23,8 @@ describe('query param helpers', () => {
                 'moment',
             ),
         ).toBe('/apps/our-history?order=oldest-first');
-        expect(withoutParam('/apps/our-corner/songs', null)).toBe(
-            '/apps/our-corner/songs',
+        expect(withoutParam('/apps/our-shelf/songs', null)).toBe(
+            '/apps/our-shelf/songs',
         );
         expect(hasParam('/apps/our-history?moment=4', 'moment')).toBe(true);
         expect(hasParam('/apps/our-history', 'moment')).toBe(false);

@@ -7,7 +7,7 @@ import CouponSheet from '@/MiniApps/Mailbox/Components/CouponSheet';
 import MailboxListPage from '@/MiniApps/Mailbox/Components/MailboxListPage';
 import type { HouseholdMember } from '@/MiniApps/Mailbox/Components/RecipientPicker';
 import MailboxLayout from '@/MiniApps/Mailbox/Layouts/MailboxLayout';
-import { index } from '@/routes/apps/our-mailbox/coupons';
+import { index } from '@/routes/apps/our-exchange/coupons';
 import type { Paginated } from '@/types/paginated';
 
 type Tab = 'received' | 'issued';

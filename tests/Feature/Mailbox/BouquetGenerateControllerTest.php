@@ -33,7 +33,7 @@ class BouquetGenerateControllerTest extends TestCase
         $user = User::factory()->create();
 
         $response = $this->actingAs($user)
-            ->postJson('/apps/our-mailbox/bouquets/generate', [
+            ->postJson('/apps/our-exchange/bouquets/generate', [
                 'flowers' => ['red_rose'],
                 'refine' => 'soft light',
             ]);
@@ -62,7 +62,7 @@ class BouquetGenerateControllerTest extends TestCase
 
     public function test_generate_requires_authentication(): void
     {
-        $response = $this->postJson('/apps/our-mailbox/bouquets/generate', [
+        $response = $this->postJson('/apps/our-exchange/bouquets/generate', [
             'flowers' => ['red_rose'],
         ]);
 

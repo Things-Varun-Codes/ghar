@@ -130,7 +130,7 @@ final class HistoryData
         }
 
         $pills = implode(', ', array_map(fn (array $link): string => sprintf(
-            '<span data-corner-type="%s" data-corner-id="%d" data-corner-title="%s" data-corner-href="/apps/our-corner/%s/%d">%s</span>',
+            '<span data-corner-type="%s" data-corner-id="%d" data-corner-title="%s" data-corner-href="/apps/our-shelf/%s/%d">%s</span>',
             $link['type'],
             $link['id'],
             e($link['title']),

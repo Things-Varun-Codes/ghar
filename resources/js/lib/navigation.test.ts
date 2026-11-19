@@ -87,13 +87,13 @@ describe('navigation tracker', () => {
 
     it('reports a visit once, on success, with the page it left and its options', () => {
         inertia.before('v1', { method: 'POST', preserveScroll: true });
-        inertia.navigate('/apps/our-corner/songs', 'visit', 'v1');
-        inertia.success('/apps/our-corner/songs', 'v1');
+        inertia.navigate('/apps/our-shelf/songs', 'visit', 'v1');
+        inertia.success('/apps/our-shelf/songs', 'v1');
 
         expect(changes.slice(1)).toEqual([
             {
-                url: '/apps/our-corner/songs',
-                path: '/apps/our-corner/songs',
+                url: '/apps/our-shelf/songs',
+                path: '/apps/our-shelf/songs',
                 previousPath: '/dashboard',
                 visit: { method: 'post', preserveScroll: true },
             },
@@ -103,7 +103,7 @@ describe('navigation tracker', () => {
 
     it('records a replace visit, which fires no navigate', () => {
         inertia.before('v1');
-        inertia.success('/apps/our-corner', 'v1');
+        inertia.success('/apps/our-shelf', 'v1');
 
         expect(changes[1].previousPath).toBe('/dashboard');
         // The entry was rewritten, so the dashboard is no longer under it.
@@ -123,7 +123,7 @@ describe('navigation tracker', () => {
     });
 
     it('treats a visit it never saw start as a plain get', () => {
-        inertia.success('/apps/our-mailbox', 'unknown');
+        inertia.success('/apps/our-exchange', 'unknown');
 
         expect(changes[1].visit).toEqual({
             method: 'get',
@@ -133,57 +133,57 @@ describe('navigation tracker', () => {
 
     it('reports back and forward without visit options', () => {
         inertia.before('v1');
-        inertia.navigate('/apps/our-corner', 'visit', 'v1');
-        inertia.success('/apps/our-corner', 'v1');
+        inertia.navigate('/apps/our-shelf', 'visit', 'v1');
+        inertia.success('/apps/our-shelf', 'v1');
         inertia.navigate('/dashboard', 'history');
 
         expect(changes[2]).toMatchObject({
             path: '/dashboard',
-            previousPath: '/apps/our-corner',
+            previousPath: '/apps/our-shelf',
             visit: null,
         });
         expect(previousPath()).toBeNull();
     });
 
     it('knows what is under each page after stepping back', () => {
-        inertia.visit('v1', '/apps/our-corner');
-        inertia.visit('v2', '/apps/our-corner/songs');
-        inertia.visit('v3', '/apps/our-corner/songs/4');
+        inertia.visit('v1', '/apps/our-shelf');
+        inertia.visit('v2', '/apps/our-shelf/songs');
+        inertia.visit('v3', '/apps/our-shelf/songs/4');
 
-        inertia.navigate('/apps/our-corner/songs', 'history');
-        expect(previousPath()).toBe('/apps/our-corner');
+        inertia.navigate('/apps/our-shelf/songs', 'history');
+        expect(previousPath()).toBe('/apps/our-shelf');
 
-        inertia.navigate('/apps/our-corner', 'history');
+        inertia.navigate('/apps/our-shelf', 'history');
         expect(previousPath()).toBe('/dashboard');
 
-        inertia.navigate('/apps/our-corner/songs', 'history');
-        expect(previousPath()).toBe('/apps/our-corner');
+        inertia.navigate('/apps/our-shelf/songs', 'history');
+        expect(previousPath()).toBe('/apps/our-shelf');
     });
 
     it('drops the pages ahead when a visit pushes after stepping back', () => {
-        inertia.visit('v1', '/apps/our-corner');
+        inertia.visit('v1', '/apps/our-shelf');
         inertia.navigate('/dashboard', 'history');
-        inertia.visit('v2', '/apps/our-mailbox');
+        inertia.visit('v2', '/apps/our-exchange');
 
         expect(previousPath()).toBe('/dashboard');
 
-        inertia.navigate('/apps/our-corner', 'history');
+        inertia.navigate('/apps/our-shelf', 'history');
         expect(previousPath()).toBeNull();
     });
 
     it('keeps what is under a page that a replace visit rewrote', () => {
-        inertia.visit('v1', '/apps/our-corner');
-        inertia.visit('v2', '/apps/our-corner/songs/4');
+        inertia.visit('v1', '/apps/our-shelf');
+        inertia.visit('v2', '/apps/our-shelf/songs/4');
         inertia.before('v3');
-        inertia.success('/apps/our-corner/songs', 'v3');
+        inertia.success('/apps/our-shelf/songs', 'v3');
 
-        expect(previousPath()).toBe('/apps/our-corner');
+        expect(previousPath()).toBe('/apps/our-shelf');
     });
 
     it('holds a page to one history entry: a get to the path already shown replaces it', () => {
-        inertia.visit('v1', '/apps/our-corner/songs');
+        inertia.visit('v1', '/apps/our-shelf/songs');
 
-        const url = '/apps/our-corner/songs?filter=done';
+        const url = '/apps/our-shelf/songs?filter=done';
 
         expect(inertia.before('v2', {}, url).replace).toBe(true);
         expect(inertia.before('v3', { method: 'post' }, url).replace).toBe(
@@ -193,12 +193,12 @@ describe('navigation tracker', () => {
             false,
         );
         expect(
-            inertia.before('v5', {}, '/apps/our-corner/songs/4').replace,
+            inertia.before('v5', {}, '/apps/our-shelf/songs/4').replace,
         ).toBe(false);
     });
 
     it('claims no previous page for a history entry it never saw', () => {
-        inertia.navigate('/apps/our-mailbox', 'history');
+        inertia.navigate('/apps/our-exchange', 'history');
 
         expect(previousPath()).toBeNull();
     });
@@ -215,12 +215,12 @@ describe('navigation tracker', () => {
 
     it('reports a same-path visit with the same path before and after', () => {
         inertia.before('v1');
-        inertia.navigate('/apps/our-corner/songs', 'visit', 'v1');
-        inertia.success('/apps/our-corner/songs', 'v1');
+        inertia.navigate('/apps/our-shelf/songs', 'visit', 'v1');
+        inertia.success('/apps/our-shelf/songs', 'v1');
         inertia.before('v2');
-        inertia.success('/apps/our-corner/songs?q=rain', 'v2');
+        inertia.success('/apps/our-shelf/songs?q=rain', 'v2');
 
-        expect(changes[2].previousPath).toBe('/apps/our-corner/songs');
+        expect(changes[2].previousPath).toBe('/apps/our-shelf/songs');
         expect(previousPath()).toBe('/dashboard');
     });
 
@@ -228,7 +228,7 @@ describe('navigation tracker', () => {
         const seen: PageChange[] = [];
         const stop = onPageChange((change) => seen.push(change));
         stop();
-        inertia.navigate('/apps/our-corner', 'history');
+        inertia.navigate('/apps/our-shelf', 'history');
 
         expect(seen).toEqual([]);
     });

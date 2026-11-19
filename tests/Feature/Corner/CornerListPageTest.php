@@ -45,7 +45,7 @@ class CornerListPageTest extends TestCase
         $this->itemIn(CornerList::factory()->create(), $this->user);
 
         $this->actingAs($this->user)
-            ->get("/apps/our-corner/{$list->slug}")
+            ->get("/apps/our-shelf/{$list->slug}")
             ->assertOk()
             ->assertInertia(fn (AssertableInertia $page) => $page
                 ->component('MiniApps/Corner/Pages/List')
@@ -86,7 +86,7 @@ class CornerListPageTest extends TestCase
         $place->markDone($doneBy);
 
         $this->actingAs($this->user)
-            ->get("/apps/our-corner/songs/{$song->id}")
+            ->get("/apps/our-shelf/songs/{$song->id}")
             ->assertInertia(fn (AssertableInertia $page) => $page
                 ->component('MiniApps/Corner/Pages/Item')
                 ->where('list.slug', 'songs')
@@ -109,7 +109,7 @@ class CornerListPageTest extends TestCase
                 ->missing('item.url_key'));
 
         $this->actingAs($this->user)
-            ->get("/apps/our-corner/places/{$place->id}")
+            ->get("/apps/our-shelf/places/{$place->id}")
             ->assertInertia(fn (AssertableInertia $page) => $page
                 ->where('item.location_label', 'The bakery')
                 ->where('item.location_url', 'https://maps.example.com/?q=12.3456789,-98.7654321')
@@ -131,7 +131,7 @@ class CornerListPageTest extends TestCase
         $done = $this->itemIn($list, $this->user, ['done_at' => now(), 'done_by_user_id' => $this->user->id]);
 
         $this->actingAs($this->user)
-            ->get("/apps/our-corner/{$list->slug}?filter=active")
+            ->get("/apps/our-shelf/{$list->slug}?filter=active")
             ->assertInertia(fn (AssertableInertia $page) => $page
                 ->where('filter', 'active')
                 ->has('items.data', 1)
@@ -141,7 +141,7 @@ class CornerListPageTest extends TestCase
                 ->where('items.counts.done', 1));
 
         $this->actingAs($this->user)
-            ->get("/apps/our-corner/{$list->slug}?filter=done")
+            ->get("/apps/our-shelf/{$list->slug}?filter=done")
             ->assertInertia(fn (AssertableInertia $page) => $page
                 ->where('filter', 'done')
                 ->has('items.data', 1)
@@ -149,7 +149,7 @@ class CornerListPageTest extends TestCase
 
         foreach (['', '?filter=all', '?filter=garbage', '?filter[]=done'] as $query) {
             $this->actingAs($this->user)
-                ->get("/apps/our-corner/{$list->slug}{$query}")
+                ->get("/apps/our-shelf/{$list->slug}{$query}")
                 ->assertInertia(fn (AssertableInertia $page) => $page
                     ->where('filter', 'all')
                     ->has('items.data', 2));
@@ -163,7 +163,7 @@ class CornerListPageTest extends TestCase
         Item::factory()->count(3)->done($this->user)->create(['list_id' => $list->id, 'added_by_user_id' => $this->user->id]);
 
         $this->actingAs($this->user)
-            ->get('/apps/our-corner/movies?filter=active')
+            ->get('/apps/our-shelf/movies?filter=active')
             ->assertInertia(fn (AssertableInertia $page) => $page
                 ->has('items.data', 50)
                 ->where('items.per_page', 50)
@@ -182,7 +182,7 @@ class CornerListPageTest extends TestCase
         Item::factory()->count(55)->sequence(fn ($s) => ['added_at' => now()->subMinutes($s->index)])
             ->create(['list_id' => $list->id, 'added_by_user_id' => $this->user->id]);
 
-        $first = $this->actingAs($this->user)->get("/apps/our-corner/{$list->slug}");
+        $first = $this->actingAs($this->user)->get("/apps/our-shelf/{$list->slug}");
         $props = $first->viewData('page')['props'];
         $seen = array_column($props['items']['data'], 'id');
 
@@ -203,7 +203,7 @@ class CornerListPageTest extends TestCase
             ->all();
 
         $this->actingAs($this->user)
-            ->get('/apps/our-corner/movies')
+            ->get('/apps/our-shelf/movies')
             ->assertInertia(fn (AssertableInertia $page) => $page
                 ->where('items.data.0.id', $ids[2])
                 ->where('items.data.1.id', $ids[1])
@@ -218,7 +218,7 @@ class CornerListPageTest extends TestCase
         $this->itemIn($list, $this->user, ['title' => 'Imagine', 'author' => 'John Lennon']);
 
         $this->actingAs($this->user)
-            ->get('/apps/our-corner/songs?q=bohemian')
+            ->get('/apps/our-shelf/songs?q=bohemian')
             ->assertInertia(fn (AssertableInertia $page) => $page
                 ->has('items.data', 1)
                 ->where('items.data.0.id', $match->id)
@@ -226,18 +226,18 @@ class CornerListPageTest extends TestCase
                 ->where('q', 'bohemian'));
 
         $this->actingAs($this->user)
-            ->get('/apps/our-corner/songs?q=radiohead')
+            ->get('/apps/our-shelf/songs?q=radiohead')
             ->assertInertia(fn (AssertableInertia $page) => $page
                 ->has('items.data', 1)
                 ->where('items.data.0.id', $byAuthor->id));
 
         $this->actingAs($this->user)
-            ->get('/apps/our-corner/songs?q='.urlencode((string) $match->site_name))
+            ->get('/apps/our-shelf/songs?q='.urlencode((string) $match->site_name))
             ->assertInertia(fn (AssertableInertia $page) => $page->where('items.data', fn ($rows) => collect($rows)->pluck('id')->contains($match->id)));
 
         // Blank and whitespace-only searches are no search.
         $this->actingAs($this->user)
-            ->get('/apps/our-corner/songs?q=%20%20')
+            ->get('/apps/our-shelf/songs?q=%20%20')
             ->assertInertia(fn (AssertableInertia $page) => $page->where('q', null)->has('items.data', 3));
     }
 
@@ -252,16 +252,16 @@ class CornerListPageTest extends TestCase
         $this->itemIn($places, $this->user, ['title' => 'Cafe', 'address' => '1 Fort Road, Kochi']);
 
         $this->actingAs($this->user)
-            ->get("/apps/our-corner/{$activities->slug}?q=sunscreen")
+            ->get("/apps/our-shelf/{$activities->slug}?q=sunscreen")
             ->assertInertia(fn (AssertableInertia $page) => $page->has('items.data', 1)->where('items.data.0.id', $noted->id));
 
         $this->actingAs($this->user)
-            ->get('/apps/our-corner/places?q=mysuru')
+            ->get('/apps/our-shelf/places?q=mysuru')
             ->assertInertia(fn (AssertableInertia $page) => $page->has('items.data', 1)->where('items.data.0.id', $bakery->id));
 
         $this->itemIn($places, $this->user, ['title' => 'Dosa', 'location_label' => 'Vidyarthi Bhavan', 'address' => null]);
         $this->actingAs($this->user)
-            ->get('/apps/our-corner/places?q=vidyarthi')
+            ->get('/apps/our-shelf/places?q=vidyarthi')
             ->assertInertia(fn (AssertableInertia $page) => $page->has('items.data', 1)->where('items.data.0.title', 'Dosa'));
     }
 
@@ -272,7 +272,7 @@ class CornerListPageTest extends TestCase
         $this->itemIn($list, $this->user, ['title' => '100 fun']);
 
         $this->actingAs($this->user)
-            ->get("/apps/our-corner/{$list->slug}?q=".urlencode('0%'))
+            ->get("/apps/our-shelf/{$list->slug}?q=".urlencode('0%'))
             ->assertInertia(fn (AssertableInertia $page) => $page->has('items.data', 1)->where('items.data.0.title', '100% fun'));
     }
 
@@ -284,7 +284,7 @@ class CornerListPageTest extends TestCase
         $this->itemIn($list, $this->user, ['title' => 'Alpha', 'author' => 'Zeta Artist', 'added_at' => now()->subDay()]);
 
         $this->actingAs($this->user)
-            ->get("/apps/our-corner/{$list->slug}?sort=title")
+            ->get("/apps/our-shelf/{$list->slug}?sort=title")
             ->assertInertia(fn (AssertableInertia $page) => $page
                 ->where('sorts', ['recent', 'title'])
                 ->where('sort', 'title')
@@ -292,7 +292,7 @@ class CornerListPageTest extends TestCase
                 ->where('items.data.1.title', 'Zebra'));
 
         $this->actingAs($this->user)
-            ->get("/apps/our-corner/{$list->slug}?sort=artist")
+            ->get("/apps/our-shelf/{$list->slug}?sort=artist")
             ->assertInertia(fn (AssertableInertia $page) => $page
                 ->where('sort', 'recent')
                 ->where('items.data.0.title', 'Zebra'));
@@ -306,7 +306,7 @@ class CornerListPageTest extends TestCase
 
         foreach (['', '?sort=garbage', '?sort[]=title'] as $query) {
             $this->actingAs($this->user)
-                ->get("/apps/our-corner/songs{$query}")
+                ->get("/apps/our-shelf/songs{$query}")
                 ->assertInertia(fn (AssertableInertia $page) => $page
                     ->where('sort', 'recent')
                     ->where('items.data.0.id', $newer->id)
@@ -317,14 +317,14 @@ class CornerListPageTest extends TestCase
     public function test_a_missing_list_renders_a_page_saying_so(): void
     {
         $this->actingAs($this->user)
-            ->get('/apps/our-corner/no-such-list')
+            ->get('/apps/our-shelf/no-such-list')
             ->assertOk()
             ->assertInertia(fn (AssertableInertia $page) => $page
                 ->component('MiniApps/Corner/Pages/EntityNotFound')
                 ->where('kind', 'list'));
 
         $this->actingAs($this->user)
-            ->get('/apps/our-corner/no-such-list/1')
+            ->get('/apps/our-shelf/no-such-list/1')
             ->assertOk()
             ->assertInertia(fn (AssertableInertia $page) => $page
                 ->component('MiniApps/Corner/Pages/EntityNotFound')
@@ -339,7 +339,7 @@ class CornerListPageTest extends TestCase
 
         foreach ([(string) $missing, (string) $elsewhere->id, 'abc', '-1'] as $id) {
             $this->actingAs($this->user)
-                ->get("/apps/our-corner/{$list->slug}/{$id}")
+                ->get("/apps/our-shelf/{$list->slug}/{$id}")
                 ->assertOk()
                 ->assertInertia(fn (AssertableInertia $page) => $page
                     ->component('MiniApps/Corner/Pages/EntityNotFound')
@@ -356,7 +356,7 @@ class CornerListPageTest extends TestCase
 
         foreach ([$legacyId, $song->id] as $id) {
             $this->actingAs($this->user)
-                ->get("/apps/our-corner/songs/{$id}")
+                ->get("/apps/our-shelf/songs/{$id}")
                 ->assertOk()
                 ->assertInertia(fn (AssertableInertia $page) => $page
                     ->component('MiniApps/Corner/Pages/Item')
@@ -365,7 +365,7 @@ class CornerListPageTest extends TestCase
 
         // An old id only counts in the list it came from.
         $this->actingAs($this->user)
-            ->get("/apps/our-corner/{$this->movies()->slug}/{$legacyId}")
+            ->get("/apps/our-shelf/{$this->movies()->slug}/{$legacyId}")
             ->assertInertia(fn (AssertableInertia $page) => $page->component('MiniApps/Corner/Pages/EntityNotFound'));
     }
 
@@ -377,7 +377,7 @@ class CornerListPageTest extends TestCase
         $this->itemIn($list, $this->user, ['legacy_type' => 'corner.song', 'legacy_id' => $newer->id]);
 
         $this->actingAs($this->user)
-            ->get("/apps/our-corner/songs/{$newer->id}")
+            ->get("/apps/our-shelf/songs/{$newer->id}")
             ->assertInertia(fn (AssertableInertia $page) => $page->where('item.id', $newer->id));
     }
 
@@ -385,8 +385,8 @@ class CornerListPageTest extends TestCase
     {
         $list = $this->songs();
 
-        $this->get('/apps/our-corner')->assertRedirect('/login');
-        $this->get("/apps/our-corner/{$list->slug}")->assertRedirect('/login');
-        $this->post("/apps/our-corner/{$list->slug}", ['title' => 'X'])->assertRedirect('/login');
+        $this->get('/apps/our-shelf')->assertRedirect('/login');
+        $this->get("/apps/our-shelf/{$list->slug}")->assertRedirect('/login');
+        $this->post("/apps/our-shelf/{$list->slug}", ['title' => 'X'])->assertRedirect('/login');
     }
 }

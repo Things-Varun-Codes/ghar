@@ -18,7 +18,7 @@ class MailboxRateLimitTest extends TestCase
     public function test_every_mailbox_write_has_its_own_limiter_not_corners(): void
     {
         $writes = collect(Route::getRoutes()->getRoutes())->filter(
-            fn (RoutingRoute $route) => str_starts_with($route->uri(), 'apps/our-mailbox/')
+            fn (RoutingRoute $route) => str_starts_with($route->uri(), 'apps/our-exchange/')
                 && array_diff($route->methods(), ['GET', 'HEAD']) !== [],
         );
 
@@ -26,7 +26,7 @@ class MailboxRateLimitTest extends TestCase
 
         foreach ($writes as $route) {
             $middleware = $route->gatherMiddleware();
-            $expected = $route->getName() === 'apps.our-mailbox.bouquets.generate'
+            $expected = $route->getName() === 'apps.our-exchange.bouquets.generate'
                 ? 'throttle:bouquet-generate'
                 : 'throttle:mailbox-mutations';
 

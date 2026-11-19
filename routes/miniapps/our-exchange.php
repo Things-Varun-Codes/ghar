@@ -11,7 +11,7 @@ use Illuminate\Support\Facades\Route;
 /** Every route of an entry type sits in its group, so turning the type off takes all of them. */
 $type = fn (string $type): string => 'room:'.EntryTypes::ROOM.','.$type;
 
-Route::prefix('apps/our-mailbox')->name('apps.our-mailbox.')->group(function () use ($type) {
+Route::prefix('apps/our-exchange')->name('apps.our-exchange.')->group(function () use ($type) {
     Route::get('/', [MailboxController::class, 'index'])->name('landing');
 
     Route::middleware($type(EntryTypes::MESSAGES))->group(function () {
@@ -46,14 +46,6 @@ Route::prefix('apps/our-mailbox')->name('apps.our-mailbox.')->group(function () 
             Route::delete('/citations/{citation}', [CitationsController::class, 'destroy'])->name('citations.destroy');
         });
     });
-
-    // Citations were called challans. Notifications already delivered and bookmarks still hold
-    // these addresses.
-    Route::get('/challans/{id?}', fn (?string $id = null) => redirect()->route(
-        $id === null ? 'apps.our-mailbox.citations.index' : 'apps.our-mailbox.citations.show',
-        $id === null ? [] : ['citation' => $id],
-        301,
-    ))->whereNumber('id')->name('challans.redirect');
 
     Route::middleware($type(EntryTypes::COUPONS))->group(function () {
         Route::get('/coupons', [CouponsController::class, 'index'])->name('coupons.index');

@@ -44,7 +44,7 @@ Every invited user is a household member (`App\Shell\Services\Household`: `membe
 - **Recipients** arrive as `recipient_ids`: one or more other members, never yourself
   (`ValidatesRecipients`). A coupon or citation has one recipient, so several ids issue one row each.
 - **Push:** `PushDispatcher::toHousehold($actor, …)` for new moments and Corner items;
-  `toUsers($recipients, …)` for Mailbox, through `MailboxPush`, which builds the `our-mailbox:{type}`
+  `toUsers($recipients, …)` for Mailbox, through `MailboxPush`, which builds the `our-exchange:{type}`
   tag and the link. Never hand-roll a recipient query.
 - **Push timing — two accepted shapes, don't "harmonize" them.** Corner (`AddItem`) dispatches
   inside `DB::afterCommit(...)` within the transaction. Mailbox (`CreateMessage`, `IssueCitation`

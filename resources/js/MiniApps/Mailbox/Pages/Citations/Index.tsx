@@ -7,7 +7,7 @@ import CitationSheet from '@/MiniApps/Mailbox/Components/CitationSheet';
 import MailboxListPage from '@/MiniApps/Mailbox/Components/MailboxListPage';
 import type { HouseholdMember } from '@/MiniApps/Mailbox/Components/RecipientPicker';
 import MailboxLayout from '@/MiniApps/Mailbox/Layouts/MailboxLayout';
-import { index } from '@/routes/apps/our-mailbox/citations';
+import { index } from '@/routes/apps/our-exchange/citations';
 import type { Paginated } from '@/types/paginated';
 
 type Tab = 'received' | 'issued';

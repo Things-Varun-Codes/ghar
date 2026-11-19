@@ -35,7 +35,7 @@ class AddItem
 
                 if ($list->notify_on_add) {
                     $body = "{$adder->firstName()} added to {$list->name}: {$item->title}";
-                    $url = route('apps.our-corner.items.show', [$list->slug, $item->id], absolute: false);
+                    $url = route('apps.our-shelf.items.show', [$list->slug, $item->id], absolute: false);
                     $tag = CornerServiceProvider::SLUG.':'.$list->slug;
 
                     // Inside afterCommit so a rolled-back row is never pushed.

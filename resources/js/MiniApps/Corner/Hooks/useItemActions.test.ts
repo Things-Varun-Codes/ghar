@@ -80,7 +80,7 @@ describe('useItemActions', () => {
         });
         expect(routerDelete).toHaveBeenCalledTimes(1);
         expect(routerDelete).toHaveBeenCalledWith(
-            '/apps/our-corner/items/7',
+            '/apps/our-shelf/items/7',
             expect.objectContaining({ preserveScroll: true }),
         );
     });
@@ -158,13 +158,13 @@ describe('useItemActions', () => {
 
         expect(routerDelete).toHaveBeenCalledTimes(1);
         expect(routerDelete).toHaveBeenCalledWith(
-            '/apps/our-corner/items/7',
+            '/apps/our-shelf/items/7',
             expect.objectContaining({ preserveScroll: true }),
         );
     });
 
     it('routes toggle-done to the item URL', () => {
-        const expectedUrl = '/apps/our-corner/items/7/toggle-done';
+        const expectedUrl = '/apps/our-shelf/items/7/toggle-done';
         const { result } = renderHook(() =>
             useItemActions({ id: 7, title: 'Item' }),
         );

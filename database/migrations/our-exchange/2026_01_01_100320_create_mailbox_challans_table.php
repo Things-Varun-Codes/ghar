@@ -5,7 +5,7 @@ use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
 /**
- * Our Mailbox challans (mock traffic tickets). Deleting a user who sent or
+ * Our Exchange challans (mock traffic tickets). Deleting a user who sent or
  * received mail is refused (RESTRICT): the mail is shared history, not a
  * detail that can quietly disappear.
  */

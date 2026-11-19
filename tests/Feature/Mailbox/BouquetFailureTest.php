@@ -35,7 +35,7 @@ class BouquetFailureTest extends TestCase
         $user = User::factory()->create();
 
         $response = $this->actingAs($user)
-            ->postJson('/apps/our-mailbox/bouquets/generate', [
+            ->postJson('/apps/our-exchange/bouquets/generate', [
                 'flowers' => ['red_rose'],
             ]);
 
@@ -80,7 +80,7 @@ class BouquetFailureTest extends TestCase
         $user = User::factory()->create();
 
         $response = $this->actingAs($user)
-            ->postJson('/apps/our-mailbox/bouquets/generate', [
+            ->postJson('/apps/our-exchange/bouquets/generate', [
                 'flowers' => ['red_rose'],
             ]);
 

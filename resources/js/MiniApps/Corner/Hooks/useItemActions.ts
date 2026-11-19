@@ -8,7 +8,7 @@ import {
     transportFailureOptions,
 } from '@/lib/mutation';
 
-import { destroy, toggleDone } from '@/routes/apps/our-corner/items';
+import { destroy, toggleDone } from '@/routes/apps/our-shelf/items';
 
 /* Our own timer: whether sonner fires onDismiss on an action click is unverified. */
 export const DELETE_GRACE_PERIOD_MS = 5000;

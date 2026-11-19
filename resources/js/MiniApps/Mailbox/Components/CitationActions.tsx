@@ -3,7 +3,7 @@ import { useState } from 'react';
 
 import { mutationOptions } from '@/lib/mutation';
 import type { CitationPayload } from '@/MiniApps/Mailbox/Components/CitationCard';
-import { destroy, pay } from '@/routes/apps/our-mailbox/citations';
+import { destroy, pay } from '@/routes/apps/our-exchange/citations';
 import ConfirmDialog from '@/Shell/Components/ConfirmDialog';
 import SubmitButton from '@/Shell/Components/SubmitButton';
 

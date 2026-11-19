@@ -9,7 +9,7 @@ import NoteCard from '@/MiniApps/Mailbox/Components/NoteCard';
 import type { MessageItem } from '@/MiniApps/Mailbox/Components/NoteCard';
 import type { HouseholdMember } from '@/MiniApps/Mailbox/Components/RecipientPicker';
 import MailboxLayout from '@/MiniApps/Mailbox/Layouts/MailboxLayout';
-import { destroy, index } from '@/routes/apps/our-mailbox/messages';
+import { destroy, index } from '@/routes/apps/our-exchange/messages';
 import type { Paginated } from '@/types/paginated';
 
 type Tab = 'received' | 'sent';

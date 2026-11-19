@@ -8,11 +8,11 @@ use App\MiniApps\Corner\Controllers\PictureController;
 use Illuminate\Support\Facades\Route;
 
 /*
- * A list lives at /apps/our-corner/{slug} and its items at /apps/our-corner/{slug}/{id}. The
+ * A list lives at /apps/our-shelf/{slug} and its items at /apps/our-shelf/{slug}/{id}. The
  * fixed words "lists" and "items" are reserved slugs (CreateList), so the routes that use
  * them never collide with a list.
  */
-Route::prefix('apps/our-corner')->name('apps.our-corner.')->group(function () {
+Route::prefix('apps/our-shelf')->name('apps.our-shelf.')->group(function () {
     Route::get('/', [CornerController::class, 'index'])->name('landing');
 
     Route::middleware('throttle:corner-mutations')->group(function () {
@@ -38,8 +38,8 @@ Route::prefix('apps/our-corner')->name('apps.our-corner.')->group(function () {
 
 Route::middleware('throttle:corner-mutations')
     ->get('/api/corner/link-preview', [LinkPreviewController::class, 'preview'])
-    ->name('apps.our-corner.link.preview');
+    ->name('apps.our-shelf.link.preview');
 
 Route::middleware('throttle:corner-mutations')
     ->get('/api/corner/picture-preview', [PictureController::class, 'preview'])
-    ->name('apps.our-corner.picture.preview');
+    ->name('apps.our-shelf.picture.preview');

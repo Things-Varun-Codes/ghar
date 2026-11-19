@@ -25,7 +25,7 @@ only); its data stays. A provider's `boot()` runs either way, so a resolver or c
 registers must cope with its room being off (summaries and previews are only asked for rooms that
 are on). The admin page lists rooms from the registry, so a new room needs no edit there, and the
 back control finds the room's name and landing in the registry too.
-A room can offer options of its own (Our Mailbox's entry types) with `Rooms::registerOption()` in
+A room can offer options of its own (Our Exchange's entry types) with `Rooms::registerOption()` in
 its provider's `boot()`. Everything else is a hand edit:
 
 1. `config/miniapps.php` entry — include `component_prefix` or `AppLayout`'s chrome-hide breaks,

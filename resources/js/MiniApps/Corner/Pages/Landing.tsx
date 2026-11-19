@@ -13,8 +13,8 @@ import CornerLayout from '@/MiniApps/Corner/Layouts/CornerLayout';
 import type { ListSettings } from '@/MiniApps/Corner/lib/presets';
 import { SUGGESTED_LISTS } from '@/MiniApps/Corner/lib/presets';
 import type { CornerListInfo } from '@/MiniApps/Corner/lib/types';
-import { show } from '@/routes/apps/our-corner/lists';
-import { store } from '@/routes/apps/our-corner/lists';
+import { show } from '@/routes/apps/our-shelf/lists';
+import { store } from '@/routes/apps/our-shelf/lists';
 import Page from '@/Shell/Components/Page';
 import RoomDoor from '@/Shell/Components/RoomDoor';
 import LinkableIcon from '@/Shell/linkables/LinkableIcon';
@@ -224,8 +224,8 @@ export default function Landing({ lists, can }: Props) {
     return (
         <CornerLayout>
             <Page
-                title="Our Corner"
-                documentTitle="Our Corner"
+                title="Our Shelf"
+                documentTitle="Our Shelf"
                 backChevron
                 actions={
                     can.create &&

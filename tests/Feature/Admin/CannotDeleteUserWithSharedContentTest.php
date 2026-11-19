@@ -36,8 +36,8 @@ class CannotDeleteUserWithSharedContentTest extends TestCase
 
         // The refusal names what is in the way.
         $refusal = session('errors')->getBag('default')->first('delete');
-        $this->assertStringContainsString('Corner items', $refusal);
-        $this->assertStringContainsString('Mailbox messages', $refusal);
+        $this->assertStringContainsString('Shelf items', $refusal);
+        $this->assertStringContainsString('Exchange messages', $refusal);
 
         $this->assertDatabaseHas('users', ['id' => $target->id]);
         $this->assertDatabaseHas('corner_items', ['id' => $item->id]);

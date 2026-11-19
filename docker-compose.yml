@@ -104,7 +104,7 @@ services:
       # Optional. Public, referrer-restricted; empty disables the location field.
       GOOGLE_MAPS_API_KEY: ${GOOGLE_MAPS_API_KEY:-}
 
-      # AI bouquets (Our Mailbox). No `fake` fallback on purpose: unset, the
+      # AI bouquets (Our Exchange). No `fake` fallback on purpose: unset, the
       # flowers feature fails loudly instead of silently serving a placeholder.
       BOUQUET_IMAGE_PROVIDER: ${BOUQUET_IMAGE_PROVIDER:-}
       CLOUDFLARE_ACCOUNT_ID: ${CLOUDFLARE_ACCOUNT_ID:-}

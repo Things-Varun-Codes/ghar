@@ -103,7 +103,7 @@ class Item extends Model
             return null;
         }
 
-        return route('apps.our-corner.items.picture', [
+        return route('apps.our-shelf.items.picture', [
             'item' => $id,
             'v' => substr(hash('sha256', $source), 0, 12),
         ], absolute: false);

@@ -117,13 +117,13 @@ class LinkableEntitiesTest extends TestCase
             label: 'Foos',
             resolveMany: fn (array $ids) => array_fill_keys($ids, ['title' => 'Foo']),
             listing: fn () => [['id' => 1, 'title' => 'Foo']],
-            room: 'our-corner',
+            room: 'our-shelf',
         );
 
         $this->assertNotNull($linkable->resolve('foo.roomed', 1));
         $this->assertContains('foo.roomed', $linkable->forPage()['types']);
 
-        app(Rooms::class)->set('our-corner', false);
+        app(Rooms::class)->set('our-shelf', false);
 
         $this->assertNull($linkable->resolve('foo.roomed', 1));
         $this->assertSame([], $linkable->resolveMany('foo.roomed', [1]));

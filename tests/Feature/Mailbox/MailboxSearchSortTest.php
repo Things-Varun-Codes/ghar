@@ -28,10 +28,10 @@ class MailboxSearchSortTest extends TestCase
     public static function surfaces(): array
     {
         return [
-            'messages' => ['/apps/our-mailbox/messages?tab=received', 'messages'],
-            'flowers' => ['/apps/our-mailbox/flowers?tab=received', 'bouquets'],
-            'citations' => ['/apps/our-mailbox/citations?tab=received', 'citations'],
-            'coupons' => ['/apps/our-mailbox/coupons?tab=received', 'coupons'],
+            'messages' => ['/apps/our-exchange/messages?tab=received', 'messages'],
+            'flowers' => ['/apps/our-exchange/flowers?tab=received', 'bouquets'],
+            'citations' => ['/apps/our-exchange/citations?tab=received', 'citations'],
+            'coupons' => ['/apps/our-exchange/coupons?tab=received', 'coupons'],
         ];
     }
 
@@ -169,7 +169,7 @@ class MailboxSearchSortTest extends TestCase
         ]);
 
         $this->actingAs($viewer)
-            ->get("/apps/our-mailbox/{$slug}?tab=issued&q=anniversary")
+            ->get("/apps/our-exchange/{$slug}?tab=issued&q=anniversary")
             ->assertOk()
             ->assertInertia(fn ($page) => $page
                 ->where('tab', 'issued')

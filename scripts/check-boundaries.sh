@@ -18,7 +18,7 @@ report 'the shell imports a mini app' \
     "$(grep -rnE '^use App\\MiniApps\\' app/Shell || true)"
 report 'the shell JS imports a mini app' \
     "$(grep -rnE "from '@/MiniApps/" resources/js/Shell || true)"
-# A room slug in the shell (`our-corner`, `data-app="our-…"`, `/apps/our-…`) is a room fact the
+# A room slug in the shell (`our-shelf`, `data-app="our-…"`, `/apps/our-…`) is a room fact the
 # shell should get from the registry or the room itself. The boundary keeps `hour-`/`four-` out.
 report 'the shell names a room (take it from the registry, or let the room pass it in)' \
     "$(grep -rnE '(^|[^a-z0-9_-])our-[a-z]' resources/js/Shell app/Shell \
