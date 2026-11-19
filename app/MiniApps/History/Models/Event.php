@@ -6,6 +6,8 @@ use App\Shell\Models\User;
 use Carbon\CarbonInterface;
 use Database\Factories\EventFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -29,9 +31,14 @@ use Spatie\MediaLibrary\MediaCollections\Models\Media;
  * @property string|null $location_lng decimal(10,7); cast to string by Laravel, exposed as float by EventResource
  * @property string|null $body_html
  * @property int|null $creator_id
+ * @property int|null $birthday_user_id the member whose birthday this moment is
  * @property CarbonInterface $created_at
  * @property CarbonInterface $updated_at
  * @property CarbonInterface|null $deleted_at
+ * @property-read User|null $creator
+ * @property-read User|null $birthdayOf
+ * @property-read Collection<int, EventReaction> $reactions
+ * @property-read Collection<int, EventComment> $comments
  */
 #[Fillable([
     'occurred_on',
@@ -44,6 +51,7 @@ use Spatie\MediaLibrary\MediaCollections\Models\Media;
     'location_lng',
     'body_html',
     'creator_id',
+    'birthday_user_id',
 ])]
 class Event extends Model implements HasMedia
 {
@@ -145,5 +153,42 @@ class Event extends Model implements HasMedia
     public function creator(): BelongsTo
     {
         return $this->belongsTo(User::class, 'creator_id');
+    }
+
+    /** @return BelongsTo<User, $this> */
+    public function birthdayOf(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'birthday_user_id');
+    }
+
+    /** @return HasMany<EventReaction, $this> */
+    public function reactions(): HasMany
+    {
+        return $this->hasMany(EventReaction::class, 'event_id')->orderBy('id');
+    }
+
+    /** @return HasMany<EventComment, $this> */
+    public function comments(): HasMany
+    {
+        return $this->hasMany(EventComment::class, 'event_id')->orderBy('id');
+    }
+
+    /**
+     * Everything EventResource reads. Every query whose moments reach EventResource starts
+     * here, or strict mode throws on the first relation it missed.
+     *
+     * @param  Builder<Event>  $query
+     * @return Builder<Event>
+     */
+    public function scopeForResource(Builder $query): Builder
+    {
+        return $query->with([
+            'media',
+            'changes.user',
+            'creator',
+            'birthdayOf',
+            'reactions.user',
+            'comments.author',
+        ]);
     }
 }
