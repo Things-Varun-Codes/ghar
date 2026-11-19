@@ -23,5 +23,10 @@ pictures are https addresses primed into the picture cache, single and multi-rec
 issued/requested/part-fulfilled/depleted/expired, citations issued/paid, short links `pantry23`,
 `garage23` and the disabled `bench789`, and a pending invite at
 `/invitations/dev-invite-token-for-local-testing-only`. Ravi and Meera have profile pictures (drawn into `dev-seed/`), Asha and Kabir show initials; Meera's
-birthday is today, Asha's and Ravi's are set, Kabir has none and morning memories off. Row ids are stable after a reset. Ravi and
+birthday is today, Asha's and Ravi's are set, Kabir has none and morning memories off. Two moments
+fall on today's date in earlier years: Meera's "Chai on the new balcony" (a year ago, id 26) and
+Ravi's "Birthday picnic in Cubbon Park" (four years ago, id 27, linked to Meera's birthday). Ravi's
+"Monsoon drive to the coast" (id 5, `/apps/our-history?moment=5`) holds the conversation:
+comments 1 (Meera), 2 (Kabir) and 3 (Ravi), and reactions ❤️ and 😂 from Meera, ❤️ and 🎉 from Asha.
+The seed's "today" is the household's (`Region::today()`). Row ids are stable after a reset. Ravi and
 Meera have synthetic push subscriptions that can't deliver; test real push by subscribing a browser.

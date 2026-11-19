@@ -8,6 +8,8 @@ use App\MiniApps\Corner\Policies\CornerListPolicy;
 use App\MiniApps\Corner\Support\ListIcon;
 use App\MiniApps\Corner\Support\PictureCache;
 use App\MiniApps\History\Models\Event;
+use App\MiniApps\History\Models\EventComment;
+use App\MiniApps\History\Models\EventReaction;
 use App\MiniApps\Mailbox\Models\Bouquet;
 use App\MiniApps\Mailbox\Models\Citation;
 use App\MiniApps\Mailbox\Models\Coupon;
@@ -16,6 +18,7 @@ use App\Shell\Models\Invitation;
 use App\Shell\Models\ShortLink;
 use App\Shell\Models\User;
 use App\Shell\Services\LinkableEntities;
+use App\Shell\Support\Region;
 use Database\Seeders\DatabaseSeeder;
 use Database\Seeders\DevDataSeeder;
 use Database\Seeders\RoleSeeder;
@@ -153,6 +156,29 @@ class DevDataSeederTest extends TestCase
         foreach ($refs as $ref) {
             $this->assertNotNull($linkable->resolve($ref->to_type, (int) $ref->to_id), "{$ref->to_type}:{$ref->to_id} does not resolve");
         }
+
+        // Two memories from this day in earlier years, one of them Meera's birthday, which is today.
+        $today = Region::today();
+        $this->assertSame($today->format('m-d'), $meera->birthday?->format('m-d'));
+        $onThisDay = Event::query()
+            ->whereMonth('occurred_on', $today->month)
+            ->whereDay('occurred_on', $today->day)
+            ->whereYear('occurred_on', '<', $today->year)
+            ->get();
+        $this->assertCount(2, $onThisDay);
+        $this->assertSame([$meera->id], $onThisDay->pluck('birthday_user_id')->filter()->values()->all());
+
+        // Ravi's monsoon drive holds the thread: Meera, Kabir, then Ravi; Meera and Asha react.
+        $monsoon = Event::query()->where('title', 'Monsoon drive to the coast')->firstOrFail();
+        $this->assertSame($ravi->id, $monsoon->creator_id);
+        $this->assertSame(
+            [$meera->id, $kabir->id, $ravi->id],
+            EventComment::query()->where('event_id', $monsoon->id)->orderBy('id')->pluck('author_id')->all(),
+        );
+        $this->assertEqualsCanonicalizing(
+            [$meera->id, $admin->id],
+            EventReaction::query()->where('event_id', $monsoon->id)->distinct()->pluck('user_id')->all(),
+        );
 
         // Every generated file exists, so nothing 404s in the browser.
         $media = Media::where('collection_name', 'photos')->firstOrFail();

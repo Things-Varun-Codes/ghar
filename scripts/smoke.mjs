@@ -111,7 +111,6 @@ async function main() {
         'migrate:fresh --seed',
     );
 
-
     // The walk logs in as the admin, so the citation and coupon must be ones the
     // admin received, or `view` would 403.
     const fixturesPhp = `
@@ -219,14 +218,12 @@ echo json_encode([
         {
             path: `/admin/users/${fixtures.otherUserId}/edit`,
             auth: true,
-            description:
-                '/admin/users/{id}/edit (admin user edit)',
+            description: '/admin/users/{id}/edit (admin user edit)',
         },
         {
             path: `/invitations/${fixtures.token}`,
             auth: false,
-            description:
-                '/invitations/{token} (unauthenticated invite accept)',
+            description: '/invitations/{token} (unauthenticated invite accept)',
         },
         {
             path: `/reset-password/${fixtures.resetToken}?email=${encodeURIComponent(fixtures.resetEmail)}`,
@@ -236,38 +233,39 @@ echo json_encode([
         {
             path: '/apps/our-history',
             auth: true,
+            description: '/apps/our-history (Our History timeline)',
+        },
+        {
+            // Opens the sheet on the seeded moment with comments and reactions.
+            path: '/apps/our-history?moment=5',
+            auth: true,
             description:
-                '/apps/our-history (Our History timeline)',
+                '/apps/our-history?moment=5 (Our History moment sheet)',
         },
         {
             path: '/apps/our-history/gallery',
             auth: true,
-            description:
-                '/apps/our-history/gallery (Our History gallery)',
+            description: '/apps/our-history/gallery (Our History gallery)',
         },
         {
             path: '/apps/our-history/calendar',
             auth: true,
-            description:
-                '/apps/our-history/calendar (Our History calendar)',
+            description: '/apps/our-history/calendar (Our History calendar)',
         },
         {
             path: '/settings/notifications',
             auth: true,
-            description:
-                '/settings/notifications (push opt-in settings)',
+            description: '/settings/notifications (push opt-in settings)',
         },
         {
             path: '/admin/notifications',
             auth: true,
-            description:
-                '/admin/notifications (admin send notification)',
+            description: '/admin/notifications (admin send notification)',
         },
         {
             path: '/admin/shortlinks',
             auth: true,
-            description:
-                '/admin/shortlinks (NFC short links admin)',
+            description: '/admin/shortlinks (NFC short links admin)',
         },
         {
             path: '/apps/our-shelf',
@@ -277,20 +275,17 @@ echo json_encode([
         {
             path: `/apps/our-shelf/${fixtures.corner.legacy.slug}`,
             auth: true,
-            description:
-                '/apps/our-shelf/{list} (a list past one page)',
+            description: '/apps/our-shelf/{list} (a list past one page)',
         },
         {
             path: `/apps/our-shelf/${fixtures.corner.longName.slug}`,
             auth: true,
-            description:
-                '/apps/our-shelf/{list} (a list with a long name)',
+            description: '/apps/our-shelf/{list} (a list with a long name)',
         },
         {
             path: `/apps/our-shelf/${fixtures.corner.everything.slug}`,
             auth: true,
-            description:
-                '/apps/our-shelf/{list} (links, pictures and places)',
+            description: '/apps/our-shelf/{list} (links, pictures and places)',
         },
         {
             path: `/apps/our-shelf/${fixtures.corner.everything.slug}/${fixtures.corner.everything.item}`,
@@ -334,8 +329,7 @@ echo json_encode([
         {
             path: '/apps/our-exchange/citations',
             auth: true,
-            description:
-                '/apps/our-exchange/citations (Citations index)',
+            description: '/apps/our-exchange/citations (Citations index)',
         },
         {
             path: `/apps/our-exchange/citations/${fixtures.mailboxCitationId}`,
@@ -357,8 +351,7 @@ echo json_encode([
         {
             path: '/apps/our-exchange/flowers',
             auth: true,
-            description:
-                '/apps/our-exchange/flowers (Flowers index)',
+            description: '/apps/our-exchange/flowers (Flowers index)',
         },
         // `before` runs the real scheduler and a worker, so the heartbeats are fresh.
         {
@@ -420,8 +413,8 @@ echo json_encode([
                     });
 
                     if (!route.auth) {
-await ctx.close();
-}
+                        await ctx.close();
+                    }
 
                     continue;
                 }
@@ -438,8 +431,8 @@ await ctx.close();
                     });
 
                     if (!route.auth) {
-await ctx.close();
-}
+                        await ctx.close();
+                    }
 
                     continue;
                 }
@@ -456,8 +449,8 @@ await ctx.close();
                     });
 
                     if (!route.auth) {
-await ctx.close();
-}
+                        await ctx.close();
+                    }
 
                     continue;
                 }
@@ -475,8 +468,8 @@ await ctx.close();
                 console.error(`  [smoke] FAIL  ${desc}: ${err.message}`);
             } finally {
                 if (!route.auth) {
-await ctx.close();
-}
+                    await ctx.close();
+                }
             }
 
             continue;
@@ -509,8 +502,8 @@ await ctx.close();
                 await page.close();
 
                 if (!route.auth) {
-await ctx.close();
-}
+                    await ctx.close();
+                }
 
                 continue;
             }
@@ -524,8 +517,8 @@ await ctx.close();
                 await page.close();
 
                 if (!route.auth) {
-await ctx.close();
-}
+                    await ctx.close();
+                }
 
                 continue;
             }
@@ -549,8 +542,8 @@ await ctx.close();
                 await page.close();
 
                 if (!route.auth) {
-await ctx.close();
-}
+                    await ctx.close();
+                }
 
                 continue;
             }
@@ -574,8 +567,8 @@ await ctx.close();
                     await page.close();
 
                     if (!route.auth) {
-await ctx.close();
-}
+                        await ctx.close();
+                    }
 
                     continue;
                 }
@@ -591,8 +584,8 @@ await ctx.close();
                     await page.close();
 
                     if (!route.auth) {
-await ctx.close();
-}
+                        await ctx.close();
+                    }
 
                     continue;
                 }
@@ -613,8 +606,8 @@ await ctx.close();
             await page.close();
 
             if (!route.auth) {
-await ctx.close();
-}
+                await ctx.close();
+            }
         }
     }
 
@@ -639,7 +632,9 @@ await ctx.close();
                 timeout: 15_000,
             });
 
-            await sheetPage.getByRole('button', { name: /add moment/i }).click();
+            await sheetPage
+                .getByRole('button', { name: /add moment/i })
+                .click();
             await sheetPage
                 .locator('[data-test=location-field]')
                 .first()

@@ -6,6 +6,7 @@ use App\Shell\Models\Invitation;
 use App\Shell\Models\ShortLink;
 use App\Shell\Models\User;
 use App\Shell\Services\Rooms;
+use App\Shell\Support\Region;
 use Carbon\CarbonImmutable;
 use Database\Seeders\DevData\CornerData;
 use Database\Seeders\DevData\HistoryData;
@@ -133,7 +134,9 @@ class DevDataSeeder extends Seeder
             ravi: $member(self::RAVI, 'Ravi Rao', 'user'),
             meera: $member(self::MEERA, 'Meera Rao', 'user'),
             kabir: $member(self::KABIR, 'Kabir Rao', 'user'),
-            today: CarbonImmutable::now()->startOfDay(),
+            // The household's date, as Region::today() gives it, so "Meera's birthday is today"
+            // and the on-this-day moments hold on any GHAR_TIMEZONE; midnight UTC, as stored.
+            today: CarbonImmutable::parse(Region::today()->toDateString(), 'UTC'),
             faker: $faker,
         );
 

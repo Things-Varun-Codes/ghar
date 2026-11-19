@@ -57,7 +57,10 @@ lives on the things themselves.
   picture, or their initials on the accent wash. It is decoration beside a printed name, never a
   link, and never the only way to tell who. Not on a citation's or coupon's form, which name
   people in ink.
-- **`HeartMark`** (`Shell/Components/HeartMark.tsx`) is the one drawn mark. No emoji in the UI.
+- **`HeartMark`** (`Shell/Components/HeartMark.tsx`) is the one drawn mark. No emoji in the UI,
+  with one exception: History's reactions are the fixed set in `EventReaction::EMOJI`
+  (❤️ 😂 😮 😢 🙏 🎉), drawn as the glyphs the server sends. Nowhere else, not even as decoration
+  beside them.
 - **Home** is a door per app (`DesktopIcon`) showing a glimpse supplied by that app (step 8 in `new-mini-app.md`).
 - **Done is never crossed out.** A loved song or visited place is a treasure: it gets a sticker and
   keeps its full colour.

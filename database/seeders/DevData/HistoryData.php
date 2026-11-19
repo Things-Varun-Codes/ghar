@@ -4,12 +4,17 @@ namespace Database\Seeders\DevData;
 
 use App\MiniApps\History\Models\Event;
 use App\MiniApps\History\Models\EventChange;
+use App\MiniApps\History\Models\EventComment;
+use App\MiniApps\History\Models\EventReaction;
 use App\Shell\Models\User;
 use App\Shell\Services\LinkableEntities;
+use Carbon\CarbonImmutable;
 
 /**
  * History moments by different creators: more than one timeline page and one
- * gallery page, across several years, with photos, locations and Corner links.
+ * gallery page, across several years, with photos, locations and Corner links,
+ * two on today's date in earlier years (one linked to Meera's birthday, which is
+ * today), and a thread of comments and reactions on "Monsoon drive to the coast".
  */
 final class HistoryData
 {
@@ -62,11 +67,57 @@ final class HistoryData
         $this->linkToCorner($h, $events[0], $links);
         $this->recordEditByAdmin($h, $events[4]);
         $this->softDeleted($h);
+        $this->onThisDay($h);
+        $this->respondTo($h, $events[4]);
+    }
+
+    /**
+     * Seeded after the rest so the earlier ids stay put. Whole years back from today: the
+     * four-year one stays on today's date even on 29 February.
+     */
+    private function onThisDay(Household $h): void
+    {
+        $this->momentOn($h, 'Chai on the new balcony', $h->meera, $h->today->subYearNoOverflow()->setTime(18, 30), 'Home', '<p>The first warm evening up there.</p>');
+
+        $picnic = $this->momentOn($h, 'Birthday picnic in Cubbon Park', $h->ravi, $h->today->subYearsNoOverflow(4)->setTime(12, 30), 'Cubbon Park', null);
+        $picnic->update(['birthday_user_id' => $h->meera->id]);
+    }
+
+    /** Ravi's moment: Meera, Kabir and then Ravi reply; Meera and Asha react. */
+    private function respondTo(Household $h, Event $event): void
+    {
+        $comments = [
+            [$h->meera, 39, 'The chai stop at the ghat was the best part.'],
+            [$h->kabir, 39, "Next time I'm choosing the music."],
+            [$h->ravi, 38, 'Deal, but no more of that one song on repeat.'],
+        ];
+
+        foreach ($comments as [$author, $days, $body]) {
+            $comment = new EventComment([
+                'event_id' => $event->id,
+                'author_id' => $author->id,
+                'body' => $body,
+            ]);
+            $comment->created_at = $h->daysAgo($days);
+            $comment->save();
+        }
+
+        foreach ([[$h->meera, 'heart'], [$h->meera, 'laugh'], [$h->admin, 'heart'], [$h->admin, 'party']] as [$user, $reaction]) {
+            EventReaction::create([
+                'event_id' => $event->id,
+                'user_id' => $user->id,
+                'reaction' => $reaction,
+            ]);
+        }
     }
 
     private function moment(Household $h, ?string $title, User $creator, int $days, ?string $location, ?string $body): Event
     {
-        $when = $h->daysAgo($days);
+        return $this->momentOn($h, $title, $creator, $h->daysAgo($days), $location, $body);
+    }
+
+    private function momentOn(Household $h, ?string $title, User $creator, CarbonImmutable $when, ?string $location, ?string $body): Event
+    {
 
         $event = new Event([
             'occurred_on' => $when->toDateString(),
