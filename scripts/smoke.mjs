@@ -239,6 +239,7 @@ echo json_encode([
             // Opens the sheet on the seeded moment with comments and reactions.
             path: '/apps/our-history?moment=5',
             auth: true,
+            overlay: true,
             description:
                 '/apps/our-history?moment=5 (Our History moment sheet)',
         },
@@ -548,7 +549,26 @@ echo json_encode([
                 continue;
             }
 
-            if (route.auth) {
+            // A modal sheet hides the page under it, chevron included: check the sheet instead.
+            if (route.overlay) {
+                const sheetOpen = await page
+                    .getByRole('dialog')
+                    .first()
+                    .isVisible()
+                    .catch(() => false);
+
+                if (!sheetOpen) {
+                    failures.push({
+                        route: desc,
+                        error: 'Expected the sheet named in the URL to be open',
+                        jsErrors,
+                    });
+
+                    continue;
+                }
+            }
+
+            if (route.auth && !route.overlay) {
                 const isNonDashboard = route.path !== '/dashboard';
                 // One link holds the chevron and the parent's name, so its name starts
                 // "Back to …" whether the label shows or sits in aria-label.
