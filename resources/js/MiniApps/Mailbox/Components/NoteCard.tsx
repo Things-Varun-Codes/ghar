@@ -1,5 +1,6 @@
 import { MoreHorizontal } from 'lucide-react';
 import { useState } from 'react';
+import { Button } from '@/components/ui/button';
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -7,8 +8,10 @@ import {
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { cn } from '@/lib/utils';
+import MailMeta from '@/MiniApps/Mailbox/Components/MailMeta';
 import AppCard from '@/Shell/Components/AppCard';
 import ConfirmDialog from '@/Shell/Components/ConfirmDialog';
+import type { Person } from '@/types/person';
 
 export type FlowerEntry = { key: string; name: string; meaning: string };
 
@@ -20,8 +23,8 @@ export type MessageItem = {
     read_at: string | null;
     is_unread: boolean;
     is_mine: boolean;
-    sender: { id: number; name: string };
-    recipients: { id: number; name: string }[];
+    sender: Person;
+    recipients: Person[];
 };
 
 type Props = {
@@ -50,21 +53,19 @@ export default function NoteCard({ message, onDelete, isFocused }: Props) {
             <p className="mailbox-hand mailbox-note-body">{message.body}</p>
 
             <div className="flex min-h-[32px] items-end justify-between gap-2">
-                <p className="mailbox-note-meta">
-                    {message.is_unread && (
-                        <span className="mailbox-unread">New</span>
-                    )}
-                    {message.is_mine
-                        ? `you to ${recipientNames}`
-                        : message.sender.name}{' '}
-                    · {message.posted_at_human}
-                </p>
+                <MailMeta mail={message} className="mailbox-note-meta" />
 
                 {message.is_mine && onDelete && (
                     <DropdownMenu>
                         <DropdownMenuTrigger
                             aria-label={`Actions for your note to ${recipientNames}, ${message.posted_at_human}`}
-                            className="mailbox-card-menu shell-hit-44"
+                            render={
+                                <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    className="mailbox-card-menu shell-hit-44"
+                                />
+                            }
                         >
                             <MoreHorizontal
                                 size={18}

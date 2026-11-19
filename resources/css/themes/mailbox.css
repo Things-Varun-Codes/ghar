@@ -134,23 +134,17 @@
     line-height: 1.5;
 }
 
-/* A new note or bouquet says so in words; the dot only helps the eye find it. */
-[data-app='our-exchange'] .mailbox-unread {
-    display: inline-flex;
+/* Under a note or bouquet: a New badge, the faces, then who and when. */
+[data-app='our-exchange'] .mailbox-mail-meta {
+    display: flex;
+    flex-wrap: wrap;
     align-items: center;
-    gap: 4px;
-    margin-right: 8px;
-    font-family: var(--mailbox-font-sans);
-    font-size: var(--text-meta);
-    font-weight: 500;
-    color: var(--mailbox-accent-text);
+    gap: 4px 8px;
+    min-width: 0;
 }
-[data-app='our-exchange'] .mailbox-unread::before {
-    content: '';
-    width: 8px;
-    height: 8px;
-    border-radius: var(--radius-pill);
-    background: currentColor;
+/* Each face is ringed in the paper it sits on, not the page. */
+[data-app='our-exchange'] .mailbox-mail-meta [data-slot='avatar-group'] > * {
+    --tw-ring-color: var(--mailbox-card);
 }
 
 /* ── Cards ───────────────────────────────────────────────────────────── */
@@ -200,15 +194,6 @@
     transform: none;
 }
 
-[data-app='our-exchange'] .mailbox-status-pill {
-    font-size: var(--text-meta);
-    font-weight: 500;
-    line-height: 1.5;
-    border-radius: var(--radius-pill);
-    padding: 2px 12px;
-    white-space: nowrap;
-}
-
 [data-app='our-exchange'] .mailbox-card-menu,
 [data-app='our-exchange'] .mailbox-card-menu-square {
     position: relative;
@@ -223,7 +208,6 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    transition: background-color var(--dur-out) var(--ease-ui);
 }
 /* The button stays 32px so the note keeps its rule rhythm; .shell-hit-44 keeps the tap area. */
 [data-app='our-exchange'] .mailbox-card-menu:hover,
@@ -703,6 +687,24 @@
     padding: 0 8px;
 }
 
+/*
+ * On the form the stamp sits in a slot that takes its place and its scale-in when it changes,
+ * so the stamp's own transform stays its tilt.
+ */
+[data-app='our-exchange'] .mailbox-citation-stamp-slot {
+    position: absolute;
+    top: 104px;
+    right: 24px;
+    z-index: 3;
+    pointer-events: none;
+}
+[data-app='our-exchange']
+    .mailbox-citation-stamp-slot
+    > .mailbox-citation-stamp {
+    position: static;
+    display: block;
+}
+
 /* The stamp is the form's one device in capitals. */
 [data-app='our-exchange'] .mailbox-citation-stamp {
     position: absolute;
@@ -732,6 +734,10 @@
     }
     [data-app='our-exchange'] .mailbox-citation-body {
         padding: 24px 16px;
+    }
+    [data-app='our-exchange'] .mailbox-citation-stamp-slot {
+        top: 124px;
+        right: 16px;
     }
     [data-app='our-exchange'] .mailbox-citation-stamp {
         top: 124px;
@@ -1002,6 +1008,10 @@
     color: var(--mailbox-ink);
 }
 
+[data-app='our-exchange'] .mailbox-coupon-stamp-slot {
+    display: inline-block;
+}
+
 [data-app='our-exchange'] .mailbox-coupon-stamp {
     display: inline-block;
     margin-left: 12px;
@@ -1175,6 +1185,9 @@
 }
 
 [data-app='our-exchange'] .mailbox-recipient-solo {
+    display: flex;
+    align-items: center;
+    gap: 8px;
     margin: 0;
     font-size: var(--text-body);
     color: var(--mailbox-ink);
@@ -1230,9 +1243,10 @@
     color: var(--mailbox-ink);
     cursor: pointer;
 }
+/* The face sits close to the chip's round end. */
 [data-app='our-exchange'] .mailbox-recipient-chip {
     min-height: 44px;
-    padding: 0 16px;
+    padding: 0 16px 0 10px;
     font-size: var(--text-body);
 }
 [data-app='our-exchange'] .mailbox-flower-chip {
@@ -1243,12 +1257,12 @@
 
 /* Selected is a wash, a darker edge and a tick, so it never rests on colour alone. */
 [data-app='our-exchange'] .mailbox-recipient-chip:has(input:checked),
-[data-app='our-exchange'] .mailbox-flower-chip[aria-pressed='true'] {
+[data-app='our-exchange'] .mailbox-flower-chip[data-pressed] {
     border-color: var(--mailbox-accent-text);
     background-color: var(--mailbox-selected-wash);
 }
 [data-app='our-exchange'] .mailbox-recipient-chip:has(input:checked)::before,
-[data-app='our-exchange'] .mailbox-flower-chip[aria-pressed='true']::before {
+[data-app='our-exchange'] .mailbox-flower-chip[data-pressed]::before {
     content: '';
     width: 5px;
     height: 10px;
@@ -1267,10 +1281,12 @@
     color: var(--mailbox-ink);
     cursor: pointer;
 }
-[data-app='our-exchange'] .mailbox-check-label input {
-    width: 20px;
-    height: 20px;
-    accent-color: var(--mailbox-action);
+[data-app='our-exchange']
+    .mailbox-check-label
+    [data-slot='checkbox'][data-checked] {
+    border-color: var(--mailbox-action);
+    background-color: var(--mailbox-action);
+    color: var(--mailbox-action-fg);
 }
 
 [data-app='our-exchange'] .mailbox-field,
@@ -1386,12 +1402,15 @@
     background: var(--mailbox-bg);
     height: 300px;
     flex-shrink: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    display: grid;
+    place-items: center;
+}
+/* Stacked, so a preview fading out and the skeleton arriving share the frame. */
+[data-app='our-exchange'] .mailbox-bouquet-stage > * {
+    grid-area: 1 / 1;
 }
 
-[data-app='our-exchange'] .mailbox-bouquet-stage > .shell-skeleton {
+[data-app='our-exchange'] .mailbox-bouquet-stage .shell-skeleton {
     border-radius: 0;
 }
 
@@ -1481,8 +1500,7 @@
     ):hover,
 [data-app='our-exchange']
     .mailbox-recipient-chip:not(:has(input:checked)):hover,
-[data-app='our-exchange']
-    .mailbox-flower-chip:not([aria-pressed='true']):hover {
+[data-app='our-exchange'] .mailbox-flower-chip:not([data-pressed]):hover {
     background-color: var(--mailbox-hover-wash);
     border-color: color-mix(in oklab, var(--mailbox-ink) 32%, transparent);
 }
@@ -1512,7 +1530,7 @@
 [data-app='our-exchange'] .mailbox-coupon-step:disabled {
     opacity: 0.5;
 }
-[data-app='our-exchange'] .mailbox-flower-chip:disabled {
+[data-app='our-exchange'] .mailbox-flower-chip:is(:disabled, [data-disabled]) {
     opacity: 0.45;
 }
 

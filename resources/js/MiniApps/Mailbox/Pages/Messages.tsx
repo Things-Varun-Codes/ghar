@@ -71,7 +71,6 @@ export default function Messages({ messages, tab, sort, q, members }: Props) {
                 emptyBody={emptyCopy.body}
                 renderItem={(m, focusedId) => (
                     <NoteCard
-                        key={m.id}
                         message={m}
                         onDelete={
                             m.is_mine ? () => handleDelete(m.id) : undefined

@@ -1,6 +1,11 @@
+import { usePage } from '@inertiajs/react';
 import { Minus, Plus } from 'lucide-react';
 import type { FormEvent } from 'react';
 import { useId } from 'react';
+import { Button } from '@/components/ui/button';
+import { FieldError } from '@/components/ui/field';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
 import CharCount from '@/MiniApps/Mailbox/Components/CharCount';
 import type { HouseholdMember } from '@/MiniApps/Mailbox/Components/RecipientPicker';
 import RecipientPicker from '@/MiniApps/Mailbox/Components/RecipientPicker';
@@ -33,6 +38,7 @@ const FIELDS = ['title', 'description', 'quantity', 'expires_at'] as const;
 
 export default function CouponSheet({ open, onOpenChange, members }: Props) {
     const quantityLabelId = useId();
+    const { today } = usePage().props;
 
     const compose = useComposeForm<CouponFormShape>({
         component: 'Mailbox/CouponSheet',
@@ -114,7 +120,7 @@ export default function CouponSheet({ open, onOpenChange, members }: Props) {
                     required
                     className="mailbox-form-field"
                 >
-                    <input
+                    <Input
                         id="coupon-title"
                         type="text"
                         maxLength={TITLE_MAX}
@@ -122,7 +128,7 @@ export default function CouponSheet({ open, onOpenChange, members }: Props) {
                         onChange={(e) => setData('title', e.target.value)}
                         aria-required="true"
                         placeholder="e.g. One free car wash"
-                        className="mailbox-field shell-field"
+                        className="mailbox-field"
                     />
                 </FormField>
                 <CharCount length={data.title.length} max={TITLE_MAX} />
@@ -133,40 +139,42 @@ export default function CouponSheet({ open, onOpenChange, members }: Props) {
                     How many?
                 </p>
                 <div className="flex items-center gap-3">
-                    <button
+                    <Button
                         type="button"
+                        variant="outline"
+                        size="icon"
                         aria-label="Fewer"
                         onClick={() => setQuantity(data.quantity - 1)}
                         disabled={data.quantity <= QTY_MIN}
-                        className="mailbox-coupon-step shell-press"
+                        className="mailbox-coupon-step"
                     >
                         <Minus size={20} strokeWidth={1.5} aria-hidden="true" />
-                    </button>
+                    </Button>
                     <span
                         aria-live="polite"
                         className="mailbox-coupon-quantity"
                     >
                         {data.quantity}
                     </span>
-                    <button
+                    <Button
                         type="button"
+                        variant="outline"
+                        size="icon"
                         aria-label="More"
                         onClick={() => setQuantity(data.quantity + 1)}
                         disabled={data.quantity >= QTY_MAX}
-                        className="mailbox-coupon-step shell-press"
+                        className="mailbox-coupon-step"
                     >
                         <Plus size={20} strokeWidth={1.5} aria-hidden="true" />
-                    </button>
+                    </Button>
                     <span className="text-(length:--mailbox-type-scale-eyebrow) text-(--mailbox-ink-soft)">
                         redemption
                         {data.quantity === 1 ? '' : 's'}
                     </span>
                 </div>
-                {errors.quantity && (
-                    <p role="alert" className="mailbox-field-error">
-                        {errors.quantity}
-                    </p>
-                )}
+                <FieldError className="mailbox-field-error">
+                    {errors.quantity}
+                </FieldError>
             </div>
 
             <FormField
@@ -175,12 +183,13 @@ export default function CouponSheet({ open, onOpenChange, members }: Props) {
                 error={errors.expires_at}
                 className="mailbox-form-field"
             >
-                <input
+                <Input
                     id="coupon-expiry"
                     type="date"
+                    min={today}
                     value={data.expires_at}
                     onChange={(e) => setData('expires_at', e.target.value)}
-                    className="mailbox-field shell-field"
+                    className="mailbox-field"
                 />
             </FormField>
 
@@ -191,9 +200,9 @@ export default function CouponSheet({ open, onOpenChange, members }: Props) {
                     error={errors.description}
                     className="mailbox-form-field"
                 >
-                    <textarea
+                    <Textarea
                         id="coupon-description"
-                        className="mailbox-field shell-field"
+                        className="mailbox-field"
                         value={data.description}
                         onChange={(e) => setData('description', e.target.value)}
                         rows={3}
