@@ -26,6 +26,9 @@ class PersonPresenterTest extends TestCase
 
     public function test_a_picture_is_a_signed_url_for_its_key_that_holds_for_the_window(): void
     {
+        // Pinned early in a signing window: on the real clock, the five minutes below can
+        // cross into the next window and change the URL.
+        $this->travelTo(now()->startOfDay()->addMinutes(5));
         config(['shell.media_disk' => 'local']);
         Storage::fake('local', ['serve' => true]);
         Storage::disk('local')->put('avatars/ravi.jpg', 'jpeg');
