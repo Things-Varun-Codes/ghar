@@ -65,6 +65,13 @@
     margin: 4px 0 0;
 }
 
+/* Their face, then the words: "Added by Ravi". */
+[data-app='our-shelf'] .corner-added-by {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
 /* ── Cards and tiles ─────────────────────────────────────────────────────── */
 
 /* The house card with the room's sage wash: the wash is what makes it a shelf. */
@@ -281,6 +288,17 @@
     [data-app='our-shelf'] .corner-doors {
         grid-template-columns: repeat(4, minmax(0, 1fr));
     }
+}
+
+/*
+ * A door sits in two wrappers, one that glides when the order changes and one that settles it
+ * in; both pass the cell's width down so a long name still ellipsises.
+ */
+[data-app='our-shelf'] .corner-door-slot,
+[data-app='our-shelf'] .corner-door-slot > * {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    min-width: 0;
 }
 
 [data-app='our-shelf'] .corner-door {
@@ -773,7 +791,7 @@
     background: var(--corner-hover-fill);
 }
 
-[data-app='our-shelf'] .corner-chip[aria-checked='true'] {
+[data-app='our-shelf'] .corner-chip[data-checked] {
     border-color: var(--corner-accent-text);
     background: var(--corner-tile-wash-strong);
 }
@@ -792,21 +810,20 @@
 }
 
 [data-app='our-shelf'] .corner-switch-label {
-    display: flex;
-    flex-direction: column;
     font-size: var(--text-body);
     font-weight: 500;
     cursor: pointer;
-}
-
-[data-app='our-shelf'] .corner-switch-label .corner-form-hint {
-    font-weight: 400;
 }
 
 /* ── One look for every item ─────────────────────────────────────────────── */
 
 [data-app='our-shelf'] .corner-item-grid {
     grid-template-columns: repeat(auto-fill, minmax(min(360px, 100%), 1fr));
+}
+
+/* A card folded away behind its Undo leaves an empty row wrapper: it gives up its cell. */
+[data-app='our-shelf'] .corner-item-grid > :empty {
+    display: none;
 }
 
 /*
@@ -942,9 +959,50 @@
 }
 
 [data-app='our-shelf'] .corner-picture-field {
+    --corner-reveal-gap: 12px;
     display: flex;
     flex-direction: column;
     gap: 12px;
+}
+
+/*
+ * A part of the form that opens when it applies. The slot is always there and cancels the
+ * column's gap with its margin, and what opens carries the gap as padding, so the fields
+ * below glide down rather than jumping a gap first. The side padding, taken back by the
+ * margin, keeps a field's focus ring clear of the clip while it opens.
+ */
+[data-app='our-shelf'] .corner-reveal-slot {
+    margin-top: calc(-1 * var(--corner-reveal-gap, 24px));
+}
+
+[data-app='our-shelf'] .corner-reveal {
+    margin: 0 -4px -4px;
+    padding: var(--corner-reveal-gap, 24px) 4px 4px;
+}
+
+/* Under the link: closer to it than the next field is. */
+[data-app='our-shelf'] .corner-reveal-slot--link {
+    --corner-reveal-gap: 16px;
+}
+
+[data-app='our-shelf'] .corner-link-reading {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+[data-app='our-shelf'] .corner-link-reading-thumb {
+    flex-shrink: 0;
+    width: 72px;
+    height: 72px;
+    border-radius: var(--corner-radius-inner);
+}
+
+[data-app='our-shelf'] .corner-link-reading-lines {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    gap: 8px;
 }
 
 /* A quiet text button inside a form, for an optional step. */
@@ -978,7 +1036,7 @@
     flex-wrap: wrap;
     align-items: center;
     gap: 0 12px;
-    margin: -8px 0 0;
+    margin: 0;
     font-size: var(--text-small);
     line-height: 1.5;
     color: var(--corner-ink-soft);
