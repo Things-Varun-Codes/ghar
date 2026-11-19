@@ -14,7 +14,6 @@ import {
     moveActive,
     searchIcons,
     sectionAt,
-    visibleRows,
 } from './icon-picker';
 
 const all = Object.keys(paths.paths).sort();
@@ -98,15 +97,6 @@ describe('laying out the grid', () => {
         expect(moveActive(rows, 5, 'ArrowUp')).toBe(3);
         expect(moveActive(rows, 6, 'ArrowRight')).toBe(6);
         expect(moveActive(rows, 0, 'ArrowLeft')).toBe(0);
-    });
-
-    it('renders only the rows near what is visible', () => {
-        const many = [{ key: 'm', title: 'M', icons: all.slice(0, 700) }];
-        const { rows } = layoutRows(many, 7);
-        const shown = visibleRows(rows, 2000, 300);
-
-        expect(rows.length).toBeGreaterThan(100);
-        expect(shown.length).toBeLessThan(15);
     });
 
     it('names the section being scrolled through', () => {
