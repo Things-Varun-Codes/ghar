@@ -1,4 +1,5 @@
 import { useState } from 'react';
+
 import { useOverlayHistory } from '@/hooks/use-overlay-history';
 import type { OverlayParam } from '@/hooks/use-overlay-history';
 
@@ -57,11 +58,20 @@ export function useDraftCloseGate({
 
     return {
         requestClose,
-        /* For the overlay's Root: Radix asks to close on Escape, outside click and its Close. */
-        onOpenChange: (next: boolean) => {
-            if (!next) {
-                requestClose();
+        /*
+         * For the overlay's Root: Base UI asks to close on Escape, an outside press, its Close
+         * and a swipe. A dirty draft cancels that close (a swipe springs back) and asks instead.
+         */
+        onOpenChange: (next: boolean, details?: { cancel: () => void }) => {
+            if (next) {
+                return;
             }
+
+            if (isDirty) {
+                details?.cancel();
+            }
+
+            requestClose();
         },
         prompt: {
             open: promptOpen,

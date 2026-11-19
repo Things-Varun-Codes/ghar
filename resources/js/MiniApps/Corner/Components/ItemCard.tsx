@@ -8,7 +8,6 @@ import {
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Toggle } from '@/components/ui/toggle';
-import { useMenuAction } from '@/hooks/use-menu-action';
 import { DoneGlyph, DoneSticker } from '@/MiniApps/Corner/Components/DoneMark';
 import ItemThumb from '@/MiniApps/Corner/Components/ItemThumb';
 import { useItemActions } from '@/MiniApps/Corner/Hooks/useItemActions';
@@ -36,7 +35,6 @@ function firstLine(notes: string | null): string | null {
 
 /* The one card every item gets, whatever it holds. */
 export default function ItemCard({ list, item, onEdit }: Props) {
-    const menu = useMenuAction();
     const { isPendingDelete, isTogglePending, handleToggleDone, handleDelete } =
         useItemActions({
             id: item.id,
@@ -126,33 +124,22 @@ export default function ItemCard({ list, item, onEdit }: Props) {
 
                     {(item.can.update || item.can.delete) && (
                         <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                                <button
-                                    type="button"
-                                    aria-label={`Actions for ${item.title}`}
-                                    className="corner-icon-btn shell-press"
-                                >
-                                    <MoreHorizontal
-                                        size={18}
-                                        aria-hidden="true"
-                                    />
-                                </button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent
-                                onCloseAutoFocus={menu.onCloseAutoFocus}
-                                align="end"
+                            <DropdownMenuTrigger
+                                aria-label={`Actions for ${item.title}`}
+                                className="corner-icon-btn shell-press"
                             >
+                                <MoreHorizontal size={18} aria-hidden="true" />
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
                                 {onEdit && item.can.update && (
-                                    <DropdownMenuItem
-                                        onSelect={menu.defer(onEdit)}
-                                    >
+                                    <DropdownMenuItem onClick={onEdit}>
                                         Edit
                                     </DropdownMenuItem>
                                 )}
                                 {item.can.delete && (
                                     <DropdownMenuItem
                                         variant="destructive"
-                                        onSelect={menu.defer(handleDelete)}
+                                        onClick={handleDelete}
                                     >
                                         Delete
                                     </DropdownMenuItem>

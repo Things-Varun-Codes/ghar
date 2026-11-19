@@ -8,7 +8,6 @@ import {
     DropdownMenuItem,
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { useMenuAction } from '@/hooks/use-menu-action';
 import { mutationOptions } from '@/lib/mutation';
 import ListSettingsSheet from '@/MiniApps/Corner/Components/ListSettingsSheet';
 import type { CornerListInfo } from '@/MiniApps/Corner/lib/types';
@@ -27,7 +26,6 @@ type Props = {
 
 /* Change, move or delete one list. The server decides who may; this only hides what they can't. */
 export default function ListMenu({ list, count, reorder }: Props) {
-    const menu = useMenuAction();
     const [settingsOpen, setSettingsOpen] = useState(false);
     const [confirmOpen, setConfirmOpen] = useState(false);
     const [pending, setPending] = useState(false);
@@ -77,41 +75,33 @@ export default function ListMenu({ list, count, reorder }: Props) {
     return (
         <>
             <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                    <button
-                        type="button"
-                        aria-label={`Options for ${list.name}`}
-                        disabled={pending}
-                        className="corner-icon-btn corner-list-menu-btn shell-press"
-                    >
-                        <MoreHorizontal size={18} aria-hidden="true" />
-                    </button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent
-                    onCloseAutoFocus={menu.onCloseAutoFocus}
-                    align="end"
+                <DropdownMenuTrigger
+                    aria-label={`Options for ${list.name}`}
+                    disabled={pending}
+                    className="corner-icon-btn corner-list-menu-btn shell-press"
                 >
+                    <MoreHorizontal size={18} aria-hidden="true" />
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
                     {list.can.update && (
-                        <DropdownMenuItem
-                            onSelect={menu.defer(() => setSettingsOpen(true))}
-                        >
+                        <DropdownMenuItem onClick={() => setSettingsOpen(true)}>
                             List settings
                         </DropdownMenuItem>
                     )}
                     {canMove && !reorder.first && (
-                        <DropdownMenuItem onSelect={() => moveTo('up')}>
+                        <DropdownMenuItem onClick={() => moveTo('up')}>
                             Move earlier
                         </DropdownMenuItem>
                     )}
                     {canMove && !reorder.last && (
-                        <DropdownMenuItem onSelect={() => moveTo('down')}>
+                        <DropdownMenuItem onClick={() => moveTo('down')}>
                             Move later
                         </DropdownMenuItem>
                     )}
                     {list.can.delete && (
                         <DropdownMenuItem
                             variant="destructive"
-                            onSelect={menu.defer(() => setConfirmOpen(true))}
+                            onClick={() => setConfirmOpen(true)}
                         >
                             Delete list
                         </DropdownMenuItem>

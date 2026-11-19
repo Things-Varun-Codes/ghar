@@ -228,8 +228,8 @@
 /* The button stays 32px so the note keeps its rule rhythm; .shell-hit-44 keeps the tap area. */
 [data-app='our-exchange'] .mailbox-card-menu:hover,
 [data-app='our-exchange'] .mailbox-card-menu-square:hover,
-[data-app='our-exchange'] .mailbox-card-menu[data-state='open'],
-[data-app='our-exchange'] .mailbox-card-menu-square[data-state='open'] {
+[data-app='our-exchange'] .mailbox-card-menu[data-popup-open],
+[data-app='our-exchange'] .mailbox-card-menu-square[data-popup-open] {
     background: color-mix(in oklab, var(--mailbox-ink) 8%, transparent);
 }
 

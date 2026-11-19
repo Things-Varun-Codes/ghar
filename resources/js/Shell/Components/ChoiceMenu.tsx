@@ -67,18 +67,16 @@ export default function ChoiceMenu({
 
     return (
         <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-                <button type="button" className={classNames.trigger}>
-                    <span>
-                        {label}: {activeLabel}
-                    </span>
-                    <ChevronDown
-                        aria-hidden="true"
-                        size={14}
-                        strokeWidth={1.5}
-                        className="shrink-0 opacity-[0.6]"
-                    />
-                </button>
+            <DropdownMenuTrigger className={classNames.trigger}>
+                <span>
+                    {label}: {activeLabel}
+                </span>
+                <ChevronDown
+                    aria-hidden="true"
+                    size={14}
+                    strokeWidth={1.5}
+                    className="shrink-0 opacity-[0.6]"
+                />
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className={classNames.menu}>
                 {items.map(({ key, label: itemLabel, hint }) => {
@@ -87,7 +85,7 @@ export default function ChoiceMenu({
                     return (
                         <DropdownMenuItem
                             key={key}
-                            onSelect={() => handleSelect(key)}
+                            onClick={() => handleSelect(key)}
                             className={classNames.item}
                         >
                             <span>

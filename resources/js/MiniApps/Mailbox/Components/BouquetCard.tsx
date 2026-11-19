@@ -6,7 +6,6 @@ import {
     DropdownMenuItem,
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { useMenuAction } from '@/hooks/use-menu-action';
 import { cn } from '@/lib/utils';
 import BouquetDialog from '@/MiniApps/Mailbox/Components/BouquetDialog';
 import type { FlowerEntry } from '@/MiniApps/Mailbox/Components/NoteCard';
@@ -36,7 +35,6 @@ type Props = {
 export default function BouquetCard({ message, onDelete, isFocused }: Props) {
     const [lightboxOpen, setLightboxOpen] = useState(false);
     const [confirmOpen, setConfirmOpen] = useState(false);
-    const menu = useMenuAction();
     const recipientNames = message.recipients.map((r) => r.name).join(', ');
     const from = message.is_mine
         ? 'your bouquet'
@@ -105,28 +103,20 @@ export default function BouquetCard({ message, onDelete, isFocused }: Props) {
 
                     {message.is_mine && onDelete && (
                         <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                                <button
-                                    type="button"
-                                    aria-label={`Actions for your bouquet to ${recipientNames}, ${message.posted_at_human}`}
-                                    className="mailbox-card-menu-square shell-hit-44"
-                                >
-                                    <MoreHorizontal
-                                        size={18}
-                                        strokeWidth={1.5}
-                                        aria-hidden="true"
-                                    />
-                                </button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent
-                                onCloseAutoFocus={menu.onCloseAutoFocus}
-                                align="end"
+                            <DropdownMenuTrigger
+                                aria-label={`Actions for your bouquet to ${recipientNames}, ${message.posted_at_human}`}
+                                className="mailbox-card-menu-square shell-hit-44"
                             >
+                                <MoreHorizontal
+                                    size={18}
+                                    strokeWidth={1.5}
+                                    aria-hidden="true"
+                                />
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
                                 <DropdownMenuItem
                                     variant="destructive"
-                                    onSelect={menu.defer(() =>
-                                        setConfirmOpen(true),
-                                    )}
+                                    onClick={() => setConfirmOpen(true)}
                                 >
                                     Delete bouquet
                                 </DropdownMenuItem>

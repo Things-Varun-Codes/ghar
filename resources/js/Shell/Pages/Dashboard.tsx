@@ -65,10 +65,12 @@ export default function Dashboard() {
                         title="This home has no rooms yet"
                         body="Choose the ones you want. You can change them whenever you like."
                         action={
-                            <Button asChild className="shell-press">
-                                <Link href={rooms.index.url()}>
-                                    Choose rooms
-                                </Link>
+                            <Button
+                                className="shell-press"
+                                nativeButton={false}
+                                render={<Link href={rooms.index.url()} />}
+                            >
+                                Choose rooms
                             </Button>
                         }
                     />

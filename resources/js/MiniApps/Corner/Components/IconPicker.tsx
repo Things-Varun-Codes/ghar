@@ -129,10 +129,7 @@ export default function IconPicker({
                     <SheetContent
                         side="bottom"
                         className="corner-icon-sheet h-[80dvh] gap-0 p-0"
-                        onCloseAutoFocus={(event) => {
-                            event.preventDefault();
-                            trigger.current?.focus();
-                        }}
+                        finalFocus={trigger}
                     >
                         <SheetTitle className="corner-icon-sheet-title">
                             Choose an icon
@@ -149,14 +146,13 @@ export default function IconPicker({
 
     return (
         <Popover open={open} onOpenChange={setOpen}>
-            <PopoverTrigger asChild>{button}</PopoverTrigger>
+            <PopoverTrigger render={button} />
             <PopoverContent
                 align="start"
                 className="corner-icon-popover w-[372px] p-0"
-                role="dialog"
                 aria-label="Choose an icon"
                 // The panel focuses its own search field.
-                onOpenAutoFocus={(event) => event.preventDefault()}
+                initialFocus={false}
             >
                 {panel}
             </PopoverContent>

@@ -8,7 +8,7 @@ import laravel from 'laravel-vite-plugin';
 import { google } from 'laravel-vite-plugin/fonts';
 import { defineConfig } from 'vite';
 
-export default defineConfig({
+export default defineConfig(({ command }) => ({
     // Same host as APP_URL, or the hot file can name [::1], which the CSP can't list.
     server: {
         host: '127.0.0.1',
@@ -38,7 +38,9 @@ export default defineConfig({
         }),
         inertia(),
         react(),
-        babel({ presets: [reactCompilerPreset()] }),
+        // The compiler is most of a build's time; the dev server skips it, and the build, the
+        // smokes and the release image all run it.
+        command === 'build' && babel({ presets: [reactCompilerPreset()] }),
         tailwindcss(),
         wayfinder({
             formVariants: true,
@@ -63,4 +65,4 @@ export default defineConfig({
                 },
             }),
     ],
-});
+}));

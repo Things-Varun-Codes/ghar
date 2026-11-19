@@ -55,9 +55,15 @@ export default function UsersEdit({ user }: Props) {
                         >
                             <Select
                                 value={data.role}
-                                onValueChange={(value) =>
-                                    setData('role', value)
-                                }
+                                items={{
+                                    user: roleLabel('user'),
+                                    admin: roleLabel('admin'),
+                                }}
+                                onValueChange={(value) => {
+                                    if (value !== null) {
+                                        setData('role', value);
+                                    }
+                                }}
                             >
                                 <SelectTrigger
                                     id="role"

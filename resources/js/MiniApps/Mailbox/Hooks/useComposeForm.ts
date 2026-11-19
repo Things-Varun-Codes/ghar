@@ -1,7 +1,6 @@
 import type { FormDataType, VisitOptions } from '@inertiajs/core';
 import { useForm } from '@inertiajs/react';
-import { useId } from 'react';
-import { useDirtyFormGate } from '@/hooks/use-dirty-form-gate';
+import { useEffect, useEffectEvent, useId } from 'react';
 import { formSubmitOptions } from '@/lib/mutation';
 import type { HouseholdMember } from '@/MiniApps/Mailbox/Components/RecipientPicker';
 import { defaultRecipientIds } from '@/MiniApps/Mailbox/Components/RecipientPicker';
@@ -51,9 +50,32 @@ export function useComposeForm<T extends Recipients & FormDataType<T>>({
         recipient_ids: defaultRecipientIds(members),
         ...fields,
     } as T);
-    const { isDirty, reset: gateReset } = useDirtyFormGate(form, {
-        fields: dirtyFields,
+    // Inertia's isDirty compares the whole form, so a field that doesn't count keeps its
+    // default equal to its value.
+    const untracked = (Object.keys(form.data) as (keyof T)[]).filter(
+        (key) => !dirtyFields.includes(key),
+    );
+    const untrackedValues = JSON.stringify(
+        untracked.map((key) => form.data[key]),
+    );
+    const followUntracked = useEffectEvent(() => {
+        form.setDefaults(
+            Object.fromEntries(
+                untracked.map((key) => [key, form.data[key]]),
+            ) as Partial<T>,
+        );
     });
+
+    useEffect(() => {
+        followUntracked();
+    }, [untrackedValues]);
+
+    const isDirty = form.isDirty;
+
+    /* Takes what's there now as the clean state; `overrides` for a value not in data yet. */
+    const gateReset = (overrides?: Partial<T>) => {
+        form.setDefaults({ ...form.data, ...overrides });
+    };
 
     const hint =
         (form.data.recipient_ids as number[]).length === 0
@@ -62,7 +84,6 @@ export function useComposeForm<T extends Recipients & FormDataType<T>>({
 
     const reset = () => {
         form.reset();
-        gateReset();
     };
 
     // A list's errors arrive per item: recipient_ids.0.

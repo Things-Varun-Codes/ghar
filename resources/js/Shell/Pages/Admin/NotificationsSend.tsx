@@ -127,8 +127,14 @@ export default function NotificationsSend() {
                             }
                         >
                             <Select
-                                value={data.user_id}
-                                onValueChange={(val) => setData('user_id', val)}
+                                value={data.user_id || null}
+                                items={users.map((u) => ({
+                                    value: String(u.id),
+                                    label: u.name,
+                                }))}
+                                onValueChange={(val) =>
+                                    setData('user_id', val ?? '')
+                                }
                                 disabled={isOnlyUser}
                             >
                                 <SelectTrigger

@@ -47,22 +47,19 @@ export default function AccountMenu({
 
     return (
         <Popover open={open} onOpenChange={setOpen}>
-            <PopoverTrigger asChild>
-                <button
-                    type="button"
-                    aria-label="Account menu"
-                    className="shell-focus shell-account-trigger flex items-center justify-center"
-                >
-                    <span className="shell-account-initials" aria-hidden="true">
-                        {user ? initials(user.name) : '?'}
-                    </span>
-                </button>
+            <PopoverTrigger
+                aria-label="Account menu"
+                className="shell-focus shell-account-trigger flex items-center justify-center"
+            >
+                <span className="shell-account-initials" aria-hidden="true">
+                    {user ? initials(user.name) : '?'}
+                </span>
             </PopoverTrigger>
             <PopoverContent
                 align="end"
                 sideOffset={8}
                 collisionPadding={8}
-                className={`${withNav ? 'w-64' : 'w-56'} max-h-(--radix-popover-content-available-height) overflow-y-auto border-(--border) bg-(--card) p-1 text-(--foreground)`}
+                className={`${withNav ? 'w-64' : 'w-56'} max-h-(--available-height) overflow-y-auto border-(--border) bg-(--card) p-1 text-(--foreground)`}
             >
                 {user && (
                     <>

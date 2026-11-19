@@ -6,7 +6,6 @@ import {
     DropdownMenuItem,
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { useMenuAction } from '@/hooks/use-menu-action';
 import { cn } from '@/lib/utils';
 import AppCard from '@/Shell/Components/AppCard';
 import ConfirmDialog from '@/Shell/Components/ConfirmDialog';
@@ -33,7 +32,6 @@ type Props = {
 
 export default function NoteCard({ message, onDelete, isFocused }: Props) {
     const [confirmOpen, setConfirmOpen] = useState(false);
-    const menu = useMenuAction();
     const recipientNames = message.recipients.map((r) => r.name).join(', ');
 
     return (
@@ -64,28 +62,20 @@ export default function NoteCard({ message, onDelete, isFocused }: Props) {
 
                 {message.is_mine && onDelete && (
                     <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                            <button
-                                type="button"
-                                aria-label={`Actions for your note to ${recipientNames}, ${message.posted_at_human}`}
-                                className="mailbox-card-menu shell-hit-44"
-                            >
-                                <MoreHorizontal
-                                    size={18}
-                                    strokeWidth={1.5}
-                                    aria-hidden="true"
-                                />
-                            </button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent
-                            onCloseAutoFocus={menu.onCloseAutoFocus}
-                            align="end"
+                        <DropdownMenuTrigger
+                            aria-label={`Actions for your note to ${recipientNames}, ${message.posted_at_human}`}
+                            className="mailbox-card-menu shell-hit-44"
                         >
+                            <MoreHorizontal
+                                size={18}
+                                strokeWidth={1.5}
+                                aria-hidden="true"
+                            />
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
                             <DropdownMenuItem
                                 variant="destructive"
-                                onSelect={menu.defer(() =>
-                                    setConfirmOpen(true),
-                                )}
+                                onClick={() => setConfirmOpen(true)}
                             >
                                 Delete note
                             </DropdownMenuItem>

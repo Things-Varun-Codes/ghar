@@ -5,7 +5,6 @@ import { useId } from 'react';
 
 import { Input } from '@/components/ui/input';
 import { Switch } from '@/components/ui/switch';
-import { useDirtyFormGate } from '@/hooks/use-dirty-form-gate';
 import { formSubmitOptions } from '@/lib/mutation';
 import IconPicker from '@/MiniApps/Corner/Components/IconPicker';
 import type { ListSettings } from '@/MiniApps/Corner/lib/presets';
@@ -51,7 +50,7 @@ export default function ListSettingsSheet({ open, onOpenChange, list }: Props) {
 
     const form = useForm<ListSettings>(list ? settingsOf(list) : BLANK_LIST);
     const { data, setData, post, patch, processing, errors, reset } = form;
-    const { isDirty, reset: gateReset } = useDirtyFormGate(form);
+    const { isDirty } = form;
 
     const pickDoneWord = (word: string) => {
         setData((prev) => ({
@@ -71,7 +70,7 @@ export default function ListSettingsSheet({ open, onOpenChange, list }: Props) {
                 action: isEdit ? 'list.update' : 'list.create',
                 isShownField: (key) => SHOWN_FIELDS.includes(key),
                 onSuccess: () => {
-                    gateReset();
+                    form.setDefaults();
                     onOpenChange(false);
                 },
             }),
@@ -93,10 +92,7 @@ export default function ListSettingsSheet({ open, onOpenChange, list }: Props) {
             title={isEdit ? `${list.name} settings` : 'New list'}
             description="Name the list, choose its icon and say what done means."
             isDirty={isDirty}
-            onDiscard={() => {
-                reset();
-                gateReset();
-            }}
+            onDiscard={() => reset()}
             onSubmit={handleSubmit}
             footer={
                 <SubmitButton

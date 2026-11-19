@@ -1,44 +1,92 @@
-import * as PopoverPrimitive from "@radix-ui/react-popover"
+import { Popover as PopoverPrimitive } from "@base-ui/react/popover"
 import * as React from "react"
 
 import { useAppAttrs } from "@/hooks/use-app-attrs"
 import { cn } from "@/lib/utils"
 
-function Popover({
-  ...props
-}: React.ComponentProps<typeof PopoverPrimitive.Root>) {
+function Popover({ ...props }: PopoverPrimitive.Root.Props) {
   return <PopoverPrimitive.Root data-slot="popover" {...props} />
 }
 
-function PopoverTrigger({
-  ...props
-}: React.ComponentProps<typeof PopoverPrimitive.Trigger>) {
+function PopoverTrigger({ ...props }: PopoverPrimitive.Trigger.Props) {
   return <PopoverPrimitive.Trigger data-slot="popover-trigger" {...props} />
 }
+
+/* The menu-and-popup motion: a fade and a slight grow from the trigger. */
+const popupMotion =
+  "origin-(--transform-origin) transition-[opacity,scale] duration-(--dur-in) ease-(--ease-ui) data-ending-style:scale-95 data-ending-style:opacity-0 data-ending-style:duration-(--dur-out) data-starting-style:scale-95 data-starting-style:opacity-0"
 
 function PopoverContent({
   className,
   align = "center",
+  alignOffset = 0,
+  side = "bottom",
   sideOffset = 4,
+  collisionPadding,
   ...props
-}: React.ComponentProps<typeof PopoverPrimitive.Content>) {
+}: PopoverPrimitive.Popup.Props &
+  Pick<
+    PopoverPrimitive.Positioner.Props,
+    "align" | "alignOffset" | "side" | "sideOffset" | "collisionPadding"
+  >) {
   const appAttrs = useAppAttrs()
+
   return (
     <PopoverPrimitive.Portal>
-      <PopoverPrimitive.Content
-        data-slot="popover-content"
-        data-scroll-container=""
+      <PopoverPrimitive.Positioner
         align={align}
+        alignOffset={alignOffset}
+        side={side}
         sideOffset={sideOffset}
-        className={cn(
-          "bg-popover text-popover-foreground data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2 z-50 w-72 origin-(--radix-popover-content-transform-origin) rounded-md border p-4 shadow-md outline-hidden",
-          className
-        )}
-        {...appAttrs}
-        {...props}
-      />
+        collisionPadding={collisionPadding}
+        className="isolate z-(--z-overlay)"
+      >
+        <PopoverPrimitive.Popup
+          data-slot="popover-content"
+          data-scroll-container=""
+          className={cn(
+            "bg-popover text-popover-foreground w-72 rounded-md border p-4 shadow-md outline-hidden",
+            popupMotion,
+            className as string
+          )}
+          {...appAttrs}
+          {...props}
+        />
+      </PopoverPrimitive.Positioner>
     </PopoverPrimitive.Portal>
   )
 }
 
-export { Popover, PopoverTrigger, PopoverContent }
+function PopoverTitle({ className, ...props }: PopoverPrimitive.Title.Props) {
+  return (
+    <PopoverPrimitive.Title
+      data-slot="popover-title"
+      className={cn("font-medium", className as string)}
+      {...props}
+    />
+  )
+}
+
+function PopoverDescription({
+  className,
+  ...props
+}: PopoverPrimitive.Description.Props) {
+  return (
+    <PopoverPrimitive.Description
+      data-slot="popover-description"
+      className={cn("text-muted-foreground", className as string)}
+      {...props}
+    />
+  )
+}
+
+export {
+  Popover,
+  PopoverContent,
+  PopoverDescription,
+  PopoverTitle,
+  PopoverTrigger,
+  popupMotion,
+}
+
+export type PopoverContentProps = React.ComponentProps<typeof PopoverContent>

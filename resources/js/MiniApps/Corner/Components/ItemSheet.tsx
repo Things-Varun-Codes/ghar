@@ -3,7 +3,6 @@ import { ImageOff, RotateCw } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
 import { Input } from '@/components/ui/input';
-import { useDirtyFormGate } from '@/hooks/use-dirty-form-gate';
 import { formSubmitOptions } from '@/lib/mutation';
 import ItemThumb from '@/MiniApps/Corner/Components/ItemThumb';
 import NotesField from '@/MiniApps/Corner/Components/NotesField';
@@ -79,7 +78,7 @@ export default function ItemSheet({ list, open, onOpenChange, item }: Props) {
     const isEdit = item !== undefined;
     const form = useForm<FormShape>(shapeOf(item));
     const { data, setData, post, patch, processing, errors, reset } = form;
-    const { isDirty, reset: gateReset } = useDirtyFormGate(form);
+    const { isDirty } = form;
 
     // The picture someone chose or typed, as opposed to one a link offered.
     const [pictureChosen, setPictureChosen] = useState(
@@ -132,7 +131,6 @@ export default function ItemSheet({ list, open, onOpenChange, item }: Props) {
                 isShownField: (key) => SHOWN_FIELDS.includes(key),
                 onSuccess: () => {
                     reset();
-                    gateReset();
                     link.clear();
                     onOpenChange(false);
                 },
@@ -163,7 +161,6 @@ export default function ItemSheet({ list, open, onOpenChange, item }: Props) {
             isDirty={isDirty}
             onDiscard={() => {
                 reset();
-                gateReset();
                 link.clear();
             }}
             onSubmit={handleSubmit}

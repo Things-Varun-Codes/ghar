@@ -190,14 +190,14 @@
 }
 
 /* Selected, not filled-for-action: the light sage marks what is already loved or done. */
-[data-app='our-shelf'] .corner-done-toggle[data-state='on'],
-[data-app='our-shelf'] .corner-done-toggle[data-state='on']:hover {
+[data-app='our-shelf'] .corner-done-toggle[data-pressed],
+[data-app='our-shelf'] .corner-done-toggle[data-pressed]:hover {
     background: var(--corner-accent);
     color: var(--corner-accent-fg);
     border-color: transparent;
 }
 
-[data-app='our-shelf'] .corner-done-toggle[data-state='on']:hover {
+[data-app='our-shelf'] .corner-done-toggle[data-pressed]:hover {
     background: color-mix(
         in oklab,
         var(--corner-accent) 86%,
@@ -240,7 +240,7 @@
 }
 
 [data-app='our-shelf'] .corner-icon-btn:hover,
-[data-app='our-shelf'] .corner-icon-btn[data-state='open'] {
+[data-app='our-shelf'] .corner-icon-btn[data-popup-open] {
     background: color-mix(in oklab, var(--corner-ink) 6%, transparent);
 }
 

@@ -143,6 +143,26 @@ export default [
         },
     },
     {
+        // Motion goes through the presets, so every room moves the same way and reduced
+        // motion is handled in one place.
+        files: ['resources/js/**/*.ts', 'resources/js/**/*.tsx'],
+        ignores: ['resources/js/components/motion/**'],
+        rules: {
+            'no-restricted-imports': [
+                'error',
+                {
+                    patterns: [
+                        {
+                            regex: '^(motion|framer-motion)(/|$)',
+                            message:
+                                'Use the presets in @/components/motion (Fade, Rise, Pop, Reveal, Settle, Slide).',
+                        },
+                    ],
+                },
+            ],
+        },
+    },
+    {
         // `renderHook(() => useSomething())` calls a hook from a plain arrow callback,
         // which rules-of-hooks can't see through.
         files: ['resources/js/**/*.test.ts', 'resources/js/**/*.test.tsx'],
