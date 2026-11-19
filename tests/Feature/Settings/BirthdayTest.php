@@ -18,6 +18,11 @@ class BirthdayTest extends TestCase
         $this->seed(RoleSeeder::class);
     }
 
+    private function birthdayOf(User $user): ?string
+    {
+        return User::findOrFail($user->id)->birthday?->toDateString();
+    }
+
     /** @param  array<string, mixed>  $data */
     private function saveProfile(User $user, array $data): \Illuminate\Testing\TestResponse
     {
@@ -36,7 +41,7 @@ class BirthdayTest extends TestCase
 
         $this->saveProfile($user, ['birthday' => '1990-07-02'])->assertSessionHasNoErrors();
 
-        $this->assertSame('1990-07-02', $user->fresh()->birthday?->toDateString());
+        $this->assertSame('1990-07-02', $this->birthdayOf($user));
     }
 
     public function test_the_field_may_stay_empty_until_one_is_set(): void
@@ -46,7 +51,7 @@ class BirthdayTest extends TestCase
         $this->saveProfile($user, ['birthday' => ''])->assertSessionHasNoErrors();
         $this->saveProfile($user, [])->assertSessionHasNoErrors();
 
-        $this->assertNull($user->fresh()->birthday);
+        $this->assertNull($this->birthdayOf($user));
     }
 
     public function test_once_set_it_can_change_but_not_be_cleared(): void
@@ -54,10 +59,10 @@ class BirthdayTest extends TestCase
         $user = User::factory()->create(['birthday' => '1990-07-02']);
 
         $this->saveProfile($user, ['birthday' => ''])->assertSessionHasErrors('birthday');
-        $this->assertSame('1990-07-02', $user->fresh()->birthday?->toDateString());
+        $this->assertSame('1990-07-02', $this->birthdayOf($user));
 
-        $this->saveProfile($user->fresh(), ['birthday' => '1991-08-03'])->assertSessionHasNoErrors();
-        $this->assertSame('1991-08-03', $user->fresh()->birthday?->toDateString());
+        $this->saveProfile($user->refresh(), ['birthday' => '1991-08-03'])->assertSessionHasNoErrors();
+        $this->assertSame('1991-08-03', $this->birthdayOf($user));
     }
 
     /** @return array<string, array{0: string}> */
@@ -80,7 +85,7 @@ class BirthdayTest extends TestCase
 
         $this->saveProfile($user, ['birthday' => $birthday])->assertSessionHasErrors('birthday');
 
-        $this->assertNull($user->fresh()->birthday);
+        $this->assertNull($this->birthdayOf($user));
     }
 
     public function test_a_birthday_cannot_be_in_the_future(): void
@@ -105,7 +110,7 @@ class BirthdayTest extends TestCase
             ->assertRedirect(route('admin.users.index'))
             ->assertSessionHasNoErrors();
 
-        $this->assertSame('2010-04-21', $kabir->fresh()->birthday?->toDateString());
+        $this->assertSame('2010-04-21', $this->birthdayOf($kabir));
         $this->assertTrue($kabir->fresh()->hasRole('user'));
     }
 
@@ -121,7 +126,7 @@ class BirthdayTest extends TestCase
             ])
             ->assertSessionHasNoErrors();
 
-        $this->assertSame('1968-03-14', $admin->fresh()->birthday?->toDateString());
+        $this->assertSame('1968-03-14', $this->birthdayOf($admin));
         $this->assertTrue($admin->fresh()->hasRole('admin'));
     }
 
@@ -140,7 +145,7 @@ class BirthdayTest extends TestCase
             ->patch(route('admin.users.update', ['user' => $ravi->id]), ['role' => 'user'])
             ->assertSessionHasErrors('birthday');
 
-        $this->assertSame('1990-07-02', $ravi->fresh()->birthday?->toDateString());
+        $this->assertSame('1990-07-02', $this->birthdayOf($ravi));
     }
 
     public function test_a_person_cannot_set_someone_elses_birthday(): void
@@ -152,6 +157,6 @@ class BirthdayTest extends TestCase
             ->patch(route('admin.users.update', ['user' => $meera->id]), ['role' => 'user', 'birthday' => '1992-01-01'])
             ->assertForbidden();
 
-        $this->assertNull($meera->fresh()->birthday);
+        $this->assertNull($this->birthdayOf($meera));
     }
 }
