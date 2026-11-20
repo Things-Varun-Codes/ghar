@@ -25,8 +25,10 @@ keep `#[Fillable]` complete, and `refresh()` a model before reading DB-computed 
 
 ### People and the region
 
-- **A person on a page is `App\Shell\Support\Person::of($user)`**: `{id, name, avatar_url}`, the
-  picture signed per the hour window and memoised for the request. Never send a bare name pair
+- **A person on a page is `App\Shell\Support\Person::short($user)`**: `{id, name, avatar_url}`
+  with `name` the first name (the full name only when two members share it,
+  `Household::shortName`), the picture signed per the hour window and memoised for the request.
+  `Person::of` keeps the full name, for the few places that need it (settings, admin). Never send a bare name pair
   or the `avatar_key`. A query that selects named user columns adds `avatar_key`, or strict mode
   throws when the picture is read.
 - **`users.avatar_key` isn't fillable**: it names an object on the media disk, so a key from

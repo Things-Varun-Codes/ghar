@@ -56,7 +56,7 @@ class Household
     public function optionsFor(User $user): array
     {
         return $this->othersThan($user)
-            ->map(fn (User $member): array => Person::of($member))
+            ->map(fn (User $member): array => Person::short($member))
             ->values()
             ->all();
     }

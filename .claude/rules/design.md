@@ -58,8 +58,7 @@ lives on the things themselves.
 - **A person has a face.** Wherever someone is named, `PersonAvatar` sits before the name: their
   picture, or their initials on the accent wash. It is decoration beside a printed name, never a
   link, and never the only way to tell who, with one exception: a History timeline card, where the
-  poster's face on the rail is the only "who" (named to screen readers and on hover). Home and
-  History say people by first name (`Household::shortName`), the full name only when two members
+  poster's face on the rail is the only "who" (named to screen readers and on hover). Every room says people by first name (`Person::short`), the full name only when two members
   share one. Not on a citation's or coupon's form, which name
   people in ink.
 - **`HeartMark`** (`Shell/Components/HeartMark.tsx`) is the one drawn mark for now. No emoji in the UI,

@@ -61,3 +61,6 @@ Our Shelf keeps the household's shared lists.
   from a slot (`.mailbox-citation-stamp-slot`, `.mailbox-coupon-stamp-slot`) that carries the
   scale, so the stamp keeps its tilt. Their pay, request and fulfil visits keep state
   (`preserveState: true`), or the page would remount and the change would never be seen.
+- **The room's papers print in ink.** The citation form, the coupon, their seals and their stamps
+  use the house ink (`--mailbox-ink`); coral (`--mailbox-action`) is only for what you press, the
+  next coupon square to check and a count that needs you. People are named by first name.

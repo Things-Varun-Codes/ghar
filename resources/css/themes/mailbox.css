@@ -94,11 +94,12 @@
         var(--shell-accent) 10%,
         var(--shell-surface)
     );
-    --mailbox-citation-seal-color: var(--shell-accent-text);
+    /* The room's papers print in the house ink, like real forms; coral stays for what you press. */
+    --mailbox-citation-seal-color: var(--shell-text);
     --mailbox-citation-seal-size: 64px;
     --mailbox-citation-stamp-rotate: -13deg;
 
-    --mailbox-coupon-seal: var(--shell-accent-text);
+    --mailbox-coupon-seal: var(--shell-text);
     --mailbox-coupon-tint: color-mix(
         in oklab,
         var(--shell-accent) 9%,
@@ -295,7 +296,7 @@
     display: grid;
     place-items: center;
     width: 100%;
-    color: var(--mailbox-accent-text);
+    color: var(--mailbox-ink-soft);
 }
 
 /* Notes: a scrap of the ruled sheet, written on the same rules as a note. */
@@ -354,7 +355,7 @@
     position: relative;
     width: 100%;
     background: var(--mailbox-paper);
-    box-shadow: inset 0 0 0 1.5px var(--mailbox-accent-text);
+    box-shadow: inset 0 0 0 1.5px var(--mailbox-ink);
     border-radius: inherit;
     overflow: hidden;
 }
@@ -409,7 +410,7 @@
     width: 100%;
     padding: 12px 16px;
     background: var(--mailbox-coupon-tint);
-    box-shadow: inset 0 0 0 1.5px var(--mailbox-accent-text);
+    box-shadow: inset 0 0 0 1.5px var(--mailbox-ink);
     border-radius: inherit;
 }
 
@@ -596,7 +597,7 @@
     background: var(--mailbox-paper);
     color: var(--mailbox-ink);
     font-family: var(--mailbox-citation-font);
-    border: 1.5px solid var(--mailbox-accent-text);
+    border: 1.5px solid var(--mailbox-ink);
     border-radius: var(--mailbox-paper-radius);
     box-shadow: var(--mailbox-paper-shadow);
     /* Not clipped: the stub's notches reach over the border to bite the edge. */
@@ -755,7 +756,7 @@
     color: var(--mailbox-destructive);
 }
 [data-app='our-exchange'] .mailbox-citation-stamp--paid {
-    color: var(--mailbox-accent-text);
+    color: var(--mailbox-ink);
 }
 
 [data-app='our-exchange'] .mailbox-citation-body {
@@ -871,7 +872,7 @@
     background: var(--mailbox-paper);
     color: var(--mailbox-ink);
     font-family: var(--mailbox-coupon-font-mono);
-    border: 1.5px solid var(--mailbox-accent-text);
+    border: 1.5px solid var(--mailbox-ink);
     border-radius: var(--mailbox-paper-radius);
     box-shadow: var(--mailbox-paper-shadow);
     overflow: hidden;
@@ -1031,7 +1032,7 @@
     opacity: 0.84;
 }
 [data-app='our-exchange'] .mailbox-coupon-stamp--requested {
-    color: var(--mailbox-accent-text);
+    color: var(--mailbox-ink);
 }
 [data-app='our-exchange'] .mailbox-coupon-stamp--depleted {
     color: var(--mailbox-ink-soft);
@@ -1063,7 +1064,7 @@
 }
 [data-app='our-exchange'] .mailbox-coupon-await svg {
     flex: none;
-    color: var(--mailbox-accent-text);
+    color: var(--mailbox-ink-soft);
 }
 
 /*
@@ -1101,7 +1102,7 @@
     background: radial-gradient(
         circle at 1px 50%,
         var(--mailbox-bg) 6.75px,
-        var(--mailbox-accent-text) 7.25px 8px,
+        var(--mailbox-ink-soft) 7.25px 8px,
         transparent 8.5px
     );
 }

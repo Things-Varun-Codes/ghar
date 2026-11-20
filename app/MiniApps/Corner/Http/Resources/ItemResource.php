@@ -4,7 +4,6 @@ namespace App\MiniApps\Corner\Http\Resources;
 
 use App\MiniApps\Corner\Models\Item;
 use App\Shell\Models\User;
-use App\Shell\Services\Household;
 use App\Shell\Support\Person;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Gate;
@@ -44,23 +43,17 @@ class ItemResource
                 'update' => Gate::allows('update', $item),
                 'delete' => Gate::allows('delete', $item),
             ],
-            'addedBy' => self::person($item->addedBy),
+            'addedBy' => Person::short($item->addedBy),
             // Who has marked it done and on which day: one person on a shared list, everyone who
             // has on a per-person list, first to mark first.
             'done_by' => $perPerson
                 ? $item->markers->map(fn (User $user): array => [
-                    'person' => self::person($user),
+                    'person' => Person::short($user),
                     'on' => Carbon::parse((string) data_get($user, 'pivot.done_at'))->toDateString(),
                 ])->values()->all()
                 : ($item->done_at !== null && $item->doneBy !== null
-                    ? [['person' => self::person($item->doneBy), 'on' => $item->done_at->toDateString()]]
+                    ? [['person' => Person::short($item->doneBy), 'on' => $item->done_at->toDateString()]]
                     : []),
         ];
-    }
-
-    /** @return array{id: int, name: string, avatar_url: string|null} */
-    private static function person(User $user): array
-    {
-        return [...Person::of($user), 'name' => app(Household::class)->shortName($user)];
     }
 }

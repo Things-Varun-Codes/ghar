@@ -104,8 +104,8 @@ class EventResource
             'updated_at' => $event->updated_at->toIso8601String(),
             'media' => $media,
             'changes' => $changes,
-            'creator' => $event->creator !== null ? self::person($event->creator) : null,
-            'birthday_of' => $event->birthdayOf !== null ? self::person($event->birthdayOf) : null,
+            'creator' => $event->creator !== null ? Person::short($event->creator) : null,
+            'birthday_of' => $event->birthdayOf !== null ? Person::short($event->birthdayOf) : null,
             'reactions' => $this->reactions($event, $viewer),
             'comments' => $this->comments($event, $viewer),
             'can' => [
@@ -127,7 +127,7 @@ class EventResource
 
         return array_map(function (string $key, string $emoji) use ($byKey, $viewer): array {
             $people = $byKey->get($key, collect())
-                ->map(fn (EventReaction $reaction): array => self::person($reaction->user))
+                ->map(fn (EventReaction $reaction): array => Person::short($reaction->user))
                 ->values()
                 ->all();
 
@@ -148,7 +148,7 @@ class EventResource
             ->map(fn (EventComment $comment): array => [
                 'id' => $comment->id,
                 'body' => $comment->body,
-                'author' => $comment->author !== null ? self::person($comment->author) : null,
+                'author' => $comment->author !== null ? Person::short($comment->author) : null,
                 'created_at' => $comment->created_at->toIso8601String(),
                 'can' => [
                     'delete' => (bool) $viewer?->can('delete', $comment),
@@ -156,15 +156,5 @@ class EventResource
             ])
             ->values()
             ->all();
-    }
-
-    /**
-     * A person as History names them: by first name, like Home, unless two members share it.
-     *
-     * @return array{id: int, name: string, avatar_url: string|null}
-     */
-    private static function person(User $user): array
-    {
-        return [...Person::of($user), 'name' => app(Household::class)->shortName($user)];
     }
 }

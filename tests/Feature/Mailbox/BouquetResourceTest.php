@@ -5,6 +5,7 @@ namespace Tests\Feature\Mailbox;
 use App\MiniApps\Mailbox\Http\Resources\BouquetResource;
 use App\MiniApps\Mailbox\Models\Bouquet;
 use App\Shell\Models\User;
+use App\Shell\Support\Person;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
@@ -45,8 +46,8 @@ class BouquetResourceTest extends TestCase
         $this->assertArrayNotHasKey('type', $payload);
         $this->assertTrue($payload['is_unread']);
         $this->assertFalse($payload['is_mine']);
-        $this->assertSame(['id' => $sender->id, 'name' => $sender->name, 'avatar_url' => null], $payload['sender']);
-        $this->assertSame([['id' => $recipient->id, 'name' => $recipient->name, 'avatar_url' => null]], $payload['recipients']);
+        $this->assertSame(Person::short($sender), $payload['sender']);
+        $this->assertSame([Person::short($recipient)], $payload['recipients']);
     }
 
     public function test_bouquet_resource_is_mine_true_for_sender(): void
