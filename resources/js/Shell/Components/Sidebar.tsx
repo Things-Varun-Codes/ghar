@@ -3,6 +3,7 @@ import {
     ChevronDown,
     ChevronRight,
     Home,
+    LayoutGrid,
     Settings,
     Shield,
 } from 'lucide-react';
@@ -14,6 +15,7 @@ import {
     CollapsibleTrigger,
 } from '@/components/ui/collapsible';
 import { dashboard } from '@/routes';
+import { navIconFor, navIcons } from '@/Shell/Components/bottom-bar';
 import HeartMark from '@/Shell/Components/HeartMark';
 import type { ShellNavItem } from '@/Shell/Components/shell-nav';
 import {
@@ -22,10 +24,12 @@ import {
     isRouteActive,
 } from '@/Shell/Components/shell-nav';
 import type { Auth } from '@/types/auth';
+import type { MiniApp } from '@/types/miniapp';
 
 type SharedProps = {
     auth: Auth;
     name: string;
+    miniApps?: MiniApp[];
     version?: { label: string; url: string | null } | null;
 };
 
@@ -66,6 +70,25 @@ export default function Sidebar() {
                     label="Home"
                     active={isRouteActive(url, dashboard.url())}
                 />
+
+                {/* The same rooms as the phone's bottom bar, so a laptop reaches them in one click. */}
+                {(props.miniApps ?? []).map((app) => {
+                    const Icon = navIconFor(app, navIcons) ?? LayoutGrid;
+
+                    return (
+                        <NavItem
+                            key={app.slug}
+                            href={app.route}
+                            icon={<Icon size={18} strokeWidth={1.5} />}
+                            label={app.name}
+                            active={
+                                url === app.route ||
+                                url.startsWith(`${app.route}/`) ||
+                                url.startsWith(`${app.route}?`)
+                            }
+                        />
+                    );
+                })}
 
                 <li role="presentation" className="h-[12px]" />
 

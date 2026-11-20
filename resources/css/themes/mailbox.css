@@ -121,6 +121,7 @@
 
 [data-app='our-exchange'] .mailbox-hand {
     font-family: var(--mailbox-font-hand);
+    font-style: italic;
     font-weight: 400;
     font-size: var(--mailbox-hand-size);
     color: var(--mailbox-ink);
@@ -265,7 +266,7 @@
 [data-app='our-exchange'] .mailbox-door-name {
     margin: 12px 4px 0;
     font-family: var(--mailbox-font-display);
-    font-weight: 400;
+    font-weight: var(--weight-display);
     font-size: var(--text-title);
     letter-spacing: var(--tracking-display);
     line-height: 1.2;
@@ -312,6 +313,7 @@
 [data-app='our-exchange'] .mailbox-door-note-body {
     margin: 0;
     font-family: var(--mailbox-font-hand);
+    font-style: italic;
     font-weight: 400;
     font-size: var(--mailbox-hand-size-small);
     line-height: var(--mailbox-rule-step);
@@ -413,7 +415,7 @@
 
 [data-app='our-exchange'] .mailbox-door-coupon-title {
     font-family: var(--mailbox-coupon-font-display);
-    font-weight: 400;
+    font-weight: var(--weight-display);
     font-size: var(--mailbox-hand-size);
     line-height: 1.2;
     color: var(--mailbox-ink);
@@ -467,6 +469,7 @@
 
 [data-app='our-exchange'] .mailbox-note-body {
     font-family: var(--mailbox-font-hand);
+    font-style: italic;
     font-weight: 400;
     font-size: var(--mailbox-hand-size);
     line-height: var(--mailbox-rule-step);
@@ -537,6 +540,7 @@
 /* The few words sent with a bouquet are a note body. */
 [data-app='our-exchange'] .mailbox-bouquet-note {
     font-family: var(--mailbox-font-hand);
+    font-style: italic;
     font-weight: 400;
     font-size: var(--mailbox-hand-size-small);
     line-height: 28px;
@@ -611,7 +615,7 @@
 [data-app='our-exchange'] .mailbox-citation-watermark span {
     font-family: var(--mailbox-font-display);
     font-size: 190px;
-    font-weight: 400;
+    font-weight: var(--weight-display);
     letter-spacing: var(--tracking-display);
     color: var(--mailbox-citation-seal-color);
     opacity: 0.05;
@@ -817,7 +821,7 @@
 [data-app='our-exchange'] .mailbox-citation-penalty {
     font-family: var(--mailbox-font-display);
     font-style: italic;
-    font-weight: 400;
+    font-weight: var(--weight-display);
     font-size: var(--text-subhead);
     font-variant-numeric: tabular-nums;
     line-height: 1.3;
@@ -852,7 +856,7 @@
 [data-app='our-exchange'] .mailbox-written {
     font-family: var(--mailbox-font-display);
     font-style: italic;
-    font-weight: 400;
+    font-weight: var(--weight-display);
     font-size: var(--text-subhead);
     line-height: 1.3;
     color: var(--mailbox-ink);
@@ -896,7 +900,7 @@
 }
 [data-app='our-exchange'] .mailbox-coupon-title {
     font-family: var(--mailbox-coupon-font-display);
-    font-weight: 400;
+    font-weight: var(--weight-display);
     font-size: 28px;
     line-height: 1.15;
     margin: 8px 0 4px;
@@ -908,7 +912,7 @@
 [data-app='our-exchange'] .mailbox-coupon-desc {
     font-family: var(--mailbox-font-display);
     font-style: italic;
-    font-weight: 400;
+    font-weight: var(--weight-display);
     font-size: 18px;
     color: var(--mailbox-ink);
     line-height: 1.5;
@@ -1000,7 +1004,7 @@
 }
 [data-app='our-exchange'] .mailbox-coupon-remaining b {
     font-family: var(--mailbox-font-display);
-    font-weight: 400;
+    font-weight: var(--weight-display);
     font-size: var(--text-title);
     font-variant-numeric: tabular-nums;
     letter-spacing: var(--tracking-display);
@@ -1145,7 +1149,7 @@
     text-decoration: none;
     color: var(--mailbox-ink);
     font-family: var(--mailbox-coupon-font-display);
-    font-weight: 400;
+    font-weight: var(--weight-display);
     font-size: var(--mailbox-hand-size);
     line-height: 1.2;
     overflow-wrap: anywhere;
@@ -1332,6 +1336,7 @@
 
 [data-app='our-exchange'] .mailbox-bouquet-note-input {
     font-family: var(--mailbox-font-hand);
+    font-style: italic;
     font-size: var(--mailbox-hand-size-small);
     line-height: 28px;
     padding: 12px 16px;
@@ -1342,6 +1347,7 @@
 /* The sheet a note is written on: same paper, rules and corners as the note it becomes. */
 [data-app='our-exchange'] .mailbox-note-input {
     font-family: var(--mailbox-font-hand);
+    font-style: italic;
     font-size: var(--mailbox-hand-size);
     line-height: var(--mailbox-rule-step);
     background-color: var(--mailbox-card);
@@ -1385,7 +1391,7 @@
 
 [data-app='our-exchange'] .mailbox-coupon-quantity {
     font-family: var(--mailbox-font-display);
-    font-weight: 400;
+    font-weight: var(--weight-display);
     font-size: var(--text-title);
     font-variant-numeric: tabular-nums;
     letter-spacing: var(--tracking-display);

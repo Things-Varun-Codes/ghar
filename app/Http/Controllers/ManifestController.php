@@ -42,8 +42,8 @@ class ManifestController extends Controller
                 'scope' => '/',
                 'display' => 'standalone',
                 'orientation' => 'portrait',
-                'background_color' => '#fbfaf6',
-                'theme_color' => '#fbfaf6',
+                'background_color' => '#f6f3ee',
+                'theme_color' => '#f6f3ee',
                 'icons' => [
                     $icon('/icon-192.png', '192x192', 'any'),
                     $icon('/icon-512.png', '512x512', 'any'),

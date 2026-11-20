@@ -5,8 +5,9 @@ paths:
 
 ## Frontend conventions
 
-- **OS-vs-app split.** The sidebar (from 1024px) is static OS chrome (Home, Settings, Admin). The
-  dashboard is the mini-app launcher. **Mini apps are never added to the sidebar.** Below 1024px
+- **OS-vs-app split.** The sidebar (from 1024px) lists Home, then every room that is on (the same
+  list as the phone's bottom bar, with each room's `nav-icon.tsx`), then Settings and Admin. Home
+  shows what needs you and what's new; it is not a launcher. Below 1024px
   there is no sidebar: a contextual top bar (wordmark on Home; back + page title elsewhere, fed by
   `Page`) and a bottom bar (`BottomBar`) listing Home plus each room that is on, from the registry's
   `nav_label` and its own `nav-icon.tsx`. Settings and Admin live in the account menu there.
@@ -76,7 +77,7 @@ paths:
   `useCursorPagination` (re-seed from any response carrying the list; `refreshInPlace()`). Mailbox
   create sheets use `preserveState: 'errors'`; "Send & write another" keeps state, so the sheet
   stays open.
-- **Prefetch only side-effect-free pages.** `<Link prefetch="mount">` is on the Home doors, the
+- **Prefetch only side-effect-free pages.** `<Link prefetch="mount">` is on the
   Corner landing cards (the first four) and the History tabs; `lib/stale-history.ts` drops the prefetch cache after any non-GET
   visit. Never prefetch a page whose GET changes something: Mailbox Messages and Flowers mark
   themselves read when fetched.

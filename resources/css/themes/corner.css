@@ -325,7 +325,7 @@
     margin: 12px 4px 0;
     font-family: var(--corner-font-display);
     font-size: var(--text-title);
-    font-weight: 400;
+    font-weight: var(--weight-display);
     line-height: 1.2;
     letter-spacing: var(--tracking-display);
     color: var(--corner-ink);
@@ -538,7 +538,7 @@
     margin: 0 0 16px 0;
     font-family: var(--corner-font-display);
     font-size: var(--text-title);
-    font-weight: 400;
+    font-weight: var(--weight-display);
     line-height: 1.2;
     letter-spacing: var(--tracking-display);
     text-wrap: balance;
@@ -678,7 +678,7 @@
     margin: 0;
     font-family: var(--corner-font-display);
     font-size: var(--text-title);
-    font-weight: 400;
+    font-weight: var(--weight-display);
     line-height: 1.2;
     letter-spacing: var(--tracking-display);
 }
@@ -1111,7 +1111,7 @@
     padding: 18px 64px 4px 16px;
     font-family: var(--corner-font-display);
     font-size: var(--text-title);
-    font-weight: 400;
+    font-weight: var(--weight-display);
 }
 
 [data-app='our-shelf'] .corner-icon-panel {
@@ -1275,7 +1275,7 @@
     margin-bottom: 12px;
     font-family: var(--corner-font-display);
     font-size: var(--text-page);
-    font-weight: 400;
+    font-weight: var(--weight-display);
     line-height: 1.15;
     letter-spacing: var(--tracking-display);
     text-wrap: balance;

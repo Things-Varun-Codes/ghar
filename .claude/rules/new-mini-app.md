@@ -69,10 +69,13 @@ its provider's `boot()`. Everything else is a hand edit:
    calling it in `DevDataSeeder::run()`, and its states and ids in `dev-data.md`. If the room
    writes files outside the media library, the class clears them itself (`MailboxData::clearFiles`,
    called from `DevDataSeeder::clearSeededFiles()`).
-9. Optional door content on Home, from the provider's `boot()`: a live line with
-   `DashboardSummaries::register(self::SLUG, fn (User $u): ?string => …)` and a glimpse with
-   `registerPreview(self::SLUG, fn (User $u): ?array => …)` (`images`, or `note` + `note_from`).
-   Must return only rows the viewer may see; a throwing resolver just shows nothing.
+9. Optional Home content, from the provider's `boot()`: a live line with
+   `DashboardSummaries::register(self::SLUG, fn (User $u): ?string => …)`, a glimpse with
+   `registerPreview(self::SLUG, fn (User $u): ?array => …)` (`images`), and feed rows with
+   `registerFeed(self::SLUG, fn (User $u, CarbonImmutable $since): array => …)`: `needs` for what
+   waits on the viewer, `new` for other members' additions since `$since` (see the
+   `DashboardFeed` classes). Must return only rows the viewer may see; a throwing resolver just
+   shows nothing.
 10. If other rooms can link to yours, call `LinkableEntities::register()` from `boot()` with a
     `label` (how the picker files your results), a `resolveMany` (ids → `title`, `thumbnail_url`,
     `icon` as a lucide name, `deep_link_url`), a `listing` if the picker should find them, and

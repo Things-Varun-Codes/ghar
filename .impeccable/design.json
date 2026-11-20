@@ -1,0 +1,513 @@
+{
+    "schemaVersion": 2,
+    "generatedAt": "2026-11-20T02:42:27+00:00",
+    "title": "Design System: Ghar",
+    "extensions": {
+        "colorMeta": {
+            "enamel": {
+                "role": "neutral",
+                "displayName": "Enamel",
+                "canonical": "oklch(0.966 0.008 75)",
+                "tonalRamp": [
+                    "oklch(0.15 0.004 75)",
+                    "oklch(0.27 0.005 75)",
+                    "oklch(0.39 0.006 75)",
+                    "oklch(0.51 0.008 75)",
+                    "oklch(0.63 0.007 75)",
+                    "oklch(0.75 0.006 75)",
+                    "oklch(0.86 0.005 75)",
+                    "oklch(0.95 0.004 75)"
+                ]
+            },
+            "chrome": {
+                "role": "neutral",
+                "displayName": "Chrome",
+                "canonical": "oklch(0.945 0.01 75)",
+                "tonalRamp": [
+                    "oklch(0.15 0.005 75)",
+                    "oklch(0.27 0.006 75)",
+                    "oklch(0.39 0.008 75)",
+                    "oklch(0.51 0.009 75)",
+                    "oklch(0.63 0.009 75)",
+                    "oklch(0.75 0.007 75)",
+                    "oklch(0.86 0.006 75)",
+                    "oklch(0.95 0.005 75)"
+                ]
+            },
+            "paper": {
+                "role": "neutral",
+                "displayName": "Paper",
+                "canonical": "oklch(0.995 0.003 75)",
+                "tonalRamp": [
+                    "oklch(0.15 0.001 75)",
+                    "oklch(0.27 0.002 75)",
+                    "oklch(0.39 0.002 75)",
+                    "oklch(0.51 0.003 75)",
+                    "oklch(0.63 0.003 75)",
+                    "oklch(0.75 0.002 75)",
+                    "oklch(0.86 0.002 75)",
+                    "oklch(0.95 0.001 75)"
+                ]
+            },
+            "hairline": {
+                "role": "neutral",
+                "displayName": "Hairline",
+                "canonical": "oklch(0.905 0.012 70)",
+                "tonalRamp": [
+                    "oklch(0.15 0.005 70)",
+                    "oklch(0.27 0.007 70)",
+                    "oklch(0.39 0.009 70)",
+                    "oklch(0.51 0.011 70)",
+                    "oklch(0.63 0.011 70)",
+                    "oklch(0.75 0.009 70)",
+                    "oklch(0.86 0.007 70)",
+                    "oklch(0.95 0.005 70)"
+                ]
+            },
+            "field-edge": {
+                "role": "neutral",
+                "displayName": "Field Edge",
+                "canonical": "oklch(0.66 0.02 60)",
+                "tonalRamp": [
+                    "oklch(0.15 0.009 60)",
+                    "oklch(0.27 0.012 60)",
+                    "oklch(0.39 0.016 60)",
+                    "oklch(0.51 0.019 60)",
+                    "oklch(0.63 0.018 60)",
+                    "oklch(0.75 0.015 60)",
+                    "oklch(0.86 0.012 60)",
+                    "oklch(0.95 0.009 60)"
+                ]
+            },
+            "ink": {
+                "role": "neutral",
+                "displayName": "Warm Ink",
+                "canonical": "oklch(0.29 0.01 60)",
+                "tonalRamp": [
+                    "oklch(0.15 0.005 60)",
+                    "oklch(0.27 0.006 60)",
+                    "oklch(0.39 0.008 60)",
+                    "oklch(0.51 0.009 60)",
+                    "oklch(0.63 0.009 60)",
+                    "oklch(0.75 0.007 60)",
+                    "oklch(0.86 0.006 60)",
+                    "oklch(0.95 0.005 60)"
+                ]
+            },
+            "ink-muted": {
+                "role": "neutral",
+                "displayName": "Muted Ink",
+                "canonical": "oklch(0.52 0.014 60)",
+                "tonalRamp": [
+                    "oklch(0.15 0.006 60)",
+                    "oklch(0.27 0.009 60)",
+                    "oklch(0.39 0.011 60)",
+                    "oklch(0.51 0.013 60)",
+                    "oklch(0.63 0.012 60)",
+                    "oklch(0.75 0.010 60)",
+                    "oklch(0.86 0.008 60)",
+                    "oklch(0.95 0.006 60)"
+                ]
+            },
+            "coral": {
+                "role": "primary",
+                "displayName": "Door Coral",
+                "canonical": "oklch(0.565 0.135 38)",
+                "tonalRamp": [
+                    "oklch(0.15 0.061 38)",
+                    "oklch(0.27 0.083 38)",
+                    "oklch(0.39 0.106 38)",
+                    "oklch(0.51 0.128 38)",
+                    "oklch(0.63 0.120 38)",
+                    "oklch(0.75 0.098 38)",
+                    "oklch(0.86 0.078 38)",
+                    "oklch(0.95 0.061 38)"
+                ]
+            },
+            "coral-wash": {
+                "role": "primary",
+                "displayName": "Coral Wash",
+                "canonical": "oklch(0.91 0.045 40)",
+                "tonalRamp": [
+                    "oklch(0.15 0.020 40)",
+                    "oklch(0.27 0.028 40)",
+                    "oklch(0.39 0.035 40)",
+                    "oklch(0.51 0.043 40)",
+                    "oklch(0.63 0.040 40)",
+                    "oklch(0.75 0.033 40)",
+                    "oklch(0.86 0.026 40)",
+                    "oklch(0.95 0.020 40)"
+                ]
+            },
+            "coral-deep": {
+                "role": "primary",
+                "displayName": "Deep Coral",
+                "canonical": "oklch(0.36 0.09 38)",
+                "tonalRamp": [
+                    "oklch(0.15 0.041 38)",
+                    "oklch(0.27 0.056 38)",
+                    "oklch(0.39 0.070 38)",
+                    "oklch(0.51 0.085 38)",
+                    "oklch(0.63 0.080 38)",
+                    "oklch(0.75 0.065 38)",
+                    "oklch(0.86 0.052 38)",
+                    "oklch(0.95 0.041 38)"
+                ]
+            },
+            "destructive": {
+                "role": "neutral",
+                "displayName": "Destructive",
+                "canonical": "oklch(0.5 0.16 25)",
+                "tonalRamp": [
+                    "oklch(0.15 0.073 25)",
+                    "oklch(0.27 0.099 25)",
+                    "oklch(0.39 0.125 25)",
+                    "oklch(0.51 0.151 25)",
+                    "oklch(0.63 0.143 25)",
+                    "oklch(0.75 0.116 25)",
+                    "oklch(0.86 0.092 25)",
+                    "oklch(0.95 0.073 25)"
+                ]
+            },
+            "magnet-coral": {
+                "role": "secondary",
+                "displayName": "Coral Magnet",
+                "canonical": "oklch(0.7 0.12 38)",
+                "tonalRamp": [
+                    "oklch(0.15 0.055 38)",
+                    "oklch(0.27 0.074 38)",
+                    "oklch(0.39 0.094 38)",
+                    "oklch(0.51 0.113 38)",
+                    "oklch(0.63 0.107 38)",
+                    "oklch(0.75 0.087 38)",
+                    "oklch(0.86 0.069 38)",
+                    "oklch(0.95 0.055 38)"
+                ]
+            },
+            "magnet-sage": {
+                "role": "secondary",
+                "displayName": "Sage Magnet",
+                "canonical": "oklch(0.72 0.07 160)",
+                "tonalRamp": [
+                    "oklch(0.15 0.032 160)",
+                    "oklch(0.27 0.043 160)",
+                    "oklch(0.39 0.055 160)",
+                    "oklch(0.51 0.066 160)",
+                    "oklch(0.63 0.062 160)",
+                    "oklch(0.75 0.051 160)",
+                    "oklch(0.86 0.040 160)",
+                    "oklch(0.95 0.032 160)"
+                ]
+            },
+            "magnet-sand": {
+                "role": "secondary",
+                "displayName": "Sand Magnet",
+                "canonical": "oklch(0.78 0.1 75)",
+                "tonalRamp": [
+                    "oklch(0.15 0.041 80)",
+                    "oklch(0.27 0.056 80)",
+                    "oklch(0.39 0.070 80)",
+                    "oklch(0.51 0.085 80)",
+                    "oklch(0.63 0.080 80)",
+                    "oklch(0.75 0.065 80)",
+                    "oklch(0.86 0.052 80)",
+                    "oklch(0.95 0.041 80)"
+                ]
+            },
+            "magnet-sky": {
+                "role": "secondary",
+                "displayName": "Sky Magnet",
+                "canonical": "oklch(0.74 0.07 240)",
+                "tonalRamp": [
+                    "oklch(0.15 0.032 240)",
+                    "oklch(0.27 0.043 240)",
+                    "oklch(0.39 0.055 240)",
+                    "oklch(0.51 0.066 240)",
+                    "oklch(0.63 0.062 240)",
+                    "oklch(0.75 0.051 240)",
+                    "oklch(0.86 0.040 240)",
+                    "oklch(0.95 0.032 240)"
+                ]
+            },
+            "magnet-lilac": {
+                "role": "secondary",
+                "displayName": "Lilac Magnet",
+                "canonical": "oklch(0.72 0.07 310)",
+                "tonalRamp": [
+                    "oklch(0.15 0.032 310)",
+                    "oklch(0.27 0.043 310)",
+                    "oklch(0.39 0.055 310)",
+                    "oklch(0.51 0.066 310)",
+                    "oklch(0.63 0.062 310)",
+                    "oklch(0.75 0.051 310)",
+                    "oklch(0.86 0.040 310)",
+                    "oklch(0.95 0.032 310)"
+                ]
+            }
+        },
+        "typographyMeta": {
+            "date": {
+                "displayName": "Date",
+                "purpose": "Weekday and day at the top of Home, light; one per page."
+            },
+            "display": {
+                "displayName": "Display",
+                "purpose": "The Home greeting when the home has no rooms yet."
+            },
+            "headline": {
+                "displayName": "Headline",
+                "purpose": "Page titles."
+            },
+            "title": {
+                "displayName": "Title",
+                "purpose": "Section, dialog and sheet titles."
+            },
+            "subhead": {
+                "displayName": "Subhead",
+                "purpose": "Card titles."
+            },
+            "body": {
+                "displayName": "Body",
+                "purpose": "Reading text, row and slip titles, input values."
+            },
+            "hand": {
+                "displayName": "Hand",
+                "purpose": "Italic; a note's body and a coupon's title in Our Exchange."
+            },
+            "small": {
+                "displayName": "Small",
+                "purpose": "Details, helpers, captions, Home section headings, the slip pill label."
+            },
+            "meta": {
+                "displayName": "Meta",
+                "purpose": "Ages, week labels, bottom-bar labels; tabular figures."
+            }
+        },
+        "freshnessWeights": {
+            "underOneDay": 600,
+            "older": 400,
+            "source": "resources/js/Shell/Pages/dashboard-time.ts"
+        },
+        "magnetAssignment": {
+            "rule": "(person.id % 5) + 1 picks --magnet-1..5",
+            "source": "resources/js/Shell/Pages/Dashboard.tsx"
+        },
+        "slipTilt": ["-1.2deg", "0.9deg", "-0.4deg"],
+        "shadows": [
+            {
+                "name": "slip",
+                "value": "0 1px 2px color-mix(in oklab, var(--shell-text) 10%, transparent), 0 4px 12px color-mix(in oklab, var(--shell-text) 6%, transparent)",
+                "purpose": "A paper slip on Home."
+            },
+            {
+                "name": "magnet",
+                "value": "inset 0 -2px 0 color-mix(in oklab, var(--shell-text) 14%, transparent), 0 2px 3px color-mix(in oklab, var(--shell-text) 18%, transparent)",
+                "purpose": "The magnet holding a slip."
+            },
+            {
+                "name": "toast",
+                "value": "0 2px 8px color-mix(in oklab, var(--shell-text) 6%, transparent)",
+                "purpose": "Toasts at the bottom edge."
+            },
+            {
+                "name": "popover-list",
+                "value": "0 6px 24px color-mix(in oklab, var(--shell-text) 8%, transparent)",
+                "purpose": "Autocomplete and menus over content."
+            },
+            {
+                "name": "fab",
+                "value": "0 8px 20px color-mix(in oklab, var(--shell-action) 28%, transparent)",
+                "purpose": "The floating add button."
+            },
+            {
+                "name": "field-focus",
+                "value": "0 0 0 1px var(--shell-action), 0 0 0 4px color-mix(in oklab, var(--shell-action) 20%, transparent)",
+                "purpose": "Focused field ring, drawn at once."
+            }
+        ],
+        "motion": [
+            {
+                "name": "ease-ui",
+                "value": "cubic-bezier(0.2, 0.8, 0.2, 1)",
+                "purpose": "All UI transitions; nothing overshoots."
+            },
+            {
+                "name": "dur-in",
+                "value": "150ms",
+                "purpose": "Hover in."
+            },
+            {
+                "name": "dur-out",
+                "value": "120ms",
+                "purpose": "Hover out; the default transition duration."
+            },
+            {
+                "name": "dur-press",
+                "value": "90ms",
+                "purpose": "Press."
+            },
+            {
+                "name": "dur-card",
+                "value": "180ms",
+                "purpose": "Card lift; a slip straightening under the pointer."
+            },
+            {
+                "name": "dur-sheet",
+                "value": "240ms",
+                "purpose": "A sheet travelling in from the edge."
+            },
+            {
+                "name": "dur-sheet-out",
+                "value": "160ms",
+                "purpose": "A sheet leaving."
+            },
+            {
+                "name": "dur-media",
+                "value": "300ms",
+                "purpose": "A photo easing in its zoom."
+            },
+            {
+                "name": "dur-stagger",
+                "value": "35ms",
+                "purpose": "Between the first rows of a page settling in."
+            }
+        ],
+        "breakpoints": [
+            {
+                "name": "md",
+                "value": "768px",
+                "note": "gutter 16px to 32px"
+            },
+            {
+                "name": "lg",
+                "value": "1024px",
+                "note": "sidebar replaces top and bottom bars"
+            }
+        ]
+    },
+    "components": [
+        {
+            "name": "Primary Button",
+            "kind": "button",
+            "refersTo": "button-primary",
+            "description": "The coral pill for the main action on a surface.",
+            "html": "<button class=\"ds-btn-primary\">Save</button>",
+            "css": ".ds-btn-primary{font-family:'Atkinson Hyperlegible Next', ui-sans-serif, system-ui, sans-serif;font-size:16px;font-weight:400;height:44px;padding:0 24px;border:none;border-radius:999px;background:var(--shell-action, oklch(0.565 0.135 38));color:#fff;cursor:pointer;transition:background-color 120ms cubic-bezier(0.2,0.8,0.2,1),transform 120ms cubic-bezier(0.2,0.8,0.2,1)}.ds-btn-primary:hover{background:color-mix(in oklab,var(--shell-action, oklch(0.565 0.135 38)) 86%,var(--shell-text, oklch(0.29 0.01 60)));transform:translateY(-1px)}.ds-btn-primary:active{transform:translateY(1px) scale(0.985)}.ds-btn-primary:focus-visible{outline:2px solid var(--shell-action, oklch(0.565 0.135 38));outline-offset:2px}"
+        },
+        {
+            "name": "Outline Button",
+            "kind": "button",
+            "refersTo": "button-outline",
+            "description": "Secondary actions: a paper pill with a field-edge border.",
+            "html": "<button class=\"ds-btn-outline\">Cancel</button>",
+            "css": ".ds-btn-outline{font-family:'Atkinson Hyperlegible Next', ui-sans-serif, system-ui, sans-serif;font-size:16px;font-weight:400;height:44px;padding:0 24px;border:1px solid var(--shell-border-input, oklch(0.66 0.02 60));border-radius:999px;background:var(--shell-surface, oklch(0.995 0.003 75));color:var(--shell-text, oklch(0.29 0.01 60));cursor:pointer;transition:background-color 120ms cubic-bezier(0.2,0.8,0.2,1),transform 120ms cubic-bezier(0.2,0.8,0.2,1)}.ds-btn-outline:hover{background:var(--shell-chrome, oklch(0.945 0.01 75));transform:translateY(-1px)}.ds-btn-outline:active{transform:translateY(1px) scale(0.985)}.ds-btn-outline:focus-visible{outline:2px solid var(--shell-action, oklch(0.565 0.135 38));outline-offset:2px}"
+        },
+        {
+            "name": "Text Field",
+            "kind": "input",
+            "refersTo": "input",
+            "description": "Paper field, 12px radius, a coral ring on focus drawn at once.",
+            "html": "<input class=\"ds-input\" placeholder=\"Title\">",
+            "css": ".ds-input{font-family:'Atkinson Hyperlegible Next', ui-sans-serif, system-ui, sans-serif;font-size:16px;height:44px;padding:0 14px;border:1px solid var(--shell-border-input, oklch(0.66 0.02 60));border-radius:12px;background:var(--shell-surface, oklch(0.995 0.003 75));color:var(--shell-text, oklch(0.29 0.01 60));outline:none;transition:border-color 120ms cubic-bezier(0.2,0.8,0.2,1)}.ds-input:hover{border-color:color-mix(in oklab,var(--shell-text, oklch(0.29 0.01 60)) 48%,transparent)}.ds-input:focus-visible{border-color:var(--shell-action, oklch(0.565 0.135 38));box-shadow:0 0 0 1px var(--shell-action, oklch(0.565 0.135 38)),0 0 0 4px color-mix(in oklab,var(--shell-action, oklch(0.565 0.135 38)) 20%,transparent)}"
+        },
+        {
+            "name": "Sidebar Nav",
+            "kind": "nav",
+            "refersTo": "nav-item-current",
+            "description": "44px pills on the chrome; the current place in coral wash with deep-coral text.",
+            "html": "<nav class=\"ds-nav\"><span class=\"ds-word\">Ghar</span><a class=\"ds-nav-item\" aria-current=\"page\" href=\"#\">Home</a><a class=\"ds-nav-item\" href=\"#\">Our History</a><a class=\"ds-nav-item\" href=\"#\">Our Shelf</a><a class=\"ds-nav-item\" href=\"#\">Our Exchange</a></nav>",
+            "css": ".ds-nav{display:flex;flex-direction:column;gap:2px;padding:24px 12px;width:216px;background:var(--shell-chrome, oklch(0.945 0.01 75));font-family:'Atkinson Hyperlegible Next', ui-sans-serif, system-ui, sans-serif}.ds-word{font-size:28px;font-weight:600;color:var(--shell-action, oklch(0.565 0.135 38));padding:0 12px 16px}.ds-nav-item{display:flex;align-items:center;min-height:44px;padding:0 12px;border-radius:999px;font-size:16px;font-weight:400;text-decoration:none;color:color-mix(in oklab,var(--shell-text, oklch(0.29 0.01 60)) 74%,transparent);transition:background-color 120ms cubic-bezier(0.2,0.8,0.2,1),color 120ms cubic-bezier(0.2,0.8,0.2,1)}.ds-nav-item:hover{color:var(--shell-text, oklch(0.29 0.01 60));background:color-mix(in oklab,var(--shell-text, oklch(0.29 0.01 60)) 5%,var(--shell-chrome, oklch(0.945 0.01 75)))}.ds-nav-item[aria-current='page']{color:var(--shell-accent-fg,oklch(0.36 0.09 38));font-weight:600;background:color-mix(in oklab,var(--shell-accent,oklch(0.91 0.045 40)) 35%,var(--shell-chrome, oklch(0.945 0.01 75)))}.ds-nav-item:focus-visible{outline:2px solid var(--shell-action, oklch(0.565 0.135 38));outline-offset:2px}"
+        },
+        {
+            "name": "Magnet Slips",
+            "kind": "custom",
+            "refersTo": "slip",
+            "description": "Needs you: paper slips, slightly tilted, each held by a magnet in the sender's colour.",
+            "html": "<ul class=\"ds-slips\"><li><a class=\"ds-slip\" href=\"#\"><span class=\"ds-mag\" style=\"background:oklch(0.72 0.07 160)\"></span><span class=\"ds-st\">Answer a question</span><span class=\"ds-sd\">Which day works for the picnic?</span><span class=\"ds-sf\"><span class=\"ds-pill\">Answer</span><time class=\"ds-age\">2h</time></span></a></li><li><a class=\"ds-slip\" href=\"#\"><span class=\"ds-mag\" style=\"background:oklch(0.74 0.07 240)\"></span><span class=\"ds-st\">A note for you</span><span class=\"ds-sd\">Left on the counter this morning</span><span class=\"ds-sf\"><span class=\"ds-pill\">Read</span><time class=\"ds-age\">5h</time></span></a></li><li><a class=\"ds-slip\" href=\"#\"><span class=\"ds-mag\" style=\"background:oklch(0.78 0.1 75)\"></span><span class=\"ds-st\">Citation to pay</span><span class=\"ds-sd\">Left the lights on in the hall</span><span class=\"ds-sf\"><span class=\"ds-pill\">Pay</span><time class=\"ds-age\">1d</time></span></a></li></ul>",
+            "css": ".ds-slips{display:grid;grid-template-columns:repeat(auto-fill,minmax(152px,1fr));gap:20px 12px;max-width:520px;margin:0;padding:12px;list-style:none;background:var(--shell-bg, oklch(0.966 0.008 75));font-family:'Atkinson Hyperlegible Next', ui-sans-serif, system-ui, sans-serif}.ds-slips>:nth-child(3n+1) .ds-slip{rotate:-1.2deg}.ds-slips>:nth-child(3n+2) .ds-slip{rotate:0.9deg}.ds-slips>:nth-child(3n) .ds-slip{rotate:-0.4deg}.ds-slip{position:relative;display:flex;flex-direction:column;height:100%;min-height:132px;padding:20px 14px 12px;background:var(--shell-surface, oklch(0.995 0.003 75));border-radius:4px;color:var(--shell-text, oklch(0.29 0.01 60));text-decoration:none;box-shadow:0 1px 2px color-mix(in oklab,var(--shell-text, oklch(0.29 0.01 60)) 10%,transparent),0 4px 12px color-mix(in oklab,var(--shell-text, oklch(0.29 0.01 60)) 6%,transparent);transition:rotate 180ms cubic-bezier(0.2,0.8,0.2,1),translate 180ms cubic-bezier(0.2,0.8,0.2,1)}.ds-slips .ds-slip:hover{rotate:0deg;translate:0 -2px}.ds-slip:focus-visible{outline:none;box-shadow:0 0 0 2px var(--shell-bg, oklch(0.966 0.008 75)),0 0 0 4px var(--shell-action, oklch(0.565 0.135 38))}.ds-mag{position:absolute;top:-9px;left:50%;width:20px;height:20px;margin-left:-10px;border-radius:50%;box-shadow:inset 0 -2px 0 color-mix(in oklab,var(--shell-text, oklch(0.29 0.01 60)) 14%,transparent),0 2px 3px color-mix(in oklab,var(--shell-text, oklch(0.29 0.01 60)) 18%,transparent)}.ds-st{font-size:16px;font-weight:600;line-height:1.3}.ds-sd{margin-top:4px;font-size:14px;color:var(--shell-text-muted, oklch(0.52 0.014 60))}.ds-sf{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:auto;padding-top:12px}.ds-pill{display:inline-flex;align-items:center;height:32px;padding:0 14px;border-radius:999px;background:var(--shell-action, oklch(0.565 0.135 38));color:#fff;font-size:14px;font-weight:600;transition:background-color 120ms cubic-bezier(0.2,0.8,0.2,1)}.ds-slip:hover .ds-pill{background:color-mix(in oklab,var(--shell-action, oklch(0.565 0.135 38)) 86%,var(--shell-text, oklch(0.29 0.01 60)))}.ds-age{font-size:13px;color:var(--shell-text-muted, oklch(0.52 0.014 60));font-variant-numeric:tabular-nums}"
+        },
+        {
+            "name": "Feed Rows",
+            "kind": "custom",
+            "refersTo": "feed-row",
+            "description": "New this week: rows on hairlines; the last day is 600, older is 400.",
+            "html": "<ul class=\"ds-feed\"><li><a class=\"ds-row\" href=\"#\"><span class=\"ds-av\">S</span><span class=\"ds-text\"><span class=\"ds-title\" style=\"font-weight:600\">Added three songs to Road trip</span><span class=\"ds-detail\">Our Shelf</span></span><time class=\"ds-age\">3h</time></a></li><li><a class=\"ds-row\" href=\"#\"><span class=\"ds-dot\"></span><span class=\"ds-text\"><span class=\"ds-title\" style=\"font-weight:400\">Picnic by the lake</span><span class=\"ds-detail\">Our History</span></span><time class=\"ds-age\">2d</time></a></li></ul>",
+            "css": ".ds-feed{list-style:none;margin:0;padding:0;max-width:640px;font-family:'Atkinson Hyperlegible Next', ui-sans-serif, system-ui, sans-serif}.ds-row{display:grid;grid-template-columns:32px 1fr auto;align-items:center;gap:10px;min-height:60px;padding:10px 0;border-top:1px solid var(--shell-border, oklch(0.905 0.012 70));color:var(--shell-text, oklch(0.29 0.01 60));text-decoration:none;transition:background-color 120ms cubic-bezier(0.2,0.8,0.2,1)}.ds-row:hover{background:color-mix(in oklab,var(--shell-text, oklch(0.29 0.01 60)) 5%,var(--shell-surface, oklch(0.995 0.003 75)));transition-duration:150ms}.ds-row:focus-visible{outline:none;box-shadow:0 0 0 2px var(--shell-bg, oklch(0.966 0.008 75)),0 0 0 4px var(--shell-action, oklch(0.565 0.135 38))}.ds-av{display:grid;place-items:center;width:32px;height:32px;border-radius:50%;background:var(--shell-accent,oklch(0.91 0.045 40));color:var(--shell-accent-fg,oklch(0.36 0.09 38));font-size:13px;font-weight:600}.ds-dot{width:10px;height:10px;margin:auto;border-radius:50%;background:var(--shell-border-input, oklch(0.66 0.02 60))}.ds-text{display:flex;flex-direction:column;min-width:0}.ds-title{font-size:16px;line-height:1.3}.ds-detail{margin-top:2px;font-size:14px;color:var(--shell-text-muted, oklch(0.52 0.014 60));white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.ds-age{font-size:13px;color:var(--shell-text-muted, oklch(0.52 0.014 60));font-variant-numeric:tabular-nums}"
+        },
+        {
+            "name": "Home Date",
+            "kind": "custom",
+            "refersTo": "date",
+            "description": "The date as Home's headline, large and light, with a muted line beneath.",
+            "html": "<h1 class=\"ds-date\"><span class=\"ds-day\">Thu 20</span><span class=\"ds-month\">November · 3 things for you, Sam</span></h1>",
+            "css": ".ds-date{display:flex;flex-direction:column;margin:0;font-family:'Atkinson Hyperlegible Next', ui-sans-serif, system-ui, sans-serif;color:var(--shell-text, oklch(0.29 0.01 60))}.ds-day{font-size:clamp(48px,3vw + 38px,64px);font-weight:300;line-height:1;letter-spacing:-0.02em}.ds-month{margin-top:6px;font-size:16px;font-weight:400;color:var(--shell-text-muted, oklch(0.52 0.014 60))}"
+        }
+    ],
+    "narrative": {
+        "northStar": "The Fridge Door",
+        "overview": "Ghar is the door of a household's fridge. The ground is warm enamel white, the ink is a soft warm brown-black that is never pure black, and nothing on it is heavy. What needs you is held up by a small magnet in the colour of the person who left it; everything else sits quietly underneath on hairline rules. One coral marks what you can press and where you are.\n\nOne face, Atkinson Hyperlegible Next, carries every role at three weights: 300 for Home's date, 400 to read, 600 for titles. It was chosen to be read by anyone in the house, at any age, on a phone held at arm's length. Density is a single calm column (640px on Home) with 44px taps and nothing under 13px.\n\nHome is the reference expression: the date set large and light, a seven-day strip, \"Needs you\" as slightly tilted paper slips each pinned by a magnet, then \"New this week\" as plain rows. Rooms are reached from the phone's bottom bar and the laptop sidebar, not from Home. The room objects (notes, citations, coupons, stickers, the gallery) alias these tokens but have not had their own pass yet.",
+        "keyCharacteristics": [
+            "Warm enamel ground, soft warm ink, never black or cold grey.",
+            "One coral for pressables and the current place; its pale wash for what is selected.",
+            "Magnets in five soft colours mark people on Home's slips.",
+            "One face at 300 / 400 / 600; nothing heavier.",
+            "Paper slips carry a soft real shadow; everything else is flat with hairlines.",
+            "Nothing under 13px; every tap at least 44px."
+        ],
+        "rules": [
+            {
+                "name": "The One Coral Rule",
+                "body": "Coral marks only what you can press or where you are. If it is not a control, the current place or the count of what needs you, it is not coral.",
+                "section": "colors"
+            },
+            {
+                "name": "The Magnets Are People Rule",
+                "body": "A magnet colour stands for a person. It is never a room colour, a category, data or decoration.",
+                "section": "colors"
+            },
+            {
+                "name": "The Warm Ink Rule",
+                "body": "Text is the warm ink, never pure black and never a cold grey.",
+                "section": "colors"
+            },
+            {
+                "name": "The Three Weights Rule",
+                "body": "Only 300, 400 and 600 are loaded. 300 is the date alone; 600 is titles and the one step of emphasis; everything else is 400.",
+                "section": "typography"
+            },
+            {
+                "name": "The Last Day Rule",
+                "body": "In \"New this week\" a row from the last 24 hours is 600 and anything older is 400. Weight on Home means recency, never decoration.",
+                "section": "typography"
+            },
+            {
+                "name": "The 13px Floor Rule",
+                "body": "No text is set below 13px.",
+                "section": "typography"
+            },
+            {
+                "name": "The Only Paper Casts a Shadow Rule",
+                "body": "Cards, rows and sections never carry a shadow at rest. A slip may, because it is paper on a door; a layer over content may use one of the floating shadows above.",
+                "section": "elevation"
+            }
+        ],
+        "dos": [
+            "**Do** set every piece of text in Atkinson Hyperlegible Next at 300, 400 or 600.",
+            "**Do** keep coral to pressables, the current place and the count of what needs you.",
+            "**Do** give each person their magnet by id modulo five, and use a magnet only to mark that person.",
+            "**Do** set a \"New this week\" row at 600 when it is under a day old and 400 otherwise.",
+            "**Do** divide lists with 1px hairlines and keep cards flat.",
+            "**Do** make every tap at least 44px and every line of text at least 13px.",
+            "**Do** keep sample content neutral and true for any household: a shared list, a note left on the counter, a birthday."
+        ],
+        "donts": [
+            "**Don't** set any weight above 600 or bring in a second family.",
+            "**Don't** fill a button with the coral wash, or use a magnet colour for a room or a category.",
+            "**Don't** put a shadow on a card, row or section at rest; only slips and floating layers carry one.",
+            "**Don't** use pure black text or a cold grey.",
+            "**Don't** put a small tracked label above a title, or set text in tracked capitals.",
+            "**Don't** list the rooms on Home; the bottom bar and the sidebar do that.",
+            "**Don't** cross out something that is done."
+        ]
+    }
+}

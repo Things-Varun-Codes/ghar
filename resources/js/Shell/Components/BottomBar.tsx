@@ -2,18 +2,12 @@ import { Link, usePage } from '@inertiajs/react';
 import type { LucideIcon } from 'lucide-react';
 import { House, LayoutGrid } from 'lucide-react';
 import { dashboard } from '@/routes';
-import { navIconFor, roomsForBar } from '@/Shell/Components/bottom-bar';
+import {
+    navIconFor,
+    navIcons,
+    roomsForBar,
+} from '@/Shell/Components/bottom-bar';
 import type { MiniApp } from '@/types/miniapp';
-
-/*
- * Each room supplies its bar icon as the default export of MiniApps/{App}/nav-icon.tsx. A build-time
- * glob keeps the shell free of named imports, so a new room needs no shell edit. Eager: each module
- * is a single lucide icon, so the first paint has no flash and no extra request.
- */
-const navIcons = import.meta.glob<LucideIcon>('../../MiniApps/*/nav-icon.tsx', {
-    eager: true,
-    import: 'default',
-});
 
 type SharedProps = { miniApps?: MiniApp[] };
 

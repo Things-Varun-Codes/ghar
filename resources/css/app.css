@@ -9,19 +9,18 @@
 @import './shell/settings.css';
 
 @source '../views';
+
 @source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
 
 @theme {
+    /* One face, Atkinson Hyperlegible Next: made to be read by anyone, at any age. Rank is
+       weight (300 for the date, 400 to read, 600 for titles) and nothing heavier. */
     --font-sans:
-        'Hanken Grotesk', ui-sans-serif, system-ui, sans-serif,
+        'Atkinson Hyperlegible Next', ui-sans-serif, system-ui, sans-serif,
         'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol',
         'Noto Color Emoji';
-
-    /* Two faces with fixed jobs: Newsreader for titles, dates and headings, Hanken Grotesk for
-       everything else. --font-hand is the one exception and belongs to Mailbox note bodies and
-       coupon titles only. */
-    --font-display: 'Newsreader', 'Iowan Old Style', Georgia, serif;
-    --font-hand: 'Patrick Hand', 'Comic Sans MS', cursive;
+    --font-display: var(--font-sans);
+    --font-hand: var(--font-sans);
 
     --radius-lg: var(--radius);
     --radius-md: calc(var(--radius) - 2px);
@@ -75,23 +74,34 @@
 }
 
 :root {
-    /* Sage on white. Two sages with two jobs: --shell-action is the one action colour;
-       --shell-accent marks what is selected or tints a surface and never fills a button. */
+    /* Warm enamel white, like a fridge door. Coral --shell-action is the one action colour and marks
+       where you are; --shell-accent is its pale wash for what is selected and never fills a button.
+       The magnet colours mark people on Home's slips and nothing else. */
 
-    --shell-bg: oklch(0.985 0.005 80);
-    --shell-chrome: oklch(0.965 0.006 80);
-    --shell-surface: oklch(1 0 0);
-    --shell-border: oklch(0.915 0.008 75);
-    --shell-border-input: oklch(0.66 0.014 80); /* 3:1 on paper (WCAG 1.4.11) */
-    --shell-hover: oklch(0.965 0.006 80);
+    --shell-bg: oklch(0.966 0.008 75);
+    --shell-chrome: oklch(0.945 0.01 75);
+    --shell-surface: oklch(0.995 0.003 75);
+    --shell-border: oklch(0.905 0.012 70);
+    --shell-border-input: oklch(
+        0.66 0.02 60
+    ); /* 3:1 on the surface (WCAG 1.4.11) */
+    --shell-hover: oklch(0.945 0.01 75);
 
-    --shell-accent: oklch(0.78 0.06 130);
-    --shell-accent-fg: oklch(0.2 0.025 135);
-    /* L 0.5 keeps a white label at 5.8:1 and sage text at 5.2:1 on the sidebar. */
-    --shell-accent-text: oklch(0.5 0.08 135);
+    --shell-accent: oklch(0.91 0.045 40);
+    --shell-accent-fg: oklch(0.36 0.09 38);
+    /* L 0.57 keeps a white label at 4.6:1 and coral text at 4.5:1 on the surface. */
+    --shell-accent-text: oklch(0.565 0.135 38);
 
     --shell-action: var(--shell-accent-text);
-    --shell-action-fg: var(--shell-surface);
+    --shell-action-fg: oklch(1 0 0);
+
+    --shell-attention: var(--shell-action);
+
+    --magnet-1: oklch(0.7 0.12 38); /* coral */
+    --magnet-2: oklch(0.72 0.07 160); /* sage */
+    --magnet-3: oklch(0.78 0.1 75); /* sand */
+    --magnet-4: oklch(0.74 0.07 240); /* sky */
+    --magnet-5: oklch(0.72 0.07 310); /* lilac */
 
     --shell-nav-active: color-mix(
         in oklab,
@@ -99,11 +109,11 @@
         var(--shell-surface)
     );
 
-    --shell-text: oklch(0.2 0.012 60);
-    --shell-text-muted: oklch(0.52 0.012 65);
+    --shell-text: oklch(0.29 0.01 60);
+    --shell-text-muted: oklch(0.52 0.014 60);
 
-    --shell-destructive: oklch(0.5 0.13 22);
-    --shell-destructive-fg: oklch(0.985 0.005 80);
+    --shell-destructive: oklch(0.5 0.16 25);
+    --shell-destructive-fg: oklch(1 0 0);
 
     /* Derived recipes, mixed once here; a room token aliases one instead of rebuilding it. */
     --shell-hover-wash: color-mix(
@@ -202,16 +212,17 @@
         --text-small: 14px; /* helper, caption, error */
         --text-eyebrow: 13px; /* label, meta */
         --text-meta: 13px;
-        --text-hand: 21px; /* Patrick Hand reads small; a note body and a coupon title */
+        --text-hand: 19px; /* a note body and a coupon title, in the casual slant */
 
-        --tracking-display: -0.018em;
+        --tracking-display: -0.015em;
+        --weight-display: 600; /* page, section and sheet titles; nothing is heavier */
 
         /* The radius family: pill buttons and chips, fields, menus and popovers, cards. */
         --radius-pill: 999px;
-        --radius-field: 14px;
-        --radius-pop: 16px;
-        --radius-card: 22px;
-        --radius-inner: 10px; /* inside a card: card radius minus its 12px inset */
+        --radius-field: 12px;
+        --radius-pop: 14px;
+        --radius-card: 16px;
+        --radius-inner: 6px; /* inside a card: card radius minus its 10px inset */
 
         /* Hover in, hover out, press, card lift. Nothing overshoots. */
         --dur-in: 150ms;
@@ -246,6 +257,22 @@
 
     body {
         @apply bg-background text-foreground;
+    }
+
+    ::selection {
+        background: var(--shell-accent);
+        color: var(--shell-accent-fg);
+    }
+
+    :root {
+        caret-color: var(--shell-action);
+        accent-color: var(--shell-action);
+    }
+
+    /* Counts, dates and times line up. */
+    time,
+    .tabular {
+        font-variant-numeric: tabular-nums;
     }
 
     input:not([type='checkbox']):not([type='radio']):not([type='range']),
@@ -306,7 +333,7 @@
 @layer components {
     .page-h1 {
         font-family: var(--font-display);
-        font-weight: 400;
+        font-weight: var(--weight-display);
         font-size: var(--text-page);
         letter-spacing: var(--tracking-display);
         line-height: 1.15;
@@ -481,7 +508,7 @@
     height: 36px;
     padding: 0 14px;
     font-size: var(--text-small);
-    font-weight: 500;
+    font-weight: 600;
     color: var(--shell-action);
     background: var(--shell-surface);
     border: 1px solid var(--shell-action);
@@ -703,7 +730,7 @@ button[type='submit'][data-slot='button'] {
 [data-slot='alert-dialog-title'] {
     font-family: var(--font-display);
     font-size: var(--text-title);
-    font-weight: 400;
+    font-weight: var(--weight-display);
     line-height: 1.2;
     letter-spacing: var(--tracking-display);
     color: var(--foreground);
@@ -774,223 +801,240 @@ button[type='submit'][data-slot='button'] {
 }
 
 .os-home {
-    max-width: 1100px;
+    max-width: 640px;
     margin: 0 auto;
-    padding: 40px 0 24px;
+    padding: 32px 0 24px;
 }
 
-.os-home-greeting {
-    margin-bottom: 36px;
-}
-
-.os-home-greeting h1 {
-    font-family: var(--font-display);
-    font-size: var(--text-display);
-    font-weight: 400;
-    line-height: 1.1;
-    letter-spacing: -0.025em;
-    text-wrap: balance;
-    color: var(--foreground);
-}
-
-.os-home-greeting p {
-    margin-top: 12px;
-    font-size: var(--text-body);
-    line-height: 1.6;
-    color: var(--muted-foreground);
-}
-
-.os-home-doors {
-    display: grid;
-    grid-template-columns: repeat(12, minmax(0, 1fr));
-    gap: 16px;
-}
-
-/* Each door sits in a slot that carries its place in the grid, so the settle-in motion
-   runs on the slot and the door keeps its own lift. */
-.os-home-door {
-    display: grid;
-    grid-column: span 5;
-    min-width: 0;
-}
-
-.os-home-door:first-child {
-    grid-column: span 7;
-    grid-row: span 2;
-}
-
-.os-door {
+.os-home-date {
     display: flex;
     flex-direction: column;
-    min-width: 0;
-    padding: 12px;
-    border-radius: var(--radius-card);
-    background-color: var(--card);
-    border: 1px solid var(--border);
-    color: var(--foreground);
+}
+
+/* The date is the headline, set light: large, calm, never heavy. */
+.os-home-day {
+    font-size: clamp(48px, 3vw + 38px, 64px);
+    font-weight: 300;
+    line-height: 1;
+    letter-spacing: -0.02em;
+}
+
+.os-home-month {
+    margin-top: 6px;
+    font-size: var(--text-body);
+    font-weight: 400;
+    color: var(--shell-text-muted);
+    text-wrap: balance;
+}
+
+.os-home-section {
+    margin-top: 32px;
+}
+
+.os-home-h2 {
+    font-size: var(--text-small);
+    font-weight: 600;
+    color: var(--shell-text-muted);
+    padding-bottom: 10px;
+}
+
+.os-home-h2-count {
+    color: var(--shell-attention);
+    font-variant-numeric: tabular-nums;
+}
+
+.os-home-quiet {
+    padding: 14px 0;
+    border-top: 1px solid var(--shell-border);
+    color: var(--shell-text-muted);
+}
+
+/* Needs you: paper slips held up by a magnet, two to a row on a phone. */
+.os-slips {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(152px, 1fr));
+    align-items: start;
+    gap: 28px 14px;
+    padding: 18px 0 0;
+    margin: 0;
+    list-style: none;
+}
+
+.os-slip {
+    rotate: -1.2deg;
+}
+.os-slips > :nth-child(3n + 2) .os-slip {
+    rotate: 0.9deg;
+}
+.os-slips > :nth-child(3n) .os-slip {
+    rotate: -0.4deg;
+}
+
+.os-slip {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    min-height: 120px;
+    margin-top: var(--slip-drop, 0px);
+    rotate: var(--slip-tilt, 0deg);
+    padding: 26px 14px 12px;
+    background: var(--shell-surface);
+    border-radius: 4px;
+    color: var(--shell-text);
     text-decoration: none;
+    box-shadow:
+        0 1px 2px color-mix(in oklab, var(--shell-text) 10%, transparent),
+        0 4px 12px color-mix(in oklab, var(--shell-text) 6%, transparent);
+    transition:
+        rotate var(--dur-card) var(--ease-ui),
+        translate var(--dur-card) var(--ease-ui);
 }
 
 @media (hover: hover) and (pointer: fine) {
-    .os-door:hover .os-door-images img {
-        transform: scale(1.03);
+    .os-slips .os-slip:hover {
+        rotate: 0deg;
+        translate: 0 -2px;
     }
 }
 
-.os-door-glimpse {
-    display: block;
-    flex: 1 1 auto;
-    min-height: 148px;
-    border-radius: var(--radius-inner);
-    overflow: hidden;
-    background-color: var(--shell-hover);
+.os-slip-magnet {
+    position: absolute;
+    top: -17px;
+    left: var(--magnet-x, 50%);
+    width: 36px;
+    height: 36px;
+    margin-left: -18px;
+    padding: 2px;
+    border-radius: 50%;
+    background: var(--magnet);
+    box-shadow: 0 2px 4px
+        color-mix(in oklab, var(--shell-text) 22%, transparent);
 }
 
-.os-door-images {
-    display: grid;
-    height: 100%;
-    gap: 4px;
-    grid-auto-flow: column;
-    grid-auto-columns: minmax(0, 1fr);
-}
-
-.os-door-images img {
-    display: block;
-    width: 100%;
-    height: 100%;
-    min-height: 148px;
-    object-fit: cover;
-    transition: transform var(--dur-media) var(--ease-ui);
-}
-
-.os-home-door:first-child .os-door .os-door-images[data-count='3'] {
-    grid-auto-flow: row;
-    grid-template-columns: 2fr 1fr;
-    grid-template-rows: 1fr 1fr;
-}
-
-.os-home-door:first-child
-    .os-door
-    .os-door-images[data-count='3']
-    img:first-child {
-    grid-row: span 2;
-}
-
-.os-home-door:first-child .os-door .os-door-images img {
-    min-height: 0;
-}
-
-.os-home-door:first-child .os-door .os-door-glimpse {
-    min-height: 340px;
-}
-
-.os-home-door:first-child .os-door .os-door-images {
-    height: 340px;
-    min-height: 100%;
-}
-
-.os-door-note {
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    gap: 8px;
-    height: 100%;
-    min-height: 148px;
-    padding: 20px 24px;
-    background-color: color-mix(in oklab, var(--shell-accent) 22%, var(--card));
-}
-
-.os-door-note-body {
-    font-family: var(--font-hand);
-    font-size: var(--text-hand);
+.os-slip-title {
+    font-size: var(--text-body);
+    font-weight: 600;
     line-height: 1.3;
-    color: var(--foreground);
-    display: -webkit-box;
-    -webkit-line-clamp: 3;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
 }
 
-.os-door-note-from {
-    font-size: var(--text-meta);
-    color: var(--muted-foreground);
+.os-slip-detail[data-quoted] {
+    font-style: italic;
 }
 
-.os-door-empty {
-    display: grid;
-    place-items: center;
-    height: 100%;
-    min-height: 148px;
-    color: var(--shell-accent);
-}
-
-.os-door-text {
-    display: flex;
-    flex-direction: column;
-    gap: 2px;
-    padding: 16px 8px 8px;
-    min-width: 0;
-}
-
-.os-door-name {
-    font-family: var(--font-display);
-    font-weight: 400;
-    font-size: var(--text-title);
-    line-height: 1.2;
-    letter-spacing: var(--tracking-display);
-}
-
-.os-door-desc {
+.os-slip-detail {
+    margin-top: 4px;
     font-size: var(--text-small);
-    line-height: 1.45;
-    color: var(--muted-foreground);
-}
-
-.os-door-live {
-    margin-top: 6px;
-    font-size: var(--text-small);
-    font-weight: 500;
-    line-height: 1.4;
-    color: var(--shell-accent-text);
+    color: var(--shell-text-muted);
     display: -webkit-box;
     -webkit-line-clamp: 2;
     -webkit-box-orient: vertical;
     overflow: hidden;
 }
 
-.os-home-door:first-child .os-door:has(.os-door-empty) .os-door-glimpse {
-    min-height: 148px;
+.os-slip-foot {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    margin-top: auto;
+    padding-top: 12px;
 }
 
-@media (max-width: 899px) {
-    .os-home-door,
-    .os-home-door:first-child {
-        grid-column: 1 / -1;
-        grid-row: auto;
-    }
+.os-feed {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
 
-    .os-home-door:first-child .os-door .os-door-glimpse {
-        min-height: 220px;
-    }
+.os-feed-row {
+    display: grid;
+    grid-template-columns: 32px 1fr auto;
+    align-items: center;
+    gap: 10px;
+    min-height: 60px;
+    padding: 10px 0;
+    border-top: 1px solid var(--shell-border);
+    color: var(--shell-text);
+    text-decoration: none;
+    transition: background-color var(--dur-out) var(--ease-ui);
+}
 
-    .os-home-door:first-child .os-door .os-door-images {
-        height: 220px;
+@media (hover: hover) and (pointer: fine) {
+    a.os-feed-row:hover {
+        background: var(--shell-hover-wash);
+        transition-duration: var(--dur-in);
     }
+}
+
+.os-feed-dot {
+    width: 10px;
+    height: 10px;
+    margin: auto;
+    border-radius: 50%;
+    background: var(--shell-border-input);
+}
+
+.os-feed-text {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+}
+
+.os-feed-title {
+    font-size: var(--text-body);
+    line-height: 1.3;
+}
+
+.os-feed-detail {
+    margin-top: 2px;
+    font-size: var(--text-small);
+    color: var(--shell-text-muted);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.os-feed-action {
+    display: inline-flex;
+    align-items: center;
+    height: 32px;
+    padding: 0 14px;
+    border-radius: var(--radius-pill);
+    background: var(--shell-action);
+    color: var(--shell-action-fg);
+    font-size: var(--text-small);
+    font-weight: 600;
+    transition: background-color var(--dur-out) var(--ease-ui);
+}
+
+a:hover .os-feed-action {
+    background: var(--shell-action-hover);
+}
+
+.os-feed-end {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.os-feed-thumb {
+    width: 44px;
+    height: 44px;
+    border-radius: var(--radius-inner);
+    object-fit: cover;
+    background: var(--shell-chrome);
+}
+
+.os-feed-meta {
+    font-size: var(--text-meta);
+    color: var(--shell-text-muted);
+    font-variant-numeric: tabular-nums;
+    text-align: right;
 }
 
 @variant max-lg {
     .os-home {
-        padding: 12px 0 8px;
-    }
-
-    .os-home-greeting {
-        margin-bottom: 24px;
-    }
-}
-
-@media (prefers-reduced-motion: reduce) {
-    .os-door:hover .os-door-images img {
-        transform: none;
+        padding: 8px 0 8px;
     }
 }
 
@@ -1010,7 +1054,7 @@ button[type='submit'][data-slot='button'] {
 
 .shell-account-name {
     font-size: var(--text-small);
-    font-weight: 500;
+    font-weight: 600;
     color: var(--foreground);
 }
 
@@ -1023,21 +1067,21 @@ button[type='submit'][data-slot='button'] {
 .shell-account-signout {
     min-height: 44px;
     font-size: var(--text-small);
-    font-weight: 500;
+    font-weight: 400;
     color: var(--muted-foreground);
 }
 
 .shell-account-group-label {
     padding: 8px 12px 4px;
     font-size: var(--text-meta);
-    font-weight: 500;
+    font-weight: 400;
     color: var(--muted-foreground);
 }
 
 .shell-account-item {
     min-height: 44px;
     font-size: var(--text-small);
-    font-weight: 500;
+    font-weight: 400;
     color: var(--foreground);
     text-decoration: none;
 }
@@ -1058,7 +1102,7 @@ button[type='submit'][data-slot='button'] {
 .shell-wordmark-auth {
     font-family: var(--font-display);
     font-size: clamp(64px, 10vw, 88px);
-    font-weight: 400;
+    font-weight: var(--weight-display);
     color: var(--shell-accent-text);
     display: inline-flex;
     align-items: center;
@@ -1069,7 +1113,7 @@ button[type='submit'][data-slot='button'] {
     font-family: var(--font-display);
     font-size: var(--text-title);
     letter-spacing: var(--tracking-display);
-    font-weight: 400;
+    font-weight: var(--weight-display);
     color: var(--foreground);
 }
 
@@ -1094,7 +1138,7 @@ button[type='submit'][data-slot='button'] {
 .shell-muted-label {
     font-family: var(--font-sans);
     font-size: var(--text-small);
-    font-weight: 500;
+    font-weight: 400;
     color: var(--shell-text-muted);
 }
 
@@ -1114,7 +1158,7 @@ button[type='submit'][data-slot='button'] {
     font-family: var(--font-display);
     font-size: var(--text-title);
     letter-spacing: var(--tracking-display);
-    font-weight: 400;
+    font-weight: var(--weight-display);
     color: var(--shell-text);
 }
 
@@ -1157,7 +1201,7 @@ button[type='submit'][data-slot='button'] {
     gap: 6px;
     font-family: var(--list-nav-font, var(--font-sans));
     font-size: var(--text-eyebrow);
-    font-weight: 500;
+    font-weight: 400;
     color: var(--shell-text);
     background-color: var(--shell-surface);
     border: 1px solid var(--shell-border-input);
@@ -1197,7 +1241,7 @@ button[type='submit'][data-slot='button'] {
 .shell-wordmark-topbar {
     font-family: var(--font-display);
     font-size: 24px;
-    font-weight: 400;
+    font-weight: var(--weight-display);
     line-height: 1;
     display: inline-flex;
     align-items: center;
@@ -1269,7 +1313,7 @@ button[type='submit'][data-slot='button'] {
 .shell-places-main {
     font-size: var(--text-small);
     color: var(--shell-text);
-    font-weight: 500;
+    font-weight: 600;
     overflow: hidden;
     text-overflow: ellipsis;
 }
@@ -1319,7 +1363,7 @@ button[type='submit'][data-slot='button'] {
 .shell-wordmark-sidebar {
     font-family: var(--font-display);
     font-size: 28px;
-    font-weight: 400;
+    font-weight: var(--weight-display);
     line-height: 1;
     display: inline-flex;
     align-items: center;
@@ -1340,7 +1384,7 @@ button[type='submit'][data-slot='button'] {
 
 .shell-nav-item {
     font-size: var(--text-body);
-    font-weight: 500;
+    font-weight: 400;
 }
 
 /* Children sit under their group's label, past its icon. */
@@ -1358,25 +1402,13 @@ button[type='submit'][data-slot='button'] {
 
 .shell-nav-item[aria-current='page'],
 .shell-nav-subitem[aria-current='page'] {
-    color: var(--foreground);
-    font-weight: 500;
+    color: var(--shell-accent-fg);
+    font-weight: 600;
     background-color: color-mix(
         in oklab,
         var(--shell-accent) 35%,
         var(--sidebar)
     );
-}
-
-.shell-nav-item[aria-current='page']::before,
-.shell-nav-subitem[aria-current='page']::before {
-    content: '';
-    position: absolute;
-    left: 4px;
-    top: 12px;
-    bottom: 12px;
-    width: 3px;
-    border-radius: var(--radius-pill);
-    background-color: var(--shell-accent-text);
 }
 
 .shell-topbar {
@@ -1414,7 +1446,7 @@ button[type='submit'][data-slot='button'] {
     text-align: center;
     font-family: var(--font-display);
     font-size: var(--text-subhead);
-    font-weight: 400;
+    font-weight: var(--weight-display);
     letter-spacing: var(--tracking-display);
     line-height: 1.2;
     color: var(--shell-text);
@@ -1479,13 +1511,17 @@ button[type='submit'][data-slot='button'] {
     white-space: nowrap;
     text-overflow: ellipsis;
     font-size: var(--text-meta);
-    font-weight: 500;
+    font-weight: 400;
     line-height: 1.25;
 }
 
 /* Colour plus a shape: the selected room's icon sits in an accent pill. */
 .shell-bottombar-item[aria-current] {
     color: var(--shell-action);
+}
+
+.shell-bottombar-item[aria-current] .shell-bottombar-label {
+    font-weight: 600;
 }
 
 .shell-bottombar-item[aria-current] .shell-bottombar-icon {
@@ -1550,7 +1586,7 @@ button[type='submit'][data-slot='button'] {
 .shell-auth-submit {
     min-height: 44px;
     font-size: var(--text-body);
-    font-weight: 500;
+    font-weight: 600;
     color: var(--primary-foreground);
     background-color: var(--primary);
     border-radius: var(--radius-pill);
@@ -1610,7 +1646,7 @@ button[type='submit'][data-slot='button'] {
     min-height: 44px;
     padding: 0 24px;
     border-radius: var(--radius-pill);
-    font-weight: 500;
+    font-weight: 600;
     font-size: var(--text-small);
     text-decoration: none;
     color: var(--primary-foreground);
@@ -1679,7 +1715,7 @@ button[type='submit'][data-slot='button'] {
     border: 1px solid var(--shell-border);
     font-family: var(--font-sans);
     font-size: var(--text-meta);
-    font-weight: 500;
+    font-weight: 400;
     line-height: 1.3;
     cursor: pointer;
     text-decoration: none;
@@ -1834,7 +1870,7 @@ button[type='submit'][data-slot='button'] {
 
 /* Selected reads by its border and weight as well as the fill. */
 .shell-segmented-item[data-active] {
-    font-weight: 500;
+    font-weight: 600;
     color: var(--shell-accent-fg);
     background-color: var(--shell-accent);
     border-color: var(--shell-accent-text);
@@ -1843,7 +1879,7 @@ button[type='submit'][data-slot='button'] {
 
 .shell-nav-section-label {
     font-size: var(--text-meta);
-    font-weight: 500;
+    font-weight: 400;
     color: var(--muted-foreground);
     padding: 8px 12px 4px;
 }
@@ -2013,7 +2049,7 @@ button[type='submit'][data-slot='button'] {
 
 .shell-avatar-initials {
     color: var(--shell-accent-fg);
-    font-weight: 500;
+    font-weight: 600;
     line-height: 1;
 }
 

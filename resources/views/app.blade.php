@@ -8,7 +8,7 @@
 
         <style>
             html {
-                background-color: #f6f5f1;
+                background-color: #f6f3ee;
             }
             #app-splash {
                 position: fixed;
@@ -17,13 +17,13 @@
                 display: flex;
                 align-items: center;
                 justify-content: center;
-                background-color: #fbfaf6;
-                color: oklch(0.55 0.08 135);
-                font-family: 'Newsreader', 'Iowan Old Style', Georgia, serif;
+                background-color: #f6f3ee;
+                color: #2f2b28;
+                font-family: ui-sans-serif, system-ui, sans-serif;
                 font-size: 48px;
-                font-weight: 400;
+                font-weight: 300;
                 line-height: 1;
-                letter-spacing: -0.01em;
+                letter-spacing: -0.02em;
             }
             @media (max-width: 480px) {
                 #app-splash { font-size: 36px; }
@@ -49,7 +49,7 @@
         <link rel="apple-touch-icon" href="/apple-touch-icon.png">
 
         <link rel="manifest" href="/manifest.webmanifest">
-        <meta name="theme-color" content="#fbfaf6">
+        <meta name="theme-color" content="#f6f3ee">
         <meta name="apple-mobile-web-app-capable" content="yes">
         <meta name="apple-mobile-web-app-status-bar-style" content="default">
         <meta name="apple-mobile-web-app-title" content="{{ config('app.name') }}">

@@ -7,19 +7,20 @@ paths:
 
 ## Design language
 
-For a household, so it should feel thoughtful, cute, soft and warm without costing ease of use.
+For any household, anywhere: warm, calm and personal without costing ease of use. The world is the
+**Fridge Door** (PRODUCT.md, DESIGN.md): warm enamel white, soft ink, one coral for actions, and
+what needs you pinned up by a magnet in the sender's colour.
 **The house is one; each room has its own objects.** Chrome is the same everywhere and character
 lives on the things themselves.
 
 - **Always the same:** the tinted frame and page sheet (`.shell-frame` / `.shell-sheet`), page titles
-  (`.page-h1`), pill buttons, 14px-radius fields, 22px-radius cards, list order (tabs, then count +
+  (`.page-h1`), pill buttons, 12px-radius fields, 16px-radius cards, list order (tabs, then count +
   search + sort), add surfaces and vocabulary (a _moment_, a _note_, a _citation_).
-- **Two faces with fixed jobs, in every room.** Newsreader (`--font-display`, weight 400) sets page
-  titles, section and sheet titles, dates and the title of a moment; its italic is for what was
-  filled in or attributed. Hanken Grotesk (`--font-sans`, 400 and 500 only) sets everything else.
-  Patrick Hand (`--font-hand`) is the one exception: the body of a note and a coupon's title, and
-  nowhere else. Never add a face, a 600+ weight, tracked capitals or text under 13px; sizes come
-  from the `--text-*` scale in `app.css`.
+- **One face, Atkinson Hyperlegible Next, for everything** (`--font-sans`; `--font-display` and
+  `--font-hand` point at it), registered through the Vite `fonts:` array. Three weights only: 300
+  for Home's date, 400 to read, 600 (`--weight-display`) for titles. Its italic is for what was
+  filled in or handwritten (a note's body, a coupon's title). Nothing heavier, never a second
+  face, no tracked capitals, no text under 13px; sizes come from the `--text-*` scale.
 - **One radius family**, as tokens in `app.css`: `--radius-pill`, `--radius-field`,
   `--radius-pop`, `--radius-card`, `--radius-inner`. A button steps up 1px on hover and presses on click
   (`.shell-press`); a field takes `.shell-field`; a card that opens something lifts 2px
@@ -43,9 +44,10 @@ lives on the things themselves.
       own tilt, and never on anything above a `Fab` (a transform there moves the button).
     - Reduced motion is handled in `MotionConfig` and one block in `app.css`. Don't write a new
       media query for it.
-- **Two jobs for colour.** `--shell-action` is the only action colour. `--shell-accent` only marks
-  what is selected or tints a surface; it never fills a button. Destructive stays outlined until the
-  final confirm.
+- **Colour has jobs.** Soft warm ink on warm white, never pure black or a cold grey. Coral
+  `--shell-action` is the only action colour and marks where you are. `--shell-accent` is its pale
+  wash for what is selected and never fills a button. The `--magnet-*` colours mark people on
+  Home's slips, nothing else. Destructive stays outlined until the final confirm. No side stripes.
 - **A card that opens somewhere opens from anywhere on it.** Put `.shell-card-stretch` on the card and
   `.shell-card-link` on its link; other links and buttons in the card stay on top and keep their own clicks.
 - **Dialogs for one or two fields, sheets for composing.** No small tracked label above a title.
@@ -57,11 +59,15 @@ lives on the things themselves.
   picture, or their initials on the accent wash. It is decoration beside a printed name, never a
   link, and never the only way to tell who. Not on a citation's or coupon's form, which name
   people in ink.
-- **`HeartMark`** (`Shell/Components/HeartMark.tsx`) is the one drawn mark. No emoji in the UI,
+- **`HeartMark`** (`Shell/Components/HeartMark.tsx`) is the one drawn mark for now. No emoji in the UI,
   with one exception: History's reactions are the fixed set in `EventReaction::EMOJI`
   (❤️ 😂 😮 😢 🙏 🎉), drawn as the glyphs the server sends. Nowhere else, not even as decoration
   beside them.
-- **Home** is a door per app (`DesktopIcon`) showing a glimpse supplied by that app (step 8 in `new-mini-app.md`).
+- **Home does work.** Today's date, "Needs you" as paper slips pinned by the sender's face
+  on a ring in their colour (each a link straight to the thing), "New this week" (others' additions,
+  the last day a step stronger), and birthdays coming up. Rooms are not on Home: the phone's
+  bottom bar and the laptop sidebar list them. Rooms feed it from their providers
+  through `DashboardSummaries::registerFeed`; private Exchange items reach only their parties.
 - **Done is never crossed out.** A loved song or visited place is a treasure: it gets a sticker and
   keeps its full colour.
 

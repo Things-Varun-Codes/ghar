@@ -30,6 +30,28 @@ class Household
         return $this->query()->whereKeyNot($user->id)->orderBy('name')->orderBy('id')->get();
     }
 
+    /** @var array<string, int>|null how many members share each first name */
+    private ?array $firstNames = null;
+
+    /**
+     * How a family says it: "Ravi", unless two members are both Ravi, then the full name.
+     */
+    public function shortName(User $user): string
+    {
+        $first = self::firstOf($user->name);
+
+        $this->firstNames ??= $this->members()
+            ->countBy(fn (User $member): string => mb_strtolower(self::firstOf($member->name)))
+            ->all();
+
+        return ($this->firstNames[mb_strtolower($first)] ?? 0) > 1 ? $user->name : $first;
+    }
+
+    private static function firstOf(string $name): string
+    {
+        return strtok(trim($name), " \t") ?: $name;
+    }
+
     /** @return list<array{id: int, name: string, avatar_url: string|null}> */
     public function optionsFor(User $user): array
     {
