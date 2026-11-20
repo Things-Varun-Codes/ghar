@@ -43,8 +43,18 @@ class CornerListsMigrationTest extends TestCase
     private function migrate(string $direction): void
     {
         $migration = require database_path('migrations/our-shelf/2026_11_16_100000_replace_corner_tables_with_lists_and_items.php');
+        // Per-person marks hang off corner_items: they come down before it and go up after it.
+        $marks = require database_path('migrations/our-shelf/2026_11_20_100000_add_per_person_done_to_corner_lists.php');
 
-        $migration->{$direction}();
+        if ($direction === 'down') {
+            $marks->down();
+            $migration->down();
+
+            return;
+        }
+
+        $migration->up();
+        $marks->up();
     }
 
     /** @return array<string, array<int, array<string, mixed>>> old table => rows, ids with gaps */

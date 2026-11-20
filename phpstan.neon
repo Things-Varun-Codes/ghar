@@ -31,5 +31,3 @@ parameters:
     # Media::model() is a MorphTo and can resolve null once the event is gone.
     - identifier: nullsafe.neverNull
       path: app/MiniApps/History/Controllers/GalleryController.php
-    - identifier: nullsafe.neverNull
-      path: app/MiniApps/History/Http/Resources/EventResource.php

@@ -7,6 +7,7 @@ use App\MiniApps\Mailbox\Models\Citation;
 use App\MiniApps\Mailbox\Models\Coupon;
 use App\MiniApps\Mailbox\Models\MailboxMessage;
 use App\Shell\Models\User;
+use App\Shell\Services\Household;
 use App\Shell\Support\SignedUrls;
 use Illuminate\Support\Str;
 use Throwable;
@@ -42,11 +43,11 @@ final class MailboxPeeks
     }
 
     /**
-     * The newest note the viewer received, trimmed for a glimpse. Also Home's Mailbox door.
+     * The newest note the viewer received, trimmed for a glimpse.
      *
      * @return array{body: string, from: string}|null
      */
-    public static function latestNote(User $user): ?array
+    private static function latestNote(User $user): ?array
     {
         if (! EntryTypes::on(EntryTypes::MESSAGES)) {
             return null;
@@ -65,7 +66,7 @@ final class MailboxPeeks
 
         return [
             'body' => Str::limit(trim((string) $note->body), self::NOTE_LIMIT),
-            'from' => $note->sender->name,
+            'from' => app(Household::class)->shortName($note->sender),
         ];
     }
 
@@ -94,7 +95,7 @@ final class MailboxPeeks
 
         return [
             'image_url' => $url,
-            'from' => $bouquet->sender->name,
+            'from' => app(Household::class)->shortName($bouquet->sender),
         ];
     }
 
@@ -124,8 +125,8 @@ final class MailboxPeeks
             'ref_no' => $citation->ref_no,
             'status' => $citation->status,
             'offence' => $citation->offence,
-            'issuer' => $citation->issuer->name,
-            'recipient' => $citation->recipient->name,
+            'issuer' => app(Household::class)->shortName($citation->issuer),
+            'recipient' => app(Household::class)->shortName($citation->recipient),
         ];
     }
 
@@ -153,8 +154,8 @@ final class MailboxPeeks
             'quantity' => $coupon->quantity,
             'status' => $coupon->status,
             'is_expired' => $coupon->isExpired(),
-            'issuer' => $coupon->issuer->name,
-            'recipient' => $coupon->recipient->name,
+            'issuer' => app(Household::class)->shortName($coupon->issuer),
+            'recipient' => app(Household::class)->shortName($coupon->recipient),
         ];
     }
 }

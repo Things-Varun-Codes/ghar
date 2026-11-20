@@ -4,6 +4,7 @@ namespace App\MiniApps\Corner\Controllers;
 
 use App\MiniApps\Corner\Actions\CreateList;
 use App\MiniApps\Corner\Actions\MoveList;
+use App\MiniApps\Corner\Actions\SwitchDoneMode;
 use App\MiniApps\Corner\Http\Requests\SaveListRequest;
 use App\MiniApps\Corner\Models\CornerList;
 use App\Shell\Support\FlashToast;
@@ -23,9 +24,16 @@ class ListsController
         return redirect()->route('apps.our-shelf.lists.show', $list->slug);
     }
 
-    public function update(SaveListRequest $request, CornerList $list): RedirectResponse
+    public function update(SaveListRequest $request, CornerList $list, SwitchDoneMode $switchDoneMode): RedirectResponse
     {
-        $list->update($request->validated());
+        $validated = $request->validated();
+
+        if (array_key_exists('done_per_person', $validated)) {
+            $switchDoneMode($list, (bool) $validated['done_per_person']);
+            unset($validated['done_per_person']);
+        }
+
+        $list->update($validated);
 
         FlashToast::success('Saved.');
 

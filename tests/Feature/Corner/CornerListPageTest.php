@@ -5,6 +5,7 @@ namespace Tests\Feature\Corner;
 use App\MiniApps\Corner\Models\CornerList;
 use App\MiniApps\Corner\Models\Item;
 use App\Shell\Models\User;
+use App\Shell\Services\Household;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Storage;
@@ -70,6 +71,27 @@ class CornerListPageTest extends TestCase
                 ->where('q', null));
     }
 
+    public function test_a_done_item_says_who_marked_it_and_when(): void
+    {
+        $meera = User::factory()->create(['name' => 'Meera Rao']);
+        $list = $this->listCalled('songs');
+        $done = Item::factory()->done($meera)->create(['list_id' => $list->id, 'added_by_user_id' => $this->user->id]);
+        $this->itemIn($list, $this->user);
+
+        $this->actingAs($this->user)
+            ->get("/apps/our-shelf/{$list->slug}?filter=done")
+            ->assertInertia(fn (AssertableInertia $page) => $page
+                ->has('items.data', 1)
+                ->where('items.data.0.id', $done->id)
+                ->where('items.data.0.done_by.0.person.name', 'Meera')
+                ->where('items.data.0.done_by.0.on', $done->done_at->toDateString()));
+
+        $this->actingAs($this->user)
+            ->get("/apps/our-shelf/{$list->slug}?filter=todo")
+            ->assertInertia(fn (AssertableInertia $page) => $page
+                ->where('items.data.0.done_by', []));
+    }
+
     public function test_the_person_who_added_an_item_comes_with_their_picture(): void
     {
         config(['shell.media_disk' => 'local']);
@@ -83,7 +105,7 @@ class CornerListPageTest extends TestCase
             ->get("/apps/our-shelf/{$list->slug}")
             ->assertInertia(fn (AssertableInertia $page) => $page
                 ->where('items.data.0.addedBy.id', $adder->id)
-                ->where('items.data.0.addedBy.name', $adder->name)
+                ->where('items.data.0.addedBy.name', app(Household::class)->shortName($adder))
                 ->where('items.data.0.addedBy.avatar_url', fn ($url) => str_contains((string) $url, 'avatars/adder.jpg'))
                 ->missing('items.data.0.addedBy.avatar_key'));
 
@@ -127,7 +149,7 @@ class CornerListPageTest extends TestCase
                 ->where('item.is_done', false)
                 ->missing('item.added_by_user_id')
                 ->missing('item.added_at')
-                ->where('item.addedBy', ['id' => $this->user->id, 'name' => $this->user->name, 'avatar_url' => null])
+                ->where('item.addedBy', ['id' => $this->user->id, 'name' => app(Household::class)->shortName($this->user), 'avatar_url' => null])
                 ->missing('item.provider')
                 ->missing('item.provider_id')
                 ->missing('item.url_key'));

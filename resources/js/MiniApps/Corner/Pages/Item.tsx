@@ -70,6 +70,7 @@ export default function Item({ list, item, mentioned_in }: Props) {
                 back={{ href: listUrl, label: list.name }}
                 can={item.can}
                 addedBy={item.addedBy}
+                doneBy={item.done_by}
                 mentionedIn={mentioned_in}
                 isDone={item.is_done}
                 doneIcon={list.done_icon}

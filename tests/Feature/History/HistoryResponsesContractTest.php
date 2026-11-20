@@ -37,7 +37,7 @@ class HistoryResponsesContractTest extends TestCase
             ->assertOk()
             ->inertiaProps('moment');
 
-        $this->assertSame(['id' => $creator->id, 'name' => 'Ravi Rao', 'avatar_url' => null], $moment['creator']);
+        $this->assertSame(['id' => $creator->id, 'name' => 'Ravi', 'avatar_url' => null], $moment['creator']);
         $this->assertSame($meera->id, $moment['birthday_of']['id']);
 
         $this->assertSame(array_keys(EventReaction::EMOJI), array_column($moment['reactions'], 'key'));

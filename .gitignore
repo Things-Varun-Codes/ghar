@@ -51,7 +51,6 @@ yarn-error.log
 /.agents/
 /.claude/*
 !/.claude/settings.json
-!/.claude/rules/
 /skills-lock.json
 /.mcp.json
 /database/*.sqlite*

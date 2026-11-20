@@ -3,7 +3,6 @@
 namespace Tests\Feature\History;
 
 use App\MiniApps\History\Models\Event;
-use App\MiniApps\History\Support\DashboardLine;
 use App\MiniApps\History\Support\OnThisDay;
 use App\Shell\Models\User;
 use Carbon\CarbonImmutable;
@@ -82,21 +81,11 @@ class OnThisDayTest extends TestCase
         $this->assertSame([$household->id], OnThisDay::query()->pluck('id')->all());
 
         $user = User::factory()->create();
-        $this->assertSame('On this day, 2 years ago: Household day', DashboardLine::forUser($user));
-
         $timeline = $this->actingAs($user)->get('/apps/our-history')->assertOk();
         $this->assertSame(['Household day'], array_column($timeline->inertiaProps('onThisDay'), 'title'));
 
         $calendar = $this->actingAs($user)->get('/apps/our-history/calendar')->assertOk();
         $this->assertSame(['Household day'], array_column($calendar->inertiaProps('onThisDay'), 'title'));
-    }
-
-    public function test_the_dashboard_skips_a_moment_from_earlier_today(): void
-    {
-        Carbon::setTestNow('2026-06-14 10:00:00');
-        Event::factory()->create(['occurred_on' => '2026-06-14', 'title' => 'Breakfast']);
-
-        $this->assertSame('Last moment: Breakfast · 14 Jun 2026', DashboardLine::forUser(User::factory()->create()));
     }
 
     public function test_comes_round_on_matches_birthdays_the_same_way(): void

@@ -6,7 +6,7 @@ use App\Shell\Models\User;
 use App\Shell\Services\PushDispatcher;
 
 /**
- * Callers send on the line after their transaction returns (household.md, push timing).
+ * Callers send on the line after their transaction returns, so a rolled-back write sends nothing.
  */
 final class MailboxPush
 {

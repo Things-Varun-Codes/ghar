@@ -13,20 +13,45 @@ What's shipped, what's next and what's still open: **`ROADMAP.md`**. Deploy and 
 **`DEPLOY.md`**. Releases: **`CHANGELOG.md`**; how to cut one: **`RELEASE.md`**. For contributors:
 **`CONTRIBUTING.md`**. This file is the agent and architecture reference.
 
-## Scoped rules
+## Rules the code can't show
 
-Rules for one area live in `.claude/rules/`, and Claude Code loads each file when a session reads
-or edits a file under its `paths:`. Open one yourself when the work is in that area but you haven't
-touched a matching file yet (a new room, a design question, a release):
+Design: **`DESIGN.md`**. Everything else below guards against a real bug; the code shows the rest.
 
-- `frontend.md`: shell layout, back/history, portals, Wayfinder, prefetch, the state-adoption contract
-- `design.md`: the design language. `themes.md`: the three theme layers
-- `backend.md`: Eloquent model conventions, strict mode, signed media URLs
-- `household.md`: who sees and changes what, recipients, push routing and timing
-- `new-mini-app.md`: installing a room, rooms on and off, the hand edits a new room needs
-- `history.md`, `corner.md`, `mailbox.md`: each room's rules
-- `auth.md`, `pwa.md`, `shortlinks.md`, `self-host.md` (proxies, indexing, first start, releases)
-- `dev-data.md`: every state the dev seed holds
+- **Privacy.** Notes, flowers, coupons and citations are seen only by sender and recipients, not
+  admins: viewer queries start with `visibleTo`, `receivedBy` or `issuedBy`. A push or Home row
+  never carries a note's text, a comment's text or a citation's details (lock screens show them).
+- **Permissions are server-side** (policies, `Gate::authorize`, `can:admin` on the `/admin`
+  group); payload `can` flags only pick buttons. "Maker or admin" is `User::makerOrAdmin()`. Who may
+  enter a room is `Rooms::canEnter()` alone.
+- **Time.** "Today" and anything due use `Region::today()` / `Region::now()` (the household's
+  zone), never `now()`; stored timestamps are UTC. Compare dates as dates, not re-parsed strings.
+- **People** go to pages as `Person::short($user)` (first name); never send `avatar_key`, which is
+  not fillable (a key from input could sign someone else's file).
+- **Media URLs** are signed from the top of a fixed hour window (`SignedUrls`), so photos cache.
+- **Strict mode** is on outside production: eager-load, keep `#[Fillable]` complete. Models use
+  `casts()` and `#[Fillable]`, not the array properties.
+- **Push** only through `PushDispatcher` (`toHousehold`, `toUsers`), after the transaction
+  commits. Reactions send nothing.
+- **Outbound fetches** of pasted addresses go through `SafeFetcher` (no private, loopback or
+  metadata addresses); a failed fetch saves what was typed, never errors.
+- **Never indexable:** `robots.txt`, the robots meta tag and `X-Robots-Tag` (middleware and nginx)
+  stay in step; no Open Graph tags.
+- **Frontend:** links are Inertia `Link` and Wayfinder helpers, never a bare `route()`. A sheet or
+  dialog that composes goes through `useOverlayHistory`, and one with a draft through
+  `useDraftCloseGate`. Never prefetch a page whose GET changes something (Exchange marks read).
+  Toasts are `Inertia::flash('toast', …)`, not `page.props.flash`. A slow, empty or failing surface
+  uses the shared `EmptyState`, `ErrorState`, `LoadingState` and `lib/mutation.ts` options.
+- **`useItemActions`** (Shelf) is called once per rendered item, inside the card: hoisting it
+  hides every row on one delete.
+- **Releases:** follow `RELEASE.md`. Never run `npm run release`, merge the release pull request or
+  push a tag unasked.
+
+**A new room:** an entry in `config/miniapps.php` (with `component_prefix` and `nav_label`), a
+provider holding `SLUG` that registers everything in `boot()` (policies, limiters, commands,
+`registerFeed`, `LinkableEntities`, `UserOwnedContent`), `routes/miniapps/{slug}.php`,
+`database/migrations/{slug}/`, `MiniApps/{App}/nav-icon.tsx`, `themes/{slug}.css` imported in
+`app.css`, smoke routes in `scripts/smoke.mjs`, and a `DevData/{App}Data.php` seeder. The shell
+never names a room (`scripts/check-boundaries.sh`).
 
 ## How to test locally
 
@@ -51,7 +76,8 @@ Password for every account: `ghar-local-dev`. Mail lands in Mailpit at `http://1
 | `meera@example.test` | Meera, adult, has a picture | **Recipient**: note 1, bouquet 1, coupon 1 and citation 1 are Ravi's to her alone. Can request the coupon and pay the citation.                                                  |
 | `kabir@example.test` | Kabir, younger, no push     | **Non-recipient**: `/apps/our-exchange/citations/1` and `coupons/1` must 403; note 1 and bouquet 1 must not be listed.                                                           |
 
-Every state the seed covers, with the ids to use, is in `.claude/rules/dev-data.md`.
+Every state the seed covers is in `database/seeders/DevDataSeeder.php` and `DevData/`; row ids are
+stable after a reset.
 
 `npm run smoke` and `npm run smoke-loadmore` seed the same household into their own databases.
 

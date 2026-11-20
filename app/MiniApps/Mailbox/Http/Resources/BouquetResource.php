@@ -49,9 +49,9 @@ class BouquetResource
             'read_at' => $readAt !== null ? Carbon::parse($readAt)->toIso8601String() : null,
             'is_unread' => $ownRow !== null && $readAt === null,
             'is_mine' => $bouquet->sender_id === $authId,
-            'sender' => Person::of($bouquet->sender),
+            'sender' => Person::short($bouquet->sender),
             'recipients' => $bouquet->recipients
-                ->map(fn (User $user): array => Person::of($user))
+                ->map(fn (User $user): array => Person::short($user))
                 ->values()
                 ->all(),
         ];

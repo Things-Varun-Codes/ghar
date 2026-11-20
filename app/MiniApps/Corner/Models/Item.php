@@ -5,9 +5,11 @@ namespace App\MiniApps\Corner\Models;
 use App\Shell\Models\User;
 use Database\Factories\ItemFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Support\Carbon;
 
 /**
@@ -35,6 +37,7 @@ use Illuminate\Support\Carbon;
  * @property-read CornerList $list
  * @property-read User $addedBy
  * @property-read User|null $doneBy
+ * @property-read Collection<int, User> $markers the people who marked it done, on a per-person list
  */
 #[Fillable([
     'list_id',
@@ -86,6 +89,18 @@ class Item extends Model
     public function doneBy(): BelongsTo
     {
         return $this->belongsTo(User::class, 'done_by_user_id');
+    }
+
+    /**
+     * On a per-person list, everyone who has marked this done, first to mark first.
+     *
+     * @return BelongsToMany<User, $this>
+     */
+    public function markers(): BelongsToMany
+    {
+        return $this->belongsToMany(User::class, 'corner_item_marks', 'item_id', 'user_id')
+            ->withPivot('done_at')
+            ->orderByPivot('done_at');
     }
 
     /**

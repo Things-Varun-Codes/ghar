@@ -35,14 +35,22 @@ class CornerSummary
             ->get()
             ->keyBy('list_id');
 
-        $recent = self::recentItems();
+        // On a per-person list "done" is the viewer's own: how many they have marked.
+        $mine = DB::table('corner_item_marks')
+            ->join('corner_items', 'corner_items.id', '=', 'corner_item_marks.item_id')
+            ->where('corner_item_marks.user_id', $viewer->id)
+            ->selectRaw('corner_items.list_id, count(*) as done')
+            ->groupBy('corner_items.list_id')
+            ->pluck('done', 'list_id');
 
-        return $lists->map(function (CornerList $list) use ($viewer, $tallies, $recent): array {
+        $recent = self::recentItems($viewer);
+
+        return $lists->map(function (CornerList $list) use ($viewer, $tallies, $mine, $recent): array {
             $tally = $tallies->get($list->id);
 
             return app(ListResource::class)($list, $viewer, (int) ($tally->by_others ?? 0)) + [
                 'count' => (int) ($tally->total ?? 0),
-                'done' => (int) ($tally->done ?? 0),
+                'done' => $list->done_per_person ? (int) ($mine[$list->id] ?? 0) : (int) ($tally->done ?? 0),
                 'peek' => $recent[$list->id] ?? [],
             ];
         })->all();
@@ -54,11 +62,17 @@ class CornerSummary
      *
      * @return array<int, list<array{title: string, done: bool, picture_url: ?string}>>
      */
-    private static function recentItems(): array
+    private static function recentItems(User $viewer): array
     {
+        // A shared list's done_at, or the viewer's own mark on a per-person list (whose items keep
+        // done_at empty), whichever is set.
         $ranked = DB::table('corner_items')
-            ->select(['id', 'list_id', 'title', 'image_url', 'done_at'])
-            ->selectRaw('row_number() over (partition by list_id order by added_at desc, id desc) as rank');
+            ->leftJoin('corner_item_marks as mine', fn ($join) => $join
+                ->on('mine.item_id', '=', 'corner_items.id')
+                ->where('mine.user_id', '=', $viewer->id))
+            ->select(['corner_items.id', 'corner_items.list_id', 'corner_items.title', 'corner_items.image_url'])
+            ->selectRaw('coalesce(corner_items.done_at, mine.done_at) as done_at')
+            ->selectRaw('row_number() over (partition by corner_items.list_id order by corner_items.added_at desc, corner_items.id desc) as rank');
 
         $rows = DB::query()
             ->fromSub($ranked, 'ranked')

@@ -38,9 +38,9 @@ class MessageResource
             'read_at' => $readAt !== null ? Carbon::parse($readAt)->toIso8601String() : null,
             'is_unread' => $ownRow !== null && $readAt === null,
             'is_mine' => $message->sender_id === $authId,
-            'sender' => Person::of($message->sender),
+            'sender' => Person::short($message->sender),
             'recipients' => $message->recipients
-                ->map(fn (User $user): array => Person::of($user))
+                ->map(fn (User $user): array => Person::short($user))
                 ->values()
                 ->all(),
         ];

@@ -85,8 +85,22 @@
     box-shadow: none;
 }
 
+/* One line on a phone: the filters scroll sideways rather than stack. */
 [data-app='our-history'] .history-gallery-controls {
-    flex-wrap: wrap;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    scrollbar-width: none;
+    margin-inline: calc(-1 * var(--shell-main-px));
+    padding: 2px var(--shell-main-px);
+}
+
+@variant md {
+    [data-app='our-history'] .history-gallery-controls {
+        flex-wrap: wrap;
+        overflow-x: visible;
+        margin-inline: 0;
+        padding: 0;
+    }
 }
 
 /* Parks at the bottom of the sub-toolbar so the two sticky layers never overlap. */
@@ -137,15 +151,18 @@
     }
 }
 
-/* The rail's own geometry: the dot offsets are measured from the wrapper's left padding. */
+/* The rail's own geometry: markers are placed from the wrapper's left padding, centred on the rail. */
 .history-timeline-wrapper {
-    padding-left: 36px;
+    padding-left: 46px;
 }
 .history-timeline-wrapper .history-timeline-rail {
-    left: 14px;
+    left: 17px;
 }
 .history-timeline-dot {
-    left: -28px;
+    left: -36px;
+}
+.history-timeline-face {
+    left: -45px;
 }
 @variant md {
     .history-timeline-wrapper {
@@ -155,7 +172,10 @@
         left: 32px;
     }
     .history-timeline-dot {
-        left: -54px;
+        left: -55px;
+    }
+    .history-timeline-face {
+        left: -64px;
     }
 }
 
@@ -182,14 +202,15 @@
     }
 }
 
-/* Reserves a right gutter so the card column never runs under the fixed year rail. */
+/* A reading width, so the story's one line stays a line you can take in; from lg it also keeps a
+   right gutter so the card column never runs under the fixed year rail. */
 .history-timeline-body {
-    max-width: 1100px; /* base: <1024px, no rail — full design width */
+    max-width: 820px;
 }
 
 @variant lg {
     .history-timeline-body {
-        max-width: min(1100px, calc(100vw - var(--shell-sidebar-w) - 192px));
+        max-width: min(820px, calc(100vw - var(--shell-sidebar-w) - 192px));
     }
 }
 
@@ -239,9 +260,13 @@
 
     .history-filter-segmented {
         display: flex;
-        flex-wrap: wrap;
+        flex: none;
         align-items: center;
         gap: 8px;
+    }
+
+    .history-gallery-controls > * {
+        flex: none;
     }
 }
 
@@ -294,7 +319,7 @@
     padding: 0 24px;
     font-family: var(--history-font-sans);
     font-size: var(--text-body);
-    font-weight: 500;
+    font-weight: 400;
     line-height: 1.2;
     border: 1px solid transparent;
     border-radius: var(--radius-pill);
@@ -390,13 +415,17 @@
     box-shadow: none;
 }
 
+/* One row: on a phone the buttons scroll sideways rather than strand one on a second line. The link
+   popover is the toolbar's sibling, so the scroll never clips it. */
 [data-app='our-history'] .tiptap-toolbar {
     position: sticky;
     top: 0;
     z-index: 2;
     display: flex;
     align-items: center;
-    flex-wrap: wrap;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    scrollbar-width: none;
     gap: 0;
     min-height: 44px;
     padding: 0 4px;
@@ -511,7 +540,7 @@
 }
 
 [data-app='our-history'] .history-prose strong {
-    font-weight: 500;
+    font-weight: 400;
     color: var(--history-ink);
 }
 
@@ -526,7 +555,7 @@
     :is(h2:not([class]), .history-prose-h2) {
     font-family: var(--history-font-display);
     font-size: 22px;
-    font-weight: 400;
+    font-weight: var(--weight-display);
     line-height: 1.2;
     text-wrap: balance;
     color: var(--history-ink);
@@ -538,7 +567,7 @@
     :is(h3:not([class]), .history-prose-h3) {
     font-family: var(--history-font-sans);
     font-size: var(--text-body);
-    font-weight: 500;
+    font-weight: 400;
     line-height: 1.4;
     color: var(--history-ink);
     margin: 16px 0 4px 0;
@@ -652,7 +681,7 @@
     padding: 0 12px;
     font-family: var(--history-font-sans);
     font-size: var(--text-small);
-    font-weight: 500;
+    font-weight: 400;
     border: 1px solid transparent;
     border-radius: var(--radius-pill);
     cursor: pointer;
@@ -697,11 +726,11 @@
 
 [data-app='our-history'] .history-year-title {
     font-family: var(--history-font-display);
-    font-size: 28px;
-    font-weight: 400;
+    font-size: 36px;
+    font-weight: 300;
     line-height: 1.15;
     letter-spacing: var(--tracking-display);
-    color: var(--history-accent-ink);
+    color: var(--history-ink);
     margin: 0;
 }
 
@@ -741,9 +770,9 @@
     width: 14px;
     height: 14px;
     border-radius: 50%;
-    background-color: var(--history-accent);
-    border: 3px solid var(--history-bg);
-    box-shadow: 0 0 0 2px var(--history-rail);
+    background-color: var(--history-rail);
+    border: 4px solid var(--history-bg);
+    box-shadow: none;
     flex-shrink: 0;
     transition: transform var(--dur-card) var(--ease-ui);
 }
@@ -756,11 +785,25 @@
     [data-app='our-history'] .history-timeline-marker {
         top: 20px;
     }
+
+    [data-app='our-history'] .history-timeline-face {
+        top: 14px;
+    }
+}
+
+/* The poster's face on the rail: a ring of the page ground keeps the rail from running through it. */
+[data-app='our-history'] .history-timeline-face {
+    position: absolute;
+    top: 12px;
+    display: block;
+    line-height: 0;
+    border-radius: 50%;
+    box-shadow: 0 0 0 4px var(--history-bg);
 }
 
 [data-app='our-history'] .history-moment-head {
     display: flex;
-    gap: 12px;
+    gap: 14px;
     align-items: flex-start;
 }
 
@@ -777,20 +820,12 @@
     row-gap: 2px;
     min-height: 22px;
     margin: 0 0 2px 0;
+    font-size: var(--text-small);
+    color: var(--history-ink-soft);
 }
 
 [data-app='our-history'] .history-moment-dateline .history-card-date {
     margin: 0;
-}
-
-[data-app='our-history'] .history-moment-creator {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    font-family: var(--history-font-sans);
-    font-size: var(--text-meta);
-    line-height: 1.4;
-    color: var(--history-ink-soft);
 }
 
 [data-app='our-history'] .history-moment-excerpt {
@@ -804,29 +839,34 @@
     text-overflow: ellipsis;
 }
 
-/* Open, the details carry the whole story, so its one line steps aside. */
-[data-app='our-history']
-    .history-moment--story-cut[data-open]
-    .history-moment-excerpt {
-    display: none;
-}
-
+/* A small print: a paper border, a soft shadow and a slight lean, like the slips on Home. */
 [data-app='our-history'] .history-moment-thumb {
     flex: 0 0 auto;
-    width: 56px;
-    height: 56px;
+    width: 76px;
+    height: 76px;
     object-fit: cover;
-    border-radius: var(--history-radius-cell);
-    background: var(--history-accent-soft);
+    padding: 3px;
+    border-radius: 2px;
+    background: var(--history-card);
+    box-shadow:
+        0 1px 2px color-mix(in oklab, var(--history-ink) 12%, transparent),
+        0 3px 8px color-mix(in oklab, var(--history-ink) 8%, transparent);
 }
 
+/* Who, where and what people said, as one quiet line. */
 [data-app='our-history'] .history-moment-meta {
     display: flex;
     flex-wrap: wrap;
     align-items: center;
     column-gap: 14px;
-    row-gap: 4px;
-    margin-top: 8px;
+    row-gap: 2px;
+    margin-top: 6px;
+    font-size: var(--text-meta);
+    color: var(--history-ink-soft);
+}
+
+[data-app='our-history'] .history-moment-meta:empty {
+    display: none;
 }
 
 [data-app='our-history'] .history-moment-meta > p {
@@ -842,65 +882,6 @@
     font-variant-numeric: tabular-nums;
     line-height: 1.4;
     color: var(--history-ink-soft);
-}
-
-/* 32px to keep the card short; .shell-hit-44's recipe gives it the 44px touch target. */
-[data-app='our-history'] .history-moment-toggle {
-    margin-left: auto;
-    display: inline-flex;
-    align-items: center;
-    gap: 4px;
-    min-height: 32px;
-    padding: 0 10px 0 12px;
-    border: 0;
-    border-radius: var(--radius-pill);
-    background: transparent;
-    font-family: var(--history-font-sans);
-    font-size: var(--text-meta);
-    font-weight: 500;
-    color: var(--history-accent-ink-strong);
-    cursor: pointer;
-    transition: background-color var(--dur-out) var(--ease-ui);
-}
-
-[data-app='our-history'] .history-moment-toggle::after {
-    content: '';
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    width: max(100%, 44px);
-    height: max(100%, 44px);
-    translate: -50% -50%;
-}
-
-@media (hover: hover) {
-    [data-app='our-history'] .history-moment-toggle:hover {
-        background-color: var(--history-accent-soft);
-        transition-duration: var(--dur-in);
-    }
-}
-
-[data-app='our-history'] .history-moment-chevron {
-    transition: transform var(--dur-card) var(--ease-ui);
-}
-
-[data-app='our-history']
-    .history-moment-toggle[data-panel-open]
-    .history-moment-chevron {
-    transform: rotate(180deg);
-}
-
-[data-app='our-history'] .history-moment-details > :first-child {
-    margin-top: 12px;
-}
-
-/* Thumbnails, not the sheet's photos: the card stays a line in a list. */
-[data-app='our-history'] .history-moment-media {
-    max-width: 420px;
-}
-
-[data-app='our-history'] .history-moment-media > * {
-    margin-top: 0;
 }
 
 /* A card that opens the moment lifts (.shell-lift); its dot stays on the rail. */
@@ -919,18 +900,18 @@
 [data-app='our-history'] .history-card-date,
 [data-app='our-history'] .history-read-date {
     font-family: var(--history-font-display);
-    font-size: var(--text-body);
+    font-size: var(--text-small);
     font-weight: 400;
     line-height: 1.3;
     font-variant-numeric: lining-nums;
-    color: var(--history-accent-ink-strong);
+    color: var(--history-ink-soft);
     margin: 0 0 4px 0;
 }
 
 [data-app='our-history'] .history-card-title {
     font-family: var(--history-font-display);
     font-size: var(--text-subhead);
-    font-weight: 400;
+    font-weight: var(--weight-display);
     line-height: 1.2;
     text-wrap: balance;
     color: var(--history-ink);
@@ -976,13 +957,16 @@
     gap: 4px;
     font-family: var(--history-font-sans);
     font-size: var(--text-meta);
-    font-weight: 500;
+    font-weight: 400;
     line-height: 1.4;
     color: var(--history-ink-soft);
 }
 
 [data-app='our-history'] .history-card-location {
     margin: 0;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
 }
 
 [data-app='our-history'] .history-birthday-label {
@@ -994,7 +978,7 @@
     font-style: italic;
     font-size: var(--text-small);
     line-height: 1.4;
-    color: var(--history-accent-ink-strong);
+    color: var(--history-ink-soft);
 }
 
 [data-app='our-history'] .history-read-location {
@@ -1029,7 +1013,7 @@
     padding: 0 12px;
     font-family: var(--history-font-sans);
     font-size: var(--text-meta);
-    font-weight: 500;
+    font-weight: 400;
     font-variant-numeric: tabular-nums;
     color: var(--history-ink-soft);
     background-color: transparent;
@@ -1065,7 +1049,7 @@
     flex-shrink: 0;
     font-family: var(--history-font-sans);
     font-size: var(--text-small);
-    font-weight: 500;
+    font-weight: 400;
     color: var(--history-ink);
     background-color: var(--history-card);
     border: 1px solid var(--history-control-border);
@@ -1132,7 +1116,7 @@
 [data-app='our-history'] .history-filter-label {
     font-family: var(--history-font-sans);
     font-size: var(--text-meta);
-    font-weight: 500;
+    font-weight: 400;
     color: var(--history-ink-soft);
     margin-right: 8px;
     white-space: nowrap;
@@ -1158,7 +1142,7 @@
 }
 
 [data-app='our-history'] .history-chip[aria-pressed='true'] {
-    font-weight: 500;
+    font-weight: 400;
     color: var(--history-on-accent);
     background-color: var(--history-accent);
 }
@@ -1216,7 +1200,7 @@
 }
 
 [data-app='our-history'] .history-segment[aria-pressed='true'] {
-    font-weight: 500;
+    font-weight: 400;
     color: var(--history-on-accent);
     background-color: var(--history-accent);
 }
@@ -1402,7 +1386,7 @@
 [data-app='our-history'] .history-sheet-title {
     font-family: var(--history-font-display);
     font-size: var(--text-title);
-    font-weight: 400;
+    font-weight: var(--weight-display);
     line-height: 1.2;
     letter-spacing: var(--tracking-display);
     text-wrap: balance;
@@ -1425,7 +1409,7 @@
 [data-app='our-history'] .history-read-title {
     font-family: var(--history-font-display);
     font-size: 28px;
-    font-weight: 400;
+    font-weight: var(--weight-display);
     line-height: 1.15;
     letter-spacing: var(--tracking-display);
     text-wrap: balance;
@@ -1475,18 +1459,20 @@
 }
 
 /* Six fit on one line on a 360px phone. */
+/* The six fit one row on a phone: 44px tall pills, tight sides. */
 [data-app='our-history'] .history-reaction-row {
     display: flex;
     flex-wrap: wrap;
-    gap: 6px;
+    gap: 4px;
 }
 
-/* On the ui Toggle (44px); pressed is the viewer's own, an accent wash with ink on it. */
+/* On the ui Toggle (44px); a soft pill with no outline until it is yours, then an accent wash. */
 [data-app='our-history'] .history-reaction {
-    gap: 6px;
-    padding: 0 10px;
-    border: 1px solid var(--history-control-border);
-    background-color: var(--history-card);
+    gap: 4px;
+    min-width: 44px;
+    padding: 0 8px;
+    border: 1px solid transparent;
+    background-color: var(--shell-chrome);
     color: var(--history-ink);
     font-family: var(--history-font-sans);
     font-size: var(--text-small);
@@ -1530,7 +1516,7 @@
 [data-app='our-history'] .history-reaction-count {
     display: inline-block;
     min-width: 1ch;
-    font-weight: 500;
+    font-weight: 600;
 }
 
 [data-app='our-history'] .history-reaction-people {
@@ -1572,7 +1558,7 @@
 [data-app='our-history'] .history-section-title {
     font-family: var(--history-font-display);
     font-size: var(--text-subhead);
-    font-weight: 400;
+    font-weight: var(--weight-display);
     line-height: 1.2;
     color: var(--history-ink);
     margin: 0 0 12px 0;
@@ -1617,7 +1603,7 @@
 }
 
 [data-app='our-history'] .history-comment-author {
-    font-weight: 500;
+    font-weight: 400;
     color: var(--history-ink);
 }
 
@@ -1708,7 +1694,7 @@
     display: block;
     font-family: var(--history-font-sans);
     font-size: var(--text-small);
-    font-weight: 500;
+    font-weight: 400;
     line-height: 1.4;
     color: var(--history-ink);
     margin-bottom: 8px;
@@ -1813,7 +1799,7 @@
     align-items: center;
     justify-content: center;
     font-size: var(--text-meta);
-    font-weight: 500;
+    font-weight: 400;
     line-height: 1;
 }
 
@@ -1841,7 +1827,7 @@
     color: var(--history-on-photo);
     font-family: var(--history-font-sans);
     font-size: var(--text-meta);
-    font-weight: 500;
+    font-weight: 400;
     font-variant-numeric: tabular-nums;
 }
 
@@ -1861,7 +1847,7 @@
 [data-app='our-history'] .history-upload-failed-name {
     font-family: var(--history-font-sans);
     font-size: var(--text-meta);
-    font-weight: 500;
+    font-weight: 400;
     line-height: 1.3;
     color: var(--history-ink);
     width: 100%;
@@ -1893,7 +1879,7 @@
 [data-app='our-history'] .history-upload-retry {
     font-family: var(--history-font-sans);
     font-size: var(--text-meta);
-    font-weight: 500;
+    font-weight: 400;
     color: var(--history-ink);
     background: var(--history-card);
     border: 1px solid var(--history-control-border);
@@ -1928,7 +1914,7 @@
 [data-app='our-history'] .history-upload-name {
     font-family: var(--history-font-sans);
     font-size: var(--text-meta);
-    font-weight: 500;
+    font-weight: 400;
     color: var(--history-ink);
     width: 100%;
     text-align: center;
@@ -1979,7 +1965,7 @@
 [data-app='our-history'] .history-alert-title-lg {
     font-family: var(--history-font-display);
     font-size: var(--text-title);
-    font-weight: 400;
+    font-weight: var(--weight-display);
     line-height: 1.2;
     letter-spacing: var(--tracking-display);
     text-wrap: balance;
@@ -2022,9 +2008,9 @@
     align-items: center;
     gap: 8px;
     font-size: var(--text-meta);
-    font-weight: 500;
+    font-weight: 400;
     letter-spacing: 0.01em;
-    color: var(--history-accent-ink-strong);
+    color: var(--history-ink-soft);
     margin-bottom: 16px;
 }
 
@@ -2080,9 +2066,9 @@
 
 [data-app='our-history'] .history-otd-year {
     font-size: var(--text-meta);
-    font-weight: 500;
+    font-weight: 400;
     font-variant-numeric: tabular-nums;
-    color: var(--history-accent-ink-strong);
+    color: var(--history-ink-soft);
 }
 
 [data-app='our-history'] .history-otd-title {
@@ -2189,9 +2175,9 @@
 
 [data-app='our-history'] .history-cal-month-count {
     font-size: var(--text-meta);
-    font-weight: 500;
+    font-weight: 400;
     font-variant-numeric: tabular-nums;
-    color: var(--history-accent-ink-strong);
+    color: var(--history-ink-soft);
     white-space: nowrap;
 }
 
@@ -2273,7 +2259,7 @@
     position: absolute;
     top: 2px;
     left: 4px;
-    font-weight: 500;
+    font-weight: 400;
     line-height: 1.4;
     color: var(--history-ink-soft);
 }
@@ -2316,7 +2302,7 @@
     right: 2px;
     bottom: 2px;
     font-size: var(--text-meta);
-    font-weight: 500;
+    font-weight: 400;
     background: var(--history-scrim);
     color: var(--history-on-photo);
     border-radius: var(--radius-pill);
@@ -2392,14 +2378,15 @@
     background: var(--history-accent);
     color: var(--history-on-accent);
     border-color: var(--history-accent);
-    font-weight: 500;
+    font-weight: 400;
 }
 
+/* Marks a month that has moments: data, so ink, never the action coral. */
 [data-app='our-history'] .history-cal-chip-dot {
     width: 4px;
     height: 4px;
     border-radius: var(--radius-pill);
-    background: var(--history-action);
+    background: var(--history-ink-soft);
 }
 
 [data-app='our-history'] .history-cal-chip--sel .history-cal-chip-dot {
@@ -2422,7 +2409,7 @@
 [data-app='our-history'] .history-cal-daymenu-head {
     font-family: var(--history-font-sans);
     font-size: var(--text-meta);
-    font-weight: 500;
+    font-weight: 400;
     font-variant-numeric: tabular-nums;
     color: var(--history-ink-soft);
     padding: 8px 12px;
@@ -2524,5 +2511,18 @@
         :is(.history-masonry-button, .history-media-thumb-button)
         img {
         transform: none !important;
+    }
+}
+
+/* The place reads at the date's size, as one line. */
+[data-app='our-history'] .history-moment-dateline .history-card-location {
+    font-size: inherit;
+}
+
+/* On a phone a day's cell is too small for words: the photo and the day number say it, and the
+   button's label carries the title. */
+@variant max-md {
+    [data-app='our-history'] .history-cal-cap {
+        display: none;
     }
 }

@@ -97,7 +97,9 @@ class CursorList
      */
     private function build(string $filter, int $perPage, callable $transform): array
     {
-        $countsQuery = (clone $this->base)->toBase()->reorder();
+        // Only the tallies: a base that selects its own columns (one with a join) can't be counted
+        // alongside them.
+        $countsQuery = (clone $this->base)->toBase()->reorder()->select([]);
 
         if ($this->statusColumn !== null) {
             $row = $countsQuery

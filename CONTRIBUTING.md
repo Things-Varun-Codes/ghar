@@ -90,10 +90,8 @@ contributor wait for a maintainer to start them.
 ## Adding a mini app
 
 A mini app is a self-contained module: no imports from another app, and no database foreign keys to
-another app's tables. The steps to add one, with an example registry entry, are in
-[`.claude/rules/new-mini-app.md`](./.claude/rules/new-mini-app.md); its stylesheet follows the three
-layers in [`.claude/rules/themes.md`](./.claude/rules/themes.md). Each room's own rules are in the
-same folder.
+another app's tables. The steps to add one are under "A new room" in
+[`CLAUDE.md`](./CLAUDE.md), and its look follows [`DESIGN.md`](./DESIGN.md).
 
 ## Reporting bugs
 

@@ -55,7 +55,7 @@
 [data-app='our-shelf'] .corner-row-meta {
     font-family: var(--corner-font);
     font-size: var(--text-meta);
-    font-weight: 500;
+    font-weight: 400;
     line-height: 1.4;
     color: var(--corner-ink-soft);
 }
@@ -95,7 +95,7 @@
     display: block;
     font-family: var(--corner-font);
     font-size: var(--text-body);
-    font-weight: 500;
+    font-weight: 600;
     line-height: 1.5;
     color: var(--corner-ink);
     overflow: hidden;
@@ -128,7 +128,7 @@
     color: var(--corner-accent-fg);
     font-family: var(--corner-font);
     font-size: var(--text-meta);
-    font-weight: 500;
+    font-weight: 400;
     line-height: 1.3;
     transform: rotate(-2deg);
 }
@@ -153,7 +153,7 @@
     color: var(--corner-ink);
     font-family: var(--corner-font);
     font-size: var(--text-body);
-    font-weight: 500;
+    font-weight: 400;
     line-height: 1.25;
     text-decoration: none;
     cursor: pointer;
@@ -325,7 +325,7 @@
     margin: 12px 4px 0;
     font-family: var(--corner-font-display);
     font-size: var(--text-title);
-    font-weight: 400;
+    font-weight: var(--weight-display);
     line-height: 1.2;
     letter-spacing: var(--tracking-display);
     color: var(--corner-ink);
@@ -339,7 +339,7 @@
 [data-app='our-shelf'] .corner-door-live {
     margin: 2px 4px 4px;
     font-size: var(--text-meta);
-    font-weight: 500;
+    font-weight: 400;
     line-height: 1.4;
     font-variant-numeric: tabular-nums;
     color: var(--corner-ink-soft);
@@ -382,7 +382,7 @@
     height: 6px;
     margin-right: 10px;
     border-radius: var(--corner-radius-pill);
-    background: var(--corner-accent-text);
+    background: var(--corner-ink-soft);
 }
 
 [data-app='our-shelf'] .corner-door-scrap-title {
@@ -399,7 +399,7 @@
 /* An empty list: its icon alone. */
 [data-app='our-shelf'] .corner-door-empty {
     flex: none;
-    color: var(--corner-accent-text);
+    color: var(--corner-ink-soft);
     display: grid;
     place-items: center;
     width: 100%;
@@ -481,7 +481,7 @@
     margin: 0 0 24px 0;
     font-family: var(--corner-font);
     font-size: var(--text-meta);
-    font-weight: 500;
+    font-weight: 400;
     line-height: 1.4;
     color: var(--corner-ink-soft);
 }
@@ -489,7 +489,7 @@
 [data-app='our-shelf'] .corner-detail-coords {
     margin: 0 0 12px 0;
     font-size: var(--text-meta);
-    font-weight: 500;
+    font-weight: 400;
     font-variant-numeric: tabular-nums;
     color: var(--corner-ink-soft);
 }
@@ -511,7 +511,7 @@
 
 [data-app='our-shelf'] .corner-detail-place-icon {
     flex-shrink: 0;
-    color: var(--corner-accent-text);
+    color: var(--corner-ink-soft);
 }
 
 /* ── "Mentioned in" ──────────────────────────────────────────────────────── */
@@ -538,7 +538,7 @@
     margin: 0 0 16px 0;
     font-family: var(--corner-font-display);
     font-size: var(--text-title);
-    font-weight: 400;
+    font-weight: var(--weight-display);
     line-height: 1.2;
     letter-spacing: var(--tracking-display);
     text-wrap: balance;
@@ -580,7 +580,7 @@
 
 [data-app='our-shelf'] .corner-backref-title {
     font-size: var(--text-body);
-    font-weight: 500;
+    font-weight: 400;
     line-height: 1.4;
     color: var(--corner-ink);
 }
@@ -656,7 +656,7 @@
 [data-app='our-shelf'] .corner-door-icon {
     flex: none;
     align-self: center;
-    color: var(--corner-accent-text);
+    color: var(--corner-ink-soft);
 }
 
 [data-app='our-shelf'] .corner-door-head .corner-list-menu-btn {
@@ -678,7 +678,7 @@
     margin: 0;
     font-family: var(--corner-font-display);
     font-size: var(--text-title);
-    font-weight: 400;
+    font-weight: var(--weight-display);
     line-height: 1.2;
     letter-spacing: var(--tracking-display);
 }
@@ -730,18 +730,18 @@
 
 [data-app='our-shelf'] .corner-suggestion-icon {
     margin-bottom: 4px;
-    color: var(--corner-accent-text);
+    color: var(--corner-ink-soft);
 }
 
 [data-app='our-shelf'] .corner-suggestion-name {
     font-size: var(--text-body);
-    font-weight: 500;
+    font-weight: 400;
     line-height: 1.3;
 }
 
 [data-app='our-shelf'] .corner-suggestion-kind {
     font-size: var(--text-meta);
-    font-weight: 500;
+    font-weight: 400;
     color: var(--corner-ink-soft);
 }
 
@@ -761,7 +761,7 @@
     padding: 0;
     margin-bottom: 10px;
     font-size: var(--text-small);
-    font-weight: 500;
+    font-weight: 400;
     color: var(--corner-ink);
 }
 
@@ -783,7 +783,7 @@
     color: var(--corner-ink);
     font-family: var(--corner-font);
     font-size: var(--text-small);
-    font-weight: 500;
+    font-weight: 400;
     cursor: pointer;
 }
 
@@ -811,7 +811,7 @@
 
 [data-app='our-shelf'] .corner-switch-label {
     font-size: var(--text-body);
-    font-weight: 500;
+    font-weight: 400;
     cursor: pointer;
 }
 
@@ -843,7 +843,7 @@
         var(--shell-accent) 18%,
         var(--shell-surface)
     );
-    color: var(--corner-accent-text);
+    color: var(--corner-ink-soft);
 }
 
 [data-app='our-shelf'] .corner-thumb::after {
@@ -922,7 +922,7 @@
 
 [data-app='our-shelf'] .corner-item-place svg {
     flex: none;
-    color: var(--corner-accent-text);
+    color: var(--corner-ink-soft);
 }
 
 [data-app='our-shelf'] .corner-door-shelf > .corner-door-cover {
@@ -942,7 +942,7 @@
     display: block;
     margin-bottom: 8px;
     font-size: var(--text-small);
-    font-weight: 500;
+    font-weight: 400;
     color: var(--corner-ink);
 }
 
@@ -1017,7 +1017,7 @@
     color: var(--corner-accent-text);
     font-family: var(--corner-font);
     font-size: var(--text-small);
-    font-weight: 500;
+    font-weight: 400;
     cursor: pointer;
 }
 
@@ -1088,7 +1088,7 @@
     gap: 2px;
     margin-left: 8px;
     font-size: var(--text-small);
-    font-weight: 500;
+    font-weight: 400;
     color: var(--corner-accent-text);
 }
 
@@ -1111,7 +1111,7 @@
     padding: 18px 64px 4px 16px;
     font-family: var(--corner-font-display);
     font-size: var(--text-title);
-    font-weight: 400;
+    font-weight: var(--weight-display);
 }
 
 [data-app='our-shelf'] .corner-icon-panel {
@@ -1183,7 +1183,7 @@
     height: 32px;
     padding: 0 4px;
     font-size: var(--text-meta);
-    font-weight: 500;
+    font-weight: 400;
     color: var(--corner-ink-soft);
     background: var(--corner-paper);
 }
@@ -1240,7 +1240,7 @@
     padding-top: 6px;
     border-top: 1px solid var(--corner-border);
     font-size: var(--text-small);
-    font-weight: 500;
+    font-weight: 400;
     color: var(--corner-ink-soft);
 }
 
@@ -1275,7 +1275,7 @@
     margin-bottom: 12px;
     font-family: var(--corner-font-display);
     font-size: var(--text-page);
-    font-weight: 400;
+    font-weight: var(--weight-display);
     line-height: 1.15;
     letter-spacing: var(--tracking-display);
     text-wrap: balance;
@@ -1286,4 +1286,21 @@
     font-size: var(--text-body);
     line-height: 1.6;
     color: var(--corner-ink-soft);
+}
+
+/* Who has marked it done: one short line each, kept together under the person who added it. */
+[data-app='our-shelf'] .corner-done-by-list {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin: -12px 0 24px;
+    padding: 0;
+    list-style: none;
+}
+
+[data-app='our-shelf'] .corner-done-by-list .corner-done-by {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 0;
 }

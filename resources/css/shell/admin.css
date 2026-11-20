@@ -17,7 +17,7 @@
     min-width: 44px;
     padding: 0 16px;
     font-size: var(--text-small);
-    font-weight: 500;
+    font-weight: 400;
 }
 
 .os-admin-fill-primary {
@@ -66,7 +66,7 @@
 
 .os-admin-submit {
     font-size: var(--text-body);
-    font-weight: 500;
+    font-weight: 400;
 }
 
 .os-admin-cancel-link {
@@ -102,7 +102,7 @@
     font-size: var(--text-title);
     letter-spacing: var(--tracking-display);
     line-height: 1.2;
-    font-weight: 400;
+    font-weight: var(--weight-display);
     color: var(--foreground);
 }
 
@@ -115,7 +115,7 @@
 }
 
 .os-admin-strong {
-    font-weight: 500;
+    font-weight: 400;
 }
 
 .os-admin-muted {
@@ -146,7 +146,7 @@
 
 .os-admin-group-label {
     font-size: var(--text-small);
-    font-weight: 500;
+    font-weight: 400;
     color: var(--foreground);
 }
 
@@ -166,7 +166,7 @@
 
 .os-admin-option-name {
     font-size: var(--text-small);
-    font-weight: 500;
+    font-weight: 400;
     color: var(--foreground);
 }
 

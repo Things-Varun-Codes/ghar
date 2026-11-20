@@ -19,6 +19,7 @@ class ListResource
      *     todo_label: string,
      *     done_icon: string,
      *     notify_on_add: bool,
+     *     done_per_person: bool,
      *     can: array{update: bool, delete: bool},
      *     delete_needs_admin: bool,
      * }
@@ -37,6 +38,7 @@ class ListResource
             'todo_label' => $list->todo_label,
             'done_icon' => $list->done_icon,
             'notify_on_add' => $list->notify_on_add,
+            'done_per_person' => $list->done_per_person,
             'can' => ['update' => $canUpdate, 'delete' => $canDelete],
             // The viewer made this list but others have added to it since.
             'delete_needs_admin' => $canUpdate && ! $canDelete,

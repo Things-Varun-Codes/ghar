@@ -37,6 +37,7 @@ function settingsOf(list: CornerListInfo): ListSettings {
         todo_label: list.todo_label,
         done_icon: list.done_icon,
         notify_on_add: list.notify_on_add,
+        done_per_person: list.done_per_person,
     };
 }
 
@@ -217,6 +218,18 @@ export default function ListSettingsSheet({ open, onOpenChange, list }: Props) {
                     </Chip>
                 </RadioGroup>
             </fieldset>
+
+            <SwitchRow
+                label="Everyone marks their own"
+                description={`Each person keeps their own “${data.done_label || 'done'}”, and the list shows who has. Off, one person marks it for everyone.`}
+                checked={data.done_per_person ?? false}
+                onCheckedChange={(checked) =>
+                    setData('done_per_person', checked)
+                }
+                className="corner-switch-row"
+                labelClassName="corner-switch-label"
+                descriptionClassName="corner-form-hint"
+            />
 
             <SwitchRow
                 label="Tell everyone when something is added"

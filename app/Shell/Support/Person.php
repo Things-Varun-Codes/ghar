@@ -3,6 +3,7 @@
 namespace App\Shell\Support;
 
 use App\Shell\Models\User;
+use App\Shell\Services\Household;
 
 /**
  * How a person is sent to a page wherever they're named: id, name and a signed picture URL
@@ -20,6 +21,17 @@ final class Person
     public static function of(User $user): array
     {
         return app(self::class)->present($user);
+    }
+
+    /**
+     * The same, named the way the household says it: by first name, unless two members share it
+     * (Household::shortName).
+     *
+     * @return array{id: int, name: string, avatar_url: string|null}
+     */
+    public static function short(User $user): array
+    {
+        return [...self::of($user), 'name' => app(Household::class)->shortName($user)];
     }
 
     /** @return array{id: int, name: string, avatar_url: string|null} */

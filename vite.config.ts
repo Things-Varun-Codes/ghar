@@ -23,16 +23,10 @@ export default defineConfig(({ command }) => ({
             input: ['resources/css/app.css', 'resources/js/app.tsx'],
             refresh: true,
             fonts: [
-                google('Hanken Grotesk', {
-                    weights: [400, 500],
-                }),
-                google('Newsreader', {
-                    weights: [400],
+                // The one face. Light for the date, regular to read, semibold for titles.
+                google('Atkinson Hyperlegible Next', {
+                    weights: [300, 400, 600],
                     styles: ['normal', 'italic'],
-                }),
-                // Only for what someone wrote by hand: note bodies and coupon titles.
-                google('Patrick Hand', {
-                    weights: [400],
                 }),
             ],
         }),

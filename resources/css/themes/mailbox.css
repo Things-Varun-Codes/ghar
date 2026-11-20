@@ -94,11 +94,12 @@
         var(--shell-accent) 10%,
         var(--shell-surface)
     );
-    --mailbox-citation-seal-color: var(--shell-accent-text);
+    /* The room's papers print in the house ink, like real forms; coral stays for what you press. */
+    --mailbox-citation-seal-color: var(--shell-text);
     --mailbox-citation-seal-size: 64px;
     --mailbox-citation-stamp-rotate: -13deg;
 
-    --mailbox-coupon-seal: var(--shell-accent-text);
+    --mailbox-coupon-seal: var(--shell-text);
     --mailbox-coupon-tint: color-mix(
         in oklab,
         var(--shell-accent) 9%,
@@ -121,6 +122,7 @@
 
 [data-app='our-exchange'] .mailbox-hand {
     font-family: var(--mailbox-font-hand);
+    font-style: italic;
     font-weight: 400;
     font-size: var(--mailbox-hand-size);
     color: var(--mailbox-ink);
@@ -265,7 +267,7 @@
 [data-app='our-exchange'] .mailbox-door-name {
     margin: 12px 4px 0;
     font-family: var(--mailbox-font-display);
-    font-weight: 400;
+    font-weight: var(--weight-display);
     font-size: var(--text-title);
     letter-spacing: var(--tracking-display);
     line-height: 1.2;
@@ -280,7 +282,7 @@
 [data-app='our-exchange'] .mailbox-door-live {
     margin: 2px 4px 4px;
     font-size: var(--text-meta);
-    font-weight: 500;
+    font-weight: 400;
     line-height: 1.4;
     font-variant-numeric: tabular-nums;
     color: var(--mailbox-ink-soft);
@@ -294,7 +296,7 @@
     display: grid;
     place-items: center;
     width: 100%;
-    color: var(--mailbox-accent-text);
+    color: var(--mailbox-ink-soft);
 }
 
 /* Notes: a scrap of the ruled sheet, written on the same rules as a note. */
@@ -312,6 +314,7 @@
 [data-app='our-exchange'] .mailbox-door-note-body {
     margin: 0;
     font-family: var(--mailbox-font-hand);
+    font-style: italic;
     font-weight: 400;
     font-size: var(--mailbox-hand-size-small);
     line-height: var(--mailbox-rule-step);
@@ -352,7 +355,7 @@
     position: relative;
     width: 100%;
     background: var(--mailbox-paper);
-    box-shadow: inset 0 0 0 1.5px var(--mailbox-accent-text);
+    box-shadow: inset 0 0 0 1.5px var(--mailbox-ink);
     border-radius: inherit;
     overflow: hidden;
 }
@@ -407,13 +410,13 @@
     width: 100%;
     padding: 12px 16px;
     background: var(--mailbox-coupon-tint);
-    box-shadow: inset 0 0 0 1.5px var(--mailbox-accent-text);
+    box-shadow: inset 0 0 0 1.5px var(--mailbox-ink);
     border-radius: inherit;
 }
 
 [data-app='our-exchange'] .mailbox-door-coupon-title {
     font-family: var(--mailbox-coupon-font-display);
-    font-weight: 400;
+    font-weight: var(--weight-display);
     font-size: var(--mailbox-hand-size);
     line-height: 1.2;
     color: var(--mailbox-ink);
@@ -434,7 +437,7 @@
     padding-top: 8px;
     border-top: 1px dashed var(--mailbox-coupon-rule);
     font-size: var(--text-meta);
-    font-weight: 500;
+    font-weight: 400;
     color: var(--mailbox-ink-soft);
 }
 
@@ -467,6 +470,7 @@
 
 [data-app='our-exchange'] .mailbox-note-body {
     font-family: var(--mailbox-font-hand);
+    font-style: italic;
     font-weight: 400;
     font-size: var(--mailbox-hand-size);
     line-height: var(--mailbox-rule-step);
@@ -537,6 +541,7 @@
 /* The few words sent with a bouquet are a note body. */
 [data-app='our-exchange'] .mailbox-bouquet-note {
     font-family: var(--mailbox-font-hand);
+    font-style: italic;
     font-weight: 400;
     font-size: var(--mailbox-hand-size-small);
     line-height: 28px;
@@ -592,7 +597,7 @@
     background: var(--mailbox-paper);
     color: var(--mailbox-ink);
     font-family: var(--mailbox-citation-font);
-    border: 1.5px solid var(--mailbox-accent-text);
+    border: 1.5px solid var(--mailbox-ink);
     border-radius: var(--mailbox-paper-radius);
     box-shadow: var(--mailbox-paper-shadow);
     /* Not clipped: the stub's notches reach over the border to bite the edge. */
@@ -611,7 +616,7 @@
 [data-app='our-exchange'] .mailbox-citation-watermark span {
     font-family: var(--mailbox-font-display);
     font-size: 190px;
-    font-weight: 400;
+    font-weight: var(--weight-display);
     letter-spacing: var(--tracking-display);
     color: var(--mailbox-citation-seal-color);
     opacity: 0.05;
@@ -632,14 +637,14 @@
 [data-app='our-exchange'] .mailbox-citation-title {
     font-family: var(--mailbox-citation-font);
     font-size: var(--text-subhead);
-    font-weight: 500;
+    font-weight: 400;
     line-height: 1.2;
     text-wrap: balance;
     color: var(--mailbox-ink);
 }
 [data-app='our-exchange'] .mailbox-citation-sub {
     font-size: var(--text-meta);
-    font-weight: 500;
+    font-weight: 400;
     letter-spacing: 0.01em;
     margin-top: 4px;
     color: var(--mailbox-ink-soft);
@@ -668,7 +673,7 @@
 }
 [data-app='our-exchange'] .mailbox-citation-seal .mailbox-citation-monogram {
     font-size: var(--text-subhead);
-    font-weight: 500;
+    font-weight: 400;
 }
 
 [data-app='our-exchange'] .mailbox-citation-confidential {
@@ -678,7 +683,7 @@
     z-index: 3;
     font-family: var(--mailbox-citation-font);
     font-size: var(--text-meta);
-    font-weight: 500;
+    font-weight: 400;
     letter-spacing: 0.01em;
     line-height: 1.4;
     color: var(--mailbox-destructive);
@@ -713,7 +718,7 @@
     z-index: 3;
     font-family: var(--mailbox-citation-font);
     font-size: var(--text-title);
-    font-weight: 500;
+    font-weight: 400;
     line-height: 1.2;
     letter-spacing: 0.08em;
     text-transform: uppercase;
@@ -751,7 +756,7 @@
     color: var(--mailbox-destructive);
 }
 [data-app='our-exchange'] .mailbox-citation-stamp--paid {
-    color: var(--mailbox-accent-text);
+    color: var(--mailbox-ink);
 }
 
 [data-app='our-exchange'] .mailbox-citation-body {
@@ -776,7 +781,7 @@
     min-width: 56px;
     margin-right: 8px;
     font-size: var(--text-meta);
-    font-weight: 500;
+    font-weight: 400;
     letter-spacing: 0.01em;
     color: var(--mailbox-ink-soft);
 }
@@ -793,7 +798,7 @@
 [data-app='our-exchange'] .mailbox-citation-legend {
     font-family: var(--mailbox-citation-font);
     font-size: var(--text-meta);
-    font-weight: 500;
+    font-weight: 400;
     letter-spacing: 0.01em;
     padding: 0 8px;
     color: var(--mailbox-ink-soft);
@@ -806,7 +811,7 @@
 [data-app='our-exchange'] .mailbox-citation-field-label {
     font-family: var(--mailbox-citation-font);
     font-size: var(--text-meta);
-    font-weight: 500;
+    font-weight: 400;
     letter-spacing: 0.01em;
     color: var(--mailbox-ink-soft);
     margin-bottom: 4px;
@@ -817,7 +822,7 @@
 [data-app='our-exchange'] .mailbox-citation-penalty {
     font-family: var(--mailbox-font-display);
     font-style: italic;
-    font-weight: 400;
+    font-weight: var(--weight-display);
     font-size: var(--text-subhead);
     font-variant-numeric: tabular-nums;
     line-height: 1.3;
@@ -852,7 +857,7 @@
 [data-app='our-exchange'] .mailbox-written {
     font-family: var(--mailbox-font-display);
     font-style: italic;
-    font-weight: 400;
+    font-weight: var(--weight-display);
     font-size: var(--text-subhead);
     line-height: 1.3;
     color: var(--mailbox-ink);
@@ -867,7 +872,7 @@
     background: var(--mailbox-paper);
     color: var(--mailbox-ink);
     font-family: var(--mailbox-coupon-font-mono);
-    border: 1.5px solid var(--mailbox-accent-text);
+    border: 1.5px solid var(--mailbox-ink);
     border-radius: var(--mailbox-paper-radius);
     box-shadow: var(--mailbox-paper-shadow);
     overflow: hidden;
@@ -889,14 +894,14 @@
 [data-app='our-exchange'] .mailbox-coupon-eyebrow {
     font-family: var(--mailbox-coupon-font-mono);
     font-size: var(--text-eyebrow);
-    font-weight: 500;
+    font-weight: 400;
     letter-spacing: 0.01em;
     color: var(--mailbox-coupon-seal);
     padding-right: 64px;
 }
 [data-app='our-exchange'] .mailbox-coupon-title {
     font-family: var(--mailbox-coupon-font-display);
-    font-weight: 400;
+    font-weight: var(--weight-display);
     font-size: 28px;
     line-height: 1.15;
     margin: 8px 0 4px;
@@ -908,7 +913,7 @@
 [data-app='our-exchange'] .mailbox-coupon-desc {
     font-family: var(--mailbox-font-display);
     font-style: italic;
-    font-weight: 400;
+    font-weight: var(--weight-display);
     font-size: 18px;
     color: var(--mailbox-ink);
     line-height: 1.5;
@@ -925,7 +930,7 @@
     display: grid;
     place-items: center;
     font-family: var(--mailbox-coupon-font-mono);
-    font-weight: 500;
+    font-weight: 400;
     font-size: var(--text-body);
 }
 
@@ -935,7 +940,7 @@
 [data-app='our-exchange'] .mailbox-coupon-punchlabel {
     font-family: var(--mailbox-coupon-font-mono);
     font-size: var(--text-meta);
-    font-weight: 500;
+    font-weight: 400;
     letter-spacing: 0.01em;
     color: var(--mailbox-ink-soft);
     margin-bottom: 16px;
@@ -1000,7 +1005,7 @@
 }
 [data-app='our-exchange'] .mailbox-coupon-remaining b {
     font-family: var(--mailbox-font-display);
-    font-weight: 400;
+    font-weight: var(--weight-display);
     font-size: var(--text-title);
     font-variant-numeric: tabular-nums;
     letter-spacing: var(--tracking-display);
@@ -1017,7 +1022,7 @@
     margin-left: 12px;
     font-family: var(--mailbox-coupon-font-mono);
     font-size: var(--text-meta);
-    font-weight: 500;
+    font-weight: 400;
     letter-spacing: 0.08em;
     text-transform: uppercase;
     padding: 2px 8px;
@@ -1027,7 +1032,7 @@
     opacity: 0.84;
 }
 [data-app='our-exchange'] .mailbox-coupon-stamp--requested {
-    color: var(--mailbox-accent-text);
+    color: var(--mailbox-ink);
 }
 [data-app='our-exchange'] .mailbox-coupon-stamp--depleted {
     color: var(--mailbox-ink-soft);
@@ -1059,7 +1064,7 @@
 }
 [data-app='our-exchange'] .mailbox-coupon-await svg {
     flex: none;
-    color: var(--mailbox-accent-text);
+    color: var(--mailbox-ink-soft);
 }
 
 /*
@@ -1097,7 +1102,7 @@
     background: radial-gradient(
         circle at 1px 50%,
         var(--mailbox-bg) 6.75px,
-        var(--mailbox-accent-text) 7.25px 8px,
+        var(--mailbox-ink-soft) 7.25px 8px,
         transparent 8.5px
     );
 }
@@ -1114,7 +1119,7 @@
     display: block;
     margin-bottom: 4px;
     font-size: var(--text-meta);
-    font-weight: 500;
+    font-weight: 400;
     letter-spacing: 0.01em;
 }
 [data-app='our-exchange'] .mailbox-coupon-foot .mailbox-coupon-foot-val {
@@ -1145,7 +1150,7 @@
     text-decoration: none;
     color: var(--mailbox-ink);
     font-family: var(--mailbox-coupon-font-display);
-    font-weight: 400;
+    font-weight: var(--weight-display);
     font-size: var(--mailbox-hand-size);
     line-height: 1.2;
     overflow-wrap: anywhere;
@@ -1173,7 +1178,7 @@
     padding: 0;
     margin: 0 0 8px;
     font-size: var(--text-small);
-    font-weight: 500;
+    font-weight: 400;
     line-height: 1.5;
     color: var(--mailbox-ink);
 }
@@ -1332,6 +1337,7 @@
 
 [data-app='our-exchange'] .mailbox-bouquet-note-input {
     font-family: var(--mailbox-font-hand);
+    font-style: italic;
     font-size: var(--mailbox-hand-size-small);
     line-height: 28px;
     padding: 12px 16px;
@@ -1342,6 +1348,7 @@
 /* The sheet a note is written on: same paper, rules and corners as the note it becomes. */
 [data-app='our-exchange'] .mailbox-note-input {
     font-family: var(--mailbox-font-hand);
+    font-style: italic;
     font-size: var(--mailbox-hand-size);
     line-height: var(--mailbox-rule-step);
     background-color: var(--mailbox-card);
@@ -1385,7 +1392,7 @@
 
 [data-app='our-exchange'] .mailbox-coupon-quantity {
     font-family: var(--mailbox-font-display);
-    font-weight: 400;
+    font-weight: var(--weight-display);
     font-size: var(--text-title);
     font-variant-numeric: tabular-nums;
     letter-spacing: var(--tracking-display);
@@ -1422,7 +1429,7 @@
     border: none;
     cursor: pointer;
     font-size: var(--text-small);
-    font-weight: 500;
+    font-weight: 400;
     text-decoration: underline;
     text-underline-offset: 4px;
     text-decoration-thickness: 1px;
@@ -1445,7 +1452,7 @@
     color: var(--mailbox-ink);
     font-family: var(--mailbox-font-sans);
     font-size: var(--text-body);
-    font-weight: 500;
+    font-weight: 400;
     line-height: 1;
     white-space: nowrap;
     cursor: pointer;

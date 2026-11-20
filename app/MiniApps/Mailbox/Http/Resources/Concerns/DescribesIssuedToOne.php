@@ -20,8 +20,8 @@ trait DescribesIssuedToOne
     {
         return [
             'is_mine' => $viewer !== null && $entry->issuer_id === $viewer->id,
-            'issuer' => Person::of($entry->issuer),
-            'recipient' => Person::of($entry->recipient),
+            'issuer' => Person::short($entry->issuer),
+            'recipient' => Person::short($entry->recipient),
             'available_actions' => $viewer === null
                 ? []
                 : array_values(array_filter($abilities, fn (string $ability) => $viewer->can($ability, $entry))),

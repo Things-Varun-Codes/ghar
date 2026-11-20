@@ -8,6 +8,7 @@ use App\MiniApps\History\Models\EventComment;
 use App\MiniApps\History\Models\EventReaction;
 use App\MiniApps\History\Support\VideoPosterResolver;
 use App\Shell\Models\User;
+use App\Shell\Services\Household;
 use App\Shell\Support\Person;
 use App\Shell\Support\SignedUrls;
 use Spatie\MediaLibrary\MediaCollections\Models\Media;
@@ -75,7 +76,7 @@ class EventResource
             ->take(50)
             ->map(fn (EventChange $change) => [
                 'id' => $change->id,
-                'user_name' => $change->user?->name ?? 'Someone',
+                'user_name' => ($change->user ? app(Household::class)->shortName($change->user) : 'Someone'),
                 'action' => $change->action,
                 'summary' => $change->summary,
                 'created_at' => $change->created_at->toIso8601String(),
@@ -103,8 +104,8 @@ class EventResource
             'updated_at' => $event->updated_at->toIso8601String(),
             'media' => $media,
             'changes' => $changes,
-            'creator' => $event->creator !== null ? Person::of($event->creator) : null,
-            'birthday_of' => $event->birthdayOf !== null ? Person::of($event->birthdayOf) : null,
+            'creator' => $event->creator !== null ? Person::short($event->creator) : null,
+            'birthday_of' => $event->birthdayOf !== null ? Person::short($event->birthdayOf) : null,
             'reactions' => $this->reactions($event, $viewer),
             'comments' => $this->comments($event, $viewer),
             'can' => [
@@ -126,7 +127,7 @@ class EventResource
 
         return array_map(function (string $key, string $emoji) use ($byKey, $viewer): array {
             $people = $byKey->get($key, collect())
-                ->map(fn (EventReaction $reaction): array => Person::of($reaction->user))
+                ->map(fn (EventReaction $reaction): array => Person::short($reaction->user))
                 ->values()
                 ->all();
 
@@ -147,7 +148,7 @@ class EventResource
             ->map(fn (EventComment $comment): array => [
                 'id' => $comment->id,
                 'body' => $comment->body,
-                'author' => $comment->author !== null ? Person::of($comment->author) : null,
+                'author' => $comment->author !== null ? Person::short($comment->author) : null,
                 'created_at' => $comment->created_at->toIso8601String(),
                 'can' => [
                     'delete' => (bool) $viewer?->can('delete', $comment),

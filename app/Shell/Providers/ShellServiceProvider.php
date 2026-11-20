@@ -31,7 +31,7 @@ class ShellServiceProvider extends ServiceProvider
     {
         $this->app->singleton(Notify::class);
 
-        $this->app->singleton(Household::class);
+        $this->app->scoped(Household::class);
 
         $this->app->singleton(LinkableEntities::class);
 

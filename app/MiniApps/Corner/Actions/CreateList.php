@@ -28,6 +28,7 @@ class CreateList
                     'todo_label' => $data['todo_label'],
                     'done_icon' => $data['done_icon'],
                     'notify_on_add' => (bool) $data['notify_on_add'],
+                    'done_per_person' => (bool) ($data['done_per_person'] ?? false),
                     'position' => CornerList::query()->exists()
                         ? (int) CornerList::query()->max('position') + 1
                         : 0,

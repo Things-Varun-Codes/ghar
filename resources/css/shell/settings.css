@@ -22,7 +22,7 @@
     min-height: 44px;
     padding-inline: 24px;
     font-size: var(--text-body);
-    font-weight: 500;
+    font-weight: 400;
     color: var(--primary-foreground);
     background-color: var(--primary);
 }
@@ -52,7 +52,7 @@
 
 .os-settings-row-label {
     font-size: var(--text-small);
-    font-weight: 500;
+    font-weight: 400;
     color: var(--foreground);
 }
 
@@ -70,7 +70,7 @@
 
 .os-settings-notice {
     font-size: var(--text-small);
-    font-weight: 500;
+    font-weight: 400;
     color: var(--foreground);
 }
 
