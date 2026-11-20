@@ -281,7 +281,7 @@
 [data-app='our-exchange'] .mailbox-door-live {
     margin: 2px 4px 4px;
     font-size: var(--text-meta);
-    font-weight: 500;
+    font-weight: 400;
     line-height: 1.4;
     font-variant-numeric: tabular-nums;
     color: var(--mailbox-ink-soft);
@@ -436,7 +436,7 @@
     padding-top: 8px;
     border-top: 1px dashed var(--mailbox-coupon-rule);
     font-size: var(--text-meta);
-    font-weight: 500;
+    font-weight: 400;
     color: var(--mailbox-ink-soft);
 }
 
@@ -636,14 +636,14 @@
 [data-app='our-exchange'] .mailbox-citation-title {
     font-family: var(--mailbox-citation-font);
     font-size: var(--text-subhead);
-    font-weight: 500;
+    font-weight: 400;
     line-height: 1.2;
     text-wrap: balance;
     color: var(--mailbox-ink);
 }
 [data-app='our-exchange'] .mailbox-citation-sub {
     font-size: var(--text-meta);
-    font-weight: 500;
+    font-weight: 400;
     letter-spacing: 0.01em;
     margin-top: 4px;
     color: var(--mailbox-ink-soft);
@@ -672,7 +672,7 @@
 }
 [data-app='our-exchange'] .mailbox-citation-seal .mailbox-citation-monogram {
     font-size: var(--text-subhead);
-    font-weight: 500;
+    font-weight: 400;
 }
 
 [data-app='our-exchange'] .mailbox-citation-confidential {
@@ -682,7 +682,7 @@
     z-index: 3;
     font-family: var(--mailbox-citation-font);
     font-size: var(--text-meta);
-    font-weight: 500;
+    font-weight: 400;
     letter-spacing: 0.01em;
     line-height: 1.4;
     color: var(--mailbox-destructive);
@@ -717,7 +717,7 @@
     z-index: 3;
     font-family: var(--mailbox-citation-font);
     font-size: var(--text-title);
-    font-weight: 500;
+    font-weight: 400;
     line-height: 1.2;
     letter-spacing: 0.08em;
     text-transform: uppercase;
@@ -780,7 +780,7 @@
     min-width: 56px;
     margin-right: 8px;
     font-size: var(--text-meta);
-    font-weight: 500;
+    font-weight: 400;
     letter-spacing: 0.01em;
     color: var(--mailbox-ink-soft);
 }
@@ -797,7 +797,7 @@
 [data-app='our-exchange'] .mailbox-citation-legend {
     font-family: var(--mailbox-citation-font);
     font-size: var(--text-meta);
-    font-weight: 500;
+    font-weight: 400;
     letter-spacing: 0.01em;
     padding: 0 8px;
     color: var(--mailbox-ink-soft);
@@ -810,7 +810,7 @@
 [data-app='our-exchange'] .mailbox-citation-field-label {
     font-family: var(--mailbox-citation-font);
     font-size: var(--text-meta);
-    font-weight: 500;
+    font-weight: 400;
     letter-spacing: 0.01em;
     color: var(--mailbox-ink-soft);
     margin-bottom: 4px;
@@ -893,7 +893,7 @@
 [data-app='our-exchange'] .mailbox-coupon-eyebrow {
     font-family: var(--mailbox-coupon-font-mono);
     font-size: var(--text-eyebrow);
-    font-weight: 500;
+    font-weight: 400;
     letter-spacing: 0.01em;
     color: var(--mailbox-coupon-seal);
     padding-right: 64px;
@@ -929,7 +929,7 @@
     display: grid;
     place-items: center;
     font-family: var(--mailbox-coupon-font-mono);
-    font-weight: 500;
+    font-weight: 400;
     font-size: var(--text-body);
 }
 
@@ -939,7 +939,7 @@
 [data-app='our-exchange'] .mailbox-coupon-punchlabel {
     font-family: var(--mailbox-coupon-font-mono);
     font-size: var(--text-meta);
-    font-weight: 500;
+    font-weight: 400;
     letter-spacing: 0.01em;
     color: var(--mailbox-ink-soft);
     margin-bottom: 16px;
@@ -1021,7 +1021,7 @@
     margin-left: 12px;
     font-family: var(--mailbox-coupon-font-mono);
     font-size: var(--text-meta);
-    font-weight: 500;
+    font-weight: 400;
     letter-spacing: 0.08em;
     text-transform: uppercase;
     padding: 2px 8px;
@@ -1118,7 +1118,7 @@
     display: block;
     margin-bottom: 4px;
     font-size: var(--text-meta);
-    font-weight: 500;
+    font-weight: 400;
     letter-spacing: 0.01em;
 }
 [data-app='our-exchange'] .mailbox-coupon-foot .mailbox-coupon-foot-val {
@@ -1177,7 +1177,7 @@
     padding: 0;
     margin: 0 0 8px;
     font-size: var(--text-small);
-    font-weight: 500;
+    font-weight: 400;
     line-height: 1.5;
     color: var(--mailbox-ink);
 }
@@ -1428,7 +1428,7 @@
     border: none;
     cursor: pointer;
     font-size: var(--text-small);
-    font-weight: 500;
+    font-weight: 400;
     text-decoration: underline;
     text-underline-offset: 4px;
     text-decoration-thickness: 1px;
@@ -1451,7 +1451,7 @@
     color: var(--mailbox-ink);
     font-family: var(--mailbox-font-sans);
     font-size: var(--text-body);
-    font-weight: 500;
+    font-weight: 400;
     line-height: 1;
     white-space: nowrap;
     cursor: pointer;

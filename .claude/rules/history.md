@@ -20,9 +20,10 @@ Rules that aren't obvious from the code:
 - **Our History** — tender journal feel. Dates, year banners and counts are ink (years large and
   light, like Home's date), never coral: coral is only for links and actions. A moment's photo on its
   card is a small print with a paper border that leans by its id, like the slips on Home. Timeline cards are quiet reading surfaces (no Edit/Delete on the card;
-  the whole card opens the EventSheet, where management lives). They are compact: dateline and
-  creator, title, one line of the story, and non-interactive reaction and comment counts;
-  "Details" (the ui Collapsible) opens the rest of the story and the photos in place. Only the
+  the whole card opens the EventSheet, where management lives, and there is no in-place
+  expansion). They are compact: the date, the title, one line of the story, and one quiet line of
+  who posted it, where, and non-interactive reaction and comment counts. The poster's face
+  (`PersonAvatar`) is the card's marker on the rail; a moment with no creator gets a plain dot. Only the
   first page settles in (`Settle`); rows loaded later appear in place.
 - **The sheet reads the open moment from the page's props, never a copy.** Timeline and Calendar
   hold its id and look it up through `useFreshMoments`, which also patches every loaded copy (a

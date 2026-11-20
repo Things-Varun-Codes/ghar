@@ -9,4 +9,4 @@ Home now shows what needs you and what the household added this week, under toda
 - Birthdays in the next two weeks appear under **Coming up**.
 - On a laptop the rooms are now in the sidebar, the same as the bottom bar on a phone.
 - Ghar has a new look throughout: a warm white, one easy-to-read typeface, and coral for anything you can press.
-- In Our History, dates and years read quietly in ink, each moment's photo sits on its card like a small print, and the Gallery's filters fit on one line on a phone.
+- In Our History, each moment on the Timeline shows who posted it as their picture on the line, opens with a tap anywhere on the card instead of a Details button, and keeps its photo as a small print; dates read quietly, and the Gallery's filters fit on one line on a phone.

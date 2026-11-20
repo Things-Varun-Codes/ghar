@@ -22,6 +22,10 @@
     --font-display: var(--font-sans);
     --font-hand: var(--font-sans);
 
+    /* Tailwind's medium and bold land on the system's 600, so no component draws a fourth weight. */
+    --font-weight-medium: 600;
+    --font-weight-bold: 600;
+
     --radius-lg: var(--radius);
     --radius-md: calc(var(--radius) - 2px);
     --radius-sm: calc(var(--radius) - 4px);
