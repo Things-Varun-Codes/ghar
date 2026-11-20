@@ -415,13 +415,17 @@
     box-shadow: none;
 }
 
+/* One row: on a phone the buttons scroll sideways rather than strand one on a second line. The link
+   popover is the toolbar's sibling, so the scroll never clips it. */
 [data-app='our-history'] .tiptap-toolbar {
     position: sticky;
     top: 0;
     z-index: 2;
     display: flex;
     align-items: center;
-    flex-wrap: wrap;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    scrollbar-width: none;
     gap: 0;
     min-height: 44px;
     padding: 0 4px;
@@ -1455,16 +1459,18 @@
 }
 
 /* Six fit on one line on a 360px phone. */
+/* The six fit one row on a phone: 44px tall pills, tight sides. */
 [data-app='our-history'] .history-reaction-row {
     display: flex;
     flex-wrap: wrap;
-    gap: 6px;
+    gap: 4px;
 }
 
 /* On the ui Toggle (44px); a soft pill with no outline until it is yours, then an accent wash. */
 [data-app='our-history'] .history-reaction {
-    gap: 6px;
-    padding: 0 12px;
+    gap: 4px;
+    min-width: 44px;
+    padding: 0 8px;
     border: 1px solid transparent;
     background-color: var(--shell-chrome);
     color: var(--history-ink);
@@ -2375,11 +2381,12 @@
     font-weight: 400;
 }
 
+/* Marks a month that has moments: data, so ink, never the action coral. */
 [data-app='our-history'] .history-cal-chip-dot {
     width: 4px;
     height: 4px;
     border-radius: var(--radius-pill);
-    background: var(--history-action);
+    background: var(--history-ink-soft);
 }
 
 [data-app='our-history'] .history-cal-chip--sel .history-cal-chip-dot {
@@ -2510,4 +2517,12 @@
 /* The place reads at the date's size, as one line. */
 [data-app='our-history'] .history-moment-dateline .history-card-location {
     font-size: inherit;
+}
+
+/* On a phone a day's cell is too small for words: the photo and the day number say it, and the
+   button's label carries the title. */
+@variant max-md {
+    [data-app='our-history'] .history-cal-cap {
+        display: none;
+    }
 }
