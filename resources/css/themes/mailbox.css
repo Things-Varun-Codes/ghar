@@ -28,9 +28,7 @@
     --form-sheet-font-display: var(--mailbox-font-display);
 
     --mailbox-type-scale-eyebrow: var(--text-eyebrow);
-    /* Patrick Hand has a small x-height: 22px reads like 16px sans and sits on the 32px rules. */
-    --mailbox-hand-size: 22px;
-    --mailbox-hand-size-small: 20px;
+    --mailbox-hand-size: var(--text-hand);
     --mailbox-rule-step: 32px;
 
     --mailbox-margin-color: color-mix(
@@ -222,8 +220,11 @@
 /* ── Landing: a door per pile, each showing the top of it ────────────── */
 
 /* Sized by the room, not the viewport: one door a row on a phone, two on a tablet, four wide. */
-[data-app='our-exchange'] .mailbox-doors {
+[data-app='our-exchange'] .mailbox-doors-wrap {
     container: mailbox-doors / inline-size;
+}
+
+[data-app='our-exchange'] .mailbox-doors {
     display: grid;
     grid-template-columns: minmax(0, 1fr);
     gap: 12px;
@@ -288,8 +289,10 @@
     color: var(--mailbox-ink-soft);
 }
 
+/* Waiting on you: ink, a step heavier. Coral stays for what you press. */
 [data-app='our-exchange'] .mailbox-door-live--alert {
-    color: var(--mailbox-accent-text);
+    color: var(--mailbox-ink);
+    font-weight: var(--weight-display);
 }
 
 [data-app='our-exchange'] .mailbox-door-empty {
@@ -316,7 +319,7 @@
     font-family: var(--mailbox-font-hand);
     font-style: italic;
     font-weight: 400;
-    font-size: var(--mailbox-hand-size-small);
+    font-size: var(--mailbox-hand-size);
     line-height: var(--mailbox-rule-step);
     color: var(--mailbox-ink);
     overflow-wrap: anywhere;
@@ -454,15 +457,16 @@
     gap: 16px;
 }
 
-[data-app='our-exchange'] .mailbox-feed:has(> .mailbox-note),
-[data-app='our-exchange'] .mailbox-feed:has(> .mailbox-bouquet) {
+/* Each card sits in its settle-in wrapper, so match it a level down. */
+[data-app='our-exchange'] .mailbox-feed:has(> * > .mailbox-note),
+[data-app='our-exchange'] .mailbox-feed:has(> * > .mailbox-bouquet) {
     display: grid;
     gap: 24px;
     align-items: start;
     grid-template-columns: repeat(auto-fill, minmax(min(100%, 340px), 1fr));
 }
 
-[data-app='our-exchange'] .mailbox-feed > :not(article) {
+[data-app='our-exchange'] .mailbox-feed > :not(:has(> article)) {
     grid-column: 1 / -1;
 }
 
@@ -543,7 +547,7 @@
     font-family: var(--mailbox-font-hand);
     font-style: italic;
     font-weight: 400;
-    font-size: var(--mailbox-hand-size-small);
+    font-size: var(--mailbox-hand-size);
     line-height: 28px;
     margin: 0 0 8px;
     color: var(--mailbox-ink);
@@ -686,8 +690,8 @@
     font-weight: 400;
     letter-spacing: 0.01em;
     line-height: 1.4;
-    color: var(--mailbox-destructive);
-    border: 1px solid var(--mailbox-destructive);
+    color: var(--mailbox-ink);
+    border: 1px solid var(--mailbox-ink);
     border-radius: 2px;
     padding: 0 8px;
 }
@@ -753,7 +757,7 @@
     }
 }
 [data-app='our-exchange'] .mailbox-citation-stamp--issued {
-    color: var(--mailbox-destructive);
+    color: var(--mailbox-ink);
 }
 [data-app='our-exchange'] .mailbox-citation-stamp--paid {
     color: var(--mailbox-ink);
@@ -902,7 +906,7 @@
 [data-app='our-exchange'] .mailbox-coupon-title {
     font-family: var(--mailbox-coupon-font-display);
     font-weight: var(--weight-display);
-    font-size: 28px;
+    font-size: var(--text-title);
     line-height: 1.15;
     margin: 8px 0 4px;
     color: var(--mailbox-ink);
@@ -913,8 +917,8 @@
 [data-app='our-exchange'] .mailbox-coupon-desc {
     font-family: var(--mailbox-font-display);
     font-style: italic;
-    font-weight: var(--weight-display);
-    font-size: 18px;
+    font-weight: 400;
+    font-size: var(--text-hand);
     color: var(--mailbox-ink);
     line-height: 1.5;
 }
@@ -989,12 +993,8 @@
 }
 [data-app='our-exchange'] .mailbox-coupon-box.is-next {
     border-style: dashed;
-    border-color: var(--mailbox-accent-text);
-    background: color-mix(
-        in oklab,
-        var(--mailbox-accent-text) 8%,
-        var(--mailbox-paper)
-    );
+    border-color: var(--mailbox-ink-soft);
+    background: var(--mailbox-coupon-tint);
 }
 [data-app='our-exchange'] .mailbox-coupon-remaining {
     text-align: center;
@@ -1111,7 +1111,7 @@
     background: radial-gradient(
         circle at calc(100% - 1px) 50%,
         var(--mailbox-bg) 6.75px,
-        var(--mailbox-accent-text) 7.25px 8px,
+        var(--mailbox-ink-soft) 7.25px 8px,
         transparent 8.5px
     );
 }
@@ -1338,7 +1338,7 @@
 [data-app='our-exchange'] .mailbox-bouquet-note-input {
     font-family: var(--mailbox-font-hand);
     font-style: italic;
-    font-size: var(--mailbox-hand-size-small);
+    font-size: var(--mailbox-hand-size);
     line-height: 28px;
     padding: 12px 16px;
     resize: vertical;

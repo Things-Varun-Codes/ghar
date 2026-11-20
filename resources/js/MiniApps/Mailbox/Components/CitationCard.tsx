@@ -32,8 +32,8 @@ const STATUS_META: Record<
     CitationPayload['status'],
     { label: string; variant: BadgeVariant }
 > = {
-    issued: { label: 'Issued', variant: 'destructive' },
-    paid: { label: 'Paid', variant: 'default' },
+    issued: { label: 'Issued', variant: 'default' },
+    paid: { label: 'Paid', variant: 'outline' },
 };
 
 export default function CitationCard({
