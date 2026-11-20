@@ -118,6 +118,19 @@ class DashboardFeedTest extends TestCase
                 ->where('birthdays.0.turns', 12));
     }
 
+    public function test_the_two_weeks_are_counted_in_the_household_timezone(): void
+    {
+        config(['shell.timezone' => 'Asia/Kolkata']);
+        $asha = User::factory()->create(['name' => 'Asha Rao', 'birthday' => '1990-11-05']);
+        User::factory()->create(['birthday' => '1990-11-06']);
+
+        $this->actingAs($asha)->get('/dashboard')
+            ->assertInertia(fn ($p) => $p
+                ->has('birthdays', 1)
+                ->where('birthdays.0.on', '2026-11-05')
+                ->where('birthdays.0.person.name', 'Asha'));
+    }
+
     public function test_home_says_first_names_unless_two_members_share_one(): void
     {
         $ravi = User::factory()->create(['name' => 'Ravi Rao']);

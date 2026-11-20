@@ -5,21 +5,16 @@ image, also carries other people's work under their own licences.
 
 ## Fonts
 
-`npm run build` downloads these typefaces from Google Fonts and puts them in `public/build/assets`,
-so Ghar serves them itself and nobody's browser asks Google for them. That makes every image a
+`npm run build` downloads this typeface from Google Fonts and puts it in `public/build/assets`,
+so Ghar serves it itself and nobody's browser asks Google for them. That makes every image a
 copy of the fonts, and their licences ask for the notices below to travel with them.
 
-| Typeface       | Where Ghar uses it                            | Licence                   |
-| -------------- | --------------------------------------------- | ------------------------- |
-| Hanken Grotesk | Interface and body text                       | SIL Open Font License 1.1 |
-| Newsreader     | The wordmark, titles, dates                   | SIL Open Font License 1.1 |
-| Patrick Hand   | Note bodies and coupon titles in Our Exchange | SIL Open Font License 1.1 |
+| Typeface                   | Where Ghar uses it   | Licence                   |
+| -------------------------- | -------------------- | ------------------------- |
+| Atkinson Hyperlegible Next | Every word on a page | SIL Open Font License 1.1 |
 
-- Hanken Grotesk: Copyright 2021 The Hanken Grotesk Project Authors
-  (https://github.com/marcologous/hanken-grotesk)
-- Newsreader: Copyright 2020 The Newsreader Project Authors
-  (https://github.com/productiontype/Newsreader)
-- Patrick Hand: Copyright (c) 2010-2012 Patrick Wagesreiter (mail@patrickwagesreiter.at)
+- Atkinson Hyperlegible Next: Copyright 2020-2024 The Atkinson Hyperlegible Next Project Authors
+  (https://github.com/googlefonts/atkinson-hyperlegible-next)
 
 The licence text is in [`LICENSES/OFL-1.1.txt`](./LICENSES/OFL-1.1.txt).
 

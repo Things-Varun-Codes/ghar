@@ -69,10 +69,8 @@ its provider's `boot()`. Everything else is a hand edit:
    calling it in `DevDataSeeder::run()`, and its states and ids in `dev-data.md`. If the room
    writes files outside the media library, the class clears them itself (`MailboxData::clearFiles`,
    called from `DevDataSeeder::clearSeededFiles()`).
-9. Optional Home content, from the provider's `boot()`: a live line with
-   `DashboardSummaries::register(self::SLUG, fn (User $u): ?string => …)`, a glimpse with
-   `registerPreview(self::SLUG, fn (User $u): ?array => …)` (`images`), and feed rows with
-   `registerFeed(self::SLUG, fn (User $u, CarbonImmutable $since): array => …)`: `needs` for what
+9. Optional Home content, from the provider's `boot()`: feed rows with
+   `DashboardSummaries::registerFeed(self::SLUG, fn (User $u, CarbonImmutable $since): array => …)`: `needs` for what
    waits on the viewer, `new` for other members' additions since `$since` (see the
    `DashboardFeed` classes). Must return only rows the viewer may see; a throwing resolver just
    shows nothing.

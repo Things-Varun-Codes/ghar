@@ -104,7 +104,7 @@ final class DashboardFeed
             'at' => $at,
             'href' => $href,
             'action' => $action,
-            'person' => Person::of($person),
+            'person' => Person::short($person),
             'image' => null,
         ];
     }

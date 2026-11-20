@@ -6,10 +6,8 @@ use App\MiniApps\Mailbox\Models\Bouquet;
 use App\MiniApps\Mailbox\Models\Citation;
 use App\MiniApps\Mailbox\Models\Coupon;
 use App\MiniApps\Mailbox\Models\MailboxMessage;
-use App\MiniApps\Mailbox\Support\DashboardLine;
 use App\Shell\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Inertia\Testing\AssertableInertia as Assert;
 use Tests\TestCase;
@@ -132,26 +130,6 @@ class MailboxLandingTest extends TestCase
                 // The sibling messages count remains present.
                 ->has('mailboxSummary.counts.messages')
             );
-    }
-
-    public function test_the_door_line_counts_only_what_it_shows(): void
-    {
-        $user = User::factory()->create();
-        $partner = User::factory()->create();
-        MailboxMessage::factory()->to($user)->create(['sender_id' => $partner->id]);
-        Citation::factory()->create(['issuer_id' => $partner->id, 'recipient_id' => $user->id]);
-        Coupon::factory()->create(['issuer_id' => $partner->id, 'recipient_id' => $user->id]);
-
-        // Room switches are read once per request; warm them so only the counts are left.
-        DashboardLine::forUser($user);
-
-        DB::enableQueryLog();
-        $line = DashboardLine::forUser($user);
-        $queries = DB::getQueryLog();
-        DB::disableQueryLog();
-
-        $this->assertSame('1 unread note · 1 citation to pay', $line);
-        $this->assertCount(2, $queries);
     }
 
     public function test_landing_summary_includes_coupons_count_and_action_needed(): void

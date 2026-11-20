@@ -39,8 +39,6 @@ class CornerRoomOffTest extends TestCase
 
         $this->get('/dashboard')->assertOk()->assertInertia(fn ($page) => $page
             ->where('miniApps', fn ($apps) => collect($apps)->pluck('slug')->doesntContain('our-shelf'))
-            ->where('summaries', fn ($s) => ! collect($s)->has('our-shelf'))
-            ->where('previews', fn ($p) => ! collect($p)->has('our-shelf'))
         );
 
         $this->assertSame([], app(LinkableEntities::class)->search('rain'));

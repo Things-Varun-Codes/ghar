@@ -13,8 +13,6 @@ use App\MiniApps\Mailbox\Policies\RecipientMailPolicy;
 use App\MiniApps\Mailbox\Services\CloudflareBouquetGenerator;
 use App\MiniApps\Mailbox\Services\FakeBouquetGenerator;
 use App\MiniApps\Mailbox\Support\DashboardFeed;
-use App\MiniApps\Mailbox\Support\DashboardLine;
-use App\MiniApps\Mailbox\Support\DashboardPreview;
 use App\MiniApps\Mailbox\Support\EntryTypes;
 use App\Shell\Models\User;
 use App\Shell\Services\DashboardSummaries;
@@ -82,8 +80,6 @@ class MailboxServiceProvider extends ServiceProvider
         $ownedContent->register('mailbox_bouquets', ['sender_id'], 'Exchange flowers');
         $ownedContent->register('mailbox_bouquet_recipients', ['user_id'], 'Exchange flowers received');
 
-        $summaries->register('our-exchange', fn (User $user): string => DashboardLine::forUser($user));
-        $summaries->registerPreview('our-exchange', fn (User $user): ?array => DashboardPreview::forUser($user));
         $summaries->registerFeed('our-exchange', fn (User $user): array => DashboardFeed::forUser($user));
 
         RateLimiter::for('mailbox-mutations', Limits::perUser(30));

@@ -10,8 +10,6 @@ use App\MiniApps\History\Observers\MediaDimensionsObserver;
 use App\MiniApps\History\Policies\CommentPolicy;
 use App\MiniApps\History\Policies\EventPolicy;
 use App\MiniApps\History\Support\DashboardFeed;
-use App\MiniApps\History\Support\DashboardLine;
-use App\MiniApps\History\Support\DashboardPreview;
 use App\MiniApps\History\Support\RequestedMoment;
 use App\Shell\Models\User;
 use App\Shell\Services\DashboardSummaries;
@@ -63,8 +61,6 @@ class HistoryServiceProvider extends ServiceProvider
         RateLimiter::for('history-reactions', Limits::perUser(60));
         RateLimiter::for('history-comments', Limits::perUser(20));
 
-        $summaries->register(self::SLUG, fn (User $user): ?string => DashboardLine::forUser($user));
-        $summaries->registerPreview(self::SLUG, fn (User $user): ?array => DashboardPreview::forUser($user));
         $summaries->registerFeed(self::SLUG, fn (User $user, CarbonImmutable $since): array => DashboardFeed::forUser($user, $since));
 
         Media::observe(MediaDimensionsObserver::class);

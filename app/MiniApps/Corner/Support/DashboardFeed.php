@@ -31,7 +31,7 @@ final class DashboardFeed
                 'at' => $item->added_at->toIso8601String(),
                 'href' => route('apps.our-shelf.items.show', [$item->list->slug, $item->id], absolute: false),
                 'action' => null,
-                'person' => Person::of($item->addedBy),
+                'person' => Person::short($item->addedBy),
                 'image' => $item->pictureUrl(),
             ])
             ->values()

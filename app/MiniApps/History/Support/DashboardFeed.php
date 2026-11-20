@@ -38,7 +38,7 @@ final class DashboardFeed
                     'at' => $event->created_at->toIso8601String(),
                     'href' => route('apps.our-history.timeline', ['moment' => $event->id], absolute: false),
                     'action' => null,
-                    'person' => $event->creator ? Person::of($event->creator) : null,
+                    'person' => $event->creator ? Person::short($event->creator) : null,
                     // Conversions only, so a photo still processing shows no thumbnail rather than its original.
                     'image' => $signed['thumb'] ?? $signed['medium'] ?? null,
                     'count' => $photos,

@@ -26,8 +26,6 @@ class DashboardController
         $today = Region::today();
 
         return Inertia::render('Shell/Pages/Dashboard', [
-            'summaries' => $summaries->forUser($user, $slugs),
-            'previews' => $summaries->previewsFor($user, $slugs),
             // Today and the six days before it, in the household's own days.
             'feed' => $summaries->feedFor($user, $slugs, $today->subDays(6)),
             'today' => $today->toDateString(),
@@ -40,17 +38,21 @@ class DashboardController
     {
         return $household->members()
             ->filter(fn (User $member): bool => $member->birthday !== null)
-            ->map(function (User $member) use ($today): array {
+            ->map(function (User $member) use ($today): ?array {
                 $on = fn (int $year): CarbonImmutable => $today->setDate($year, $member->birthday->month, 1)->addDays($member->birthday->day - 1);
                 $next = $on($today->year)->lessThan($today) ? $on($today->year + 1) : $on($today->year);
 
+                if ($today->diffInDays($next) > self::BIRTHDAYS_AHEAD_DAYS) {
+                    return null;
+                }
+
                 return [
-                    'person' => Person::of($member),
+                    'person' => Person::short($member),
                     'on' => $next->toDateString(),
                     'turns' => $next->year - $member->birthday->year,
                 ];
             })
-            ->filter(fn (array $b): bool => CarbonImmutable::parse($b['on'])->diffInDays($today, true) <= self::BIRTHDAYS_AHEAD_DAYS)
+            ->filter()
             ->sortBy('on')
             ->values()
             ->all();

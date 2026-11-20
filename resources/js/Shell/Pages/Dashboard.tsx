@@ -10,7 +10,7 @@ import * as rooms from '@/routes/admin/rooms';
 import EmptyState from '@/Shell/Components/EmptyState';
 import PersonAvatar from '@/Shell/Components/PersonAvatar';
 import type { Auth } from '@/types/auth';
-import type { MiniApp, MiniAppPreview } from '@/types/miniapp';
+import type { MiniApp } from '@/types/miniapp';
 import type { Person } from '@/types/person';
 
 import { dayKey, freshnessWeight, shortAgo } from './dashboard-time';
@@ -33,8 +33,6 @@ type Birthday = { person: Person; on: string; turns: number };
 type SharedProps = {
     auth: Auth;
     miniApps: MiniApp[];
-    summaries?: Record<string, string>;
-    previews?: Record<string, MiniAppPreview>;
     feed?: FeedEntry[];
     today?: string;
     birthdays?: Birthday[];

@@ -43,11 +43,11 @@ final class MailboxPeeks
     }
 
     /**
-     * The newest note the viewer received, trimmed for a glimpse. Also Home's Mailbox door.
+     * The newest note the viewer received, trimmed for a glimpse.
      *
      * @return array{body: string, from: string}|null
      */
-    public static function latestNote(User $user): ?array
+    private static function latestNote(User $user): ?array
     {
         if (! EntryTypes::on(EntryTypes::MESSAGES)) {
             return null;

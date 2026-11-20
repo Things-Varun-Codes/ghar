@@ -40,7 +40,7 @@ class RoomSwitchesTest extends TestCase
         app()->forgetScopedInstances();
     }
 
-    public function test_a_room_that_is_off_has_no_routes_door_or_line_on_home(): void
+    public function test_a_room_that_is_off_has_no_routes_or_place_on_home(): void
     {
         $user = User::factory()->create();
         Event::factory()->create(['creator_id' => $user->id, 'occurred_on' => now()->subYear()->toDateString()]);
@@ -52,8 +52,6 @@ class RoomSwitchesTest extends TestCase
         $this->get('/dashboard')->assertOk()->assertInertia(fn ($page) => $page
             ->where('miniApps', fn ($apps) => collect($apps)->pluck('slug')->doesntContain('our-history')
                 && collect($apps)->pluck('slug')->contains('our-shelf'))
-            ->where('summaries', fn ($s) => ! collect($s)->has('our-history'))
-            ->where('previews', fn ($p) => ! collect($p)->has('our-history'))
         );
 
         $this->get('/apps/our-shelf')->assertOk();
@@ -123,7 +121,6 @@ class RoomSwitchesTest extends TestCase
         $this->actingAs($user)->get('/apps/our-history')->assertNotFound();
         $this->get('/dashboard')->assertOk()->assertInertia(fn ($page) => $page
             ->where('miniApps', fn ($apps) => collect($apps)->pluck('slug')->doesntContain('our-history'))
-            ->where('summaries', fn ($s) => ! collect($s)->has('our-history'))
         );
 
         $this->actingAs($admin)->get('/apps/our-history')->assertOk();
