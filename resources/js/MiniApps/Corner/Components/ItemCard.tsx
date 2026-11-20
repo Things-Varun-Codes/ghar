@@ -1,4 +1,4 @@
-import { Link } from '@inertiajs/react';
+import { Link, usePage } from '@inertiajs/react';
 import { MapPin, MoreHorizontal } from 'lucide-react';
 
 import { Reveal } from '@/components/motion';
@@ -20,11 +20,13 @@ import ItemThumb from '@/MiniApps/Corner/Components/ItemThumb';
 import { useItemActions } from '@/MiniApps/Corner/Hooks/useItemActions';
 import type { UseItemActionsReturn } from '@/MiniApps/Corner/Hooks/useItemActions';
 import { bylineOf } from '@/MiniApps/Corner/lib/copy';
+import { doneByLine } from '@/MiniApps/Corner/lib/done-by';
 import { hasPlace, placeLabel } from '@/MiniApps/Corner/lib/maps';
 import type { CornerItem, CornerListInfo } from '@/MiniApps/Corner/lib/types';
 import { show } from '@/routes/apps/our-shelf/items';
 import AppCard from '@/Shell/Components/AppCard';
 import PersonAvatar from '@/Shell/Components/PersonAvatar';
+import type { Auth } from '@/types/auth';
 
 type Props = {
     list: CornerListInfo;
@@ -74,6 +76,7 @@ function ItemCardBody({
 }: Props & { actions: UseItemActionsReturn }) {
     const { isTogglePending, handleToggleDone, handleDelete } = actions;
     const isDone = item.is_done;
+    const viewerId = usePage<{ auth: Auth }>().props.auth.user?.id ?? null;
     const byline = bylineOf(item);
     const preview = firstLine(item.notes);
 
@@ -96,12 +99,12 @@ function ItemCardBody({
                     </Link>
                     <DoneSticker
                         icon={list.done_icon}
-                        label={
-                            item.doneBy
-                                ? `${list.done_label} by ${item.doneBy.name}`
-                                : list.done_label
-                        }
-                        show={isDone}
+                        label={doneByLine(
+                            list.done_label,
+                            item.done_by,
+                            viewerId,
+                        )}
+                        show={item.done_by.length > 0 || isDone}
                         animated
                     />
                     {byline && (

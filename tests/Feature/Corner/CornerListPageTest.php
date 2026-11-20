@@ -83,14 +83,13 @@ class CornerListPageTest extends TestCase
             ->assertInertia(fn (AssertableInertia $page) => $page
                 ->has('items.data', 1)
                 ->where('items.data.0.id', $done->id)
-                ->where('items.data.0.doneBy.name', 'Meera')
-                ->where('items.data.0.done_on', $done->done_at->toDateString()));
+                ->where('items.data.0.done_by.0.person.name', 'Meera')
+                ->where('items.data.0.done_by.0.on', $done->done_at->toDateString()));
 
         $this->actingAs($this->user)
             ->get("/apps/our-shelf/{$list->slug}?filter=todo")
             ->assertInertia(fn (AssertableInertia $page) => $page
-                ->where('items.data.0.doneBy', null)
-                ->where('items.data.0.done_on', null));
+                ->where('items.data.0.done_by', []));
     }
 
     public function test_the_person_who_added_an_item_comes_with_their_picture(): void

@@ -1287,3 +1287,20 @@
     line-height: 1.6;
     color: var(--corner-ink-soft);
 }
+
+/* Who has marked it done: one short line each, kept together under the person who added it. */
+[data-app='our-shelf'] .corner-done-by-list {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin: -12px 0 24px;
+    padding: 0;
+    list-style: none;
+}
+
+[data-app='our-shelf'] .corner-done-by-list .corner-done-by {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 0;
+}

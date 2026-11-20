@@ -44,6 +44,7 @@ class SaveListRequest extends FormRequest
             'todo_label' => ['required', 'string', 'max:24'],
             'done_icon' => ['required', Rule::in(['check', 'heart'])],
             'notify_on_add' => ['required', 'boolean'],
+            'done_per_person' => ['sometimes', 'boolean'],
         ];
     }
 

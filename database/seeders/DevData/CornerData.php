@@ -2,6 +2,7 @@
 
 namespace Database\Seeders\DevData;
 
+use App\MiniApps\Corner\Actions\SwitchDoneMode;
 use App\MiniApps\Corner\Models\CornerList;
 use App\MiniApps\Corner\Models\Item;
 use App\MiniApps\Corner\Support\LinkKey;
@@ -73,8 +74,10 @@ final class CornerData
         ];
 
         $links = [];
+        $songs = [];
         foreach ($named as $i => [$title, $author, $adder, $added, $lovedBy, $lovedAgo]) {
             $song = $this->song($h, $list, $i, $title, $author, $adder, $added, $lovedBy, $lovedAgo, withPicture: true);
+            $songs[] = $song;
             $links[$i === 0 ? 'song' : "song-{$i}"] = $this->legacyLink($song, 'songs');
         }
 
@@ -95,6 +98,17 @@ final class CornerData
                 $lovedBy ? 45 + $i * 3 : null,
                 withPicture: false,
             );
+        }
+
+        // Songs is the per-person list: each person loves a song for themselves. The switch turns
+        // every love above into that person's own mark, then a few songs gain more than one.
+        app(SwitchDoneMode::class)($list, true);
+        foreach ([[1, $h->meera, 1], [1, $h->kabir, 1], [2, $h->meera, 4], [4, $h->ravi, 10]] as [$index, $by, $daysAgo]) {
+            DB::table('corner_item_marks')->insertOrIgnore([
+                'item_id' => $songs[$index]->id,
+                'user_id' => $by->id,
+                'done_at' => $h->daysAgo($daysAgo),
+            ]);
         }
 
         return $links;

@@ -1,3 +1,4 @@
+import type { DoneMark } from '@/MiniApps/Corner/lib/done-by';
 import type { Person } from '@/types/person';
 
 export type DoneIcon = 'check' | 'heart';
@@ -18,6 +19,8 @@ export type CornerListInfo = {
     todo_label: string;
     done_icon: DoneIcon;
     notify_on_add: boolean;
+    /* Each person marks a thing done for themselves. */
+    done_per_person: boolean;
     can: ItemPermissions;
     /* The viewer made this list, but someone else has added to it since. */
     delete_needs_admin: boolean;
@@ -43,7 +46,9 @@ export type CornerItem = {
     is_done: boolean;
     can: ItemPermissions;
     addedBy: Person;
-    /* Who marked it done and on which day; null while it isn't done. */
-    doneBy: Person | null;
-    done_on: string | null;
+    /*
+     * Who has marked it done and on which day: one person on a shared list, everyone who has on
+     * a per-person list (where is_done is the viewer's own mark).
+     */
+    done_by: DoneMark[];
 };

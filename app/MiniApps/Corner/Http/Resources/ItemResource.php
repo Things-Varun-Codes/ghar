@@ -6,6 +6,7 @@ use App\MiniApps\Corner\Models\Item;
 use App\Shell\Models\User;
 use App\Shell\Services\Household;
 use App\Shell\Support\Person;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Gate;
 
 class ItemResource
@@ -15,9 +16,10 @@ class ItemResource
      *
      * @return array<string, mixed>
      */
-    public function __invoke(Item $item): array
+    public function __invoke(Item $item, ?User $viewer = null): array
     {
-        $item->loadMissing(['addedBy', 'doneBy']);
+        $item->loadMissing(['list', 'addedBy', 'doneBy', 'markers']);
+        $perPerson = $item->list->done_per_person;
 
         return [
             'id' => $item->id,
@@ -34,15 +36,25 @@ class ItemResource
             'lat' => $item->lat === null ? null : (float) $item->lat,
             'lng' => $item->lng === null ? null : (float) $item->lng,
             'address' => $item->address,
-            'is_done' => $item->done_at !== null,
+            // On a per-person list, whether the viewer has marked it; otherwise whether anyone has.
+            'is_done' => $perPerson
+                ? $viewer !== null && $item->markers->contains('id', $viewer->id)
+                : $item->done_at !== null,
             'can' => [
                 'update' => Gate::allows('update', $item),
                 'delete' => Gate::allows('delete', $item),
             ],
             'addedBy' => self::person($item->addedBy),
-            // Who marked it done, so a family can see whose "loved" or "visited" it is.
-            'doneBy' => $item->done_at !== null && $item->doneBy !== null ? self::person($item->doneBy) : null,
-            'done_on' => $item->done_at?->toDateString(),
+            // Who has marked it done and on which day: one person on a shared list, everyone who
+            // has on a per-person list, first to mark first.
+            'done_by' => $perPerson
+                ? $item->markers->map(fn (User $user): array => [
+                    'person' => self::person($user),
+                    'on' => Carbon::parse((string) data_get($user, 'pivot.done_at'))->toDateString(),
+                ])->values()->all()
+                : ($item->done_at !== null && $item->doneBy !== null
+                    ? [['person' => self::person($item->doneBy), 'on' => $item->done_at->toDateString()]]
+                    : []),
         ];
     }
 

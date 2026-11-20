@@ -15,6 +15,12 @@ paths:
 Slug `our-shelf`; `App\MiniApps\Corner\`; `resources/js/MiniApps/Corner/`. The household makes
 its own lists; nothing about Songs or Movies is hard-coded any more.
 
+- **Done is shared or per person, a list setting (`done_per_person`).** Shared (the default): one
+  person marks a thing for everyone, in `corner_items.done_at` / `done_by_user_id`. Per person: each
+  person's own mark is a row in `corner_item_marks` (item, user, `done_at`), the toggle changes only
+  the viewer's, and "done" in the list's filter, tab ("Loved by me") and counts means the viewer's
+  own (the list query left-joins the viewer's mark as its status column). `SwitchDoneMode` moves a
+  list between the two and carries every mark across: going shared, the first to mark keeps it.
 - **Two tables.** `corner_lists` (name, `slug`, `icon`, `done_label`, `todo_label`, `done_icon`
   heart|check, `notify_on_add`, `position`, nullable `created_by_user_id`) and `corner_items`. A
   list has no kind: every item has the same optional parts (`title`, `notes`, `url` with
@@ -84,7 +90,7 @@ its own lists; nothing about Songs or Movies is hard-coded any more.
   Corner-specific React. A list card's edge holds two controls only, the done toggle and "⋯"
   (Open link, Edit, Delete); the item's page keeps the link one tap away. A place line that would
   repeat the item's title is left out. List icons, preview bullets and placeholder icons are ink,
-  never coral (coral is press and "here"). The person who added a thing is their face and first name, with no "Added by". A done thing says who marked it: the sticker reads "{done_label} by {first name}" and the item's page adds the day (`doneBy`, `done_on` from `done_by_user_id` / `done_at`). One person marks a thing done; there is no per-person done.
+  never coral (coral is press and "here"). The person who added a thing is their face and first name, with no "Added by". A done thing says who marked it (`done_by`: `[{person, on}]`, first to mark first): the sticker reads "Loved by you, Meera and 2 more" (`lib/done-by.ts`) and the item's page lists each person and their day.
 
 ## Our Shelf item-actions contract
 

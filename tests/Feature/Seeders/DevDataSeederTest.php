@@ -90,7 +90,12 @@ class DevDataSeederTest extends TestCase
         $this->assertGreaterThan(24, Media::where('collection_name', 'photos')->count());
 
         $this->assertGreaterThan(1, Event::query()->distinct()->count('creator_id'));
-        $this->assertGreaterThan(1, $songs->items()->whereNotNull('done_at')->distinct()->count('done_by_user_id'));
+        // Songs is the per-person list: several people's loves, and one song loved by more than one.
+        $this->assertTrue($songs->done_per_person);
+        $marks = DB::table('corner_item_marks')->whereIn('item_id', $songs->items()->select('id'));
+        $this->assertGreaterThan(1, (clone $marks)->distinct()->count('user_id'));
+        $this->assertGreaterThan(1, (int) (clone $marks)->selectRaw('count(*) as n')->groupBy('item_id')->orderByDesc('n')->value('n'));
+        $this->assertSame(0, $songs->items()->whereNotNull('done_at')->count());
         $this->assertGreaterThan(0, DB::table('entity_references')->where('from_type', 'history.event')->count());
 
         // The four lists an upgrade leaves, then the household's own.

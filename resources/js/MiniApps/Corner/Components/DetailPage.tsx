@@ -1,3 +1,4 @@
+import { usePage } from '@inertiajs/react';
 import type { ReactNode } from 'react';
 
 import { Button } from '@/components/ui/button';
@@ -8,10 +9,12 @@ import type { MentionedInRef } from '@/MiniApps/Corner/Components/MentionedInLis
 import MentionedInList from '@/MiniApps/Corner/Components/MentionedInList';
 import type { UseItemActionsReturn } from '@/MiniApps/Corner/Hooks/useItemActions';
 import { CORNER_ROOM } from '@/MiniApps/Corner/Layouts/CornerLayout';
+import type { DoneMark } from '@/MiniApps/Corner/lib/done-by';
 import type { DoneIcon, ItemPermissions } from '@/MiniApps/Corner/lib/types';
 import type { BackTarget } from '@/Shell/Components/BackChevron';
 import Page from '@/Shell/Components/Page';
 import PersonAvatar from '@/Shell/Components/PersonAvatar';
+import type { Auth } from '@/types/auth';
 import type { Person } from '@/types/person';
 
 type DetailPageProps = {
@@ -19,8 +22,7 @@ type DetailPageProps = {
     back: BackTarget;
     can: ItemPermissions;
     addedBy: Person;
-    doneBy: Person | null;
-    doneOn: string | null;
+    doneBy: DoneMark[];
     mentionedIn: MentionedInRef[];
     hero?: ReactNode;
     body?: ReactNode;
@@ -39,7 +41,6 @@ export default function DetailPage({
     can,
     addedBy,
     doneBy,
-    doneOn,
     mentionedIn,
     hero,
     body,
@@ -50,6 +51,8 @@ export default function DetailPage({
     itemActions,
     onEdit,
 }: DetailPageProps) {
+    const viewerId = usePage<{ auth: Auth }>().props.auth.user?.id ?? null;
+
     return (
         <Page tier="app" title={title} room={CORNER_ROOM} back={back}>
             <div className="corner-detail">
@@ -64,13 +67,32 @@ export default function DetailPage({
                                 {addedBy.name}
                             </p>
 
-                            {isDone && doneBy && (
-                                <p className="corner-detail-meta corner-done-by">
-                                    <PersonAvatar person={doneBy} size={24} />
-                                    {doneLabel} by {doneBy.name}
-                                    {doneOn &&
-                                        ` on ${formatPlainDate(doneOn, { intl: { day: 'numeric', month: 'short', year: 'numeric' } })}`}
-                                </p>
+                            {doneBy.length > 0 && (
+                                <ul className="corner-done-by-list">
+                                    {doneBy.map((mark) => (
+                                        <li
+                                            key={mark.person.id}
+                                            className="corner-detail-meta corner-done-by"
+                                        >
+                                            <PersonAvatar
+                                                person={mark.person}
+                                                size={24}
+                                            />
+                                            {doneLabel} by{' '}
+                                            {mark.person.id === viewerId
+                                                ? 'you'
+                                                : mark.person.name}{' '}
+                                            on{' '}
+                                            {formatPlainDate(mark.on, {
+                                                intl: {
+                                                    day: 'numeric',
+                                                    month: 'short',
+                                                    year: 'numeric',
+                                                },
+                                            })}
+                                        </li>
+                                    ))}
+                                </ul>
                             )}
 
                             <div className="corner-detail-actions">

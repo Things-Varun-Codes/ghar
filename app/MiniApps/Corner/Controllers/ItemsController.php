@@ -39,14 +39,28 @@ class ItemsController
             return Inertia::render('MiniApps/Corner/Pages/EntityNotFound', ['kind' => 'list']);
         }
 
-        $page = ListPage::make($request, $model->items()->getQuery()->with(['addedBy', 'doneBy']), self::SORTS)
-            ->status('done_at')
+        $items = $model->items()->getQuery()->with(['addedBy', 'doneBy', 'markers']);
+        $status = 'done_at';
+
+        // On a per-person list "done" means done by the viewer: their own mark is the status the
+        // filter and the counts read.
+        if ($model->done_per_person) {
+            $viewerId = $request->user()->id;
+            $items->select('corner_items.*')
+                ->leftJoin('corner_item_marks as mine', fn ($join) => $join
+                    ->on('mine.item_id', '=', 'corner_items.id')
+                    ->where('mine.user_id', '=', $viewerId));
+            $status = 'mine.done_at';
+        }
+
+        $page = ListPage::make($request, $items, self::SORTS)
+            ->status($status)
             ->searchable(self::SEARCH_COLUMNS);
 
         return Inertia::render('MiniApps/Corner/Pages/List', [
             // A closure, so loading more items (`only: ['items']`) doesn't recount the list.
             'list' => fn () => $this->listPayload($request, $model),
-            ...$page->props('items', self::PER_PAGE, fn (Item $i) => app(ItemResource::class)($i)),
+            ...$page->props('items', self::PER_PAGE, fn (Item $i) => app(ItemResource::class)($i->setRelation('list', $model), $request->user())),
             'sorts' => $page->sortKeys(),
         ]);
     }
@@ -75,7 +89,7 @@ class ItemsController
 
         return Inertia::render('MiniApps/Corner/Pages/Item', [
             'list' => fn () => $this->listPayload($request, $model),
-            'item' => app(ItemResource::class)($found),
+            'item' => app(ItemResource::class)($found, $request->user()),
             'mentioned_in' => CornerLinks::mentionsOf($found, $linkable),
         ]);
     }

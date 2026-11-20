@@ -7,6 +7,8 @@ export type ListSettings = {
     todo_label: string;
     done_icon: DoneIcon;
     notify_on_add: boolean;
+    /* Each person marks a thing done for themselves; off for a new list unless chosen. */
+    done_per_person?: boolean;
 };
 
 /*

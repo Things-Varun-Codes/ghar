@@ -7,6 +7,8 @@ const { routerDelete } = vi.hoisted(() => ({ routerDelete: vi.fn() }));
 
 vi.mock('@inertiajs/react', () => ({
     router: { patch: vi.fn(), delete: routerDelete },
+    // The viewer is Asha (id 1), so a sticker can say "you".
+    usePage: () => ({ props: { auth: { user: { id: 1 } } } }),
     Link: ({
         href,
         children,
@@ -47,6 +49,7 @@ const list: CornerListInfo = {
     todo_label: 'To hear',
     done_icon: 'heart',
     notify_on_add: true,
+    done_per_person: false,
     can: { update: true, delete: true },
     delete_needs_admin: false,
 };
@@ -69,8 +72,7 @@ function itemWith(overrides: Partial<CornerItem> = {}): CornerItem {
         is_done: false,
         can: { update: true, delete: true },
         addedBy: { id: 2, name: 'Ravi Rao', avatar_url: null },
-        doneBy: null,
-        done_on: null,
+        done_by: [],
         ...overrides,
     };
 }
@@ -120,8 +122,12 @@ describe('ItemCard', () => {
                 list={list}
                 item={itemWith({
                     is_done: true,
-                    doneBy: { id: 3, name: 'Meera', avatar_url: null },
-                    done_on: '2026-10-12',
+                    done_by: [
+                        {
+                            person: { id: 3, name: 'Meera', avatar_url: null },
+                            on: '2026-10-12',
+                        },
+                    ],
                 })}
             />,
         );

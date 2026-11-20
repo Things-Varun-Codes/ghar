@@ -56,7 +56,14 @@ export default function ListPage({
     const tabs: Array<{ key: FilterMode; label: string; count: number }> = [
         { key: 'all', label: 'All', count: counts.all },
         { key: 'active', label: list.todo_label, count: counts.active },
-        { key: 'done', label: list.done_label, count: counts.done },
+        {
+            key: 'done',
+            // On a per-person list the tab is the viewer's own.
+            label: list.done_per_person
+                ? `${list.done_label} by me`
+                : list.done_label,
+            count: counts.done,
+        },
     ];
 
     return (
