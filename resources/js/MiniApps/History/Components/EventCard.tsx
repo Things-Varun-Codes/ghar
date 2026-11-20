@@ -11,9 +11,9 @@ type EventCardProps = {
 };
 
 /*
- * One moment on the Timeline, compact so a screen holds many: the date, the title, a line of its
- * story, then one quiet line of who, where and what people said. The poster's face sits on the
- * rail, and the whole card opens the moment.
+ * One moment on the Timeline, compact so a screen holds many: the date and place, the title, a
+ * line of its story, then what people said. The poster's face on the rail is the card's only
+ * "who", and the whole card opens the moment.
  */
 export default function EventCard({ event, onRead }: EventCardProps) {
     const excerpt = useMemo(
@@ -35,11 +35,17 @@ export default function EventCard({ event, onRead }: EventCardProps) {
             className="history-event-card history-moment shell-card-stretch shell-lift"
         >
             {event.creator ? (
-                <PersonAvatar
-                    person={event.creator}
-                    size={32}
+                // The face is the only "who" on the card, so it names them: read out, and on hover.
+                <span
                     className="history-timeline-face"
-                />
+                    title={`Added by ${event.creator.name}`}
+                >
+                    <PersonAvatar
+                        person={event.creator}
+                        size={32}
+                        decorative={false}
+                    />
+                </span>
             ) : (
                 <span
                     aria-hidden="true"
@@ -49,8 +55,28 @@ export default function EventCard({ event, onRead }: EventCardProps) {
 
             <div className="history-moment-head">
                 <div className="history-moment-main">
-                    {event.title && (
-                        <p className="history-card-date">{event.date_label}</p>
+                    {(event.title || place || event.birthday_of) && (
+                        <p className="history-moment-dateline">
+                            {event.title && (
+                                <span className="history-card-date">
+                                    {event.date_label}
+                                </span>
+                            )}
+                            {place && (
+                                <span className="history-card-location">
+                                    <MapPin
+                                        aria-hidden="true"
+                                        size={14}
+                                        strokeWidth={1.5}
+                                        className="shrink-0"
+                                    />
+                                    <span>{place}</span>
+                                </span>
+                            )}
+                            {event.birthday_of && (
+                                <BirthdayLabel person={event.birthday_of} />
+                            )}
+                        </p>
                     )}
 
                     {/* One real button, stretched over the card, opens the moment. */}
@@ -68,58 +94,45 @@ export default function EventCard({ event, onRead }: EventCardProps) {
                         <p className="history-moment-excerpt">{excerpt}</p>
                     )}
 
-                    <div className="history-moment-meta">
-                        {event.creator && (
-                            <span className="history-moment-creator">
-                                {event.creator.name}
-                            </span>
-                        )}
-                        {event.birthday_of && (
-                            <BirthdayLabel person={event.birthday_of} />
-                        )}
-                        {place && (
-                            <span className="history-card-location">
-                                <MapPin
-                                    aria-hidden="true"
-                                    size={14}
-                                    strokeWidth={1.5}
-                                    className="shrink-0"
-                                />
-                                <span>{place}</span>
-                            </span>
-                        )}
-                        {reactionTotal > 0 && (
-                            <span className="history-moment-count">
-                                <span
-                                    aria-hidden="true"
-                                    className="history-reaction-emoji"
-                                >
-                                    {reacted.map((r) => r.emoji).join('')}
+                    {(reactionTotal > 0 || commentCount > 0) && (
+                        <div className="history-moment-meta">
+                            {reactionTotal > 0 && (
+                                <span className="history-moment-count">
+                                    <span
+                                        aria-hidden="true"
+                                        className="history-reaction-emoji"
+                                    >
+                                        {reacted.map((r) => r.emoji).join('')}
+                                    </span>
+                                    <span aria-hidden="true">
+                                        {reactionTotal}
+                                    </span>
+                                    <span className="sr-only">
+                                        {reactionTotal === 1
+                                            ? '1 reaction'
+                                            : `${reactionTotal} reactions`}
+                                    </span>
                                 </span>
-                                <span aria-hidden="true">{reactionTotal}</span>
-                                <span className="sr-only">
-                                    {reactionTotal === 1
-                                        ? '1 reaction'
-                                        : `${reactionTotal} reactions`}
+                            )}
+                            {commentCount > 0 && (
+                                <span className="history-moment-count">
+                                    <MessageCircle
+                                        aria-hidden="true"
+                                        size={14}
+                                        strokeWidth={1.5}
+                                    />
+                                    <span aria-hidden="true">
+                                        {commentCount}
+                                    </span>
+                                    <span className="sr-only">
+                                        {commentCount === 1
+                                            ? '1 comment'
+                                            : `${commentCount} comments`}
+                                    </span>
                                 </span>
-                            </span>
-                        )}
-                        {commentCount > 0 && (
-                            <span className="history-moment-count">
-                                <MessageCircle
-                                    aria-hidden="true"
-                                    size={14}
-                                    strokeWidth={1.5}
-                                />
-                                <span aria-hidden="true">{commentCount}</span>
-                                <span className="sr-only">
-                                    {commentCount === 1
-                                        ? '1 comment'
-                                        : `${commentCount} comments`}
-                                </span>
-                            </span>
-                        )}
-                    </div>
+                            )}
+                        </div>
+                    )}
                 </div>
 
                 {thumb && (

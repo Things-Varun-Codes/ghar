@@ -791,6 +791,9 @@
 [data-app='our-history'] .history-timeline-face {
     position: absolute;
     top: 12px;
+    display: block;
+    line-height: 0;
+    border-radius: 50%;
     box-shadow: 0 0 0 4px var(--history-bg);
 }
 
@@ -813,20 +816,12 @@
     row-gap: 2px;
     min-height: 22px;
     margin: 0 0 2px 0;
+    font-size: var(--text-small);
+    color: var(--history-ink-soft);
 }
 
 [data-app='our-history'] .history-moment-dateline .history-card-date {
     margin: 0;
-}
-
-[data-app='our-history'] .history-moment-creator {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    font-family: var(--history-font-sans);
-    font-size: var(--text-meta);
-    line-height: 1.4;
-    color: var(--history-ink-soft);
 }
 
 [data-app='our-history'] .history-moment-excerpt {
@@ -2510,4 +2505,9 @@
         img {
         transform: none !important;
     }
+}
+
+/* The place reads at the date's size, as one line. */
+[data-app='our-history'] .history-moment-dateline .history-card-location {
+    font-size: inherit;
 }
