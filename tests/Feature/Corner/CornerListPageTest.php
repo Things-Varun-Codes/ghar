@@ -71,6 +71,28 @@ class CornerListPageTest extends TestCase
                 ->where('q', null));
     }
 
+    public function test_a_done_item_says_who_marked_it_and_when(): void
+    {
+        $meera = User::factory()->create(['name' => 'Meera Rao']);
+        $list = $this->listCalled('songs');
+        $done = Item::factory()->done($meera)->create(['list_id' => $list->id, 'added_by_user_id' => $this->user->id]);
+        $this->itemIn($list, $this->user);
+
+        $this->actingAs($this->user)
+            ->get("/apps/our-shelf/{$list->slug}?filter=done")
+            ->assertInertia(fn (AssertableInertia $page) => $page
+                ->has('items.data', 1)
+                ->where('items.data.0.id', $done->id)
+                ->where('items.data.0.doneBy.name', 'Meera')
+                ->where('items.data.0.done_on', $done->done_at->toDateString()));
+
+        $this->actingAs($this->user)
+            ->get("/apps/our-shelf/{$list->slug}?filter=todo")
+            ->assertInertia(fn (AssertableInertia $page) => $page
+                ->where('items.data.0.doneBy', null)
+                ->where('items.data.0.done_on', null));
+    }
+
     public function test_the_person_who_added_an_item_comes_with_their_picture(): void
     {
         config(['shell.media_disk' => 'local']);

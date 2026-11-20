@@ -3,6 +3,7 @@
 namespace App\MiniApps\Corner\Http\Resources;
 
 use App\MiniApps\Corner\Models\Item;
+use App\Shell\Models\User;
 use App\Shell\Services\Household;
 use App\Shell\Support\Person;
 use Illuminate\Support\Facades\Gate;
@@ -16,7 +17,7 @@ class ItemResource
      */
     public function __invoke(Item $item): array
     {
-        $item->loadMissing('addedBy');
+        $item->loadMissing(['addedBy', 'doneBy']);
 
         return [
             'id' => $item->id,
@@ -38,7 +39,16 @@ class ItemResource
                 'update' => Gate::allows('update', $item),
                 'delete' => Gate::allows('delete', $item),
             ],
-            'addedBy' => [...Person::of($item->addedBy), 'name' => app(Household::class)->shortName($item->addedBy)],
+            'addedBy' => self::person($item->addedBy),
+            // Who marked it done, so a family can see whose "loved" or "visited" it is.
+            'doneBy' => $item->done_at !== null && $item->doneBy !== null ? self::person($item->doneBy) : null,
+            'done_on' => $item->done_at?->toDateString(),
         ];
+    }
+
+    /** @return array{id: int, name: string, avatar_url: string|null} */
+    private static function person(User $user): array
+    {
+        return [...Person::of($user), 'name' => app(Household::class)->shortName($user)];
     }
 }

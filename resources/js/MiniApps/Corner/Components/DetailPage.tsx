@@ -2,6 +2,7 @@ import type { ReactNode } from 'react';
 
 import { Button } from '@/components/ui/button';
 import { Toggle } from '@/components/ui/toggle';
+import { formatPlainDate } from '@/lib/dates';
 import { DoneGlyph } from '@/MiniApps/Corner/Components/DoneMark';
 import type { MentionedInRef } from '@/MiniApps/Corner/Components/MentionedInList';
 import MentionedInList from '@/MiniApps/Corner/Components/MentionedInList';
@@ -18,6 +19,8 @@ type DetailPageProps = {
     back: BackTarget;
     can: ItemPermissions;
     addedBy: Person;
+    doneBy: Person | null;
+    doneOn: string | null;
     mentionedIn: MentionedInRef[];
     hero?: ReactNode;
     body?: ReactNode;
@@ -35,6 +38,8 @@ export default function DetailPage({
     back,
     can,
     addedBy,
+    doneBy,
+    doneOn,
     mentionedIn,
     hero,
     body,
@@ -56,8 +61,17 @@ export default function DetailPage({
 
                             <p className="corner-detail-meta corner-added-by">
                                 <PersonAvatar person={addedBy} size={24} />
-                                Added by {addedBy.name}
+                                {addedBy.name}
                             </p>
+
+                            {isDone && doneBy && (
+                                <p className="corner-detail-meta corner-done-by">
+                                    <PersonAvatar person={doneBy} size={24} />
+                                    {doneLabel} by {doneBy.name}
+                                    {doneOn &&
+                                        ` on ${formatPlainDate(doneOn, { intl: { day: 'numeric', month: 'short', year: 'numeric' } })}`}
+                                </p>
+                            )}
 
                             <div className="corner-detail-actions">
                                 {externalCta}

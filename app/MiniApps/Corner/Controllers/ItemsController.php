@@ -39,7 +39,7 @@ class ItemsController
             return Inertia::render('MiniApps/Corner/Pages/EntityNotFound', ['kind' => 'list']);
         }
 
-        $page = ListPage::make($request, $model->items()->getQuery()->with('addedBy'), self::SORTS)
+        $page = ListPage::make($request, $model->items()->getQuery()->with(['addedBy', 'doneBy']), self::SORTS)
             ->status('done_at')
             ->searchable(self::SEARCH_COLUMNS);
 

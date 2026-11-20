@@ -96,7 +96,11 @@ function ItemCardBody({
                     </Link>
                     <DoneSticker
                         icon={list.done_icon}
-                        label={list.done_label}
+                        label={
+                            item.doneBy
+                                ? `${list.done_label} by ${item.doneBy.name}`
+                                : list.done_label
+                        }
                         show={isDone}
                         animated
                     />
@@ -116,9 +120,10 @@ function ItemCardBody({
                             {placeLabel(item)}
                         </span>
                     )}
+                    {/* Who put it here: their face and name say it, no "Added by" needed. */}
                     <span className="corner-row-meta corner-added-by">
                         <PersonAvatar person={item.addedBy} size={20} />
-                        Added by {item.addedBy.name}
+                        {item.addedBy.name}
                     </span>
                 </div>
 

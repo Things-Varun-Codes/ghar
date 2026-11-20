@@ -43,4 +43,7 @@ export type CornerItem = {
     is_done: boolean;
     can: ItemPermissions;
     addedBy: Person;
+    /* Who marked it done and on which day; null while it isn't done. */
+    doneBy: Person | null;
+    done_on: string | null;
 };

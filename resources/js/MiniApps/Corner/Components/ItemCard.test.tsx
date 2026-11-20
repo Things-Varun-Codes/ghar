@@ -69,6 +69,8 @@ function itemWith(overrides: Partial<CornerItem> = {}): CornerItem {
         is_done: false,
         can: { update: true, delete: true },
         addedBy: { id: 2, name: 'Ravi Rao', avatar_url: null },
+        doneBy: null,
+        done_on: null,
         ...overrides,
     };
 }
@@ -108,8 +110,23 @@ describe('ItemCard', () => {
             <ItemCard list={list} item={itemWith()} />,
         );
 
-        expect(screen.getByText('Added by Ravi Rao')).toBeTruthy();
+        expect(screen.getByText('Ravi Rao')).toBeTruthy();
         expect(container.querySelector('[data-slot="avatar"]')).not.toBeNull();
+    });
+
+    it('says who marked it done on its sticker', () => {
+        render(
+            <ItemCard
+                list={list}
+                item={itemWith({
+                    is_done: true,
+                    doneBy: { id: 3, name: 'Meera', avatar_url: null },
+                    done_on: '2026-10-12',
+                })}
+            />,
+        );
+
+        expect(screen.getByText(`${list.done_label} by Meera`)).toBeTruthy();
     });
 
     it('folds away on delete and comes back on Undo, with no request', async () => {

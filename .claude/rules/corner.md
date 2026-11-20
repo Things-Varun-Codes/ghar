@@ -84,7 +84,7 @@ its own lists; nothing about Songs or Movies is hard-coded any more.
   Corner-specific React. A list card's edge holds two controls only, the done toggle and "⋯"
   (Open link, Edit, Delete); the item's page keeps the link one tap away. A place line that would
   repeat the item's title is left out. List icons, preview bullets and placeholder icons are ink,
-  never coral (coral is press and "here"). The person who added a thing is named by first name.
+  never coral (coral is press and "here"). The person who added a thing is their face and first name, with no "Added by". A done thing says who marked it: the sticker reads "{done_label} by {first name}" and the item's page adds the day (`doneBy`, `done_on` from `done_by_user_id` / `done_at`). One person marks a thing done; there is no per-person done.
 
 ## Our Shelf item-actions contract
 
