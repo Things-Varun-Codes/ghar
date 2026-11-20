@@ -17,8 +17,9 @@ Rules that aren't obvious from the code:
   When the date is a member's birthday (`lib/birthdays.ts`, the server's Feb 29 rule), "Is this
   Meera's birthday?" appears under the date in the same row; changing the date off that day clears
   the answer.
-- **Our History** — tender journal feel: the display face for dates, titles and year banners, the
-  sans for the story. Timeline cards are quiet reading surfaces (no Edit/Delete on the card;
+- **Our History** — tender journal feel. Dates, year banners and counts are ink (years large and
+  light, like Home's date), never coral: coral is only for links and actions. A moment's photo on its
+  card is a small print with a paper border that leans by its id, like the slips on Home. Timeline cards are quiet reading surfaces (no Edit/Delete on the card;
   the whole card opens the EventSheet, where management lives). They are compact: dateline and
   creator, title, one line of the story, and non-interactive reaction and comment counts;
   "Details" (the ui Collapsible) opens the rest of the story and the photos in place. Only the

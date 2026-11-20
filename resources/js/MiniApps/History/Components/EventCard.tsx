@@ -148,6 +148,8 @@ export default function EventCard({ event, onRead }: EventCardProps) {
                         loading="lazy"
                         decoding="async"
                         className="history-moment-thumb"
+                        // Each print leans its own way, the same every visit.
+                        style={{ rotate: `${(event.id % 5) - 2}deg` }}
                     />
                 )}
             </div>
