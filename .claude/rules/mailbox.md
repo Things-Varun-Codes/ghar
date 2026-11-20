@@ -40,9 +40,9 @@ Our Shelf keeps the household's shared lists.
   `our-exchange:citations`; bodies never leak offence/penalty/remarks. Drawn as an "official form"
   (`--mailbox-citation-*` / `.mailbox-citation-*`, colours alias `--shell-*`).
 - **Our Exchange** owns paper: ruled sheets with a red margin, the citation as an official form, the
-  coupon as a voucher. A note's body and a coupon's title are in Patrick Hand; what was filled in on
-  a form (names, offence, penalty, remarks) is Newsreader italic; the printed parts are the sans at
-  13px/500. The form reads as a form through its rules, boxes, seal and stamp, and the stamp is the
+  coupon as a voucher. Everything is the one face: a note's body, a coupon's title and what was
+  filled in on a form (names, offence, penalty, remarks) are italic (`.mailbox-hand`,
+  `.mailbox-written`); the printed parts are upright. The form reads as a form through its rules, boxes, seal and stamp, and the stamp is the
   only thing set in capitals.
 - **Coupons** expire by the household's calendar: `Coupon::isExpired()` compares `expires_at` as a
   date string with `Region::today()`, and `IssueCouponRequest` refuses a date before it. Never

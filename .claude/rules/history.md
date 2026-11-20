@@ -25,7 +25,7 @@ Rules that aren't obvious from the code:
   and a bottom line kept for the non-interactive reaction and comment counts. The poster's face
   (`PersonAvatar`, not decorative, with "Added by …" on hover) is the card's marker on the rail and
   its only "who"; a moment with no creator gets a plain dot. Every person in a History payload is
-  named by first name (`EventResource::person`, through `Household::shortName`). Only the
+  named by first name (`Person::short`). Only the
   first page settles in (`Settle`); rows loaded later appear in place.
 - **The sheet reads the open moment from the page's props, never a copy.** Timeline and Calendar
   hold its id and look it up through `useFreshMoments`, which also patches every loaded copy (a
