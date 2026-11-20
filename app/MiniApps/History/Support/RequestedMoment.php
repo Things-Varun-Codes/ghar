@@ -26,7 +26,7 @@ final class RequestedMoment
         }
 
         $event = Event::query()
-            ->with(['media', 'changes.user'])
+            ->forResource()
             ->find((int) $raw);
 
         if ($event === null || $viewer->cannot('view', $event)) {

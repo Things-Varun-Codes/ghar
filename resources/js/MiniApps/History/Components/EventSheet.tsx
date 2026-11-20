@@ -1,3 +1,4 @@
+import { router } from '@inertiajs/react';
 import type * as React from 'react';
 import { useEffect, useRef, useState } from 'react';
 import { Button } from '@/components/ui/button';
@@ -10,10 +11,20 @@ import {
 import { OverlayClose } from '@/components/ui/overlay-close';
 import { useSheetSide } from '@/hooks/use-breakpoint';
 import { useDraftCloseGate } from '@/hooks/use-draft-close-gate';
+import { mutationOptions } from '@/lib/mutation';
 import { cn } from '@/lib/utils';
+import { HISTORY_CONFIRM_CLASSES } from '@/MiniApps/History/lib/confirmDialog';
 import { MOMENT_PARAM } from '@/MiniApps/History/lib/momentUrl';
-import type { HistoryEvent } from '@/MiniApps/History/lib/types';
+import { MOMENT_ONLY } from '@/MiniApps/History/lib/momentVisit';
+import type {
+    EventComment,
+    HistoryEvent,
+    MemberBirthday,
+} from '@/MiniApps/History/lib/types';
+import comments from '@/routes/apps/our-history/events/comments';
+import ConfirmDialog from '@/Shell/Components/ConfirmDialog';
 import DiscardDraftDialog from '@/Shell/Components/DiscardDraftDialog';
+import { SOMEONE } from './CommentsSection';
 import DeleteEventDialog from './DeleteEventDialog';
 import EventForm from './EventForm';
 import type { EventFormHandle } from './EventForm';
@@ -26,6 +37,7 @@ type EventSheetProps = {
     editingEvent: HistoryEvent | null;
     /* Gets focus back on close when it isn't what had focus on open (a calendar day's menu row). */
     triggerRef?: React.RefObject<HTMLElement | null>;
+    birthdays?: MemberBirthday[];
 };
 
 export default function EventSheet({
@@ -34,8 +46,15 @@ export default function EventSheet({
     mode,
     editingEvent,
     triggerRef,
+    birthdays,
 }: EventSheetProps) {
-    const [isDirty, setIsDirty] = useState(false);
+    const [formDirty, setFormDirty] = useState(false);
+    // An unsent comment is a draft too: closing asks before throwing it away.
+    const [commentDraft, setCommentDraft] = useState('');
+    const [commentToDelete, setCommentToDelete] = useState<EventComment | null>(
+        null,
+    );
+    const [deleteCommentOpen, setDeleteCommentOpen] = useState(false);
     const [isFormProcessing, setIsFormProcessing] = useState(false);
     const [displayMode, setDisplayMode] = useState<'add' | 'edit' | 'read'>(
         mode,
@@ -49,19 +68,30 @@ export default function EventSheet({
     useEffect(() => {
         if (open) {
             // eslint-disable-next-line react-hooks/set-state-in-effect -- intentional reseat on open transition
-            setIsDirty(false);
+            setFormDirty(false);
+            setCommentDraft('');
             setDisplayMode(mode);
             setDeleteOpen(false);
+            setDeleteCommentOpen(false);
         }
     }, [open, mode]);
 
     // An open lightbox registers its own history entry above this one, so back closes it first.
     const gate = useDraftCloseGate({
         open,
-        isDirty,
+        isDirty: formDirty || commentDraft.trim() !== '',
         onClose: () => onOpenChange(false),
-        onDiscard: () => setIsDirty(false),
+        onDiscard: () => {
+            setFormDirty(false);
+            setCommentDraft('');
+        },
         closeNested: () => {
+            if (deleteCommentOpen) {
+                setDeleteCommentOpen(false);
+
+                return true;
+            }
+
             if (!deleteOpen) {
                 return false;
             }
@@ -155,7 +185,15 @@ export default function EventSheet({
                     }}
                 >
                     {displayMode === 'read' && editingEvent ? (
-                        <EventReadView event={editingEvent} />
+                        <EventReadView
+                            event={editingEvent}
+                            commentDraft={commentDraft}
+                            onCommentDraftChange={setCommentDraft}
+                            onDeleteComment={(comment) => {
+                                setCommentToDelete(comment);
+                                setDeleteCommentOpen(true);
+                            }}
+                        />
                     ) : (
                         <div className="pt-6">
                             {/*
@@ -185,13 +223,17 @@ export default function EventSheet({
                                                   editingEvent.location_lng,
                                               body_html:
                                                   editingEvent.body_html ?? '',
+                                              birthday_user_id:
+                                                  editingEvent.birthday_of
+                                                      ?.id ?? null,
                                           }
                                         : undefined
                                 }
                                 initialMedia={editingEvent?.media}
+                                birthdays={birthdays}
                                 onDismiss={gate.requestClose}
                                 onSaved={() => onOpenChange(false)}
-                                onDirtyChange={setIsDirty}
+                                onDirtyChange={setFormDirty}
                                 onProcessingChange={setIsFormProcessing}
                                 onCreated={() => setDisplayMode('edit')}
                             />
@@ -278,10 +320,51 @@ export default function EventSheet({
                     />
                 )}
 
+            {editingEvent && commentToDelete && (
+                <ConfirmDialog
+                    open={deleteCommentOpen}
+                    onOpenChange={setDeleteCommentOpen}
+                    title="Delete this comment?"
+                    description={`The comment from ${commentToDelete.author?.name ?? SOMEONE} goes for everyone. There's no undo.`}
+                    cancelLabel="Keep it"
+                    confirmLabel="Delete comment"
+                    variant="destructive"
+                    onConfirm={() =>
+                        router.delete(
+                            comments.destroy({
+                                event: editingEvent.id,
+                                comment: commentToDelete.id,
+                            }).url,
+                            {
+                                ...MOMENT_ONLY,
+                                ...mutationOptions({
+                                    component: 'History/EventSheet',
+                                    action: 'comment.delete',
+                                    message:
+                                        "Couldn't delete that comment. Try again.",
+                                }),
+                            },
+                        )
+                    }
+                    classNames={{
+                        ...HISTORY_CONFIRM_CLASSES,
+                        cancel: 'history-btn-keep-event h-auto shadow-none',
+                    }}
+                />
+            )}
+
             <DiscardDraftDialog
                 {...gate.prompt}
-                title="Discard unsaved changes?"
-                description="What you changed here won't be saved."
+                title={
+                    formDirty
+                        ? 'Discard unsaved changes?'
+                        : 'Discard your comment?'
+                }
+                description={
+                    formDirty
+                        ? "What you changed here won't be saved."
+                        : "The comment you started won't be posted."
+                }
                 classNames={{
                     content: 'history-alert-dialog',
                     header: 'gap-0 text-left',

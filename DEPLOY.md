@@ -412,9 +412,10 @@ below. A self-host install only needs the few in `.env.selfhost.example`, becaus
 - `TRUSTED_PROXIES`: see [Reverse proxy and client IPs](#reverse-proxy-and-client-ips).
 - `GHAR_ADMIN_EMAIL` / `GHAR_ADMIN_NAME`: the admin created on first start, if none exists yet.
 - `GHAR_TIMEZONE`: where the household lives, such as `Asia/Kolkata` (`UTC` by default). It decides
-  "today", what is due and when, and the week's first day. Stored times stay in UTC, so changing it
-  later moves nothing. Read at runtime.
-- `GHAR_LOCALE`: how dates read, such as `en-IN` or `en-GB`. Empty follows the timezone's country
+  "today", what is due and when, and the day and time a moment is shown on, on every device. Stored
+  times stay in UTC, so changing it later moves nothing. Read at runtime.
+- `GHAR_LOCALE`: how dates read, such as `en-IN` or `en-GB`: the order of day and month, the names
+  of months and weekdays, and the day a calendar week starts. Empty follows the timezone's country
   (`Asia/Kolkata` reads `en-IN`; `UTC` reads `en-GB`). Read at runtime.
 - `LOG_CHANNEL` / `LOG_STACK` / `LOG_DEPRECATIONS_CHANNEL` / `LOG_LEVEL`: `stderr` / `single` /
   `null` / `warning` on a server, so Docker rotates the logs.

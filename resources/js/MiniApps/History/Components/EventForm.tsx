@@ -1,23 +1,34 @@
 import type { Page } from '@inertiajs/core';
-import { useForm } from '@inertiajs/react';
+import { useForm, usePage } from '@inertiajs/react';
 import {
     forwardRef,
     lazy,
     Suspense,
     useEffect,
+    useId,
     useImperativeHandle,
     useRef,
     useState,
 } from 'react';
 import type { ReactNode } from 'react';
 import { toast } from 'sonner';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { count } from '@/lib/plural';
+import {
+    birthdayOf,
+    birthdaysOn,
+    firstName,
+    possessive,
+} from '@/MiniApps/History/lib/birthdays';
+import type { MemberBirthday } from '@/MiniApps/History/lib/types';
 import events from '@/routes/apps/our-history/events';
+import PersonAvatar from '@/Shell/Components/PersonAvatar';
 import PlacesLocationField, {
     ManualLocationInput,
     useHasPlacesSearch,
 } from '@/Shell/Components/PlacesLocationField';
 import type { SelectedLocationView } from '@/Shell/Components/PlacesLocationField';
+import type { Person } from '@/types/person';
 import CurrentMediaStrip from './CurrentMediaStrip';
 import type { MediaItem } from './MediaGrid';
 import MediaUploader from './MediaUploader';
@@ -39,6 +50,7 @@ type InitialEvent = {
     location_lat: number | null;
     location_lng: number | null;
     body_html: string;
+    birthday_user_id: number | null;
 };
 
 type FormData = {
@@ -51,6 +63,7 @@ type FormData = {
     location_lat: number | null;
     location_lng: number | null;
     body_html: string;
+    birthday_user_id: number | null;
 };
 
 export type EventFormHandle = {
@@ -67,6 +80,8 @@ type EventFormProps = {
     onSaved?: () => void;
     onProcessingChange?: (processing: boolean) => void;
     initialMedia?: MediaItem[];
+    /* Who has a birthday when, for "Is this Meera's birthday?". */
+    birthdays?: MemberBirthday[];
 };
 
 type FormFieldLabelProps = {
@@ -89,6 +104,67 @@ function FormFieldLabel({ htmlFor, required, children }: FormFieldLabelProps) {
     );
 }
 
+const NOBODY = 'none';
+
+type BirthdayQuestionProps = {
+    people: Person[];
+    value: number | null;
+    onChange: (id: number | null) => void;
+    error?: string;
+};
+
+/* Asked when the date is a member's birthday; "No" is the answer until someone says yes. */
+function BirthdayQuestion({
+    people,
+    value,
+    onChange,
+    error,
+}: BirthdayQuestionProps) {
+    const legendId = useId();
+    const question =
+        people.length === 1
+            ? `Is this ${possessive(firstName(people[0].name))} birthday?`
+            : 'Is this someone’s birthday?';
+
+    return (
+        <div className="history-birthday-question">
+            <p id={legendId} className="history-field-label">
+                {question}
+            </p>
+            <RadioGroup
+                aria-labelledby={legendId}
+                value={value === null ? NOBODY : String(value)}
+                onValueChange={(next) =>
+                    onChange(next === NOBODY ? null : Number(next))
+                }
+                className="history-birthday-choices"
+            >
+                {people.map((person) => (
+                    <label key={person.id} className="history-birthday-choice">
+                        <RadioGroupItem value={String(person.id)} />
+                        <PersonAvatar person={person} size={24} />
+                        <span>
+                            {people.length === 1 ? 'Yes' : birthdayOf(person)}
+                        </span>
+                    </label>
+                ))}
+                <label className="history-birthday-choice">
+                    <RadioGroupItem value={NOBODY} />
+                    <span>No</span>
+                </label>
+            </RadioGroup>
+            {error && (
+                <p
+                    role="alert"
+                    className="mt-2 text-(length:--text-small) text-(--history-destructive)"
+                >
+                    {error}
+                </p>
+            )}
+        </div>
+    );
+}
+
 const EventForm = forwardRef<EventFormHandle, EventFormProps>(
     function EventForm(
         {
@@ -100,18 +176,14 @@ const EventForm = forwardRef<EventFormHandle, EventFormProps>(
             onProcessingChange,
             onCreated,
             onSaved,
+            birthdays = [],
         },
         ref,
     ) {
         const closeAfterSave = onSaved ?? onDismiss;
 
-        // Cap the date input at today so a moment can't be
-        // dated in the future. Build the YYYY-MM-DD string from LOCAL date parts,
-        // NOT new Date().toISOString() — for users ahead of UTC the early-morning UTC date
-        // is still "yesterday", which would wrongly block a legitimately-today
-        // event. A fixed value for the render is fine (no memo needed).
-        const now = new Date();
-        const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+        // A moment can't be dated after the household's today, whatever this device's clock says.
+        const { today } = usePage().props;
 
         const [eventId, setEventId] = useState<number | null>(eventIdProp);
 
@@ -142,6 +214,7 @@ const EventForm = forwardRef<EventFormHandle, EventFormProps>(
             location_lat: initialEvent?.location_lat ?? null,
             location_lng: initialEvent?.location_lng ?? null,
             body_html: initialEvent?.body_html ?? '',
+            birthday_user_id: initialEvent?.birthday_user_id ?? null,
         });
         const {
             data,
@@ -158,6 +231,8 @@ const EventForm = forwardRef<EventFormHandle, EventFormProps>(
         const bodyHtmlRef = useRef<string>(initialEvent?.body_html ?? '');
 
         const hasPlacesSearch = useHasPlacesSearch();
+
+        const birthdayPeople = birthdaysOn(data.occurred_on, birthdays);
 
         const { isDirty, setDefaults } = form;
 
@@ -255,9 +330,21 @@ const EventForm = forwardRef<EventFormHandle, EventFormProps>(
                             aria-required="true"
                             max={today}
                             value={data.occurred_on}
-                            onChange={(e) =>
-                                setData('occurred_on', e.target.value)
-                            }
+                            onChange={(e) => {
+                                const date = e.target.value;
+                                const stillMatches = birthdaysOn(
+                                    date,
+                                    birthdays,
+                                ).some((p) => p.id === data.birthday_user_id);
+
+                                setData((d) => ({
+                                    ...d,
+                                    occurred_on: date,
+                                    birthday_user_id: stillMatches
+                                        ? d.birthday_user_id
+                                        : null,
+                                }));
+                            }}
                             className="history-date-input shell-field"
                         />
                         {errors.occurred_on && (
@@ -267,6 +354,16 @@ const EventForm = forwardRef<EventFormHandle, EventFormProps>(
                             >
                                 {errors.occurred_on}
                             </p>
+                        )}
+                        {birthdayPeople.length > 0 && (
+                            <BirthdayQuestion
+                                people={birthdayPeople}
+                                value={data.birthday_user_id}
+                                onChange={(id) =>
+                                    setData('birthday_user_id', id)
+                                }
+                                error={errors.birthday_user_id}
+                            />
                         )}
                     </div>
 
@@ -286,11 +383,16 @@ const EventForm = forwardRef<EventFormHandle, EventFormProps>(
                     </div>
 
                     <div className="[grid-area:loc]">
-                        <FormFieldLabel htmlFor="event-location">
+                        <FormFieldLabel
+                            htmlFor={
+                                hasPlacesSearch ? undefined : 'event-location'
+                            }
+                        >
                             Location
                         </FormFieldLabel>
                         {hasPlacesSearch ? (
                             <PlacesLocationField
+                                label="Location"
                                 value={(() => {
                                     if (
                                         data.location_name ||

@@ -8,6 +8,7 @@ use GuzzleHttp\Psr7\UriResolver;
 use Illuminate\Support\Facades\Http;
 use OverflowException;
 use Psr\Http\Message\ResponseInterface;
+use Symfony\Component\HttpFoundation\IpUtils;
 use Throwable;
 
 /**
@@ -35,12 +36,14 @@ class SafeFetcher
 
     private const USER_AGENT = 'Mozilla/5.0 (compatible; Ghar link preview)';
 
-    /** CIDR blocks no fetch may reach, beyond PHP's private and reserved ranges. */
-    private const BLOCKED = [
-        '0.0.0.0/8', '10.0.0.0/8', '100.64.0.0/10', '127.0.0.0/8', '169.254.0.0/16', '172.16.0.0/12',
-        '192.0.0.0/24', '192.0.2.0/24', '192.168.0.0/16', '198.18.0.0/15', '198.51.100.0/24',
-        '203.0.113.0/24', '224.0.0.0/3',
-        '::/128', '::1/128', 'fc00::/7', 'fe80::/10', 'ff00::/8', '2001:db8::/32', '100::/64',
+    /**
+     * Ranges no fetch may reach that neither PHP's private and reserved ranges nor Symfony's
+     * PRIVATE_SUBNETS cover: multicast and class E, IETF protocol assignments, IPv6 site-local,
+     * discard-only, documentation and SRv6 SIDs, and IPv6 multicast.
+     */
+    private const ALSO_BLOCKED = [
+        '224.0.0.0/3', '192.0.0.0/24',
+        'fec0::/10', '100::/64', '3fff::/20', '5f00::/16', 'ff00::/8',
     ];
 
     /** @var Closure(string): list<string> */
@@ -148,7 +151,8 @@ class SafeFetcher
             return false;
         }
 
-        // IPv4 carried inside IPv6 (mapped, NAT64, 6to4) is judged as the IPv4 it carries.
+        // IPv4 carried inside IPv6 (mapped, NAT64, 6to4) is judged as the IPv4 it carries. This has
+        // to come before IpUtils, which counts every mapped address as private, public ones too.
         if (strlen($binary) === 16) {
             $embedded = match (true) {
                 str_starts_with($binary, str_repeat("\0", 10)."\xff\xff") => substr($binary, 12, 4),
@@ -166,37 +170,7 @@ class SafeFetcher
             return false;
         }
 
-        foreach (self::BLOCKED as $cidr) {
-            if (self::inCidr($binary, $cidr)) {
-                return false;
-            }
-        }
-
-        return true;
-    }
-
-    private static function inCidr(string $binary, string $cidr): bool
-    {
-        [$network, $bits] = explode('/', $cidr);
-        $net = inet_pton($network);
-        if ($net === false || strlen($net) !== strlen($binary)) {
-            return false;
-        }
-
-        $bits = (int) $bits;
-        $whole = intdiv($bits, 8);
-        if (substr($binary, 0, $whole) !== substr($net, 0, $whole)) {
-            return false;
-        }
-
-        $rest = $bits % 8;
-        if ($rest === 0) {
-            return true;
-        }
-
-        $mask = (0xFF << (8 - $rest)) & 0xFF;
-
-        return (ord($binary[$whole]) & $mask) === (ord($net[$whole]) & $mask);
+        return ! IpUtils::checkIp($ip, [...IpUtils::PRIVATE_SUBNETS, ...self::ALSO_BLOCKED]);
     }
 
     /** @param  list<string>  $accept */

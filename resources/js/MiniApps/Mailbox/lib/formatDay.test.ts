@@ -1,5 +1,4 @@
 import { describe, expect, it } from 'vitest';
-import { formatDate } from '@/lib/dates';
 import { formatInstantDay, formatPlainDay } from './formatDay';
 
 describe('formatPlainDay', () => {
@@ -9,9 +8,7 @@ describe('formatPlainDay', () => {
     });
 
     it('keeps the calendar day of a plain date', () => {
-        expect(formatPlainDay('2026-09-01')).toBe(
-            formatDate(new Date(2026, 8, 1)),
-        );
+        expect(formatPlainDay('2026-09-01')).toBe('1 Sept 2026');
     });
 
     it('falls back for empty, nullish and invalid values', () => {
@@ -24,10 +21,8 @@ describe('formatPlainDay', () => {
 });
 
 describe('formatInstantDay', () => {
-    it('formats an ISO instant using the local calendar day', () => {
-        const iso = new Date(2026, 9, 22, 12, 0, 0).toISOString();
-
-        expect(formatInstantDay(iso)).toBe('22 Oct 2026');
+    it("formats an ISO instant on the household's calendar day", () => {
+        expect(formatInstantDay('2026-10-22T12:00:00Z')).toBe('22 Oct 2026');
     });
 
     it('falls back for empty and invalid values', () => {

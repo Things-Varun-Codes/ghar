@@ -20,7 +20,7 @@ import {
     SelectValue,
 } from '@/components/ui/select';
 import { useDraftCloseGate } from '@/hooks/use-draft-close-gate';
-import { formatDate } from '@/lib/dates';
+import { formatInstant } from '@/lib/dates';
 import { formSubmitOptions } from '@/lib/mutation';
 import { roleLabel } from '@/lib/roles';
 import { cn } from '@/lib/utils';
@@ -302,14 +302,14 @@ export default function InvitesIndex({ invites }: Props) {
         { header: 'Status', cell: statusBadge, card: 'hidden' },
         {
             header: 'Expires',
-            cell: (invite) => formatDate(invite.expires_at),
+            cell: (invite) => formatInstant(invite.expires_at),
             className: 'os-admin-meta',
             card: {
                 as: 'meta',
                 className: 'mt-2',
                 render: (invite) => (
                     <>
-                        Expires {formatDate(invite.expires_at)}
+                        Expires {formatInstant(invite.expires_at)}
                         {invite.invited_by && (
                             <>
                                 {' · invited by '}

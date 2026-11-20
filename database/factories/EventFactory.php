@@ -26,6 +26,7 @@ class EventFactory extends Factory
             'location_lng' => null,
             'body_html' => null,
             'creator_id' => User::factory(),
+            'birthday_user_id' => null,
         ];
     }
 
@@ -40,6 +41,13 @@ class EventFactory extends Factory
     {
         return $this->state(fn (array $attributes) => [
             'body_html' => null,
+        ]);
+    }
+
+    public function birthdayOf(User $member): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'birthday_user_id' => $member->id,
         ]);
     }
 

@@ -1,31 +1,13 @@
 import type { ReactNode } from 'react';
+import {
+    formatDayMonth,
+    monthNames,
+    weekdayNames,
+    weekStart,
+} from '@/lib/dates';
 import { count } from '@/lib/plural';
 import type { HistoryEvent } from '@/MiniApps/History/lib/types';
 import DayEventMenu from './DayEventMenu';
-
-export const MONTH_NAMES = [
-    'January',
-    'February',
-    'March',
-    'April',
-    'May',
-    'June',
-    'July',
-    'August',
-    'September',
-    'October',
-    'November',
-    'December',
-];
-const DOW = [
-    'Sunday',
-    'Monday',
-    'Tuesday',
-    'Wednesday',
-    'Thursday',
-    'Friday',
-    'Saturday',
-];
 
 export function firstThumb(event: HistoryEvent): string | null {
     const withImage = event.media.find((m) => m.thumb || m.poster);
@@ -50,7 +32,9 @@ export default function CalendarMonth({
     todayMonthDay,
     onOpen,
 }: Props) {
-    const firstDow = new Date(year, month - 1, 1).getDay();
+    const firstDay = weekStart();
+    // Blank cells before the 1st, counted from the household's first day of the week.
+    const pad = (new Date(year, month - 1, 1).getDay() - firstDay + 7) % 7;
     const daysInMonth = new Date(year, month, 0).getDate();
     const monthEventCount = Array.from(eventsByDay.values()).reduce(
         (sum, arr) => sum + arr.length,
@@ -59,7 +43,7 @@ export default function CalendarMonth({
 
     const cells: ReactNode[] = [];
 
-    for (let i = 0; i < firstDow; i++) {
+    for (let i = 0; i < pad; i++) {
         cells.push(
             <div
                 key={`pad-${i}`}
@@ -100,7 +84,7 @@ export default function CalendarMonth({
                         type="button"
                         className={`history-cal-cell history-cal-cell--event${todayClass}`}
                         onClick={() => onOpen(event)}
-                        aria-label={`${d} ${MONTH_NAMES[month - 1]}: ${label}`}
+                        aria-label={`${formatDayMonth(month, d)}: ${label}`}
                         aria-current={current}
                         style={
                             thumb
@@ -144,7 +128,10 @@ export default function CalendarMonth({
         weeks[weeks.length - 1].push(cell);
     });
 
-    const monthName = MONTH_NAMES[month - 1];
+    const monthName = monthNames('long')[month - 1];
+    const longDays = weekdayNames('long');
+    const narrowDays = weekdayNames('narrow');
+    const columns = Array.from({ length: 7 }, (_, i) => (firstDay + i) % 7);
     const headingId = `history-cal-${year}-${month}`;
 
     return (
@@ -165,9 +152,13 @@ export default function CalendarMonth({
             {/* A table, not an ARIA grid: the days are plain tab stops with no arrow-key roving. */}
             <div role="table" aria-labelledby={headingId}>
                 <div role="row" className="history-cal-dow">
-                    {DOW.map((d) => (
-                        <span key={d} role="columnheader" aria-label={d}>
-                            <span aria-hidden="true">{d[0]}</span>
+                    {columns.map((dow) => (
+                        <span
+                            key={dow}
+                            role="columnheader"
+                            aria-label={longDays[dow]}
+                        >
+                            <span aria-hidden="true">{narrowDays[dow]}</span>
                         </span>
                     ))}
                 </div>
