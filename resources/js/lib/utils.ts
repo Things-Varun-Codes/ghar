@@ -14,6 +14,3 @@ export function escapeHtml(str: string): string {
         .replace(/"/g, '&quot;')
         .replace(/'/g, '&#39;');
 }
-
-// Kept for existing imports; new code imports from '@/lib/dates'.
-export { formatDate } from '@/lib/dates';

@@ -1,5 +1,5 @@
 import { usePage } from '@inertiajs/react';
-import { formatDate } from '@/lib/dates';
+import { formatPlainDate } from '@/lib/dates';
 import { birthdayOf } from '@/MiniApps/History/lib/birthdays';
 import type { HistoryEvent } from '@/MiniApps/History/lib/types';
 import PersonAvatar from '@/Shell/Components/PersonAvatar';
@@ -29,8 +29,8 @@ export default function OnThisDayStrip({ events, onOpen }: Props) {
         return null;
     }
 
-    const [year, month, day] = todayIso.split('-').map(Number);
-    const today = formatDate(new Date(year, month - 1, day), {
+    const todayYear = Number(todayIso.slice(0, 4));
+    const today = formatPlainDate(todayIso, {
         intl: { day: 'numeric', month: 'short' },
     });
 
@@ -69,7 +69,7 @@ export default function OnThisDayStrip({ events, onOpen }: Props) {
                                     {e.title ?? e.date_label}
                                 </span>
                                 <span className="history-otd-sub">
-                                    {yearsAgo(e.year, year)}
+                                    {yearsAgo(e.year, todayYear)}
                                     {e.birthday_of ? (
                                         <>
                                             {' · '}

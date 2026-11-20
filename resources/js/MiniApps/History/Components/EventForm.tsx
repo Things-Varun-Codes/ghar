@@ -1,5 +1,5 @@
 import type { Page } from '@inertiajs/core';
-import { useForm } from '@inertiajs/react';
+import { useForm, usePage } from '@inertiajs/react';
 import {
     forwardRef,
     lazy,
@@ -182,13 +182,8 @@ const EventForm = forwardRef<EventFormHandle, EventFormProps>(
     ) {
         const closeAfterSave = onSaved ?? onDismiss;
 
-        // Cap the date input at today so a moment can't be
-        // dated in the future. Build the YYYY-MM-DD string from LOCAL date parts,
-        // NOT new Date().toISOString() — for users ahead of UTC the early-morning UTC date
-        // is still "yesterday", which would wrongly block a legitimately-today
-        // event. A fixed value for the render is fine (no memo needed).
-        const now = new Date();
-        const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+        // A moment can't be dated after the household's today, whatever this device's clock says.
+        const { today } = usePage().props;
 
         const [eventId, setEventId] = useState<number | null>(eventIdProp);
 

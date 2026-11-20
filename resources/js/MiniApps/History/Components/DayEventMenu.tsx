@@ -6,10 +6,11 @@ import {
     DropdownMenuLabel,
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { formatDayMonth } from '@/lib/dates';
 import { count } from '@/lib/plural';
 import { cn } from '@/lib/utils';
 import type { HistoryEvent } from '@/MiniApps/History/lib/types';
-import { firstThumb, MONTH_NAMES } from './CalendarMonth';
+import { firstThumb } from './CalendarMonth';
 
 type Props = {
     month: number; // 1-12
@@ -40,7 +41,7 @@ export default function DayEventMenu({
                 className={cn(
                     `history-cal-cell history-cal-cell--event${todayClass}`,
                 )}
-                aria-label={`${day} ${MONTH_NAMES[month - 1]}: ${events.length} moments, choose one to open`}
+                aria-label={`${formatDayMonth(month, day)}: ${events.length} moments, choose one to open`}
                 aria-current={todayClass ? 'date' : undefined}
                 style={
                     thumb ? { backgroundImage: `url("${thumb}")` } : undefined
@@ -61,7 +62,7 @@ export default function DayEventMenu({
                 className="history-cal-daymenu"
             >
                 <DropdownMenuLabel className="history-cal-daymenu-head">
-                    {day} {MONTH_NAMES[month - 1]} ·{' '}
+                    {formatDayMonth(month, day)} ·{' '}
                     {count(events.length, 'moment')}
                 </DropdownMenuLabel>
                 {events.map((event) => {

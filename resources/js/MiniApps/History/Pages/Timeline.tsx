@@ -1,6 +1,8 @@
+import { usePage } from '@inertiajs/react';
 import { Plus } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { Settle, SettleItem } from '@/components/motion';
+import { region } from '@/lib/dates';
 import EventCard from '@/MiniApps/History/Components/EventCard';
 import EventSheet from '@/MiniApps/History/Components/EventSheet';
 import OnThisDayStrip from '@/MiniApps/History/Components/OnThisDayStrip';
@@ -56,7 +58,7 @@ const NUMBER_WORDS: Record<number, string> = {
 };
 
 function spellOut(n: number): string {
-    return NUMBER_WORDS[n] ?? n.toLocaleString('en-US');
+    return NUMBER_WORDS[n] ?? n.toLocaleString(region().locale);
 }
 
 function buildHistoryLine(count: number, days: number | null): string {
@@ -81,16 +83,15 @@ function buildHistoryLine(count: number, days: number | null): string {
     return `${moments} ${spellOut(days)} days since the last.`;
 }
 
-function daysSinceDate(isoDate: string, now: Date): number {
-    const [y, m, d] = isoDate.slice(0, 10).split('-').map(Number);
-    const last = new Date(y, m - 1, d).getTime();
-    const today = new Date(
-        now.getFullYear(),
-        now.getMonth(),
-        now.getDate(),
-    ).getTime();
+/* Whole days between two YYYY-MM-DD dates, counted in UTC so no clock change shortens one. */
+function daysBetween(from: string, to: string): number {
+    const day = (iso: string) => {
+        const [y, m, d] = iso.slice(0, 10).split('-').map(Number);
 
-    return Math.round((today - last) / 86_400_000);
+        return Date.UTC(y, m - 1, d);
+    };
+
+    return Math.round((day(to) - day(from)) / 86_400_000);
 }
 
 type YearGroup = {
@@ -122,8 +123,10 @@ export default function Timeline({
     birthdays,
     moment,
 }: Props) {
+    // The household's today, not this device's.
+    const { today } = usePage().props;
     const daysSinceLast = lastEventOccurredOn
-        ? daysSinceDate(lastEventOccurredOn, new Date())
+        ? daysBetween(lastEventOccurredOn, today)
         : null;
 
     const countLine = buildHistoryLine(eventsCount, daysSinceLast);

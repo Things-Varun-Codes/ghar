@@ -1,7 +1,8 @@
-import { router } from '@inertiajs/react';
+import { router, usePage } from '@inertiajs/react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useIsPhone } from '@/hooks/use-breakpoint';
+import { monthNames } from '@/lib/dates';
 import { count } from '@/lib/plural';
 import CalendarMonth from '@/MiniApps/History/Components/CalendarMonth';
 import EventSheet from '@/MiniApps/History/Components/EventSheet';
@@ -18,21 +19,6 @@ import type {
 } from '@/MiniApps/History/lib/types';
 import { calendar } from '@/routes/apps/our-history';
 import EmptyState from '@/Shell/Components/EmptyState';
-
-const MONTH_ABBR = [
-    'Jan',
-    'Feb',
-    'Mar',
-    'Apr',
-    'May',
-    'Jun',
-    'Jul',
-    'Aug',
-    'Sep',
-    'Oct',
-    'Nov',
-    'Dec',
-];
 
 type Props = {
     events: HistoryEvent[];
@@ -113,10 +99,10 @@ export default function Calendar({
 
     const byMonth = useMemo(() => buildMonthMaps(fresh.rows), [fresh.rows]);
 
-    const now = new Date();
-    const todayYear = now.getFullYear();
-    const todayMonth = now.getMonth() + 1;
-    const todayDay = now.getDate();
+    // The household's day, not this device's.
+    const [todayYear, todayMonth, todayDay] = usePage()
+        .props.today.split('-')
+        .map(Number);
 
     const todayMonthDay =
         todayYear === year ? { month: todayMonth, day: todayDay } : null;
@@ -226,7 +212,7 @@ export default function Calendar({
                         role="tablist"
                         aria-label="Pick a month"
                     >
-                        {MONTH_ABBR.map((abbr, i) => {
+                        {monthNames('short').map((abbr, i) => {
                             const m = i + 1;
                             const hasEvents = (byMonth.get(m)?.size ?? 0) > 0;
                             const selected = m === selMonth;
@@ -275,7 +261,7 @@ export default function Calendar({
                 </>
             ) : (
                 <div className="history-cal-year">
-                    {MONTH_ABBR.map((_, i) => {
+                    {Array.from({ length: 12 }, (_, i) => {
                         const m = i + 1;
 
                         return (

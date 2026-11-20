@@ -2,7 +2,7 @@ import { Link, router, usePage } from '@inertiajs/react';
 import { useState } from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Button, buttonVariants } from '@/components/ui/button';
-import { formatDate } from '@/lib/dates';
+import { formatInstant } from '@/lib/dates';
 import { roleLabel } from '@/lib/roles';
 import { cn } from '@/lib/utils';
 import * as invites from '@/routes/admin/invites';
@@ -129,7 +129,7 @@ export default function UsersIndex({ users }: Props) {
         {
             header: 'Last login',
             cell: (user) =>
-                formatDate(user.last_login_at, { fallback: 'Never' }),
+                formatInstant(user.last_login_at, { fallback: 'Never' }),
             className: 'os-admin-meta',
             card: { as: 'meta', label: 'Last login', className: 'mb-3' },
         },
