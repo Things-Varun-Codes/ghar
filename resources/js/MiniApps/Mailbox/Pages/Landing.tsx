@@ -315,17 +315,22 @@ export default function Landing({
                         body="An admin can turn on notes, flowers, coupons and citations."
                     />
                 )}
-                <div className="mailbox-doors">
-                    <Settle>
-                        {types.map(({ key, label }, index) => (
-                            <MailboxDoor
-                                key={key}
-                                title={label}
-                                index={index}
-                                {...DOORS[key](mailboxSummary, mailboxPeeks)}
-                            />
-                        ))}
-                    </Settle>
+                <div className="mailbox-doors-wrap">
+                    <div className="mailbox-doors">
+                        <Settle>
+                            {types.map(({ key, label }, index) => (
+                                <MailboxDoor
+                                    key={key}
+                                    title={label}
+                                    index={index}
+                                    {...DOORS[key](
+                                        mailboxSummary,
+                                        mailboxPeeks,
+                                    )}
+                                />
+                            ))}
+                        </Settle>
+                    </div>
                 </div>
             </Page>
         </MailboxLayout>
