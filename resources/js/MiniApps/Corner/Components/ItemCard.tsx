@@ -1,8 +1,8 @@
 import { Link } from '@inertiajs/react';
-import { ExternalLink, MapPin, MoreHorizontal } from 'lucide-react';
+import { MapPin, MoreHorizontal } from 'lucide-react';
 
 import { Reveal } from '@/components/motion';
-import { Button, buttonVariants } from '@/components/ui/button';
+import { Button } from '@/components/ui/button';
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -15,7 +15,6 @@ import {
     TooltipContent,
     TooltipTrigger,
 } from '@/components/ui/tooltip';
-import { cn } from '@/lib/utils';
 import { DoneGlyph, DoneSticker } from '@/MiniApps/Corner/Components/DoneMark';
 import ItemThumb from '@/MiniApps/Corner/Components/ItemThumb';
 import { useItemActions } from '@/MiniApps/Corner/Hooks/useItemActions';
@@ -107,7 +106,7 @@ function ItemCardBody({
                     {preview && (
                         <span className="corner-item-notes">{preview}</span>
                     )}
-                    {hasPlace(item) && (
+                    {hasPlace(item) && placeLabel(item) !== item.title && (
                         <span className="corner-item-place">
                             <MapPin
                                 aria-hidden="true"
@@ -141,36 +140,9 @@ function ItemCardBody({
                         <TooltipContent>{list.done_label}</TooltipContent>
                     </Tooltip>
 
-                    {item.url && (
-                        <Tooltip>
-                            <TooltipTrigger
-                                render={
-                                    <a
-                                        href={item.url}
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        aria-label={`Open the link for ${item.title}`}
-                                        className={cn(
-                                            buttonVariants({
-                                                variant: 'ghost',
-                                                size: 'icon',
-                                            }),
-                                            'corner-icon-btn shell-press',
-                                        )}
-                                    />
-                                }
-                            >
-                                <ExternalLink
-                                    aria-hidden="true"
-                                    size={18}
-                                    strokeWidth={1.5}
-                                />
-                            </TooltipTrigger>
-                            <TooltipContent>Open the link</TooltipContent>
-                        </Tooltip>
-                    )}
-
-                    {(item.can.update || item.can.delete) && (
+                    {/* The link lives in the menu, so the card's edge holds two controls, not three;
+                        the item's own page keeps it one tap away. */}
+                    {(item.url || item.can.update || item.can.delete) && (
                         <DropdownMenu>
                             <DropdownMenuTrigger
                                 render={<Button variant="ghost" size="icon" />}
@@ -180,6 +152,19 @@ function ItemCardBody({
                                 <MoreHorizontal size={18} aria-hidden="true" />
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="end">
+                                {item.url && (
+                                    <DropdownMenuItem
+                                        onClick={() =>
+                                            window.open(
+                                                item.url ?? undefined,
+                                                '_blank',
+                                                'noopener,noreferrer',
+                                            )
+                                        }
+                                    >
+                                        Open link
+                                    </DropdownMenuItem>
+                                )}
                                 {onEdit && item.can.update && (
                                     <DropdownMenuItem onClick={onEdit}>
                                         Edit

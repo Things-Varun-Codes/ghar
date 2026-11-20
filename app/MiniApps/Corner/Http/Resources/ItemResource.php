@@ -3,6 +3,7 @@
 namespace App\MiniApps\Corner\Http\Resources;
 
 use App\MiniApps\Corner\Models\Item;
+use App\Shell\Services\Household;
 use App\Shell\Support\Person;
 use Illuminate\Support\Facades\Gate;
 
@@ -37,7 +38,7 @@ class ItemResource
                 'update' => Gate::allows('update', $item),
                 'delete' => Gate::allows('delete', $item),
             ],
-            'addedBy' => Person::of($item->addedBy),
+            'addedBy' => [...Person::of($item->addedBy), 'name' => app(Household::class)->shortName($item->addedBy)],
         ];
     }
 }

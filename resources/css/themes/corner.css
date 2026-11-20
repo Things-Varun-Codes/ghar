@@ -95,7 +95,7 @@
     display: block;
     font-family: var(--corner-font);
     font-size: var(--text-body);
-    font-weight: 400;
+    font-weight: 600;
     line-height: 1.5;
     color: var(--corner-ink);
     overflow: hidden;
@@ -382,7 +382,7 @@
     height: 6px;
     margin-right: 10px;
     border-radius: var(--corner-radius-pill);
-    background: var(--corner-accent-text);
+    background: var(--corner-ink-soft);
 }
 
 [data-app='our-shelf'] .corner-door-scrap-title {
@@ -399,7 +399,7 @@
 /* An empty list: its icon alone. */
 [data-app='our-shelf'] .corner-door-empty {
     flex: none;
-    color: var(--corner-accent-text);
+    color: var(--corner-ink-soft);
     display: grid;
     place-items: center;
     width: 100%;
@@ -511,7 +511,7 @@
 
 [data-app='our-shelf'] .corner-detail-place-icon {
     flex-shrink: 0;
-    color: var(--corner-accent-text);
+    color: var(--corner-ink-soft);
 }
 
 /* ── "Mentioned in" ──────────────────────────────────────────────────────── */
@@ -656,7 +656,7 @@
 [data-app='our-shelf'] .corner-door-icon {
     flex: none;
     align-self: center;
-    color: var(--corner-accent-text);
+    color: var(--corner-ink-soft);
 }
 
 [data-app='our-shelf'] .corner-door-head .corner-list-menu-btn {
@@ -730,7 +730,7 @@
 
 [data-app='our-shelf'] .corner-suggestion-icon {
     margin-bottom: 4px;
-    color: var(--corner-accent-text);
+    color: var(--corner-ink-soft);
 }
 
 [data-app='our-shelf'] .corner-suggestion-name {
@@ -843,7 +843,7 @@
         var(--shell-accent) 18%,
         var(--shell-surface)
     );
-    color: var(--corner-accent-text);
+    color: var(--corner-ink-soft);
 }
 
 [data-app='our-shelf'] .corner-thumb::after {
@@ -922,7 +922,7 @@
 
 [data-app='our-shelf'] .corner-item-place svg {
     flex: none;
-    color: var(--corner-accent-text);
+    color: var(--corner-ink-soft);
 }
 
 [data-app='our-shelf'] .corner-door-shelf > .corner-door-cover {

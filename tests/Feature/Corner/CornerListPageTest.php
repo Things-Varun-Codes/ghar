@@ -5,6 +5,7 @@ namespace Tests\Feature\Corner;
 use App\MiniApps\Corner\Models\CornerList;
 use App\MiniApps\Corner\Models\Item;
 use App\Shell\Models\User;
+use App\Shell\Services\Household;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Storage;
@@ -83,7 +84,7 @@ class CornerListPageTest extends TestCase
             ->get("/apps/our-shelf/{$list->slug}")
             ->assertInertia(fn (AssertableInertia $page) => $page
                 ->where('items.data.0.addedBy.id', $adder->id)
-                ->where('items.data.0.addedBy.name', $adder->name)
+                ->where('items.data.0.addedBy.name', app(Household::class)->shortName($adder))
                 ->where('items.data.0.addedBy.avatar_url', fn ($url) => str_contains((string) $url, 'avatars/adder.jpg'))
                 ->missing('items.data.0.addedBy.avatar_key'));
 
@@ -127,7 +128,7 @@ class CornerListPageTest extends TestCase
                 ->where('item.is_done', false)
                 ->missing('item.added_by_user_id')
                 ->missing('item.added_at')
-                ->where('item.addedBy', ['id' => $this->user->id, 'name' => $this->user->name, 'avatar_url' => null])
+                ->where('item.addedBy', ['id' => $this->user->id, 'name' => app(Household::class)->shortName($this->user), 'avatar_url' => null])
                 ->missing('item.provider')
                 ->missing('item.provider_id')
                 ->missing('item.url_key'));

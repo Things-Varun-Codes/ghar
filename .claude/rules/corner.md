@@ -81,7 +81,10 @@ its own lists; nothing about Songs or Movies is hard-coded any more.
   item's picture in a rounded thumb (`ItemThumb`), and where there is no picture the list's own icon
   on an accent wash via `color-mix(in oklab, var(--shell-accent) N%, var(--shell-surface))` — never
   hex. Identity changes are CSS-only in `corner.css` over the shared components; don't fork
-  Corner-specific React.
+  Corner-specific React. A list card's edge holds two controls only, the done toggle and "⋯"
+  (Open link, Edit, Delete); the item's page keeps the link one tap away. A place line that would
+  repeat the item's title is left out. List icons, preview bullets and placeholder icons are ink,
+  never coral (coral is press and "here"). The person who added a thing is named by first name.
 
 ## Our Shelf item-actions contract
 
