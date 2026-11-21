@@ -21,6 +21,7 @@ use App\Shell\Controllers\Settings\NotificationsController;
 use App\Shell\Controllers\Settings\PasswordController;
 use App\Shell\Controllers\Settings\ProfileController;
 use App\Shell\Controllers\Settings\ProfilePictureController;
+use App\Shell\Controllers\Settings\SecurityController;
 use App\Shell\Controllers\ShortLinkController;
 use Illuminate\Foundation\Http\Middleware\PreventRequestForgery;
 use Illuminate\Http\Middleware\AddLinkHeadersForPreloadedAssets;
@@ -85,6 +86,9 @@ Route::middleware(['auth'])->group(function () {
         Route::put('/password', [PasswordController::class, 'update'])
             ->middleware('throttle:password-change')
             ->name('password.update');
+        Route::get('/security', [SecurityController::class, 'show'])
+            ->middleware('password.confirm')
+            ->name('security.show');
         Route::get('/email/verify', [EmailVerificationController::class, 'verify'])->name('email.verify');
 
         Route::get('/notifications', [NotificationsController::class, 'show'])->name('notifications.show');
@@ -158,8 +162,3 @@ Route::middleware(['throttle:invite-accept'])->group(function () {
     Route::post('/invitations/{token}/accept', [InvitationAcceptController::class, 'store'])
         ->name('invitations.accept.store');
 });
-
-/**
- * Fortify's password.confirm* routes are 404'd by BlockUnwantedFortifyRoutes; a Route::any()
- * override here loses to Fortify under route:cache.
- */

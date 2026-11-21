@@ -24,6 +24,7 @@ interface Role {
 interface User extends Person {
     email: string;
     last_login_at: string | null;
+    two_factor: boolean;
     roles: Role[];
 }
 
@@ -71,6 +72,7 @@ export default function UsersIndex({ users }: Props) {
                     {roleLabel(role.name)}
                 </Badge>
             ))}
+            {user.two_factor && <Badge variant="outline">Two-step</Badge>}
         </div>
     );
 

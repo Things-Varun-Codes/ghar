@@ -62,9 +62,9 @@ network. It is also the wrong tool if you want:
   Nothing uploads your camera roll; use a self-hosted photo library for that.
 - **Chores, shopping lists or a shared calendar.** The calendar in Our History shows the moments you
   have recorded, not appointments. Use a family organiser or a home dashboard for those.
-- **End-to-end encryption or two-factor sign-in.** Mail between members is hidden from other
-  members, admins included, but whoever runs the server can read the database. Sign-in is an email
-  address and a password.
+- **End-to-end encryption.** Mail between members is hidden from other members, admins included,
+  but whoever runs the server can read the database. Sign-in is an email address and a password,
+  plus a code from an authenticator app for anyone who turns on two-step sign-in.
 - **An export button.** A backup is a database dump plus the media folder or bucket.
 
 The interface is in English.

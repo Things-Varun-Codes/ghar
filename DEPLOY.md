@@ -225,7 +225,8 @@ $C exec -T app cat storage/app/generated-secrets.env > ghar-secrets.env   # once
 Run the first two on a schedule (cron, or your NAS's task scheduler) and copy the files to another
 machine; `restic` or `rclone` to another disk or a cloud bucket works well. Keep
 `ghar-secrets.env` and your `.env` somewhere safe, such as a password manager. Losing `APP_KEY`
-logs everyone out, and losing the Web Push keys means every device has to turn notifications on
+logs everyone out and locks out everyone with two-step sign-in on (their secrets are encrypted
+with it), and losing the Web Push keys means every device has to turn notifications on
 again.
 
 With `MEDIA_DISK=s3`, back up the bucket instead. R2 has no object versioning, so a deleted file is
@@ -392,6 +393,9 @@ BOUQUET_IMAGE_PROVIDER=cloudflare`**: fill in both, or switch back to `fake`.
   creates the admin. If `GHAR_ADMIN_EMAIL` was empty, set it and run `up -d` again. If you lost the
   password, use "Forgot password" on the login page; with `MAIL_MAILER=log` the reset link is in
   the app log.
+- **Someone lost the phone with their authenticator and their recovery codes**: turn two-step
+  sign-in off for them with `docker compose -f docker-compose.selfhost.yml exec app php artisan ghar:two-factor-off their@email`, and they
+  sign in with their password alone. They can turn it on again under Settings.
 - **`413 Request Entity Too Large`** on upload: the file is over 96 MB, or a proxy in front has a
   lower limit.
 - **"That photo's too big. Keep photos under 20 MB."** or **"That file type isn't supported."**:

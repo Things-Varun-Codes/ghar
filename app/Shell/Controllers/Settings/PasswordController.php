@@ -6,7 +6,9 @@ use App\Concerns\PasswordValidationRules;
 use App\Shell\Support\FlashToast;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Password;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -29,6 +31,11 @@ class PasswordController
         $request->user()->forceFill([
             'password' => Hash::make($validated['password']),
         ])->save();
+
+        // A reset link sent before the change would otherwise still work.
+        Password::broker()->deleteToken($request->user());
+        // Keeps this device's "keep me signed in" cookie, which carries the old password's hash.
+        Auth::logoutOtherDevices($validated['password']);
 
         FlashToast::success('Password updated.');
 

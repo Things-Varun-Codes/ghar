@@ -18,6 +18,7 @@ class UserResource extends JsonResource
      *     avatar_url: string|null,
      *     email: string,
      *     last_login_at: string|null,
+     *     two_factor: bool,
      *     roles: array<int, array{name: string}>,
      * }
      */
@@ -30,6 +31,7 @@ class UserResource extends JsonResource
             ...Person::of($user),
             'email' => $user->email,
             'last_login_at' => $user->last_login_at?->toIso8601String(),
+            'two_factor' => $user->two_factor_confirmed_at !== null,
             'roles' => $user->roles->map(fn (Role $role): array => ['name' => $role->name])->all(),
         ];
     }

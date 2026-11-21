@@ -11,6 +11,7 @@ export const DEV_ACCOUNTS = {
     ravi: 'ravi@example.test',
     meera: 'meera@example.test',
     kabir: 'kabir@example.test',
+    leela: 'leela@example.test',
 };
 
 export const DEV_INVITE_TOKEN = 'dev-invite-token-for-local-testing-only';
@@ -21,6 +22,7 @@ export function printDevCredentials(log = console.log) {
     log('    admin    ' + DEV_ACCOUNTS.admin);
     log('    adult    ' + DEV_ACCOUNTS.ravi);
     log('    adult    ' + DEV_ACCOUNTS.meera);
-    log('    younger  ' + DEV_ACCOUNTS.kabir);
+    log('    younger  ' + DEV_ACCOUNTS.kabir + '  (two-step sign-in on)');
+    log('    adult    ' + DEV_ACCOUNTS.leela + '  (two-step sign-in on)');
     log('');
 }

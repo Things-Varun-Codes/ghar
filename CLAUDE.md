@@ -69,12 +69,15 @@ composer dev          # or: server + queue + logs + Vite, also on 127.0.0.1:8000
 
 Password for every account: `ghar-local-dev`. Mail lands in Mailpit at `http://127.0.0.1:8025`.
 
-| Account              | Who                         | Use it to check                                                                                                                                                                  |
-| -------------------- | --------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `admin@example.test` | Asha, the only admin        | Admin pages; editing anyone's moment or Corner item; last-admin guards. Has no special access to other people's mail.                                                            |
-| `ravi@example.test`  | Ravi, adult, has a picture  | **Non-admin creator**: can edit "Monsoon drive to the coast" (his), can't edit "Meera's first pottery class". Sender of the fixtures; can't delete Kabir's comment 2 on Monsoon. |
-| `meera@example.test` | Meera, adult, has a picture | **Recipient**: note 1, bouquet 1, coupon 1 and citation 1 are Ravi's to her alone. Can request the coupon and pay the citation.                                                  |
-| `kabir@example.test` | Kabir, younger, no push     | **Non-recipient**: `/apps/our-exchange/citations/1` and `coupons/1` must 403; note 1 and bouquet 1 must not be listed.                                                           |
+| Account              | Who                          | Use it to check                                                                                                                                                                  |
+| -------------------- | ---------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `admin@example.test` | Asha, the only admin         | Admin pages; editing anyone's moment or Corner item; last-admin guards. Has no special access to other people's mail.                                                            |
+| `ravi@example.test`  | Ravi, adult, has a picture   | **Non-admin creator**: can edit "Monsoon drive to the coast" (his), can't edit "Meera's first pottery class". Sender of the fixtures; can't delete Kabir's comment 2 on Monsoon. |
+| `meera@example.test` | Meera, adult, has a picture  | **Recipient**: note 1, bouquet 1, coupon 1 and citation 1 are Ravi's to her alone. Can request the coupon and pay the citation.                                                  |
+| `kabir@example.test` | Kabir, younger, no push, 2FA | **Non-recipient**: `/apps/our-exchange/citations/1` and `coupons/1` must 403; note 1 and bouquet 1 must not be listed. Signing in asks for a code.                               |
+| `leela@example.test` | Leela, adult, 2FA on         | **Two-step sign-in**: the password leads to the code page; recovery code `ghar-recovery-one` works once (`npm run dev-reset` restores it).                                       |
+
+Kabir's and Leela's code: `php artisan tinker --execute="echo app(PragmaRX\Google2FA\Google2FA::class)->getCurrentOtp('GHARLOCALDEVCODE');"`.
 
 Every state the seed covers is in `database/seeders/DevDataSeeder.php` and `DevData/`; row ids are
 stable after a reset. On Shelf, **Songs** is the per-person list ("Everyone marks their own"):

@@ -4,7 +4,11 @@
  * the seeded fixtures below. scripts/check-smoke-routes.mjs reads the route paths.
  */
 
-import { DEV_ACCOUNTS, DEV_INVITE_TOKEN } from '../lib/dev-data.mjs';
+import {
+    DEV_ACCOUNTS,
+    DEV_INVITE_TOKEN,
+    DEV_PASSWORD,
+} from '../lib/dev-data.mjs';
 import { artisan, expect, test } from './harness.mjs';
 
 const routes = [
@@ -29,6 +33,26 @@ const routes = [
         path: '/settings/password',
         auth: true,
         description: '/settings/password',
+    },
+    {
+        path: '/user/confirm-password',
+        auth: true,
+        chevron: false,
+        description:
+            '/user/confirm-password (password check before security changes)',
+    },
+    {
+        path: '/settings/security',
+        auth: true,
+        confirmPassword: true,
+        description: '/settings/security (two-step sign-in)',
+    },
+    {
+        // Reached only between the password and the code, so the walk signs in as Leela.
+        path: '/two-factor-challenge',
+        auth: false,
+        signInAs: DEV_ACCOUNTS.leela,
+        description: '/two-factor-challenge (the code after the password)',
     },
     { path: '/admin', auth: true, description: '/admin (list)' },
     { path: '/admin/users', auth: true, description: '/admin/users' },
@@ -298,6 +322,23 @@ for (const route of routes) {
                 tile.fulfill({ json: { version: 8, sources: {}, layers: [] } }),
             );
 
+            if (route.signInAs) {
+                await page.goto('/login');
+                await page.fill('input[name="email"]', route.signInAs);
+                await page.fill('input[name="password"]', DEV_PASSWORD);
+                await page.click('button[type="submit"]');
+                await page.waitForURL((u) => u.pathname !== '/login');
+            }
+
+            if (route.confirmPassword) {
+                await page.goto('/user/confirm-password');
+                await page.fill('input[name="password"]', DEV_PASSWORD);
+                await page.click('button[type="submit"]');
+                await page.waitForURL(
+                    (u) => u.pathname !== '/user/confirm-password',
+                );
+            }
+
             const response = await page.goto(url);
 
             expect(response?.status()).toBe(200);
@@ -306,7 +347,7 @@ for (const route of routes) {
             // A modal sheet hides the page under it, chevron included: check the sheet instead.
             if (route.overlay) {
                 await expect(page.getByRole('dialog').first()).toBeVisible();
-            } else if (route.auth) {
+            } else if (route.auth && route.chevron !== false) {
                 // One link holds the chevron and the parent's name, so its name starts
                 // "Back to …" whether the label shows or sits in aria-label.
                 const chevron = page.getByRole('link', { name: /^Back to / });
