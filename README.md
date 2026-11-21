@@ -117,9 +117,24 @@ itself.
 
 ## Questions
 
-[`FAQ.md`](./FAQ.md) has short answers to the things people ask first: whether Ghar runs on a
-Raspberry Pi, whether it needs a domain or email, where photos live, how to back it up, and whether
-there is a phone app.
+**Can we keep lists other than songs and films?** Yes. Our Shelf holds whatever lists your
+household makes. Each list has a name, an icon and its own word for done, and every item can have
+notes, a link, a picture and a place. Anyone can make a list; its maker or an admin can change it.
+Its maker can delete it while everything in it is theirs; once someone else has added to it,
+deleting it takes an admin.
+
+**How do I add or remove a person?** An admin sends an invitation from Admin, Invites. The link
+works once and expires after 7 days; resending the invite replaces it. To remove someone, an admin
+deletes the account from Admin, Users. Ghar won't delete a person who still owns Our Shelf items or
+Our Exchange mail, and says what is in the way.
+
+**Does it work offline?** No. Its service worker only handles notifications, so every screen needs
+a connection to your server.
+
+**Is there a phone app?** Not in an app store. Ghar installs to the home screen from the browser on
+Android and iOS, opens in its own window and can send Web Push notifications. This needs HTTPS, and
+on iOS notifications work only once the app is on the Home Screen. NFC tags tapped on an iPhone open
+in Safari rather than in the installed app.
 
 ## Local development
 
