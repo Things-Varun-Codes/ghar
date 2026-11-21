@@ -123,7 +123,7 @@ function InviteDialog({
         <Dialog open={open} onOpenChange={gate.onOpenChange}>
             <DialogContent>
                 <DialogHeader>
-                    <DialogTitle className="font-display text-(length:--text-title) font-normal">
+                    <DialogTitle className="font-display text-(length:--text-title) font-semibold">
                         Send an invite
                     </DialogTitle>
                 </DialogHeader>

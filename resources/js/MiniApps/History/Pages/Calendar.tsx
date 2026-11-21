@@ -1,6 +1,7 @@
 import { router, usePage } from '@inertiajs/react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useIsPhone } from '@/hooks/use-breakpoint';
 import { monthNames } from '@/lib/dates';
 import { count } from '@/lib/plural';
@@ -151,7 +152,7 @@ export default function Calendar({
         <HistoryLayout
             activeTab="calendar"
             count={
-                <span className="font-sans text-(length:--text-eyebrow) text-(--history-ink-soft)">
+                <span className="font-sans text-(length:--text-body) text-(--history-ink-soft)">
                     {momentCount}
                 </span>
             }
@@ -206,11 +207,15 @@ export default function Calendar({
                     }
                 />
             ) : isMobile ? (
-                <>
-                    <div
-                        className="history-cal-picker"
-                        role="tablist"
+                // Real tabs: arrows move between months, Enter or a tap picks one.
+                <Tabs
+                    value={selMonth}
+                    onValueChange={(m) => setSelMonth(m as number)}
+                    className="contents"
+                >
+                    <TabsList
                         aria-label="Pick a month"
+                        className="history-cal-picker flex w-full items-center"
                     >
                         {monthNames('short').map((abbr, i) => {
                             const m = i + 1;
@@ -218,12 +223,10 @@ export default function Calendar({
                             const selected = m === selMonth;
 
                             return (
-                                <button
+                                <TabsTrigger
                                     key={m}
+                                    value={m}
                                     ref={selected ? selChipRef : undefined}
-                                    type="button"
-                                    role="tab"
-                                    aria-selected={selected}
                                     className={[
                                         'history-cal-chip shell-press',
                                         selected && 'history-cal-chip--sel',
@@ -231,7 +234,6 @@ export default function Calendar({
                                     ]
                                         .filter(Boolean)
                                         .join(' ')}
-                                    onClick={() => setSelMonth(m)}
                                 >
                                     {abbr}
                                     {hasEvents && (
@@ -246,19 +248,21 @@ export default function Calendar({
                                             </span>
                                         </>
                                     )}
-                                </button>
+                                </TabsTrigger>
                             );
                         })}
-                    </div>
-                    <CalendarMonth
-                        year={year}
-                        month={selMonth}
-                        eventsByDay={byMonth.get(selMonth) ?? EMPTY_DAY_MAP}
-                        size="large"
-                        todayMonthDay={todayMonthDay}
-                        onOpen={openEvent}
-                    />
-                </>
+                    </TabsList>
+                    <TabsContent value={selMonth}>
+                        <CalendarMonth
+                            year={year}
+                            month={selMonth}
+                            eventsByDay={byMonth.get(selMonth) ?? EMPTY_DAY_MAP}
+                            size="large"
+                            todayMonthDay={todayMonthDay}
+                            onOpen={openEvent}
+                        />
+                    </TabsContent>
+                </Tabs>
             ) : (
                 <div className="history-cal-year">
                     {Array.from({ length: 12 }, (_, i) => {

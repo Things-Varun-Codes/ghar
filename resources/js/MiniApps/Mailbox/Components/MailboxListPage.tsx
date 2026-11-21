@@ -135,7 +135,7 @@ export default function MailboxListPage<
                 <ListNavBand
                     navigating={navigation.navigating}
                     count={
-                        <span className="text-(length:--text-eyebrow) text-(--mailbox-ink-soft)">
+                        <span className="text-(length:--text-body) text-(--mailbox-ink-soft)">
                             {count(countAll, countNoun.one, countNoun.other)}
                             {searching &&
                                 (countAll === 1 ? ' matches' : ' match')}

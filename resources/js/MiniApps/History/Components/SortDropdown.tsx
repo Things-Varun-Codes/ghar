@@ -1,4 +1,5 @@
 import { router } from '@inertiajs/react';
+import { ArrowDownUp } from 'lucide-react';
 
 import { buildSortHref } from '@/MiniApps/History/lib/sortUrl';
 import type { ChoiceItem } from '@/Shell/Components/ChoiceMenu';
@@ -33,6 +34,7 @@ export default function SortDropdown({
     return (
         <ChoiceMenu
             label="Sort"
+            icon={ArrowDownUp}
             value={currentOrder}
             items={SORT_OPTIONS}
             onSelect={(order) => {

@@ -94,11 +94,14 @@ function FormFieldLabel({ htmlFor, required, children }: FormFieldLabelProps) {
     return (
         <label htmlFor={htmlFor} className="history-field-label">
             {children}
+            {/* The shared FormField's marker, so a required field reads the same in every room. */}
             {required && (
-                <>
-                    {' '}
-                    <span aria-hidden="true">*</span>
-                </>
+                <span
+                    aria-hidden="true"
+                    className="ml-0.5 text-(--destructive)"
+                >
+                    *
+                </span>
             )}
         </label>
     );

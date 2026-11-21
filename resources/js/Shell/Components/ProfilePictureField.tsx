@@ -209,7 +209,7 @@ export default function ProfilePictureField({ person }: Props) {
             >
                 <DialogContent>
                     <DialogHeader>
-                        <DialogTitle className="font-display text-(length:--text-title) font-normal">
+                        <DialogTitle className="font-display text-(length:--text-title) font-semibold">
                             Your picture
                         </DialogTitle>
                         <DialogDescription>

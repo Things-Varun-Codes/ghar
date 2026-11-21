@@ -178,19 +178,16 @@ const PhotoSwipeGallery = forwardRef<PhotoSwipeGalleryHandle, Props>(
                     return;
                 }
 
-                const idx = lightbox.pswp.currIndex;
-                const total = dataSource.length;
-                const item = dataSource[idx];
+                // PhotoSwipe's own counter ("1 / 24") is in the top bar, so the caption has none.
+                const item = dataSource[lightbox.pswp.currIndex];
                 const title = item?.eventTitle ?? '';
                 const date = item?.eventDate ?? '';
-                const counter = `${idx + 1} of ${total}`;
 
                 captionEl.innerHTML = [
                     title &&
-                        `<div style="font-family:var(--font-display);font-size:20px;font-weight:400;line-height:1.2;margin-bottom:4px;">${escapeHtml(title)}</div>`,
+                        `<div style="font-family:var(--font-display);font-size:20px;font-weight:600;line-height:1.2;margin-bottom:4px;">${escapeHtml(title)}</div>`,
                     date &&
-                        `<div style="font-size:14px;opacity:0.85;margin-bottom:4px;">${escapeHtml(date)}</div>`,
-                    `<div style="font-size:13px;opacity:0.7;font-variant-numeric:tabular-nums;">${counter}</div>`,
+                        `<div style="font-size:14px;opacity:0.85;">${escapeHtml(date)}</div>`,
                 ]
                     .filter(Boolean)
                     .join('');

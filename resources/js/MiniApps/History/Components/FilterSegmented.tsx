@@ -1,7 +1,11 @@
 import { router } from '@inertiajs/react';
+import { CalendarDays, Images, Image as Photo, Video } from 'lucide-react';
 
 import { gallery } from '@/routes/apps/our-history';
 import ChoiceMenu from '@/Shell/Components/ChoiceMenu';
+import SegmentedTabs from '@/Shell/Components/SegmentedTabs';
+
+type MediaType = 'all' | 'photos' | 'videos';
 
 type Filters = {
     type: string;
@@ -21,9 +25,13 @@ type Props = {
     order: 'newest-first' | 'oldest-first';
 };
 
+export const GALLERY_PANEL_ID = 'history-gallery-panel';
+
+/* Type as the house's segmented tabs, drawn as icons, then the year as a menu. */
 export default function FilterSegmented({
     filters,
     availableYears,
+    counts,
     order,
 }: Props) {
     function navigate(type: string, year: number | null) {
@@ -44,34 +52,36 @@ export default function FilterSegmented({
     }
 
     const typeOptions = [
-        { key: 'all', label: 'All' },
-        { key: 'photos', label: 'Photos' },
-        { key: 'videos', label: 'Videos' },
+        {
+            key: 'all' as const,
+            label: 'Photos and videos',
+            count: counts.photos + counts.videos,
+            icon: Images,
+        },
+        {
+            key: 'photos' as const,
+            label: 'Photos',
+            count: counts.photos,
+            icon: Photo,
+        },
+        {
+            key: 'videos' as const,
+            label: 'Videos',
+            count: counts.videos,
+            icon: Video,
+        },
     ];
 
     return (
-        <div className="history-filter-segmented">
-            <div
-                role="group"
-                aria-label="Filter by media type"
-                className="history-segmented"
-            >
-                {typeOptions.map((opt) => {
-                    const isActive = filters.type === opt.key;
-
-                    return (
-                        <button
-                            key={opt.key}
-                            type="button"
-                            onClick={() => navigate(opt.key, filters.year)}
-                            aria-pressed={isActive}
-                            className="history-segment"
-                        >
-                            {opt.label}
-                        </button>
-                    );
-                })}
-            </div>
+        <>
+            <SegmentedTabs
+                mode="tablist-client"
+                ariaLabel="Filter by type"
+                active={filters.type as MediaType}
+                panelId={GALLERY_PANEL_ID}
+                items={typeOptions}
+                onChange={(type) => navigate(type, filters.year)}
+            />
 
             {availableYears.length > 0 && (
                 <YearDropdown
@@ -80,7 +90,7 @@ export default function FilterSegmented({
                     onSelect={(year) => navigate(filters.type, year)}
                 />
             )}
-        </div>
+        </>
     );
 }
 
@@ -98,6 +108,7 @@ function YearDropdown({
     return (
         <ChoiceMenu
             label="Year"
+            icon={CalendarDays}
             value={activeYear === null ? 'all' : String(activeYear)}
             valueLabel={activeYear === null ? 'All' : undefined}
             items={[

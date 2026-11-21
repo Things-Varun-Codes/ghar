@@ -14,7 +14,13 @@
 // The version to download is the one given here. The installed package is only checked against
 // it, so a mismatch stops the script instead of writing data for the wrong icons.
 import { execFileSync } from 'node:child_process';
-import { mkdtempSync, readFileSync, readdirSync, rmSync, writeFileSync } from 'node:fs';
+import {
+    mkdtempSync,
+    readFileSync,
+    readdirSync,
+    rmSync,
+    writeFileSync,
+} from 'node:fs';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -23,16 +29,23 @@ const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const version = process.argv[2] ?? '';
 
 if (!/^\d+\.\d+\.\d+$/.test(version)) {
-    console.error('[lucide-icons] Give the lucide-react version, e.g. node scripts/lucide-icons.mjs 1.72.0');
+    console.error(
+        '[lucide-icons] Give the lucide-react version, e.g. node scripts/lucide-icons.mjs 1.72.0',
+    );
     process.exit(1);
 }
 
 const installed = JSON.parse(
-    readFileSync(path.join(root, 'node_modules/lucide-react/package.json'), 'utf8'),
+    readFileSync(
+        path.join(root, 'node_modules/lucide-react/package.json'),
+        'utf8',
+    ),
 ).version;
 
 if (installed !== version) {
-    console.error(`[lucide-icons] lucide-react ${installed} is installed, not ${version}.`);
+    console.error(
+        `[lucide-icons] lucide-react ${installed} is installed, not ${version}.`,
+    );
     process.exit(1);
 }
 
@@ -46,7 +59,10 @@ function perLine(data) {
 
         const entries = Array.isArray(value)
             ? value.map((item) => JSON.stringify(item))
-            : Object.entries(value).map(([name, item]) => `${JSON.stringify(name)}:${JSON.stringify(item)}`);
+            : Object.entries(value).map(
+                  ([name, item]) =>
+                      `${JSON.stringify(name)}:${JSON.stringify(item)}`,
+              );
         const [open, close] = Array.isArray(value) ? '[]' : '{}';
 
         return `${JSON.stringify(key)}:${open}\n${entries.join(',\n')}\n${close}`;
@@ -69,7 +85,7 @@ for (const name of names) {
         aliases[name] = canonical;
     }
 
-    // React keys are only for lucide's own rendering; Icon adds its own.
+    // React keys are dropped to keep the file small; iconNode() in lucide.ts adds them back.
     paths[canonical] ??= node.map(([tag, attrs]) => {
         const { key, ...rest } = attrs;
         void key;
@@ -88,10 +104,19 @@ try {
         archive,
         `https://codeload.github.com/lucide-icons/lucide/tar.gz/refs/tags/${version}`,
     ]);
-    execFileSync('tar', ['xzf', archive, '-C', work, '--wildcards', '*/icons/*.json', '*/categories/*.json']);
+    execFileSync('tar', [
+        'xzf',
+        archive,
+        '-C',
+        work,
+        '--wildcards',
+        '*/icons/*.json',
+        '*/categories/*.json',
+    ]);
 
     const repo = path.join(work, `lucide-${version}`);
-    const meta = (dir, file) => JSON.parse(readFileSync(path.join(repo, dir, file), 'utf8'));
+    const meta = (dir, file) =>
+        JSON.parse(readFileSync(path.join(repo, dir, file), 'utf8'));
 
     const tags = {};
     const members = {};
@@ -118,14 +143,24 @@ try {
         .map((file) => {
             const key = file.replace(/\.json$/, '');
 
-            return { key, title: meta('categories', file).title, icons: (members[key] ?? []).sort() };
+            return {
+                key,
+                title: meta('categories', file).title,
+                icons: (members[key] ?? []).sort(),
+            };
         })
         .filter((category) => category.icons.length > 0)
         .sort((a, b) => a.title.localeCompare(b.title));
 
     const linkables = path.join(root, 'resources/js/Shell/linkables');
-    writeFileSync(path.join(linkables, 'lucide-paths.json'), perLine({ version, paths, aliases }));
-    writeFileSync(path.join(linkables, 'lucide-index.json'), perLine({ version, categories, tags }));
+    writeFileSync(
+        path.join(linkables, 'lucide-paths.json'),
+        perLine({ version, paths, aliases }),
+    );
+    writeFileSync(
+        path.join(linkables, 'lucide-index.json'),
+        perLine({ version, categories, tags }),
+    );
     writeFileSync(
         path.join(root, 'app/MiniApps/Corner/Support/icon-names.json'),
         JSON.stringify(names, null, 4) + '\n',

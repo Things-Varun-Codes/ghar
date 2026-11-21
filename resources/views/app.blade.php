@@ -18,10 +18,11 @@
                 align-items: center;
                 justify-content: center;
                 background-color: #f6f3ee;
-                color: #2f2b28;
-                font-family: ui-sans-serif, system-ui, sans-serif;
+                /* The wordmark as the app draws it: Fraunces 600 in coral (--shell-accent-text). */
+                color: oklch(0.565 0.135 38);
+                font-family: 'Fraunces', ui-serif, Georgia, serif;
                 font-size: 48px;
-                font-weight: 300;
+                font-weight: 600;
                 line-height: 1;
                 letter-spacing: -0.02em;
             }

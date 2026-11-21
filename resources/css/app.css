@@ -13,14 +13,14 @@
 @source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
 
 @theme {
-    /* One face, Atkinson Hyperlegible Next: made to be read by anyone, at any age. Rank is
-       weight (300 for the date, 400 to read, 600 for titles) and nothing heavier. */
+    /* Atkinson Hyperlegible Next to read: made for anyone, at any age. Rank is weight (300 for
+       the date, 400 to read) and nothing heavier than 600. Titles are Fraunces 600. */
     --font-sans:
         'Atkinson Hyperlegible Next', ui-sans-serif, system-ui, sans-serif,
         'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol',
         'Noto Color Emoji';
-    --font-display: var(--font-sans);
-    --font-hand: var(--font-sans);
+    --font-display: 'Fraunces', ui-serif, Georgia, serif;
+    --font-hand: 'Kalam', 'Segoe Print', 'Bradley Hand', cursive;
 
     /* Tailwind's medium and bold land on the system's 600, so no component draws a fourth weight. */
     --font-weight-medium: 600;
@@ -1216,6 +1216,13 @@ a:hover .os-feed-action {
     white-space: nowrap;
 }
 
+/* At its default choice a sort or filter menu is its icon alone, in a 44px circle. */
+.shell-sort-trigger[data-icon-only] {
+    justify-content: center;
+    width: 44px;
+    padding: 0;
+}
+
 .shell-sort-menu {
     background-color: var(--shell-surface);
     color: var(--shell-text);
@@ -1837,6 +1844,37 @@ a:hover .os-feed-action {
     z-index: var(--z-floating);
 }
 
+/* Centred over the Fab's 56px column, 12px above it; a page with no Fab gives it the Fab's spot. */
+.shell-scroll-top {
+    position: fixed;
+    right: calc(max(24px, env(safe-area-inset-right)) + 6px);
+    bottom: calc(var(--shell-float-bottom) + 56px + 12px);
+    z-index: var(--z-floating);
+}
+
+#shell-chrome:not(:has(.shell-fab)) .shell-scroll-top {
+    bottom: var(--shell-float-bottom);
+}
+
+.shell-scroll-top-button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    border-radius: var(--radius-pill);
+    border: 1px solid var(--shell-border-input);
+    background: var(--shell-surface);
+    color: var(--shell-text);
+    box-shadow: 0 6px 16px
+        color-mix(in oklab, var(--shell-text) 12%, transparent);
+    cursor: pointer;
+}
+
+.shell-scroll-top-button:hover {
+    background: var(--shell-hover);
+}
+
 .shell-segmented {
     display: inline-flex;
     align-items: center;
@@ -1973,7 +2011,7 @@ a:hover .os-feed-action {
     margin: 0;
     font-family: var(--form-sheet-font-display, var(--font-display));
     font-size: var(--text-title);
-    font-weight: 400;
+    font-weight: var(--weight-display);
     line-height: 1.2;
     letter-spacing: var(--tracking-display);
     color: var(--form-sheet-ink, var(--shell-text));

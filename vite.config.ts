@@ -23,11 +23,16 @@ export default defineConfig(({ command }) => ({
             input: ['resources/css/app.css', 'resources/js/app.tsx'],
             refresh: true,
             fonts: [
-                // The one face. Light for the date, regular to read, semibold for titles.
+                // The reading face. Light for the date, regular to read, semibold for titles.
                 google('Atkinson Hyperlegible Next', {
                     weights: [300, 400, 600],
                     styles: ['normal', 'italic'],
                 }),
+                // The title face: a soft serif so the wordmark and page titles feel homely.
+                google('Fraunces', { weights: [600] }),
+                // The hand: what someone wrote on a note, coupon or citation in Our Exchange.
+                // Upright only; it has no italic, so nothing on it asks for one.
+                google('Kalam', { weights: [400, 700] }),
             ],
         }),
         inertia(),
