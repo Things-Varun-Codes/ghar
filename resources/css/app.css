@@ -1216,8 +1216,10 @@ a:hover .os-feed-action {
     white-space: nowrap;
 }
 
-/* At its default choice a sort or filter menu is its icon alone, in a 44px circle. */
+/* At its default choice a sort or filter menu is its icon alone, in a 44px circle that a
+   growing search field beside it can't squeeze. */
 .shell-sort-trigger[data-icon-only] {
+    flex: none;
     justify-content: center;
     width: 44px;
     padding: 0;
