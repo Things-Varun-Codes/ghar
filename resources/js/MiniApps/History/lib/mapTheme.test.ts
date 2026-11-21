@@ -24,6 +24,9 @@ describe('themePaint', () => {
         expect(tokenOf('highway_major_casing', 'line', 'line-color')).toBe(
             '--history-map-edge',
         );
+        expect(tokenOf('aeroway-runway', 'line', 'line-color')).toBe(
+            '--history-map-road',
+        );
         expect(tokenOf('aeroway-runway-casing', 'line', 'line-color')).toBe(
             '--history-map-edge',
         );

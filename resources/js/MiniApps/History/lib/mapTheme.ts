@@ -45,7 +45,7 @@ export function themePaint(layers: Layer[]): MapPaint[] {
                     ? 'water'
                     : id === 'road_pier'
                       ? 'land'
-                      : /inner|dashline|path|runway$/.test(id)
+                      : /inner|dashline|path/.test(id) || id.endsWith('runway')
                         ? 'road'
                         : 'edge',
             );
