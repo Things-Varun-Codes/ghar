@@ -1457,6 +1457,7 @@ a:hover .os-feed-action {
 /* Focused on a route change for screen readers; the heading is not a control. */
 .shell-main h1[data-route-focus]:focus {
     outline: none;
+    box-shadow: none; /* rooms draw their ring as a box-shadow (History) */
 }
 
 .shell-topbar-title {
