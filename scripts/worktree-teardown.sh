@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Run inside a worktree before removing it: drops the PHPUnit database that
-# tests/bootstrap.php created for it.
+# tests/bootstrap.php created for it, and deletes the branch once it is merged.
 set -euo pipefail
 cd "$(dirname "${BASH_SOURCE[0]}")/.."
 source scripts/lib/services.sh
@@ -21,3 +21,21 @@ GHAR_PG_DSN="pgsql:host=${host:-127.0.0.1};port=${port:-5432};dbname=postgres" G
   $pdo->exec("drop database if exists \"".getenv("GHAR_DB")."\"");
   echo "Dropped ".getenv("GHAR_DB").".\n";
 '
+
+# Merged into main here or on origin, plainly or squashed: the branch goes with its worktree.
+branch="$(git symbolic-ref --quiet --short HEAD || true)"
+if [ -n "$branch" ] && [ "$branch" != main ]; then
+  git fetch --quiet origin main 2>/dev/null || true
+  for base in main origin/main; do
+    git rev-parse --verify --quiet "$base" >/dev/null || continue
+    if ! git merge-base --is-ancestor HEAD "$base"; then
+      # A squash merge lands the branch's whole diff as one commit; git cherry finds it by patch.
+      mb="$(git merge-base "$base" HEAD)" || continue
+      squash="$(git commit-tree 'HEAD^{tree}' -p "$mb" -m squash)" || continue
+      [[ "$(git cherry "$base" "$squash")" == -* ]] || continue
+    fi
+    # Git won't delete a checked-out branch; the worktree is about to go anyway.
+    git switch --quiet --detach && git branch --quiet -D "$branch" && echo "Deleted $branch, merged into $base."
+    break
+  done
+fi
