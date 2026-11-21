@@ -59,6 +59,7 @@ Route::middleware(['auth'])->group(function () {
         ->name('linkable.search');
 
     Route::prefix('settings')->name('settings.')->group(function () {
+        Route::inertia('/', 'Shell/Pages/Settings/Index')->name('index');
         Route::get('/profile', [ProfileController::class, 'show'])->name('profile.show');
         Route::patch('/profile', [ProfileController::class, 'update'])
             ->middleware('throttle:settings-profile')
@@ -89,6 +90,8 @@ Route::middleware(['auth'])->group(function () {
 });
 
 Route::middleware(['auth', 'can:admin'])->prefix('admin')->name('admin.')->group(function () {
+    Route::inertia('/', 'Shell/Pages/Admin/Index')->name('index');
+
     Route::get('/invites', [InvitesController::class, 'index'])->name('invites.index');
     Route::post('/invites', [InvitesController::class, 'store'])
         ->middleware('throttle:invite-create')

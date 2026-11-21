@@ -84,3 +84,15 @@
     background-color: var(--muted);
     touch-action: none;
 }
+
+/* One row of the Settings and Admin lists: icon, name and what it holds, then the way in. */
+.os-settings-hub-row {
+    min-height: 64px;
+    padding: 12px 16px;
+    color: var(--foreground);
+    text-decoration: none;
+}
+
+.os-settings-hub-row:hover {
+    background-color: var(--shell-hover);
+}

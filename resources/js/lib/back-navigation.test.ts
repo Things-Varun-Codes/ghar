@@ -43,18 +43,29 @@ describe('defaultParent', () => {
         ).toEqual({ href: '/dashboard', label: 'Home' });
     });
 
-    it('takes a page in a room the viewer cannot see, and a shell page, home', () => {
+    it('takes a page in a room the viewer cannot see, and the lists, home', () => {
         expect(defaultParent('/apps/our-attic/boxes', rooms)).toEqual({
             href: '/dashboard',
             label: 'Home',
         });
-        expect(defaultParent('/settings/profile', rooms)).toEqual({
+        expect(defaultParent('/settings', rooms)).toEqual({
             href: '/dashboard',
             label: 'Home',
         });
-        expect(defaultParent('/admin/users', [])).toEqual({
+        expect(defaultParent('/admin', [])).toEqual({
             href: '/dashboard',
             label: 'Home',
+        });
+    });
+
+    it('takes a settings or admin page to its list', () => {
+        expect(defaultParent('/settings/profile', rooms)).toEqual({
+            href: '/settings',
+            label: 'Settings',
+        });
+        expect(defaultParent('/admin/users', [])).toEqual({
+            href: '/admin',
+            label: 'Admin settings',
         });
     });
 });

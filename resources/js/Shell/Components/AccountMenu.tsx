@@ -1,6 +1,7 @@
 import { Link, usePage } from '@inertiajs/react';
-import { LogOut } from 'lucide-react';
-import { useId, useState } from 'react';
+import type { LucideIcon } from 'lucide-react';
+import { LogOut, Settings, Shield } from 'lucide-react';
+import { useState } from 'react';
 import {
     Popover,
     PopoverContent,
@@ -8,27 +9,17 @@ import {
 } from '@/components/ui/popover';
 import { Separator } from '@/components/ui/separator';
 import { logout } from '@/routes';
+import * as admin from '@/routes/admin';
+import * as settings from '@/routes/settings';
 import PersonAvatar from '@/Shell/Components/PersonAvatar';
-import type { ShellNavItem } from '@/Shell/Components/shell-nav';
-import {
-    ADMIN_ITEMS,
-    SETTINGS_ITEMS,
-    isRouteActive,
-} from '@/Shell/Components/shell-nav';
+import { isRouteActive } from '@/Shell/Components/shell-nav';
 import type { Auth } from '@/types/auth';
 
 type SharedProps = { auth: Auth };
 
 const GUEST = { name: '?', avatar_url: null };
 
-/**
- * `withNav` is the phone menu: below `lg` there is no sidebar, so Settings and Admin live here.
- */
-export default function AccountMenu({
-    withNav = false,
-}: {
-    withNav?: boolean;
-}) {
+export default function AccountMenu() {
     const { props, url } = usePage<SharedProps>();
     const user = props.auth.user;
     const isAdmin = user?.roles?.includes('admin') ?? false;
@@ -54,7 +45,7 @@ export default function AccountMenu({
                 align="end"
                 sideOffset={8}
                 collisionPadding={8}
-                className={`${withNav ? 'w-64' : 'w-56'} max-h-(--available-height) overflow-y-auto border-(--border) bg-(--card) p-1 text-(--foreground)`}
+                className="max-h-(--available-height) w-64 overflow-y-auto border-(--border) bg-(--card) p-1 text-(--foreground)"
             >
                 {user && (
                     <div className="shell-account-header flex items-center gap-3">
@@ -69,24 +60,25 @@ export default function AccountMenu({
                         </div>
                     </div>
                 )}
-                {withNav && (
-                    <nav aria-label="Account">
-                        <MenuGroup
-                            label="Settings"
-                            items={SETTINGS_ITEMS}
+                <Separator className="my-1" />
+                <nav aria-label="Account">
+                    <MenuLink
+                        href={settings.index.url()}
+                        label="Settings"
+                        icon={Settings}
+                        url={url}
+                        onNavigate={() => setOpen(false)}
+                    />
+                    {isAdmin && (
+                        <MenuLink
+                            href={admin.index.url()}
+                            label="Admin settings"
+                            icon={Shield}
                             url={url}
                             onNavigate={() => setOpen(false)}
                         />
-                        {isAdmin && (
-                            <MenuGroup
-                                label="Admin"
-                                items={ADMIN_ITEMS}
-                                url={url}
-                                onNavigate={() => setOpen(false)}
-                            />
-                        )}
-                    </nav>
-                )}
+                    )}
+                </nav>
                 <Separator className="my-1" />
                 <Link
                     href={logout.url()}
@@ -94,13 +86,7 @@ export default function AccountMenu({
                     as="button"
                     className="shell-focus shell-account-signout flex w-full items-center gap-3 rounded-md px-3 text-left"
                 >
-                    {withNav && (
-                        <LogOut
-                            size={18}
-                            strokeWidth={1.5}
-                            aria-hidden="true"
-                        />
-                    )}
+                    <LogOut size={18} strokeWidth={1.5} aria-hidden="true" />
                     Sign out
                 </Link>
             </PopoverContent>
@@ -108,48 +94,28 @@ export default function AccountMenu({
     );
 }
 
-function MenuGroup({
+function MenuLink({
+    href,
     label,
-    items,
+    icon: Icon,
     url,
     onNavigate,
 }: {
+    href: string;
     label: string;
-    items: ShellNavItem[];
+    icon: LucideIcon;
     url: string;
     onNavigate: () => void;
 }) {
-    const id = useId();
-
     return (
-        <div className="pb-1">
-            <Separator className="mb-1" />
-            <p id={id} className="shell-account-group-label">
-                {label}
-            </p>
-            <ul aria-labelledby={id}>
-                {items.map(({ href, label: itemLabel, icon: Icon }) => {
-                    const active = isRouteActive(url, href);
-
-                    return (
-                        <li key={href}>
-                            <Link
-                                href={href}
-                                onClick={onNavigate}
-                                aria-current={active ? 'page' : undefined}
-                                className="shell-focus shell-account-item flex items-center gap-3 rounded-md px-3"
-                            >
-                                <Icon
-                                    size={18}
-                                    strokeWidth={1.5}
-                                    aria-hidden="true"
-                                />
-                                {itemLabel}
-                            </Link>
-                        </li>
-                    );
-                })}
-            </ul>
-        </div>
+        <Link
+            href={href}
+            onClick={onNavigate}
+            aria-current={isRouteActive(url, href) ? 'page' : undefined}
+            className="shell-focus shell-account-item flex items-center gap-3 rounded-md px-3"
+        >
+            <Icon size={18} strokeWidth={1.5} aria-hidden="true" />
+            {label}
+        </Link>
     );
 }

@@ -19,25 +19,67 @@ import * as notifications from '@/routes/settings/notifications';
 import * as password from '@/routes/settings/password';
 import * as profile from '@/routes/settings/profile';
 
-export type ShellNavItem = { href: string; label: string; icon: LucideIcon };
+export type ShellNavItem = {
+    href: string;
+    label: string;
+    icon: LucideIcon;
+    /** What the page holds, under its name on the Settings and Admin lists. */
+    hint: string;
+};
 
-// The OS pages, shared by the desktop sidebar and the phone account menu.
+// The OS pages, shared by the desktop sidebar and the Settings and Admin lists.
 export const SETTINGS_ITEMS: ShellNavItem[] = [
-    { href: profile.show.url(), label: 'Profile', icon: UserRound },
-    { href: password.show.url(), label: 'Password', icon: KeyRound },
-    { href: notifications.show.url(), label: 'Notifications', icon: Bell },
+    {
+        href: profile.show.url(),
+        label: 'Profile',
+        icon: UserRound,
+        hint: 'Your name, email and picture',
+    },
+    {
+        href: password.show.url(),
+        label: 'Password',
+        icon: KeyRound,
+        hint: 'Change the password you sign in with',
+    },
+    {
+        href: notifications.show.url(),
+        label: 'Notifications',
+        icon: Bell,
+        hint: 'What this device alerts you about',
+    },
 ];
 
 export const ADMIN_ITEMS: ShellNavItem[] = [
-    { href: rooms.index.url(), label: 'Rooms', icon: DoorOpen },
-    { href: invites.index.url(), label: 'Invites', icon: UserPlus },
-    { href: users.index.url(), label: 'Users', icon: Users },
+    {
+        href: rooms.index.url(),
+        label: 'Rooms',
+        icon: DoorOpen,
+        hint: 'Which rooms this home has',
+    },
+    {
+        href: invites.index.url(),
+        label: 'Invites',
+        icon: UserPlus,
+        hint: 'Ask someone to join',
+    },
+    {
+        href: users.index.url(),
+        label: 'Users',
+        icon: Users,
+        hint: 'Everyone in the household and their roles',
+    },
     {
         href: adminNotifications.show.url(),
         label: 'Send notification',
         icon: Send,
+        hint: 'A push or an email to one person',
     },
-    { href: shortlinks.index.url(), label: 'Shortlinks', icon: Link2 },
+    {
+        href: shortlinks.index.url(),
+        label: 'Shortlinks',
+        icon: Link2,
+        hint: 'Short addresses that open a page',
+    },
 ];
 
 /** `url` is Inertia's page url (path plus query). */

@@ -1067,13 +1067,6 @@ a:hover .os-feed-action {
     color: var(--muted-foreground);
 }
 
-.shell-account-group-label {
-    padding: 8px 12px 4px;
-    font-size: var(--text-meta);
-    font-weight: 400;
-    color: var(--muted-foreground);
-}
-
 .shell-account-item {
     min-height: 44px;
     font-size: var(--text-small);
