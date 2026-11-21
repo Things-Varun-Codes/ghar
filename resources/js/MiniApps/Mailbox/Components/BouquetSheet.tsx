@@ -1,3 +1,5 @@
+import { HttpResponseError } from '@inertiajs/core';
+import { http } from '@inertiajs/react';
 import type { FormEvent } from 'react';
 import { useEffect, useId, useState } from 'react';
 import { Fade, Reveal } from '@/components/motion';
@@ -17,7 +19,6 @@ import {
     TooltipContent,
     TooltipTrigger,
 } from '@/components/ui/tooltip';
-import { readXsrfToken } from '@/lib/csrf';
 import { captureSilent } from '@/lib/observability';
 import CharCount from '@/MiniApps/Mailbox/Components/CharCount';
 import type { FlowerEntry } from '@/MiniApps/Mailbox/Components/NoteCard';
@@ -133,23 +134,31 @@ export default function BouquetSheet({
         setGenError(null);
 
         try {
-            const res = await fetch(generate.url(), {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-XSRF-TOKEN': readXsrfToken(),
-                },
-                body: JSON.stringify({
+            const res = await http.getClient().request({
+                method: 'post',
+                url: generate.url(),
+                data: {
                     flowers: data.flowers,
                     refine: refine.trim() || undefined,
-                }),
+                },
+                headers: { Accept: 'application/json' },
             });
 
-            if (!res.ok) {
+            const json = JSON.parse(res.data) as {
+                image: string;
+                mime: string;
+            };
+            setData('image', json.image);
+            setData('mime', json.mime);
+            setPreviewUrl(base64ToObjectUrl(json.image, json.mime));
+        } catch (err) {
+            if (err instanceof HttpResponseError) {
                 let msg = 'Could not arrange your bouquet. Please try again.';
 
                 try {
-                    const json = (await res.json()) as { message?: string };
+                    const json = JSON.parse(err.response.data) as {
+                        message?: string;
+                    };
 
                     if (json.message) {
                         msg = json.message;
@@ -164,11 +173,6 @@ export default function BouquetSheet({
                 return;
             }
 
-            const json = (await res.json()) as { image: string; mime: string };
-            setData('image', json.image);
-            setData('mime', json.mime);
-            setPreviewUrl(base64ToObjectUrl(json.image, json.mime));
-        } catch (err) {
             setGenError('Could not arrange your bouquet. Please try again.');
             captureSilent(
                 err instanceof Error
