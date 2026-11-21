@@ -151,6 +151,7 @@ export default function Timeline({
     const loadedEvents = events.data;
     const scroller = useRef<InfiniteScrollRef>(null);
     const [loadError, setLoadError] = useState(false);
+    const [loadsSettled, setLoadsSettled] = useState(0);
 
     const fresh = useFreshMoments(moment, loadedEvents, onThisDay);
     const openEvent =
@@ -229,8 +230,8 @@ export default function Timeline({
         }
     }, [loadError]);
 
-    // Each page that arrives is another look for the year.
-    useEffect(stepJump, [stepJump, loadedEvents]);
+    // Each load that settles is another look for the year.
+    useEffect(stepJump, [stepJump, loadsSettled]);
 
     const jumpToYear = (year: number) => {
         jumpTo.current = year;
@@ -293,6 +294,7 @@ export default function Timeline({
                             prop="events"
                             ref={scroller}
                             onLoadErrorChange={setLoadError}
+                            onLoadFinish={() => setLoadsSettled((n) => n + 1)}
                         >
                             {yearGroups.map(({ year, events: yearEvents }) => (
                                 // The anchor is the year's section, not its pinned heading: once

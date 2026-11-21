@@ -14,6 +14,8 @@ type Props = {
     ref?: Ref<InfiniteScrollRef>;
     /* Told when a load-more fails, and again when one succeeds. */
     onLoadErrorChange?: (failed: boolean) => void;
+    /* After each load-more settles, done or not. */
+    onLoadFinish?: () => void;
 };
 
 /*
@@ -26,6 +28,7 @@ export default function LoadMoreScroll({
     className,
     ref,
     onLoadErrorChange,
+    onLoadFinish,
 }: Props) {
     const [loadError, setLoadErrorState] = useState(false);
 
@@ -58,6 +61,7 @@ export default function LoadMoreScroll({
             manual={loadError}
             params={{
                 onSuccess: () => setLoadError(false),
+                onFinish: () => onLoadFinish?.(),
                 // Returning false keeps Inertia's error dialog and its unhandled rejection away:
                 // the footer is the visible, recoverable surface.
                 onNetworkError: (error) => {
