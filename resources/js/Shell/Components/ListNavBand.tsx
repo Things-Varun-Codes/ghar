@@ -19,8 +19,8 @@ export type SortItem = ChoiceItem;
 export type ListNavBandProps = {
     count?: ReactNode;
     /**
-     * Already delay-gated (~250ms) Mode-B pending flag from
-     * `useCursorPagination`. Renders the shared spinner beside the count.
+     * Already delay-gated (~250ms) pending flag from
+     * `useListNavigation`. Renders the shared spinner beside the count.
      * The band owns no timer — do not introduce a second one.
      */
     navigating?: boolean;

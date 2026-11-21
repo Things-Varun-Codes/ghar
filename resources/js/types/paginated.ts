@@ -9,8 +9,7 @@ export type Paginated<T> = {
     // the shared CursorList helper — Our Shelf and all four Our Exchange
     // surfaces (Messages, Flowers, Citations, Coupons). Mailbox declares no status column, so its
     // figures arrive
-    // degraded: `active` equals `all` and `done` is always 0. Stays optional
-    // because a controller may still emit a bare cursor payload with no
-    // such key at all — the History events index is the surviving example.
+    // degraded: `active` equals `all` and `done` is always 0. Optional
+    // because the History timeline sends a bare cursor payload without it.
     counts?: { all: number; active: number; done: number };
 };

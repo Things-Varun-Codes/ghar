@@ -1,3 +1,4 @@
+import type { InfiniteScrollRef } from '@inertiajs/core';
 import { usePage } from '@inertiajs/react';
 import { Plus } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
@@ -10,7 +11,7 @@ import OnThisDayStrip from '@/MiniApps/History/Components/OnThisDayStrip';
 import SortDropdown from '@/MiniApps/History/Components/SortDropdown';
 import YearBanner from '@/MiniApps/History/Components/YearBanner';
 import YearJumpRail from '@/MiniApps/History/Components/YearJumpRail';
-import { useConversionPolling } from '@/MiniApps/History/Hooks/useConversionPolling';
+import { useConvertingRows } from '@/MiniApps/History/Hooks/useConvertingRows';
 import {
     findMoment,
     useFreshMoments,
@@ -24,14 +25,13 @@ import type {
 import { timeline } from '@/routes/apps/our-history';
 import EmptyState from '@/Shell/Components/EmptyState';
 import Fab from '@/Shell/Components/Fab';
-import ListLoadMoreState from '@/Shell/Components/ListLoadMoreState';
-import { useCursorPagination } from '@/Shell/Hooks/useCursorPagination';
-import type { CursorPaginator } from '@/Shell/Hooks/useCursorPagination';
+import LoadMoreScroll from '@/Shell/Components/LoadMoreScroll';
+import type { Paginated } from '@/types/paginated';
 
 type SortOrder = 'newest-first' | 'oldest-first';
 
 type Props = {
-    events: CursorPaginator<HistoryEvent>;
+    events: Paginated<HistoryEvent>;
     order: SortOrder;
     eventsCount: number;
     lastEventOccurredOn: string | null;
@@ -115,7 +115,7 @@ function groupByYear(events: HistoryEvent[], order: SortOrder): YearGroup[] {
 }
 
 export default function Timeline({
-    events: initialEvents,
+    events,
     order,
     eventsCount,
     lastEventOccurredOn,
@@ -146,28 +146,20 @@ export default function Timeline({
         setSheetOpen(true);
     };
 
-    useMomentFromUrl(moment, [...initialEvents.data, ...onThisDay], openMoment);
+    useMomentFromUrl(moment, [...events.data, ...onThisDay], openMoment);
 
-    const {
-        items: loadedEvents,
-        sentinelRef,
-        loadingMore,
-        loadError,
-        retryLoadMore,
-        refreshInPlace,
-    } = useCursorPagination<HistoryEvent>({
-        initial: initialEvents,
-        propName: 'events',
-    });
+    const loadedEvents = events.data;
+    const scroller = useRef<InfiniteScrollRef>(null);
+    const [loadError, setLoadError] = useState(false);
+    const [loadsSettled, setLoadsSettled] = useState(0);
 
     const fresh = useFreshMoments(moment, loadedEvents, onThisDay);
     const openEvent =
         findMoment(openId, fresh.rows, fresh.others, moment) ?? openedCopy;
 
-    const hasPendingMedia = loadedEvents.some((e) =>
+    useConvertingRows('events', loadedEvents, (e) =>
         e.media.some((m) => m.pending),
     );
-    useConversionPolling(hasPendingMedia, refreshInPlace);
 
     const yearGroups = useMemo(
         () => groupByYear(fresh.rows, order),
@@ -200,8 +192,7 @@ export default function Timeline({
     );
 
     // A year further down may not have loaded yet, or not enough below it for it to reach the
-    // top: keep the load-more sentinel in view, which loads the next page, until it has, then
-    // scroll to it.
+    // top: load the next page until it has, then scroll to it.
     const jumpTo = useRef<number | null>(null);
 
     const stepJump = useCallback(() => {
@@ -210,7 +201,7 @@ export default function Timeline({
         }
 
         const section = document.getElementById(`year-${jumpTo.current}`);
-        const allLoaded = loadedEvents.length >= eventsCount;
+        const allLoaded = !(scroller.current?.hasNext() ?? false);
         const roomBelow =
             section !== null &&
             document.documentElement.scrollHeight -
@@ -233,13 +224,14 @@ export default function Timeline({
             );
         } else if (loadError) {
             jumpTo.current = null;
-        } else if (!loadingMore) {
-            sentinelRef.current?.scrollIntoView({ block: 'end' });
+        } else {
+            // Ignored while a page is already on its way.
+            scroller.current?.fetchNext();
         }
-    }, [loadingMore, loadError, sentinelRef, loadedEvents.length, eventsCount]);
+    }, [loadError]);
 
-    // Each page that arrives is another look for the year.
-    useEffect(stepJump, [stepJump]);
+    // Each load that settles is another look for the year.
+    useEffect(stepJump, [stepJump, loadsSettled]);
 
     const jumpToYear = (year: number) => {
         jumpTo.current = year;
@@ -298,46 +290,47 @@ export default function Timeline({
 
                     {/* Only the first page settles in; rows loaded later appear in place. */}
                     <Settle>
-                        {yearGroups.map(({ year, events: yearEvents }) => (
-                            // The anchor is the year's section, not its pinned heading: once
-                            // scrolled past, the heading sits at the section's end.
-                            <div key={year} id={`year-${year}`}>
-                                <YearBanner
-                                    year={year}
-                                    count={
-                                        yearCounts[year] ?? yearEvents.length
-                                    }
-                                    years={allYears}
-                                    onJump={jumpToYear}
-                                />
-                                {yearEvents.map((event) => (
-                                    <SettleItem
-                                        key={event.id}
-                                        index={rowIndex.get(event.id) ?? 0}
-                                        className="relative"
-                                    >
-                                        <EventCard
-                                            event={event}
-                                            onRead={(id) =>
-                                                openMoment(
-                                                    fresh.rows.find(
-                                                        (e) => e.id === id,
-                                                    ) ?? null,
-                                                )
-                                            }
-                                        />
-                                    </SettleItem>
-                                ))}
-                            </div>
-                        ))}
+                        <LoadMoreScroll
+                            prop="events"
+                            ref={scroller}
+                            onLoadErrorChange={setLoadError}
+                            onLoadFinish={() => setLoadsSettled((n) => n + 1)}
+                        >
+                            {yearGroups.map(({ year, events: yearEvents }) => (
+                                // The anchor is the year's section, not its pinned heading: once
+                                // scrolled past, the heading sits at the section's end.
+                                <div key={year} id={`year-${year}`}>
+                                    <YearBanner
+                                        year={year}
+                                        count={
+                                            yearCounts[year] ??
+                                            yearEvents.length
+                                        }
+                                        years={allYears}
+                                        onJump={jumpToYear}
+                                    />
+                                    {yearEvents.map((event) => (
+                                        <SettleItem
+                                            key={event.id}
+                                            index={rowIndex.get(event.id) ?? 0}
+                                            className="relative"
+                                        >
+                                            <EventCard
+                                                event={event}
+                                                onRead={(id) =>
+                                                    openMoment(
+                                                        fresh.rows.find(
+                                                            (e) => e.id === id,
+                                                        ) ?? null,
+                                                    )
+                                                }
+                                            />
+                                        </SettleItem>
+                                    ))}
+                                </div>
+                            ))}
+                        </LoadMoreScroll>
                     </Settle>
-
-                    <ListLoadMoreState
-                        loadingMore={loadingMore}
-                        loadError={loadError}
-                        onRetry={retryLoadMore}
-                        sentinelRef={sentinelRef}
-                    />
                 </div>
             )}
 

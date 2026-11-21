@@ -116,7 +116,7 @@ final class ListPage
             $list->status($this->statusColumn);
         }
 
-        $this->startOverUnlessLoadingMore($key);
+        self::startOverUnlessLoadingMore($this->request, $key);
 
         $props = [
             $key => $list->scroll($filter, $perPage, $transform),
@@ -135,18 +135,19 @@ final class ListPage
      * Any response but a load-more one (a filter, a mutation's redirect, a reload) shows the
      * first page again. Inertia's InfiniteScroll only forgets how far it had loaded when the
      * scroll prop says `reset`, which Inertia sets from this header; without it the next
-     * load-more would continue from the old list's cursor.
+     * load-more would continue from the old list's cursor. Call it before building the scroll
+     * prop under $key.
      */
-    private function startOverUnlessLoadingMore(string $key): void
+    public static function startOverUnlessLoadingMore(Request $request, string $key): void
     {
-        if ($this->request->headers->has(Header::INFINITE_SCROLL_MERGE_INTENT)) {
+        if ($request->headers->has(Header::INFINITE_SCROLL_MERGE_INTENT)) {
             return;
         }
 
-        $reset = array_filter(explode(',', (string) $this->request->header(Header::RESET)));
+        $reset = array_filter(explode(',', (string) $request->header(Header::RESET)));
 
         if (! in_array($key, $reset, true)) {
-            $this->request->headers->set(Header::RESET, implode(',', [...$reset, $key]));
+            $request->headers->set(Header::RESET, implode(',', [...$reset, $key]));
         }
     }
 }
