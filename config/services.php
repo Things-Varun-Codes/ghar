@@ -7,7 +7,8 @@ return [
 
     // Place search. Point it at your own Photon to keep searches in-house.
     'photon' => [
-        'url' => env('PHOTON_URL', 'https://photon.komoot.io'),
+        // Empty counts as unset: compose passes an empty string through.
+        'url' => env('PHOTON_URL') ?: 'https://photon.komoot.io',
     ],
 
     // No 'fake' default on purpose: MailboxServiceProvider throws in production when this is
