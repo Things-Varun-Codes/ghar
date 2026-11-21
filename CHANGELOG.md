@@ -9,6 +9,149 @@ Minor and patch versions don't.
 Before any upgrade, back up the database and the media volume (DEPLOY.md, "Backups and restore").
 Migrations only run forward.
 
+## [1.3.0] - 2026-11-21
+
+### Added
+
+- Every page now has a "back to the top" button once you've scrolled a long way down, just above the
+  add button, or in its place where a page has none.
+- Our History sends one push each morning with whose birthday it is and what happened on this day in
+  past years.
+    - It arrives from 9 in the morning, in the household's time (`GHAR_TIMEZONE`), at most once a day,
+      and only to people with Morning memories on in Settings → Notifications. The birthday person
+      gets a happy birthday; everyone else hears whose birthday it is.
+    - One memory opens that moment; several open the Timeline.
+    - When you add a moment on someone's birthday, Our History asks whether it is their birthday. A
+      moment linked to a birthday says so on its card, and later mornings remember it: "Meera's
+      birthday, 2022".
+    - The Timeline and the Calendar both start with "On this day" when something happened on today's
+      date in an earlier year. A moment from 29 February shows on 28 February in other years.
+- Everyone can have a profile picture, shown beside their name around the house. Without one, their
+  initials sit in a soft circle instead.
+    - In Settings → Profile, choose a photo, slide it into the circle and save. You can change or
+      remove it there at any time. An admin can remove anyone's picture from their page in Admin →
+      Users, but only you can put one up.
+    - Settings → Profile also takes your birthday: the whole date, day, month and year. Once it's set
+      you can change it but not clear it. An admin can set anyone's birthday from their page in Admin
+      → Users.
+    - Settings → Notifications has a Morning memories switch, on for everyone to start with, for Our
+      History's morning push of birthdays and what happened on this day in past years.
+    - `GHAR_TIMEZONE` sets where the household lives, so "today" and dates follow your clock rather
+      than the server's or the phone's, down to the day a coupon runs out and the day a comment or a
+      login is shown on. Dates read the way that country writes them unless `GHAR_LOCALE` says
+      otherwise: the order of day and month, the month and weekday names in Our History's calendar,
+      the day its weeks start on, and how long ago a comment was ("5 min ago"). See DEPLOY.md.
+    - In Our Exchange, a note or bouquet shows the face of who sent it, or of everyone you sent it to,
+      and the people to send to are shown with their faces.
+    - In Our Shelf, each item shows the face of whoever added it.
+- Everyone can react to a moment and talk about it underneath.
+    - Tap ❤️ 😂 😮 😢 🙏 or 🎉 in a moment to react, and tap again to take it back. Each reaction
+      shows who left it.
+    - Comments are plain text, below the photos. You can delete your own; an admin can delete
+      anyone's. A comment you haven't sent yet is kept if you close the moment by mistake: it asks
+      first.
+    - Whoever added the moment, and everyone who commented before you, gets a push when you comment.
+      It says who commented on which moment, never what they wrote. Reactions send nothing.
+- On Our History's Timeline, tap a year's heading to jump to any other year, even one further down
+  that hasn't loaded yet.
+
+### Changed
+
+- The Timeline is more compact, so far more moments fit on a screen.
+    - Each moment shows its date, who added it with their face, its title, a line of the story and a
+      small picture. "Details" opens the rest of the story and the photos; tapping anywhere else still
+      opens the moment.
+    - The place field in a moment works from the keyboard: arrows to choose a suggestion, Enter to
+      pick it, Escape to close the list.
+    - The picker for linking things into a story groups results by kind and works with the arrow keys.
+      Numbers in a search are now searched for, rather than picking a result.
+- Our History now works like the other rooms: the Gallery filters by type with the same tabs as a
+  Shelf list, and the count and sort sit under the tabs and scroll away with the page.
+    - The Gallery's year is a menu on every screen size.
+    - On a phone the Calendar's days are bigger to tap, and the month strip works with the arrow keys.
+- Home now shows what needs you and what the household added this week, under today's date, instead
+  of a card for each room.
+    - **Needs you** pins up citations to pay, coupons someone wants to use, and unread notes and
+      flowers, each on a slip pinned up by the sender's picture, with a button straight to it. Only
+      the person they're for sees them.
+    - **New this week** lists the moments and list items the others added.
+    - Birthdays in the next two weeks appear under **Coming up**.
+    - On a laptop the rooms are now in the sidebar, the same as the bottom bar on a phone.
+    - Ghar has a new look throughout, the offline page included: a warm white, one easy-to-read
+      typeface, and coral for anything you can press.
+    - In Our History, each moment on the Timeline shows who posted it as their picture on the line,
+      opens with a tap anywhere on the card instead of a Details button, shows where it happened
+      beside the date, and keeps its photo as a small print. People in Our History are named by first
+      name, as on Home; dates read quietly, and the Gallery's filters, a moment's reactions and the
+      story's formatting buttons each fit on one line on a phone. On a phone the Calendar shows each
+      day's photo and date without a clipped title.
+    - In Our Shelf, each thing on a list keeps just its done button and a ⋯ menu (which now has Open
+      link), a place no longer repeats its own name, people are named by first name, and a thing
+      that's done says who did it, like "Loved by Asha" (its own page adds the day).
+    - A list in Our Shelf can let everyone mark things for themselves: turn on "Everyone marks their
+      own" in the list's settings, and Meera's "Loved" no longer counts as yours. Each thing shows who
+      has marked it, and the list's tab becomes "Loved by me". Switching a list either way keeps
+      everything already marked.
+    - In Our Exchange, citations and coupons print in ink like real forms, stamps and badges included,
+      and everyone, including the people you send to, is named by first name. What's waiting for you
+      ("1 to pay") reads in dark ink rather than coral, and notes and coupon titles are written at the
+      same size as the rest of the app. On a laptop the Exchange shows its four piles side by side,
+      and notes and flowers sit in columns instead of one long row each.
+- Titles and the Ghar name are now in a soft serif, notes, coupons and citations in Our Exchange are
+  in handwriting, and the count under a room's tabs is easier to read.
+- Ghar's mark, the roof over a heart, is now coral like the rest of the app, and it sits beside the
+  name in the header, on the sign-in page and on the loading screen, as well as on the browser tab
+  and the home-screen icon.
+- A bouquet opens in the same full-screen viewer as photos in Our History, and photos open faster
+  and no longer jump around while the Gallery loads.
+    - Tapping a photo opens a copy sized for your screen instead of the full-size original, sharp
+      enough to zoom on a large display.
+    - Gallery tiles hold their square shape while they load.
+    - Our History no longer loads its other tabs in the background on every visit.
+    - Gallery thumbnails are sharp on high-resolution screens, while the small pictures on Timeline,
+      Home and On This Day download less. Existing photos are redone in the background after the
+      upgrade, and an old thumbnail can show for up to two hours until the browser lets it go.
+- Our Corner is now called Our Shelf, and Our Mailbox is now Our Exchange, each with a new icon in
+  the bottom bar.
+    - The rooms now live at `/apps/our-shelf` and `/apps/our-exchange`. Old bookmarks, home-screen
+      shortcuts and notifications that point at `/apps/our-corner` or `/apps/our-mailbox` no longer
+      open anything.
+    - Which rooms and kinds of mail are switched on, short links into either room, and links to Shelf
+      items inside moments all carry over on upgrade.
+    - The old `/apps/our-mailbox/challans` addresses from before citations were renamed are gone too.
+- Sheets, menus and other controls have been rebuilt so they behave the same everywhere, and things
+  now move softly when they change.
+    - On a phone, swipe a sheet down to close it; on a wider screen, swipe it to the right. A sheet
+      with something typed in still asks before throwing it away.
+    - A page's first rows and doors settle in as it opens. Rows that load later, and pages you come
+      back to, appear in place.
+    - On Our Shelf, the sticker pops in when you mark something done, a thing you remove folds away
+      while its Undo is showing and comes back if you undo it, and lists glide into place when you
+      move one earlier or later.
+    - Lists keep loading as you scroll, and if loading stops, "Try again" picks up where it left off.
+    - If your device is set to reduce motion, nothing slides or rises; things only fade.
+    - In Our Exchange, a citation's stamp and a coupon's tick scale in gently at the moment it is paid
+      or fulfilled, and choosing flowers prints what each one means under them.
+- Sort and filter buttons are now icons, so they fit on a phone: sort in every room, and the
+  Gallery's type and year. A button that isn't at its usual setting also says what it is set to,
+  like "2025" or "From the beginning".
+
+### Fixed
+
+- When a bouquet couldn't be arranged because of the flowers or the style you chose, the sheet said
+  only "Could not arrange your bouquet". It now says what was wrong.
+- In Our History, a Calendar day with a moment and a moment's photos showed no outline when reached
+  with the keyboard.
+- Next to a search box, the sort button was squeezed into an oval instead of a circle.
+
+### Security
+
+- The image now runs PHP 8.5.13, which closes the remote code execution and PHP-FPM holes that PHP
+  fixed in its November 2026 security release.
+- When Ghar fetches a pasted link for its preview, picture or map, it now also refuses a few more
+  kinds of address that point inside a network rather than out to the internet, such as IPv6
+  site-local and NAT64 local-use addresses.
+
 ## [1.2.0] - 2026-11-17
 
 ### Added
