@@ -10,12 +10,13 @@ use Illuminate\Support\Str;
 
 class InviteUser
 {
+    /** Returns the accept link: the only moment the plaintext token exists to build it from. */
     public function __invoke(
         User $inviter,
         string $email,
         string $roleName,
         ?int $expiryDays = 7
-    ): Invitation {
+    ): string {
         Invitation::pending()
             ->where('email', $email)
             ->update(['revoked_at' => now()]);
@@ -35,6 +36,6 @@ class InviteUser
         Notification::route('mail', $email)
             ->notify(new InvitationNotification($invitation, $plaintext));
 
-        return $invitation;
+        return route('invitations.accept.show', ['token' => $plaintext]);
     }
 }

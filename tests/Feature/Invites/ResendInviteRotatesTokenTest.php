@@ -51,6 +51,10 @@ class ResendInviteRotatesTokenTest extends TestCase
         $this->assertNotNull($newInvite);
         $this->assertNotSame($original->token_hash, $newInvite->token_hash);
 
+        $link = session('inertia.flash_data.invite_link');
+        $this->assertIsString($link);
+        $this->assertSame($newInvite->token_hash, hash('sha256', basename($link)));
+
         // Notification sent
         Notification::assertSentOnDemand(InvitationNotification::class);
     }

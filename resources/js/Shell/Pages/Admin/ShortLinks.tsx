@@ -2,7 +2,6 @@ import { router, useForm } from '@inertiajs/react';
 import { Link2 } from 'lucide-react';
 import { useState } from 'react';
 import type { FormEventHandler } from 'react';
-import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import {
     Dialog,
@@ -15,6 +14,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { Switch } from '@/components/ui/switch';
 import { useDraftCloseGate } from '@/hooks/use-draft-close-gate';
+import { copyLink } from '@/lib/clipboard';
 import { formSubmitOptions, mutationOptions } from '@/lib/mutation';
 import * as shortlinksRoutes from '@/routes/admin/shortlinks';
 import AdminCollection from '@/Shell/Components/AdminCollection';
@@ -250,24 +250,6 @@ export default function ShortLinks({ shortlinks }: Props) {
         />
     );
 
-    const copyUrl = async (url: string) => {
-        if (!navigator.clipboard) {
-            toast.error(
-                "This browser can't copy from here. Copy the link by hand.",
-            );
-
-            return;
-        }
-
-        try {
-            await navigator.clipboard.writeText(url);
-            toast.success('Copied.');
-            // eslint-disable-next-line local/no-silent-error -- clipboard write failure surfaces via the toast below; not actionable in the error tracker
-        } catch {
-            toast.error("Couldn't copy the shortlink. Try again.");
-        }
-    };
-
     const renderUrlCell = (shortlink: ShortLink) => (
         <div className="flex items-center gap-2">
             {/* Path only, in full: the code is the identifying part and
@@ -278,7 +260,7 @@ export default function ShortLinks({ shortlinks }: Props) {
             <Button
                 type="button"
                 variant="outline"
-                onClick={() => copyUrl(shortlink.url)}
+                onClick={() => copyLink(shortlink.url)}
                 aria-label={`Copy the ${shortlink.label} link`}
                 className="os-admin-row-action os-admin-fill-accent shell-press shrink-0"
             >

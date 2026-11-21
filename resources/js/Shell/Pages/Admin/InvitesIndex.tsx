@@ -1,12 +1,13 @@
 import { Link, router, useForm } from '@inertiajs/react';
 import { MailPlus } from 'lucide-react';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import type { FormEventHandler } from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Button, buttonVariants } from '@/components/ui/button';
 import {
     Dialog,
     DialogContent,
+    DialogDescription,
     DialogFooter,
     DialogHeader,
     DialogTitle,
@@ -20,6 +21,7 @@ import {
     SelectValue,
 } from '@/components/ui/select';
 import { useDraftCloseGate } from '@/hooks/use-draft-close-gate';
+import { copyLink } from '@/lib/clipboard';
 import { formatInstant } from '@/lib/dates';
 import { formSubmitOptions } from '@/lib/mutation';
 import { roleLabel } from '@/lib/roles';
@@ -212,6 +214,66 @@ function InviteDialog({
     );
 }
 
+// The server keeps only a hash of the token, so this flash is the one chance to show the link.
+function InviteLinkDialog() {
+    const [link, setLink] = useState<string | null>(null);
+    const [open, setOpen] = useState(false);
+
+    useEffect(
+        () =>
+            router.on('flash', (event) => {
+                const next = (event as CustomEvent).detail?.flash?.invite_link;
+
+                if (typeof next === 'string') {
+                    setLink(next);
+                    setOpen(true);
+                }
+            }),
+        [],
+    );
+
+    return (
+        <Dialog open={open} onOpenChange={setOpen}>
+            <DialogContent>
+                <DialogHeader>
+                    <DialogTitle className="font-display text-(length:--text-title) font-semibold">
+                        Invite link
+                    </DialogTitle>
+                    <DialogDescription>
+                        We emailed this link too. You can also send it yourself;
+                        it works once, for 7 days. It won't be shown again, but
+                        Resend makes a new one.
+                    </DialogDescription>
+                </DialogHeader>
+                <Input
+                    readOnly
+                    value={link ?? ''}
+                    aria-label="Invite link"
+                    onFocus={(e) => e.currentTarget.select()}
+                    className="os-admin-control"
+                />
+                <DialogFooter>
+                    <Button
+                        type="button"
+                        variant="outline"
+                        className="shell-press"
+                        onClick={() => setOpen(false)}
+                    >
+                        Done
+                    </Button>
+                    <Button
+                        type="button"
+                        className="os-admin-fill-primary shell-press px-5"
+                        onClick={() => link && copyLink(link)}
+                    >
+                        Copy link
+                    </Button>
+                </DialogFooter>
+            </DialogContent>
+        </Dialog>
+    );
+}
+
 export default function InvitesIndex({ invites }: Props) {
     const [showForm, setShowForm] = useState(false);
 
@@ -365,6 +427,7 @@ export default function InvitesIndex({ invites }: Props) {
                 }
             >
                 <InviteDialog open={showForm} onOpenChange={setShowForm} />
+                <InviteLinkDialog />
 
                 {invites.data.length === 0 ? (
                     <div className="os-admin-surface border">
