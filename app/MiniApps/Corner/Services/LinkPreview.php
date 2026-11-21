@@ -119,7 +119,7 @@ class LinkPreview
             }
         }
 
-        $found['title'] = trim($doc->querySelector('title')?->textContent ?? '') ?: null;
+        $found['title'] = trim($doc->querySelector('title')->textContent ?? '') ?: null;
 
         $bestIcon = 0;
         foreach ($doc->querySelectorAll('link[href]') as $node) {

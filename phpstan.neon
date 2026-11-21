@@ -1,6 +1,10 @@
 includes:
   - vendor/larastan/larastan/extension.neon
 
+rules:
+  # The shell and the rooms never name each other's classes.
+  - Tools\PHPStan\RoomBoundaryRule
+
 parameters:
   level: 4
   paths:
@@ -8,6 +12,7 @@ parameters:
     - database
     - routes
     - tests
+    - tools/phpstan
   excludePaths:
     - bootstrap/cache
   # Rate-limiter callbacks fire on unauthenticated requests despite the

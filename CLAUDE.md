@@ -106,7 +106,9 @@ parallel worktrees. The smoke scripts use fixed ports: one run at a time per mac
 - **Runtime config only:** the published image must work for any install, so nothing per-install
   goes through `VITE_*`. The page reads the app name and browser DSN from meta tags.
 - **Architecture:** domain-driven — the shell and each mini app are fully self-contained domains;
-  **no cross-app imports and no cross-app database foreign keys** (`scripts/check-boundaries.sh`).
+  **no cross-app imports and no cross-app database foreign keys** (imports: ESLint
+  `import-x/no-restricted-paths` and PHPStan's `tools/phpstan/RoomBoundaryRule.php`; slugs and
+  theme tokens: `scripts/check-boundaries.sh`).
 - **Compose contract:** `docker-compose.yml` builds from source for a PaaS and has no database
   service. `docker-compose.override.yml` is local-dev only (Postgres, Mailpit on `127.0.0.1:1025` /
   `:8025`). `docker-compose.selfhost.yml` stands alone: the published image, Postgres, a Valkey cache, a port, and a
