@@ -54,3 +54,6 @@ yarn-error.log
 /skills-lock.json
 /.mcp.json
 /database/*.sqlite*
+
+# Working files of the impeccable design skill; DESIGN.md is the design reference
+/.impeccable/
