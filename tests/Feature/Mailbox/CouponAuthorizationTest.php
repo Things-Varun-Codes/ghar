@@ -8,20 +8,13 @@ use Carbon\CarbonImmutable;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Notification;
 use Inertia\Testing\AssertableInertia as Assert;
+use Tests\Concerns\SeedsPair;
 use Tests\TestCase;
 
 class CouponAuthorizationTest extends TestCase
 {
     use RefreshDatabase;
-
-    /** @return array{0: User, 1: User} */
-    private function seedPair(): array
-    {
-        $issuer = User::factory()->create(['name' => 'Alice Smith']);
-        $recipient = User::factory()->create(['name' => 'Bob Jones']);
-
-        return [$issuer, $recipient];
-    }
+    use SeedsPair;
 
     public function test_issue_rejects_missing_title(): void
     {

@@ -14,11 +14,10 @@ type Props = {
     peek: ReactNode;
     /* The line under the name, which the link points to as its description. */
     live: ReactNode;
-    /* Room classes for the card, the peek box, the heading and the live line. */
+    /* Room classes for the card, the heading and the live line, on top of .shell-door-*. */
     className: string;
-    peekClassName: string;
-    nameClassName: string;
-    liveClassName: string;
+    nameClassName?: string;
+    liveClassName?: string;
     /* Inside the heading, before the link: an icon. */
     nameBefore?: ReactNode;
     /* Beside the heading, wrapped with it in `headClassName`: a menu. */
@@ -39,7 +38,6 @@ export default function RoomDoor({
     peek,
     live,
     className,
-    peekClassName,
     nameClassName,
     liveClassName,
     nameBefore,
@@ -50,7 +48,7 @@ export default function RoomDoor({
     const liveId = useId();
 
     const heading = (
-        <h2 className={nameClassName}>
+        <h2 className={cn('shell-door-name', nameClassName)}>
             {nameBefore}
             <Link
                 href={href}
@@ -64,8 +62,13 @@ export default function RoomDoor({
     );
 
     const door = (
-        <article className={cn(className, 'shell-card-stretch shell-lift')}>
-            <div className={peekClassName} aria-hidden="true">
+        <article
+            className={cn(
+                className,
+                'shell-door shell-card-stretch shell-lift',
+            )}
+        >
+            <div className="shell-door-peek" aria-hidden="true">
                 {peek}
             </div>
             {aside === undefined ? (
@@ -76,7 +79,7 @@ export default function RoomDoor({
                     {aside}
                 </div>
             )}
-            <p id={liveId} className={liveClassName}>
+            <p id={liveId} className={cn('shell-door-live', liveClassName)}>
                 {live}
             </p>
         </article>

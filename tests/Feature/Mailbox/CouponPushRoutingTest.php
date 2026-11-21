@@ -3,24 +3,16 @@
 namespace Tests\Feature\Mailbox;
 
 use App\MiniApps\Mailbox\Models\Coupon;
-use App\Shell\Models\User;
 use App\Shell\Notifications\GenericPushNotification;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Notification;
+use Tests\Concerns\SeedsPair;
 use Tests\TestCase;
 
 class CouponPushRoutingTest extends TestCase
 {
     use RefreshDatabase;
-
-    /** @return array{0: User, 1: User} */
-    private function seedPair(): array
-    {
-        $issuer = User::factory()->create(['name' => 'Alice Smith']);
-        $recipient = User::factory()->create(['name' => 'Bob Jones']);
-
-        return [$issuer, $recipient];
-    }
+    use SeedsPair;
 
     public function test_request_pushes_generic_body_to_issuer_only(): void
     {

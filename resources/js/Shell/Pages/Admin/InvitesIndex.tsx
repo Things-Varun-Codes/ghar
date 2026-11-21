@@ -166,10 +166,8 @@ function InviteDialog({
                         >
                             <SelectTrigger
                                 id="invite-role"
-                                className={cn(
-                                    'os-admin-control w-full',
-                                    errors.role && 'os-admin-control--invalid',
-                                )}
+                                className="os-admin-control w-full"
+                                aria-invalid={errors.role ? true : undefined}
                             >
                                 <SelectValue />
                             </SelectTrigger>

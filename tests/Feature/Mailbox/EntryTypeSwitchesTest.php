@@ -116,8 +116,7 @@ class EntryTypeSwitchesTest extends TestCase
 
     public function test_the_whole_room_off_hides_the_types(): void
     {
-        app(Rooms::class)->set('our-exchange', false);
-        app()->forgetScopedInstances();
+        $this->setRoom('our-exchange', false);
 
         $this->actingAs(User::factory()->create())->get('/apps/our-exchange/citations')->assertNotFound();
     }

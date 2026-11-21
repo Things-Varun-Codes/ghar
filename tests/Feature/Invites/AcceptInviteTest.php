@@ -26,11 +26,10 @@ class AcceptInviteTest extends TestCase
         $admin = User::factory()->admin()->create();
         $plaintext = Str::random(64);
 
-        $invitation = Invitation::forceCreate([
+        $invitation = Invitation::factory()->create([
             'email' => $email,
             'role_name' => $role,
             'token_hash' => hash('sha256', $plaintext),
-            'expires_at' => now()->addDays(7),
             'invited_by_user_id' => $admin->id,
         ]);
 

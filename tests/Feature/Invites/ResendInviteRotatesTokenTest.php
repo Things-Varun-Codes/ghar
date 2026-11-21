@@ -28,11 +28,8 @@ class ResendInviteRotatesTokenTest extends TestCase
         $admin = User::factory()->admin()->create();
         $plaintext = Str::random(64);
 
-        $original = Invitation::forceCreate([
-            'email' => 'invitee@example.com',
-            'role_name' => 'user',
+        $original = Invitation::factory()->create([
             'token_hash' => hash('sha256', $plaintext),
-            'expires_at' => now()->addDays(7),
             'invited_by_user_id' => $admin->id,
         ]);
 
@@ -62,11 +59,8 @@ class ResendInviteRotatesTokenTest extends TestCase
         $admin = User::factory()->admin()->create();
         $oldPlaintext = Str::random(64);
 
-        $original = Invitation::forceCreate([
-            'email' => 'invitee@example.com',
-            'role_name' => 'user',
+        $original = Invitation::factory()->create([
             'token_hash' => hash('sha256', $oldPlaintext),
-            'expires_at' => now()->addDays(7),
             'invited_by_user_id' => $admin->id,
         ]);
 
@@ -80,11 +74,7 @@ class ResendInviteRotatesTokenTest extends TestCase
     /** @param  array<string, mixed>  $overrides */
     private function makeInvite(User $admin, array $overrides = []): Invitation
     {
-        return Invitation::forceCreate([
-            'email' => 'invitee@example.com',
-            'role_name' => 'user',
-            'token_hash' => hash('sha256', Str::random(64)),
-            'expires_at' => now()->addDays(7),
+        return Invitation::factory()->create([
             'invited_by_user_id' => $admin->id,
             ...$overrides,
         ]);

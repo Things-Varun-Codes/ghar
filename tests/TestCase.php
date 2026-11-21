@@ -25,6 +25,13 @@ abstract class TestCase extends BaseTestCase
         return $uses;
     }
 
+    /** The switches are read once per request; a test makes several, so the scoped copies go. */
+    protected function setRoom(string $slug, bool $on): void
+    {
+        app(Rooms::class)->set($slug, $on);
+        app()->forgetScopedInstances();
+    }
+
     protected function assertSuccessToast(TestResponse $response, string $message): void
     {
         $response->assertSessionHas(SessionKey::FLASH_DATA, [

@@ -1,6 +1,17 @@
 # Sourced by the dev scripts. `ensure_services` leaves Postgres and Mailpit
 # running and healthy, starting Docker first when it can.
 
+step() { printf '\n==> %s\n' "$1"; }
+
+# The last value .env gives a key; empty when the key or the file is missing.
+get_env() { sed -n "s/^$1=//p" .env 2>/dev/null | tail -n 1 || true; }
+
+# Rebuild the database with the sample household, and stamp the migrations it ran.
+seed_household() {
+  php artisan migrate:fresh --seed --force
+  bash scripts/lib/migration-stamp.sh write
+}
+
 ensure_docker() {
   command -v docker >/dev/null || {
     echo "error: no Postgres is answering and Docker is not installed. Install Docker, or run Postgres 17 on 127.0.0.1:5432 with user and password \`ghar\` (allowed to create databases)." >&2
@@ -27,8 +38,8 @@ ensure_docker() {
 # (a dev container, a VPS) can run its own Postgres 17 with the `ghar` user.
 postgres_answers() {
   local host port
-  host="$(sed -n 's/^DB_HOST=//p' .env 2>/dev/null | tail -n 1)"
-  port="$(sed -n 's/^DB_PORT=//p' .env 2>/dev/null | tail -n 1)"
+  host="$(get_env DB_HOST)"
+  port="$(get_env DB_PORT)"
   GHAR_PG_DSN="pgsql:host=${host:-127.0.0.1};port=${port:-5432};dbname=postgres" php -r '
     try { new PDO(getenv("GHAR_PG_DSN"), "ghar", "ghar", [PDO::ATTR_TIMEOUT => 2]); } catch (PDOException) { exit(1); }
   ' 2>/dev/null

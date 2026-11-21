@@ -3,23 +3,16 @@
 namespace Tests\Feature\Mailbox;
 
 use App\MiniApps\Mailbox\Models\Citation;
-use App\Shell\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Notification;
 use Inertia\Testing\AssertableInertia as Assert;
+use Tests\Concerns\SeedsPair;
 use Tests\TestCase;
 
 class CitationAuthorizationTest extends TestCase
 {
     use RefreshDatabase;
-
-    private function seedPair(): array
-    {
-        $issuer = User::factory()->create(['name' => 'Alice Smith']);
-        $recipient = User::factory()->create(['name' => 'Bob Jones']);
-
-        return [$issuer, $recipient];
-    }
+    use SeedsPair;
 
     public function test_issue_rejects_missing_offence_and_penalty(): void
     {

@@ -10,7 +10,6 @@ use App\MiniApps\Mailbox\Models\Citation;
 use App\MiniApps\Mailbox\Models\Coupon;
 use App\MiniApps\Mailbox\Models\MailboxMessage;
 use App\Shell\Models\User;
-use App\Shell\Services\Rooms;
 use Database\Seeders\RoleSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Carbon;
@@ -100,7 +99,7 @@ class DashboardFeedTest extends TestCase
         $meera = User::factory()->create();
         Citation::factory()->create(['issuer_id' => $ravi->id, 'recipient_id' => $meera->id]);
 
-        app(Rooms::class)->set('our-exchange', false);
+        $this->setRoom('our-exchange', false);
 
         $this->assertSame([], $this->feedFor($meera));
     }

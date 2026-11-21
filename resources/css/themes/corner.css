@@ -23,6 +23,9 @@
     --form-sheet-border: var(--corner-border);
     --form-sheet-font-display: var(--corner-font-display);
 
+    /* The shell's landing door (.shell-door-*) behind this room's peek. */
+    --door-peek-wash: var(--corner-tile-wash-strong);
+
     /* Kept as names the room already uses; they are the house radii. */
     --corner-radius-card: var(--radius-card);
     --corner-radius-pill: var(--radius-pill);
@@ -265,31 +268,6 @@
 
 /* ── Landing: a door per list ────────────────────────────────────────────── */
 
-/* Sized by the room, not the viewport: one door a row on a phone, two on a tablet, four wide. */
-/* The container is the wrapper: a container query can't restyle the container itself. */
-[data-app='our-shelf'] .corner-doors-wrap {
-    container: corner-doors / inline-size;
-}
-
-[data-app='our-shelf'] .corner-doors {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr);
-    gap: 12px;
-}
-
-@container corner-doors (min-width: 560px) {
-    [data-app='our-shelf'] .corner-doors {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-        gap: 16px;
-    }
-}
-
-@container corner-doors (min-width: 1040px) {
-    [data-app='our-shelf'] .corner-doors {
-        grid-template-columns: repeat(4, minmax(0, 1fr));
-    }
-}
-
 /*
  * A door sits in two wrappers, one that glides when the order changes and one that settles it
  * in; both pass the cell's width down so a long name still ellipsises.
@@ -299,50 +277,6 @@
     display: grid;
     grid-template-columns: minmax(0, 1fr);
     min-width: 0;
-}
-
-[data-app='our-shelf'] .corner-door {
-    display: flex;
-    flex-direction: column;
-    min-width: 0;
-}
-
-[data-app='our-shelf'] .corner-door-peek {
-    display: flex;
-    height: 104px;
-    border-radius: var(--corner-radius-inner);
-    overflow: hidden;
-    background: var(--corner-tile-wash-strong);
-}
-
-@container corner-doors (min-width: 560px) {
-    [data-app='our-shelf'] .corner-door-peek {
-        height: 136px;
-    }
-}
-
-[data-app='our-shelf'] .corner-door-name {
-    margin: 12px 4px 0;
-    font-family: var(--corner-font-display);
-    font-size: var(--text-title);
-    font-weight: var(--weight-display);
-    line-height: 1.2;
-    letter-spacing: var(--tracking-display);
-    color: var(--corner-ink);
-}
-
-[data-app='our-shelf'] .corner-door-name .shell-card-link {
-    color: inherit;
-    text-decoration: none;
-}
-
-[data-app='our-shelf'] .corner-door-live {
-    margin: 2px 4px 4px;
-    font-size: var(--text-meta);
-    font-weight: 400;
-    line-height: 1.4;
-    font-variant-numeric: tabular-nums;
-    color: var(--corner-ink-soft);
 }
 
 /* Pictures stand on the shelf at the peek's height; what doesn't fit is clipped. */

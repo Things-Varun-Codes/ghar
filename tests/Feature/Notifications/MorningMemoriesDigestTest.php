@@ -6,7 +6,6 @@ use App\MiniApps\History\Models\DigestClaim;
 use App\MiniApps\History\Models\Event;
 use App\Shell\Models\User;
 use App\Shell\Notifications\GenericPushNotification;
-use App\Shell\Services\Rooms;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Notification;
@@ -153,14 +152,14 @@ class MorningMemoriesDigestTest extends TestCase
     {
         $member = User::factory()->create();
         Event::factory()->create(['occurred_on' => '2025-06-14']);
-        app(Rooms::class)->set('our-history', false);
+        $this->setRoom('our-history', false);
 
         $this->artisan('history:morning-memories')->assertSuccessful();
 
         Notification::assertNothingSent();
         $this->assertSame(0, DigestClaim::query()->count());
 
-        app(Rooms::class)->set('our-history', true);
+        $this->setRoom('our-history', true);
         Carbon::setTestNow('2026-06-14 11:00:00');
         $this->artisan('history:morning-memories')->assertSuccessful();
 

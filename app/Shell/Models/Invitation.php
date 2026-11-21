@@ -2,8 +2,11 @@
 
 namespace App\Shell\Models;
 
+use Database\Factories\InvitationFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
+use Illuminate\Database\Eloquent\Factories\Factory;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
@@ -25,6 +28,14 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 #[Hidden(['token_hash'])]
 class Invitation extends Model
 {
+    /** @use HasFactory<InvitationFactory> */
+    use HasFactory;
+
+    protected static function newFactory(): Factory
+    {
+        return InvitationFactory::new();
+    }
+
     protected function casts(): array
     {
         return [

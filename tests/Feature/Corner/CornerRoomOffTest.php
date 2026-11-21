@@ -6,7 +6,6 @@ use App\MiniApps\Corner\Actions\AddItem;
 use App\MiniApps\History\Models\Event;
 use App\Shell\Models\User;
 use App\Shell\Services\LinkableEntities;
-use App\Shell\Services\Rooms;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Notification;
@@ -21,7 +20,7 @@ class CornerRoomOffTest extends TestCase
 
     private function turnCornerOff(): void
     {
-        app(Rooms::class)->set('our-shelf', false);
+        $this->setRoom('our-shelf', false);
     }
 
     public function test_its_pages_and_home_door_are_gone_and_its_things_cannot_be_found(): void
@@ -110,7 +109,7 @@ class CornerRoomOffTest extends TestCase
         $this->assertStringContainsString('data-corner-type="corner.song"', (string) $event->refresh()->body_html);
         $this->assertStringContainsString('data-corner-type="corner.item"', (string) $event->body_html);
 
-        app(Rooms::class)->set('our-shelf', true);
+        $this->setRoom('our-shelf', true);
         $this->get("/apps/our-shelf/songs/{$new->id}")->assertOk()->assertInertia(fn ($page) => $page
             ->where('mentioned_in.0.from_id', $event->id));
     }

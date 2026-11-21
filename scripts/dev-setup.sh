@@ -26,7 +26,6 @@ done
 
 source scripts/lib/services.sh
 
-step() { printf '\n==> %s\n' "$1"; }
 die() { printf '\nerror: %s\n' "$1" >&2; exit 1; }
 
 # ─── Prerequisites ──────────────────────────────────────────────────────
@@ -75,8 +74,6 @@ set_env() {
     printf '%s=%s\n' "$1" "$2" >> .env
   fi
 }
-
-get_env() { [ -f .env ] && sed -n "s/^$1=//p" .env | tail -n 1 || true; }
 
 # An override given once is remembered in .env (below), where Compose reads it.
 DB_PORT_WANTED="${GHAR_DB_PORT:-$(get_env GHAR_DB_PORT)}"
@@ -189,8 +186,7 @@ npm run build
 
 
 step "Seeding the sample household"
-php artisan migrate:fresh --seed --force
-bash scripts/lib/migration-stamp.sh write
+seed_household
 
 node --input-type=module -e "
 import { printDevCredentials } from './scripts/lib/dev-data.mjs';

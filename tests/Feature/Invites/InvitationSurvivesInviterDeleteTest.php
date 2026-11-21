@@ -25,11 +25,8 @@ class InvitationSurvivesInviterDeleteTest extends TestCase
         $inviter = User::factory()->admin()->create();
         User::factory()->admin()->create();
 
-        $invitation = Invitation::forceCreate([
-            'email' => 'invitee@example.com',
-            'role_name' => 'user',
+        $invitation = Invitation::factory()->create([
             'token_hash' => hash('sha256', 'plaintext-token'),
-            'expires_at' => now()->addDays(7),
             'invited_by_user_id' => $inviter->id,
         ]);
 

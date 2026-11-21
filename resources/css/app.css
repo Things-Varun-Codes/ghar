@@ -635,6 +635,74 @@ a.shell-lift:active,
     transition-duration: var(--dur-press);
 }
 
+/* A room's landing: a door per page (RoomDoor). The room sets --door-peek-wash. */
+/* Sized by the room, not the viewport: one door a row on a phone, two on a tablet, four wide. */
+/* The container is the wrapper: a container query can't restyle the container itself. */
+.shell-doors-wrap {
+    container: shell-doors / inline-size;
+}
+
+.shell-doors {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 12px;
+}
+
+.shell-door {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+}
+
+.shell-door-peek {
+    position: relative;
+    display: flex;
+    height: 112px;
+    border-radius: var(--radius-inner);
+    overflow: hidden;
+    background: var(--door-peek-wash, var(--shell-surface));
+}
+
+@container shell-doors (min-width: 560px) {
+    .shell-doors {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 16px;
+    }
+
+    .shell-door-peek {
+        height: 136px;
+    }
+}
+
+@container shell-doors (min-width: 1040px) {
+    .shell-doors {
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+}
+
+.shell-door-name {
+    margin: 12px 4px 0;
+    font-family: var(--font-display);
+    font-size: var(--text-title);
+    font-weight: var(--weight-display);
+    line-height: 1.2;
+    letter-spacing: var(--tracking-display);
+}
+
+.shell-door-name .shell-card-link {
+    color: inherit;
+    text-decoration: none;
+}
+
+.shell-door-live {
+    margin: 2px 4px 4px;
+    font-size: var(--text-meta);
+    font-weight: 400;
+    line-height: 1.4;
+    font-variant-numeric: tabular-nums;
+    color: var(--shell-text-muted);
+}
+
 /* A control drawn smaller than 44px keeps a 44px tap area. Takes the element's ::after. */
 .shell-hit-44 {
     position: relative;
@@ -679,6 +747,24 @@ button[type='submit'][data-slot='button'] {
     border-radius: var(--radius-field);
     background-color: var(--card);
     border: 1px solid var(--shell-border-input);
+}
+
+/* A page's own field: a 44px tap target and body-size text, so iOS doesn't zoom in. An invalid
+   one is .shell-field[aria-invalid] below, whatever its class. */
+.os-settings-input,
+.os-admin-control,
+.os-admin-input,
+.shell-auth-field,
+.shell-auth-email,
+.shell-auth-password,
+.shell-auth-field-readonly {
+    min-height: 44px;
+    font-size: var(--text-body);
+    color: var(--foreground);
+}
+
+.os-admin-textarea {
+    font-size: var(--text-body);
 }
 
 /* iOS Safari sizes a native date input to its own content and ignores width: 100%. */
@@ -1598,13 +1684,6 @@ a:hover .os-feed-action {
     padding: 8px 12px;
 }
 
-.shell-auth-field {
-    min-height: 44px;
-    font-size: var(--text-body);
-    background-color: var(--card);
-    color: var(--foreground);
-}
-
 .shell-auth-submit {
     min-height: 44px;
     font-size: var(--text-body);
@@ -1632,23 +1711,7 @@ a:hover .os-feed-action {
     border-color: var(--shell-border-input);
 }
 
-.shell-auth-password {
-    min-height: 44px;
-    font-size: var(--text-body);
-    background-color: var(--card);
-    color: var(--foreground);
-}
-
-.shell-auth-email {
-    min-height: 44px;
-    font-size: var(--text-body);
-    background-color: var(--card);
-    color: var(--foreground);
-}
-
 .shell-auth-field-readonly {
-    min-height: 44px;
-    font-size: var(--text-body);
     background-color: var(--muted);
     color: var(--muted-foreground);
     cursor: not-allowed;
