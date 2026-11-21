@@ -1355,16 +1355,6 @@
     box-shadow: none;
 }
 
-[data-app='our-exchange'] #citation-date,
-[data-app='our-exchange'] #coupon-expiry {
-    -webkit-appearance: none;
-    appearance: none;
-    min-width: 0;
-    width: 100%;
-    max-width: 100%;
-    box-sizing: border-box;
-}
-
 @media (max-width: 720px) {
     [data-app='our-exchange'] .citation-incident-grid {
         grid-template-columns: minmax(0, 1fr);
