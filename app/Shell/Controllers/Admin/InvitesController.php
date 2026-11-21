@@ -45,12 +45,13 @@ class InvitesController
             'role' => ['required', 'string', Rule::in(array_column(UserRole::cases(), 'value'))],
         ]);
 
-        $inviteUser(
+        $link = $inviteUser(
             inviter: $request->user(),
             email: $validated['email'],
             roleName: $validated['role'],
         );
 
+        Inertia::flash('invite_link', $link);
         FlashToast::success('Invitation sent to '.$validated['email'].'.');
 
         return redirect()->route('admin.invites.index');
@@ -60,7 +61,8 @@ class InvitesController
     {
         // One transaction so a failure can't leave the old token revoked with no replacement;
         // the row lock stops a double click from sending two.
-        $refusal = DB::transaction(function () use ($request, $invite, $inviteUser): ?string {
+        $link = null;
+        $refusal = DB::transaction(function () use ($request, $invite, $inviteUser, &$link): ?string {
             $locked = Invitation::query()->pending()->whereKey($invite->id)->lockForUpdate()->first();
 
             if ($locked === null) {
@@ -74,7 +76,7 @@ class InvitesController
             $locked->revoked_at = now();
             $locked->save();
 
-            $inviteUser(
+            $link = $inviteUser(
                 inviter: $request->user(),
                 email: $locked->email,
                 roleName: $locked->role_name,
@@ -89,6 +91,7 @@ class InvitesController
             return redirect()->route('admin.invites.index');
         }
 
+        Inertia::flash('invite_link', $link);
         FlashToast::success('Invitation resent to '.$invite->email.'.');
 
         return redirect()->route('admin.invites.index');

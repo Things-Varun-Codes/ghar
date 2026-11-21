@@ -41,6 +41,30 @@ class SendInviteTest extends TestCase
         Notification::assertSentOnDemand(InvitationNotification::class);
     }
 
+    public function test_send_hands_back_the_same_link_it_emails(): void
+    {
+        Notification::fake();
+
+        $admin = User::factory()->admin()->create();
+
+        $response = $this->actingAs($admin)->post(route('admin.invites.store'), [
+            'email' => 'invitee@example.com',
+            'role' => 'user',
+        ]);
+
+        $link = session('inertia.flash_data.invite_link');
+        $this->assertIsString($link);
+
+        $invitation = Invitation::where('email', 'invitee@example.com')->firstOrFail();
+        $this->assertSame(route('invitations.accept.show', ['token' => basename($link)]), $link);
+        $this->assertSame($invitation->token_hash, hash('sha256', basename($link)));
+
+        Notification::assertSentOnDemand(
+            InvitationNotification::class,
+            fn (InvitationNotification $mail, array $channels, object $notifiable): bool => $mail->toMail($notifiable)->viewData['acceptUrl'] === $link,
+        );
+    }
+
     public function test_guest_cannot_send_invite(): void
     {
         $response = $this->post(route('admin.invites.store'), [
