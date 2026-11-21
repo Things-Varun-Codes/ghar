@@ -1601,12 +1601,6 @@
 }
 
 [data-app='our-history'] #event-occurred-on {
-    -webkit-appearance: none;
-    appearance: none;
-    min-width: 0;
-    width: 100%;
-    max-width: 100%;
-    box-sizing: border-box;
     font-variant-numeric: tabular-nums;
 }
 

@@ -681,6 +681,16 @@ button[type='submit'][data-slot='button'] {
     border: 1px solid var(--shell-border-input);
 }
 
+/* iOS Safari sizes a native date input to its own content and ignores width: 100%. */
+@layer base {
+    input[type='date'] {
+        -webkit-appearance: none;
+        appearance: none;
+        min-width: 0;
+        max-width: 100%;
+    }
+}
+
 /* The focus state is drawn in full at once: it never fades in. */
 .shell-field {
     transition: border-color var(--dur-out) var(--ease-ui);
