@@ -2433,7 +2433,26 @@
     border: 1px solid var(--history-rule);
     border-radius: var(--history-radius-card);
     overflow: hidden;
-    background: var(--history-card);
+    /* The basemap's colours: MomentMap paints its layers with these, again when the theme changes. */
+    --history-map-land: var(--history-bg);
+    --history-map-block: color-mix(
+        in oklab,
+        var(--history-ink) 4%,
+        var(--history-bg)
+    );
+    --history-map-park: var(--shell-map-green);
+    --history-map-water: var(--shell-map-water);
+    --history-map-water-ink: color-mix(
+        in oklab,
+        var(--shell-map-water),
+        var(--history-ink) 70%
+    );
+    --history-map-road: var(--history-card);
+    --history-map-edge: var(--history-rule);
+    --history-map-label: var(--history-ink-soft);
+    --history-map-place: var(--history-ink);
+    /* The land's colour, so the frame doesn't flash before the tiles arrive. */
+    background: var(--history-map-land);
 }
 
 [data-app='our-history'] .history-map--failed {
@@ -2442,9 +2461,35 @@
     justify-content: center;
 }
 
-/* The grey basemap, warmed toward the page's paper. */
-[data-app='our-history'] .history-map .maplibregl-canvas {
-    filter: sepia(0.08);
+[data-app='our-history'] .history-map .maplibregl-ctrl-group {
+    background: var(--history-card);
+    border: 1px solid var(--history-rule);
+    border-radius: var(--history-radius-control);
+    box-shadow: none;
+    overflow: hidden;
+}
+
+[data-app='our-history'] .history-map .maplibregl-ctrl-group button + button {
+    border-top-color: var(--history-rule);
+}
+
+[data-app='our-history']
+    .history-map
+    .maplibregl-ctrl-group
+    button:not(:disabled):hover {
+    background: var(--history-hover);
+}
+
+[data-app='our-history'] .history-map .maplibregl-ctrl-attrib,
+[data-app='our-history']
+    .history-map
+    .maplibregl-ctrl-attrib.maplibregl-compact {
+    background: color-mix(in oklab, var(--history-card) 88%, transparent);
+    color: var(--history-ink-soft);
+}
+
+[data-app='our-history'] .history-map .maplibregl-ctrl-attrib a {
+    color: inherit;
 }
 
 [data-app='our-history'] .history-map .maplibregl-ctrl-attrib {

@@ -109,6 +109,10 @@
 
     --shell-destructive: oklch(0.5 0.16 25);
     --shell-destructive-fg: oklch(1 0 0);
+    /* A map's water and green: the palette's only cool and green hues, dusty so a coral pin
+       still leads. A theme sets its own pair. */
+    --shell-map-water: oklch(0.86 0.032 225);
+    --shell-map-green: oklch(0.925 0.03 130);
 
     /* Derived recipes, mixed once here; a room token aliases one instead of rebuilding it. */
     --shell-hover-wash: color-mix(
