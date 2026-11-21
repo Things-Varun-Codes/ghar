@@ -1301,18 +1301,6 @@ a:hover .os-feed-action {
     box-sizing: border-box;
 }
 
-.shell-places-input {
-    flex: 1;
-    min-width: 0;
-    border: none;
-    outline: none;
-    background: transparent;
-    font-family: inherit;
-    font-size: inherit;
-    color: inherit;
-    padding: 0;
-}
-
 .shell-places-suggestions {
     position: absolute;
     top: calc(100% + 4px);

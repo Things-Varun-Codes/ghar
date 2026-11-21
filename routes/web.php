@@ -14,6 +14,7 @@ use App\Shell\Controllers\Admin\UsersController;
 use App\Shell\Controllers\DashboardController;
 use App\Shell\Controllers\InvitationAcceptController;
 use App\Shell\Controllers\LinkableSearchController;
+use App\Shell\Controllers\PlaceSearchController;
 use App\Shell\Controllers\Settings\EmailVerificationController;
 use App\Shell\Controllers\Settings\NotificationsController;
 use App\Shell\Controllers\Settings\PasswordController;
@@ -57,6 +58,10 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/api/linkable/search', [LinkableSearchController::class, 'search'])
         ->middleware('throttle:linkable-picker')
         ->name('linkable.search');
+
+    Route::get('/api/places/search', [PlaceSearchController::class, 'search'])
+        ->middleware('throttle:place-search')
+        ->name('places.search');
 
     Route::prefix('settings')->name('settings.')->group(function () {
         Route::inertia('/', 'Shell/Pages/Settings/Index')->name('index');
