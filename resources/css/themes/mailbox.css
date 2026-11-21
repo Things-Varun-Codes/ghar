@@ -66,9 +66,9 @@
     --mailbox-paper-radius: 4px;
     --mailbox-paper-shadow:
         0 0 0 1px var(--shell-border),
-        0 1px 2px color-mix(in oklab, var(--shell-text) 6%, transparent),
+        0 1px 2px color-mix(in oklab, var(--shell-shadow-ink) 6%, transparent),
         0 12px 24px -16px
-            color-mix(in oklab, var(--shell-text) 10%, transparent);
+            color-mix(in oklab, var(--shell-shadow-ink) 10%, transparent);
 
     --mailbox-hover-wash: var(--shell-hover-wash);
     --mailbox-selected-wash: color-mix(
@@ -475,8 +475,8 @@
     width: 32px;
     height: 32px;
     border-radius: var(--radius-pill);
-    background: color-mix(in oklab, var(--mailbox-ink) 60%, transparent);
-    color: var(--mailbox-paper);
+    background: color-mix(in oklab, var(--shell-ink-fixed) 60%, transparent);
+    color: var(--shell-paper-fixed);
 }
 
 /* The few words sent with a bouquet are a note body. */

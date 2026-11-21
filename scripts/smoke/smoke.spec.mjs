@@ -112,6 +112,11 @@ const routes = [
             '/apps/our-history/map?moment=5 (Our History map, moment sheet)',
     },
     {
+        path: '/settings/appearance',
+        auth: true,
+        description: '/settings/appearance (light, dark or the device)',
+    },
+    {
         path: '/settings/notifications',
         auth: true,
         description: '/settings/notifications (push opt-in settings)',

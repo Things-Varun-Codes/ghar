@@ -39,6 +39,7 @@ class HandleInertiaRequests extends Middleware
                     ...Person::of($user),
                     'email' => $user->email,
                     'roles' => $user->getRoleNames()->values()->all(),
+                    'theme' => $user->theme,
                 ] : null,
             ],
             'miniApps' => $miniApps,

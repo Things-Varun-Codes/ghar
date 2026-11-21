@@ -2,8 +2,8 @@ import { useFlashToast } from '@/hooks/use-flash-toast';
 import { Toaster as Sonner, type ToasterProps } from 'sonner';
 
 /*
- * Light only: sonner's system theme would render dark toasts on system-dark devices.
- * The look lives in app.css under [data-sonner-toaster]; --shell-toast-bottom lifts the
+ * Sonner's own light theme, recoloured by the --normal-* tokens below so it follows ours;
+ * its system theme would fight data-theme. The look lives in app.css under [data-sonner-toaster]; --shell-toast-bottom lifts the
  * stack clear of the FAB and the bottom bar.
  */
 function Toaster({ ...props }: ToasterProps) {

@@ -9,7 +9,7 @@
 // media, cross-origin requests) never reaches respondWith, and where the browser has static
 // routing it never wakes the worker at all.
 
-const OFFLINE_CACHE = 'ghar-offline-v2';
+const OFFLINE_CACHE = 'ghar-offline-v3';
 const OFFLINE_URL = '/offline.html';
 
 // Never answered by the worker, even on failure. /go/{code} must always hit the server so the

@@ -12,6 +12,7 @@ import { installNavigation } from '@/lib/navigation';
 import { captureSilent, installUserRole } from '@/lib/observability';
 import { installRouteFocus } from '@/lib/route-focus';
 import { installAfterWrite } from '@/lib/stale-history';
+import { installTheme } from '@/lib/theme';
 import AppLayout from '@/Shell/Layouts/AppLayout';
 
 // Server-rendered in app.blade.php, so these come from the runtime environment.
@@ -136,6 +137,7 @@ createInertiaApp({
 installNavigation(router);
 installAfterWrite(router);
 installRouteFocus();
+installTheme(router);
 
 watchConnection(appName);
 

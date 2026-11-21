@@ -27,14 +27,14 @@ export default function MomentMap({ places, onOpen }: Props) {
     const isPhone = useIsPhone();
     const mapRef = useRef<MapRef | null>(null);
     const frameRef = useRef<HTMLDivElement | null>(null);
-    const themeWatch = useRef<MutationObserver | null>(null);
+    const themeWatch = useRef<(() => void) | null>(null);
     const [view, setView] = useState<{
         bounds: [number, number, number, number];
         zoom: number;
     } | null>(null);
     const [failed, setFailed] = useState(false);
 
-    useEffect(() => () => themeWatch.current?.disconnect(), []);
+    useEffect(() => () => themeWatch.current?.(), []);
 
     const index = useMemo(() => {
         const clusters = new Supercluster<PlaceProps, ClusterSum>({
@@ -126,11 +126,19 @@ export default function MomentMap({ places, onOpen }: Props) {
 
                     const paint = () => applyMapTheme(e.target, frame);
                     paint();
-                    // A theme is switched on <html>; repaint in its colours.
-                    themeWatch.current = new MutationObserver(paint);
-                    themeWatch.current.observe(document.documentElement, {
+                    // A theme is picked on <html> or by the device; repaint in its colours.
+                    const picked = new MutationObserver(paint);
+                    picked.observe(document.documentElement, {
                         attributeFilter: ['class', 'data-theme'],
                     });
+                    const device = window.matchMedia(
+                        '(prefers-color-scheme: dark)',
+                    );
+                    device.addEventListener('change', paint);
+                    themeWatch.current = () => {
+                        picked.disconnect();
+                        device.removeEventListener('change', paint);
+                    };
                 }}
                 onLoad={(e) => {
                     e.target.touchZoomRotate.disableRotation();
