@@ -35,7 +35,7 @@ class HistoryPruneOrphanedMediaTest extends TestCase
         $event->delete();
         $this->assertNotNull(Event::onlyTrashed()->find($eventId), 'Event should be soft-deleted');
 
-        Artisan::call('history:prune-media');
+        Artisan::call('model:prune', ['--model' => [Event::class]]);
 
         // Event must still exist as soft-deleted (NOT hard-deleted)
         $this->assertNotNull(
@@ -69,7 +69,7 @@ class HistoryPruneOrphanedMediaTest extends TestCase
             'deleted_at' => now()->subDays(35),
         ]);
 
-        Artisan::call('history:prune-media');
+        Artisan::call('model:prune', ['--model' => [Event::class]]);
 
         // Event hard-deleted — withTrashed() should return null
         $this->assertNull(
@@ -108,7 +108,7 @@ class HistoryPruneOrphanedMediaTest extends TestCase
             'deleted_at' => now()->subDays(35),
         ]);
 
-        Artisan::call('history:prune-media');
+        Artisan::call('model:prune', ['--model' => [Event::class]]);
 
         // Event must be hard-deleted
         $this->assertNull(Event::withTrashed()->find($event->id), 'Event should be hard-deleted');
@@ -138,8 +138,8 @@ class HistoryPruneOrphanedMediaTest extends TestCase
             'deleted_at' => now()->subDays(35),
         ]);
 
-        // Run in dry-run mode
-        $exitCode = Artisan::call('history:prune-media', ['--dry-run' => true]);
+        // Run in pretend mode
+        $exitCode = Artisan::call('model:prune', ['--model' => [Event::class], '--pretend' => true]);
         $this->assertSame(0, $exitCode, 'Dry-run should exit cleanly');
 
         // Event must still exist as soft-deleted

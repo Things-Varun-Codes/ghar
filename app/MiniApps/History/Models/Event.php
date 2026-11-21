@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Prunable;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -57,6 +58,7 @@ class Event extends Model implements HasMedia
 {
     use HasFactory;
     use InteractsWithMedia;
+    use Prunable;
     use SoftDeletes;
 
     protected $table = 'our_history_events';
@@ -64,6 +66,17 @@ class Event extends Model implements HasMedia
     protected static function newFactory(): EventFactory
     {
         return EventFactory::new();
+    }
+
+    /**
+     * Moments in the bin for 30 days. Not MassPrunable: the per-row force delete fires
+     * medialibrary's deleting hook, which removes the stored files too.
+     *
+     * @return Builder<self>
+     */
+    public function prunable(): Builder
+    {
+        return static::onlyTrashed()->where('deleted_at', '<', now()->subDays(30));
     }
 
     /** @return array<string, string> */
