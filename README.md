@@ -110,6 +110,9 @@ for these:
 - **Place search**: what someone types in a moment's Location field is sent
   from the server to Photon, an OpenStreetMap search (`photon.komoot.io`, or your own via
   `PHOTON_URL`). It sees only the words typed, never who typed them.
+- **Map**: Our History's map is drawn from OpenFreeMap tiles (`tiles.openfreemap.org`, or your own
+  via `MAP_TILES_URL`), which the server fetches. The tile host sees which areas were viewed, never
+  who viewed them.
 - **Password check**: when someone sets a password, it is checked against a public list of breached
   passwords. Only the first five characters of its hash are sent.
 

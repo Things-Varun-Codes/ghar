@@ -96,6 +96,9 @@ class AppServiceProvider extends ServiceProvider
 
         RateLimiter::for('place-search', Limits::perUser(60));
 
+        // A map view is a few dozen tiles, and panning asks for more.
+        RateLimiter::for('map-tiles', Limits::perUser(1200));
+
         RateLimiter::for('push-subscriptions', Limits::perUser(10));
 
         RateLimiter::for('healthz', function (Request $request) {

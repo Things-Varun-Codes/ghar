@@ -284,6 +284,10 @@ than 90 days are pruned weekly.
   `photon.komoot.io` unless `PHOTON_URL` points at your own. Someone can always keep what they
   typed as the place. Our Shelf never needs it: a place there is a pasted map link, coordinates or a
   typed name.
+- **The map** in Our History shows every moment with a picked place. Its tiles come from
+  OpenFreeMap (`tiles.openfreemap.org`), fetched by the server, so the tile host sees which areas
+  were viewed but never who viewed them. `MAP_TILES_URL` points it at another host laid out like
+  OpenFreeMap, such as your own copy.
 - **AI flower pictures** in Our Exchange use Cloudflare Workers AI:
   `BOUQUET_IMAGE_PROVIDER=cloudflare` with `CLOUDFLARE_ACCOUNT_ID` and a token scoped to Workers AI
   in `CLOUDFLARE_WORKERS_AI_TOKEN`. `fake` draws a placeholder instead. The setting has no default,
@@ -431,7 +435,7 @@ below. A self-host install only needs the few in `.env.selfhost.example`, becaus
 - `TELESCOPE_ENABLED`: `false`. Telescope only loads when `APP_ENV=local`.
 - `VAPID_PUBLIC_KEY` / `VAPID_PRIVATE_KEY` / `VAPID_SUBJECT`: generated on first start when empty.
   Changing them signs every device out of notifications.
-- `PHOTON_URL`, `BOUQUET_IMAGE_PROVIDER`, `CLOUDFLARE_ACCOUNT_ID`,
+- `PHOTON_URL`, `MAP_TILES_URL`, `BOUQUET_IMAGE_PROVIDER`, `CLOUDFLARE_ACCOUNT_ID`,
   `CLOUDFLARE_WORKERS_AI_TOKEN`, `CLOUDFLARE_AI_IMAGE_MODEL`: see
   [Optional features](#optional-features).
 
@@ -496,6 +500,7 @@ VAPID_PUBLIC_KEY=
 VAPID_PRIVATE_KEY=
 VAPID_SUBJECT=
 PHOTON_URL=
+MAP_TILES_URL=
 BOUQUET_IMAGE_PROVIDER=
 CLOUDFLARE_ACCOUNT_ID=
 CLOUDFLARE_WORKERS_AI_TOKEN=

@@ -41,6 +41,7 @@ class RoomSwitchesTest extends TestCase
 
         $this->actingAs($user)->get('/apps/our-history')->assertNotFound();
         $this->get('/apps/our-history/timeline')->assertNotFound();
+        $this->get('/apps/our-history/map')->assertNotFound();
 
         $this->get('/dashboard')->assertOk()->assertInertia(fn ($page) => $page
             ->where('miniApps', fn ($apps) => collect($apps)->pluck('slug')->doesntContain('our-history')

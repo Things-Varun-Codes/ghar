@@ -8,7 +8,7 @@ when work lands, delete lines when they stop being true.
 - **Shell** — Fortify auth, invite-only onboarding, Spatie roles, admin UI, settings, PWA, Web Push + email notifications (`Notify::send()`), household
   membership and per-app permissions, auth-gated `/go/{code}` short links (for NFC tags), `/healthz`,
   Sentry-compatible error reporting.
-- **Our History** — timeline, gallery (PhotoSwipe), calendar view, TipTap editor with Shelf
+- **Our History** — timeline, gallery (PhotoSwipe), calendar view, a map of its places, TipTap editor with Shelf
   cross-link pills, media on local disk or any S3 bucket, typed or OpenStreetMap locations.
 - **Our Shelf** — lists the household makes itself (name, any lucide icon, done word), items
   with a name, notes, link, picture and place, generic link previews behind fetch guards, a picture
