@@ -15,8 +15,8 @@ import {
     CollapsibleTrigger,
 } from '@/components/ui/collapsible';
 import { dashboard } from '@/routes';
+import AppMark from '@/Shell/Components/AppMark';
 import { navIconFor, navIcons } from '@/Shell/Components/bottom-bar';
-import HeartMark from '@/Shell/Components/HeartMark';
 import type { ShellNavItem } from '@/Shell/Components/shell-nav';
 import {
     ADMIN_ITEMS,
@@ -56,8 +56,8 @@ export default function Sidebar() {
                         className="shell-focus inline-flex min-h-11 items-center rounded-full"
                     >
                         <div className="shell-wordmark-sidebar">
+                            <AppMark />
                             {props.name}
-                            <HeartMark size={15} filled />
                         </div>
                     </Link>
                 </div>

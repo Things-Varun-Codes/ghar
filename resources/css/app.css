@@ -1251,6 +1251,13 @@ a:hover .os-feed-action {
     margin-top: 1px;
 }
 
+/* The mark sits at the size of the name beside it. */
+.shell-app-mark {
+    flex: none;
+    width: 1em;
+    height: 1em;
+}
+
 .shell-wordmark-topbar {
     font-family: var(--font-display);
     font-size: 24px;

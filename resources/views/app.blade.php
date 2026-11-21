@@ -34,7 +34,14 @@
                 transition: opacity 180ms ease-out;
             }
             .app-splash__wordmark {
+                display: flex;
+                align-items: center;
+                gap: 12px;
                 animation: app-splash-pulse 1.6s ease-in-out infinite alternate;
+            }
+            .app-splash__wordmark img {
+                width: 1em;
+                height: 1em;
             }
             @keyframes app-splash-pulse {
                 from { opacity: 0.55 }
@@ -72,7 +79,7 @@
     </head>
     <body class="font-sans antialiased">
         <div id="app-splash" role="status">
-            <span class="app-splash__wordmark" aria-hidden="true">{{ config('app.name') }}</span>
+            <span class="app-splash__wordmark" aria-hidden="true"><img src="/favicon.svg" alt="">{{ config('app.name') }}</span>
             <span style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);">Loading {{ config('app.name') }}</span>
         </div>
         <x-inertia::app />
