@@ -1,5 +1,5 @@
 import { Maximize2, MoreHorizontal } from 'lucide-react';
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import {
     DropdownMenu,
@@ -8,11 +8,12 @@ import {
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { cn } from '@/lib/utils';
-import BouquetDialog from '@/MiniApps/Mailbox/Components/BouquetDialog';
 import MailMeta from '@/MiniApps/Mailbox/Components/MailMeta';
 import type { FlowerEntry } from '@/MiniApps/Mailbox/Components/NoteCard';
 import AppCard from '@/Shell/Components/AppCard';
 import ConfirmDialog from '@/Shell/Components/ConfirmDialog';
+import MediaLightbox from '@/Shell/Components/MediaLightbox';
+import type { MediaLightboxHandle } from '@/Shell/Components/MediaLightbox';
 import type { Person } from '@/types/person';
 
 export type BouquetItem = {
@@ -36,7 +37,9 @@ type Props = {
 };
 
 export default function BouquetCard({ message, onDelete, isFocused }: Props) {
-    const [lightboxOpen, setLightboxOpen] = useState(false);
+    const lightboxRef = useRef<MediaLightboxHandle>(null);
+    // The generator's size isn't fixed, so the lightbox takes it from the loaded picture.
+    const [size, setSize] = useState<{ width: number; height: number }>();
     const [confirmOpen, setConfirmOpen] = useState(false);
     const recipientNames = message.recipients.map((r) => r.name).join(', ');
     const from = message.is_mine
@@ -59,13 +62,19 @@ export default function BouquetCard({ message, onDelete, isFocused }: Props) {
                         <button
                             type="button"
                             aria-label={`View ${from}, ${message.posted_at_human}, fullscreen`}
-                            onClick={() => setLightboxOpen(true)}
+                            onClick={() => lightboxRef.current?.open(0)}
                             className="mailbox-bouquet-image-button"
                         >
                             <img
                                 src={message.image_url}
                                 alt="Flower bouquet"
                                 className="block h-full w-full object-cover"
+                                onLoad={(e) =>
+                                    setSize({
+                                        width: e.currentTarget.naturalWidth,
+                                        height: e.currentTarget.naturalHeight,
+                                    })
+                                }
                             />
                             <span
                                 aria-hidden="true"
@@ -147,10 +156,20 @@ export default function BouquetCard({ message, onDelete, isFocused }: Props) {
             </AppCard>
 
             {message.image_url && (
-                <BouquetDialog
-                    open={lightboxOpen}
-                    onOpenChange={setLightboxOpen}
-                    imageUrl={message.image_url}
+                <MediaLightbox
+                    ref={lightboxRef}
+                    media={[
+                        {
+                            kind: 'photo',
+                            original: message.image_url,
+                            ...size,
+                            alt: 'Flower bouquet',
+                            title: message.is_mine
+                                ? 'Your bouquet'
+                                : `From ${message.sender.name}`,
+                            subtitle: message.posted_at_human,
+                        },
+                    ]}
                 />
             )}
         </>

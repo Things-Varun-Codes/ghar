@@ -29,8 +29,8 @@ type SegmentedTabsNavProps<T extends string> = SegmentedTabsSharedProps<T> & {
     /** Keep the scroll position and drop page state on a tab change, for a filtered list. */
     keepScroll?: boolean;
     /**
-     * Fetch the other tabs as soon as this one is shown. Only for tabs whose GET
-     * changes nothing on the server.
+     * Fetch another tab when the pointer reaches it, not as soon as this one is shown:
+     * on mount, every visit paid for every tab. Only for tabs whose GET changes nothing.
      */
     prefetch?: boolean;
 };
@@ -110,7 +110,7 @@ export default function SegmentedTabs<T extends string>(
                     <Link
                         key={item.key}
                         href={hrefFor(item.key)}
-                        prefetch={prefetch && !isActive ? 'mount' : false}
+                        prefetch={prefetch && !isActive ? 'hover' : false}
                         preserveScroll={keepScroll}
                         preserveState={keepScroll ? false : undefined}
                         aria-current={isActive ? 'page' : undefined}

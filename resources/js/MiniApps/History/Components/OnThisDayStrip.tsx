@@ -42,8 +42,8 @@ export default function OnThisDayStrip({ events, onOpen }: Props) {
             </h2>
             <div className="history-otd-row">
                 {events.map((e) => {
-                    const thumb =
-                        e.media.find((m) => m.thumb || m.poster)?.thumb ?? null;
+                    const shown = e.media.find((m) => m.thumb || m.poster);
+                    const thumb = shown?.card ?? shown?.thumb ?? null;
 
                     return (
                         <button

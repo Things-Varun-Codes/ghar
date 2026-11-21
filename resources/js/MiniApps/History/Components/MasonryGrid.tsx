@@ -5,8 +5,10 @@ import { useIsPhone } from '@/hooks/use-breakpoint';
 export type GalleryMediaItem = {
     id: number;
     kind: 'photo' | 'video';
+    card?: string | null;
     thumb: string | null;
     medium: string | null;
+    large?: string | null;
     original: string;
     poster: string | null;
     pending?: boolean;
@@ -30,6 +32,8 @@ export default function MasonryGrid({ media, onTileClick }: Props) {
     const tablet = useMediaQuery('(max-width: 1279.98px)');
     const wide = useMediaQuery('(min-width: 1536px)');
     const colCount = phone ? 2 : tablet ? 3 : wide ? 5 : 4;
+    // An overestimate (it ignores the sidebar and gaps), so the browser never picks too small.
+    const sizes = `${Math.ceil(100 / colCount)}vw`;
 
     if (media.length === 0) {
         return null;
@@ -55,6 +59,7 @@ export default function MasonryGrid({ media, onTileClick }: Props) {
                             key={item.id}
                             item={item}
                             index={originalIndex}
+                            sizes={sizes}
                             onTileClick={onTileClick}
                         />
                     ))}
@@ -67,10 +72,11 @@ export default function MasonryGrid({ media, onTileClick }: Props) {
 type TileProps = {
     item: GalleryMediaItem;
     index: number;
+    sizes: string;
     onTileClick: (index: number) => void;
 };
 
-function MasonryTile({ item, index, onTileClick }: TileProps) {
+function MasonryTile({ item, index, sizes, onTileClick }: TileProps) {
     const thumbSrc =
         item.kind === 'video'
             ? (item.poster ?? item.thumb ?? item.medium ?? undefined)
@@ -92,24 +98,24 @@ function MasonryTile({ item, index, onTileClick }: TileProps) {
         >
             {isPendingPhoto ? (
                 <div
-                    className="history-pending-tile shell-skeleton"
+                    className="history-pending-tile shell-skeleton aspect-square"
                     aria-hidden="true"
-                    style={{
-                        aspectRatio:
-                            item.width && item.height
-                                ? `${item.width} / ${item.height}`
-                                : '1',
-                    }}
                 />
             ) : (
+                // The thumb is a square crop: sized as one before it loads, the grid never
+                // reflows from the original's shape to a square.
                 <img
                     src={thumbSrc}
+                    srcSet={
+                        item.kind === 'photo' && item.card && item.thumb
+                            ? `${item.card} 160w, ${item.thumb} 600w`
+                            : undefined
+                    }
+                    sizes={sizes}
                     alt={item.alt || ''}
-                    width={item.width ?? undefined}
-                    height={item.height ?? undefined}
                     loading="lazy"
                     decoding="async"
-                    className="block h-auto w-full"
+                    className="block aspect-square w-full object-cover"
                 />
             )}
 

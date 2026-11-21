@@ -23,8 +23,8 @@ export default function EventCard({ event, onRead }: EventCardProps) {
 
     const name = event.title || event.date_label;
     const place = displayLocation(event);
-    const thumb =
-        event.media.find((m) => m.original !== null && m.thumb)?.thumb ?? null;
+    const shown = event.media.find((m) => m.original !== null && m.thumb);
+    const thumb = shown ? (shown.card ?? shown.thumb) : null;
     const reacted = event.reactions.filter((r) => r.count > 0);
     const reactionTotal = reacted.reduce((sum, r) => sum + r.count, 0);
     const commentCount = event.comments.length;

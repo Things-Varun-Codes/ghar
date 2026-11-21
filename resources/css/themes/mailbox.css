@@ -570,25 +570,6 @@
     color: var(--mailbox-ink-soft);
 }
 
-[data-app='our-exchange'].mailbox-bouquet-lightbox {
-    background: var(--mailbox-bg);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 24px;
-    max-width: 94vw;
-    width: auto;
-    border: none;
-}
-
-[data-app='our-exchange'] .mailbox-lightbox-image {
-    display: block;
-    max-width: 90vw;
-    max-height: 80vh;
-    object-fit: contain;
-    border-radius: var(--radius-inner);
-}
-
 /* ── Citation: an official form, told by its rules, boxes, seal and stamp ─ */
 
 [data-app='our-exchange'] .mailbox-artifact-page {

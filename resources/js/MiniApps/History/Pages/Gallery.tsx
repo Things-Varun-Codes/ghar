@@ -1,6 +1,6 @@
 import { router } from '@inertiajs/react';
 import { Images } from 'lucide-react';
-import { useRef } from 'react';
+import { useMemo, useRef } from 'react';
 
 import { count } from '@/lib/plural';
 import FilterSegmented, {
@@ -8,14 +8,14 @@ import FilterSegmented, {
 } from '@/MiniApps/History/Components/FilterSegmented';
 import MasonryGrid from '@/MiniApps/History/Components/MasonryGrid';
 import type { GalleryMediaItem } from '@/MiniApps/History/Components/MasonryGrid';
-import PhotoSwipeGallery from '@/MiniApps/History/Components/PhotoSwipeGallery';
-import type { PhotoSwipeGalleryHandle } from '@/MiniApps/History/Components/PhotoSwipeGallery';
 import SortDropdown from '@/MiniApps/History/Components/SortDropdown';
 import { useConversionPolling } from '@/MiniApps/History/Hooks/useConversionPolling';
 import HistoryLayout from '@/MiniApps/History/Layouts/HistoryLayout';
 import { gallery } from '@/routes/apps/our-history';
 import EmptyState from '@/Shell/Components/EmptyState';
 import ListLoadMoreState from '@/Shell/Components/ListLoadMoreState';
+import MediaLightbox from '@/Shell/Components/MediaLightbox';
+import type { MediaLightboxHandle } from '@/Shell/Components/MediaLightbox';
 import { useCursorPagination } from '@/Shell/Hooks/useCursorPagination';
 
 type PaginatedMedia = {
@@ -52,7 +52,7 @@ export default function Gallery({
     counts,
     order,
 }: Props) {
-    const lightboxRef = useRef<PhotoSwipeGalleryHandle>(null);
+    const lightboxRef = useRef<MediaLightboxHandle>(null);
 
     const {
         items: loadedMedia,
@@ -65,6 +65,17 @@ export default function Gallery({
         initial: initialMedia,
         propName: 'media',
     });
+
+    // Same order as loadedMedia, so a tile's index is its slide's index.
+    const slides = useMemo(
+        () =>
+            loadedMedia.map((m) => ({
+                ...m,
+                title: m.event_title,
+                subtitle: m.event_date,
+            })),
+        [loadedMedia],
+    );
 
     useConversionPolling(
         loadedMedia.some((m) => m.pending),
@@ -150,10 +161,6 @@ export default function Gallery({
 
                 {loadedMedia.length > 0 && (
                     <>
-                        {/* CRITICAL: pass the flat loadedMedia array to BOTH MasonryGrid
-                                and PhotoSwipeGallery — the SAME array reference — so the
-                                round-robin tile index stays 1:1 with the lightbox index across
-                                appended pages. Never pass the paginator object to either child. */}
                         <MasonryGrid
                             media={loadedMedia}
                             onTileClick={(index) =>
@@ -171,7 +178,7 @@ export default function Gallery({
                 )}
             </div>
 
-            <PhotoSwipeGallery ref={lightboxRef} media={loadedMedia} />
+            <MediaLightbox ref={lightboxRef} media={slides} />
         </HistoryLayout>
     );
 }
