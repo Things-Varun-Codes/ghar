@@ -1,4 +1,6 @@
 import { Link } from '@inertiajs/react';
+import type { LucideIcon } from 'lucide-react';
+import type { ReactNode } from 'react';
 import {
     Tabs,
     TabsIndicator,
@@ -10,6 +12,8 @@ type SegmentedTabItem<T extends string> = {
     key: T;
     label: string;
     count?: number;
+    /* Drawn in place of the words, which stay as the tab's name for a screen reader. */
+    icon?: LucideIcon;
 };
 
 type SegmentedTabsSharedProps<T extends string> = {
@@ -41,10 +45,25 @@ type SegmentedTabsTablistClientProps<T extends string> =
 export type SegmentedTabsProps<T extends string> =
     SegmentedTabsNavProps<T> | SegmentedTabsTablistClientProps<T>;
 
-function renderLabel(item: SegmentedTabItem<string>): string {
+function labelText(item: SegmentedTabItem<string>): string {
     return item.count !== undefined
         ? `${item.label} (${item.count})`
         : item.label;
+}
+
+function renderLabel(item: SegmentedTabItem<string>): ReactNode {
+    if (!item.icon) {
+        return labelText(item);
+    }
+
+    const Icon = item.icon;
+
+    return (
+        <>
+            <Icon aria-hidden="true" size={18} strokeWidth={1.5} />
+            <span className="sr-only">{labelText(item)}</span>
+        </>
+    );
 }
 
 export default function SegmentedTabs<T extends string>(

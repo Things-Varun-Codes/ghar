@@ -70,8 +70,7 @@ export default function HistoryLayout({
                     <Toolbar
                         count={count}
                         controls={controls}
-                        sticky
-                        heightVar="--history-subtoolbar-h"
+                        sticky={false}
                         background="var(--history-bg)"
                     />
                 )}

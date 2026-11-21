@@ -103,14 +103,13 @@
     }
 }
 
-/* Parks at the bottom of the sub-toolbar so the two sticky layers never overlap. */
+/* The count and sort scroll away, as in every room; the year stays as the one sticky layer. */
 .history-year-banner {
     position: sticky;
-    /* Below lg: clear the phone top bar and the toolbar. */
-    top: calc(var(--shell-topbar-h) + var(--history-subtoolbar-h, 60px));
+    top: var(--shell-topbar-h); /* below lg: clear the phone top bar */
     z-index: 11; /* content band, below the floating FAB (--z-floating: 20) */
-    margin-left: -36px; /* mobile wrapper padding-left is 36px (see .history-timeline-wrapper) */
-    padding: 16px 36px;
+    margin-left: -46px; /* covers the wrapper's 46px left padding, where the faces sit */
+    padding: 16px 36px 16px 46px;
 }
 
 @variant md {
@@ -120,34 +119,10 @@
     }
 }
 
-/* From lg the sidebar replaces the top bar, so only the toolbar is above. */
+/* From lg the sidebar replaces the top bar. */
 @variant lg {
     .history-year-banner {
-        top: var(--history-subtoolbar-h, 60px);
-    }
-}
-
-/*
- * On mobile the sort control moves out of the wrapping sub-toolbar into a sticky chip in the year
- * band.
- */
-.history-sort-toolbar {
-    display: none;
-}
-.history-sort-sticky {
-    float: right;
-    position: sticky;
-    top: calc(var(--shell-topbar-h) + var(--history-subtoolbar-h, 60px));
-    z-index: 12;
-}
-
-@variant md {
-    .history-sort-toolbar {
-        display: flex;
-        align-items: center;
-    }
-    .history-sort-sticky {
-        display: none;
+        top: 0;
     }
 }
 
@@ -240,34 +215,8 @@
     gap: 8px;
 }
 
-.history-filter-rail {
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-    gap: 24px;
-    width: auto;
-    flex-shrink: 0;
-}
-
-.history-filter-segmented {
-    display: none;
-}
-
-@variant max-md {
-    .history-filter-rail {
-        display: none;
-    }
-
-    .history-filter-segmented {
-        display: flex;
-        flex: none;
-        align-items: center;
-        gap: 8px;
-    }
-
-    .history-gallery-controls > * {
-        flex: none;
-    }
+[data-app='our-history'] .history-gallery-controls > * {
+    flex: none;
 }
 
 /*
@@ -725,7 +674,7 @@
 }
 
 [data-app='our-history'] .history-year-title {
-    font-family: var(--history-font-display);
+    font-family: var(--history-font-sans);
     font-size: 36px;
     font-weight: 300;
     line-height: 1.15;
@@ -734,12 +683,43 @@
     margin: 0;
 }
 
+/* The heading itself opens the year list: it keeps the heading's type, with a quiet chevron. */
+[data-app='our-history'] .history-year-jump {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    min-height: 44px;
+    margin-left: -6px;
+    padding: 0 6px;
+    border: none;
+    border-radius: var(--radius-sm);
+    background: none;
+    font: inherit;
+    letter-spacing: inherit;
+    color: inherit;
+    cursor: pointer;
+}
+
+[data-app='our-history'] .history-year-jump-chevron {
+    color: var(--history-ink-soft);
+    transition: transform var(--dur-out) var(--ease-ui);
+}
+
+[data-app='our-history'] .history-year-jump:hover .history-year-jump-chevron {
+    color: var(--history-ink);
+}
+
+[data-app='our-history']
+    .history-year-jump[data-popup-open]
+    .history-year-jump-chevron {
+    transform: rotate(180deg);
+}
+
 [data-app='our-history'] .history-year-count {
     display: block;
     font-family: var(--history-font-sans);
-    font-size: var(--text-meta);
+    font-size: var(--text-body);
     font-weight: 400;
-    font-variant-numeric: tabular-nums;
     color: var(--history-ink-soft);
     margin-top: 4px;
 }
@@ -899,7 +879,7 @@
  */
 [data-app='our-history'] .history-card-date,
 [data-app='our-history'] .history-read-date {
-    font-family: var(--history-font-display);
+    font-family: var(--history-font-sans);
     font-size: var(--text-small);
     font-weight: 400;
     line-height: 1.3;
@@ -974,7 +954,7 @@
     align-items: center;
     gap: 6px;
     margin: 0;
-    font-family: var(--history-font-display);
+    font-family: var(--history-font-sans);
     font-style: italic;
     font-size: var(--text-small);
     line-height: 1.4;
@@ -1060,6 +1040,13 @@
     white-space: nowrap;
 }
 
+[data-app='our-history']
+    :is(.history-sort-trigger, .history-year-trigger)[data-icon-only] {
+    justify-content: center;
+    width: 44px;
+    padding: 0;
+}
+
 [data-app='our-history'] .history-sort-trigger:hover,
 [data-app='our-history'] .history-year-trigger:hover {
     background-color: var(--history-hover);
@@ -1111,103 +1098,6 @@
     line-height: 1.4;
     color: var(--history-ink-soft);
     margin-top: 2px;
-}
-
-[data-app='our-history'] .history-filter-label {
-    font-family: var(--history-font-sans);
-    font-size: var(--text-meta);
-    font-weight: 400;
-    color: var(--history-ink-soft);
-    margin-right: 8px;
-    white-space: nowrap;
-}
-
-[data-app='our-history'] .history-chip {
-    min-height: 44px;
-    padding: 0 16px;
-    border: none;
-    border-radius: var(--radius-pill);
-    cursor: pointer;
-    font-family: var(--history-font-sans);
-    font-size: var(--text-small);
-    font-weight: 400;
-    font-variant-numeric: tabular-nums;
-    color: var(--history-ink);
-    background-color: transparent;
-    white-space: nowrap;
-}
-
-[data-app='our-history'] .history-chip:hover {
-    background-color: var(--history-hover);
-}
-
-[data-app='our-history'] .history-chip[aria-pressed='true'] {
-    font-weight: 400;
-    color: var(--history-on-accent);
-    background-color: var(--history-accent);
-}
-
-[data-app='our-history'] .history-filter-count {
-    margin-left: 4px;
-    font-family: var(--history-font-sans);
-    font-size: var(--text-meta);
-    font-variant-numeric: tabular-nums;
-    color: var(--history-ink-soft);
-}
-
-[data-app='our-history']
-    .history-chip[aria-pressed='true']
-    .history-filter-count {
-    color: var(--history-on-accent);
-}
-
-[data-app='our-history'] .history-segmented {
-    display: flex;
-    flex-shrink: 0;
-    gap: 0;
-    border-radius: var(--radius-pill);
-    overflow: hidden;
-    border: 1px solid var(--history-control-border);
-}
-
-[data-app='our-history'] .history-segment {
-    min-height: 44px;
-    padding: 0 16px;
-    border: none;
-    cursor: pointer;
-    font-family: var(--history-font-sans);
-    font-size: var(--text-small);
-    font-weight: 400;
-    color: var(--history-ink);
-    background-color: var(--history-card);
-    white-space: nowrap;
-    transition:
-        background-color var(--dur-out) var(--ease-ui),
-        color var(--dur-out) var(--ease-ui);
-}
-
-[data-app='our-history'] .history-segment + .history-segment {
-    border-left: 1px solid var(--history-rule);
-}
-
-[data-app='our-history'] .history-segment:hover {
-    background-color: var(--history-hover);
-}
-
-[data-app='our-history'] .history-segment:active {
-    background-color: var(--history-accent-soft);
-    transition-duration: var(--dur-press);
-}
-
-[data-app='our-history'] .history-segment[aria-pressed='true'] {
-    font-weight: 400;
-    color: var(--history-on-accent);
-    background-color: var(--history-accent);
-}
-
-/* The ring would be clipped by the segmented pill, so it is drawn inside the segment. */
-[data-app='our-history'] .history-segment:focus-visible {
-    box-shadow: inset 0 0 0 2px var(--history-action);
 }
 
 /* ---- Gallery ---- */
@@ -1282,6 +1172,11 @@
     border-radius: var(--radius-inner);
     overflow: hidden;
     background-color: var(--history-rule);
+}
+
+/* `all: unset` above also unsets the room's focus ring. */
+[data-app='our-history'] .history-media-thumb-button:focus-visible {
+    box-shadow: var(--history-focus-ring);
 }
 
 [data-app='our-history'] .history-media-thumb {
@@ -2124,7 +2019,7 @@
 }
 
 [data-app='our-history'] .history-cal-year-label {
-    font-family: var(--history-font-display);
+    font-family: var(--history-font-sans);
     font-size: var(--text-title);
     line-height: 1;
     letter-spacing: var(--tracking-display);
@@ -2163,6 +2058,7 @@
 
 [data-app='our-history'] .history-cal-month-name {
     font-family: var(--history-font-display);
+    font-weight: var(--weight-display);
     font-size: var(--text-subhead);
     line-height: 1.2;
     color: var(--history-ink);
@@ -2174,9 +2070,8 @@
 }
 
 [data-app='our-history'] .history-cal-month-count {
-    font-size: var(--text-meta);
+    font-size: var(--text-body);
     font-weight: 400;
-    font-variant-numeric: tabular-nums;
     color: var(--history-ink-soft);
     white-space: nowrap;
 }
@@ -2341,10 +2236,15 @@
         var(--history-cal-scrim);
 }
 
+[data-app='our-history'] .history-cal-cell--event:focus-visible {
+    box-shadow: var(--history-focus-ring), var(--history-cal-scrim);
+}
+
 [data-app='our-history'] .history-cal-picker {
     display: flex;
     gap: 8px;
     overflow-x: auto;
+    scrollbar-width: none;
     padding: 4px 4px 12px;
     margin: 0 -4px 8px;
     -webkit-overflow-scrolling: touch;
@@ -2524,5 +2424,15 @@
 @variant max-md {
     [data-app='our-history'] .history-cal-cap {
         display: none;
+    }
+
+    [data-app='our-history'] .history-cal-month--large {
+        padding: 12px;
+    }
+
+    [data-app='our-history']
+        .history-cal-month--large
+        :is(.history-cal-dow, .history-cal-week, .history-cal-grid) {
+        gap: 2px;
     }
 }

@@ -120,7 +120,7 @@
 
 [data-app='our-exchange'] .mailbox-hand {
     font-family: var(--mailbox-font-hand);
-    font-style: italic;
+    font-style: normal;
     font-weight: 400;
     font-size: var(--mailbox-hand-size);
     color: var(--mailbox-ink);
@@ -317,7 +317,7 @@
 [data-app='our-exchange'] .mailbox-door-note-body {
     margin: 0;
     font-family: var(--mailbox-font-hand);
-    font-style: italic;
+    font-style: normal;
     font-weight: 400;
     font-size: var(--mailbox-hand-size);
     line-height: var(--mailbox-rule-step);
@@ -474,7 +474,7 @@
 
 [data-app='our-exchange'] .mailbox-note-body {
     font-family: var(--mailbox-font-hand);
-    font-style: italic;
+    font-style: normal;
     font-weight: 400;
     font-size: var(--mailbox-hand-size);
     line-height: var(--mailbox-rule-step);
@@ -545,7 +545,7 @@
 /* The few words sent with a bouquet are a note body. */
 [data-app='our-exchange'] .mailbox-bouquet-note {
     font-family: var(--mailbox-font-hand);
-    font-style: italic;
+    font-style: normal;
     font-weight: 400;
     font-size: var(--mailbox-hand-size);
     line-height: 28px;
@@ -824,8 +824,8 @@
 [data-app='our-exchange'] .mailbox-citation-field-value,
 [data-app='our-exchange'] .mailbox-citation-field-value--hand,
 [data-app='our-exchange'] .mailbox-citation-penalty {
-    font-family: var(--mailbox-font-display);
-    font-style: italic;
+    font-family: var(--mailbox-font-hand);
+    font-style: normal;
     font-weight: var(--weight-display);
     font-size: var(--text-subhead);
     font-variant-numeric: tabular-nums;
@@ -859,8 +859,8 @@
 
 /* The offence as the title of a citation in the list. */
 [data-app='our-exchange'] .mailbox-written {
-    font-family: var(--mailbox-font-display);
-    font-style: italic;
+    font-family: var(--mailbox-font-hand);
+    font-style: normal;
     font-weight: var(--weight-display);
     font-size: var(--text-subhead);
     line-height: 1.3;
@@ -915,8 +915,8 @@
     overflow-wrap: anywhere;
 }
 [data-app='our-exchange'] .mailbox-coupon-desc {
-    font-family: var(--mailbox-font-display);
-    font-style: italic;
+    font-family: var(--mailbox-font-hand);
+    font-style: normal;
     font-weight: 400;
     font-size: var(--text-hand);
     color: var(--mailbox-ink);
@@ -1337,7 +1337,7 @@
 
 [data-app='our-exchange'] .mailbox-bouquet-note-input {
     font-family: var(--mailbox-font-hand);
-    font-style: italic;
+    font-style: normal;
     font-size: var(--mailbox-hand-size);
     line-height: 28px;
     padding: 12px 16px;
@@ -1348,7 +1348,7 @@
 /* The sheet a note is written on: same paper, rules and corners as the note it becomes. */
 [data-app='our-exchange'] .mailbox-note-input {
     font-family: var(--mailbox-font-hand);
-    font-style: italic;
+    font-style: normal;
     font-size: var(--mailbox-hand-size);
     line-height: var(--mailbox-rule-step);
     background-color: var(--mailbox-card);

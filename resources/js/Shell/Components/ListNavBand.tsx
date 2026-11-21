@@ -1,4 +1,4 @@
-import { Search, X } from 'lucide-react';
+import { ArrowDownUp, Search, X } from 'lucide-react';
 import type { ReactNode } from 'react';
 import { useEffect, useRef, useState } from 'react';
 
@@ -122,6 +122,7 @@ export default function ListNavBand({
     const sortNode = sortItems ? (
         <ChoiceMenu
             label="Sort"
+            icon={ArrowDownUp}
             value={sort ?? 'recent'}
             items={sortItems}
             onSelect={onSortSelect}

@@ -57,8 +57,29 @@ export function iconPathsIfLoaded(): IconPaths | null {
     return ready;
 }
 
+const keyed = new Map<string, IconNode>();
+
+/* The stored drawings have no React keys, and lucide's Icon renders a drawing's parts as an
+   array, so each part gets its index as a key, once per icon. */
 export function iconNode(data: IconPaths, name: string): IconNode | null {
-    return data.paths[data.aliases[name] ?? name] ?? null;
+    const resolved = data.aliases[name] ?? name;
+    const node = data.paths[resolved];
+
+    if (!node) {
+        return null;
+    }
+
+    let withKeys = keyed.get(resolved);
+
+    if (!withKeys) {
+        withKeys = node.map(([tag, attrs], i) => [
+            tag,
+            { ...attrs, key: String(i) },
+        ]);
+        keyed.set(resolved, withKeys);
+    }
+
+    return withKeys;
 }
 
 /* "paw-print" reads "Paw print". */

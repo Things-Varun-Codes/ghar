@@ -1,8 +1,8 @@
 import { Link, usePage } from '@inertiajs/react';
 import { dashboard } from '@/routes';
 import AccountMenu from '@/Shell/Components/AccountMenu';
+import AppMark from '@/Shell/Components/AppMark';
 import BackChevron from '@/Shell/Components/BackChevron';
-import HeartMark from '@/Shell/Components/HeartMark';
 import { useShellPageInfo } from '@/Shell/Layouts/shell-chrome';
 import type { MiniApp } from '@/types/miniapp';
 
@@ -35,8 +35,8 @@ export default function MobileTopBar({
                     className="shell-focus inline-flex min-h-11 items-center justify-self-center rounded-full px-2"
                 >
                     <span className="shell-wordmark-topbar">
+                        <AppMark />
                         {appName}
-                        <HeartMark size={13} filled />
                     </span>
                 </Link>
             ) : (

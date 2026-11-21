@@ -11,7 +11,7 @@ const SIZE: Record<PersonAvatarSize, string> = {
     24: 'size-6 text-[13px]',
     32: 'size-8 text-[13px]',
     44: 'size-11 text-(length:--text-small)',
-    96: 'size-24 text-(length:--text-title) font-display',
+    96: 'size-24 text-(length:--text-title) font-display font-semibold',
 };
 
 type Props = {

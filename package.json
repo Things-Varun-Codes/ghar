@@ -15,6 +15,7 @@
         "dev-setup": "bash scripts/dev-setup.sh",
         "dev-sync": "bash scripts/dev-sync.sh",
         "dev-up": "bash scripts/dev-sync.sh --serve",
+        "icons": "node scripts/app-icons.mjs",
         "format": "prettier --write resources/",
         "format:check": "prettier --check resources/",
         "lint": "eslint . --fix",

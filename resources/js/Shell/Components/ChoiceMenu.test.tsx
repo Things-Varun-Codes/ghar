@@ -1,4 +1,5 @@
 import { act, fireEvent, render, screen } from '@testing-library/react';
+import { ArrowDownUp } from 'lucide-react';
 import { describe, expect, it, vi } from 'vitest';
 import ChoiceMenu from '@/Shell/Components/ChoiceMenu';
 
@@ -11,6 +12,7 @@ async function openMenu(onSelect = vi.fn()) {
     render(
         <ChoiceMenu
             label="Sort"
+            icon={ArrowDownUp}
             value="recent"
             items={items}
             onSelect={onSelect}
@@ -63,5 +65,39 @@ describe('ChoiceMenu', () => {
         });
 
         expect(onSelect).not.toHaveBeenCalled();
+    });
+
+    it('is the icon alone at the default choice, and writes any other choice beside it', () => {
+        const { rerender } = render(
+            <ChoiceMenu
+                label="Sort"
+                icon={ArrowDownUp}
+                value="recent"
+                items={items}
+                onSelect={vi.fn()}
+            />,
+        );
+
+        const button = screen.getByRole('button', {
+            name: 'Sort: Newest first',
+        });
+        expect(button.hasAttribute('data-icon-only')).toBe(true);
+        expect(button.textContent).toBe('');
+
+        rerender(
+            <ChoiceMenu
+                label="Sort"
+                icon={ArrowDownUp}
+                value="oldest"
+                items={items}
+                onSelect={vi.fn()}
+            />,
+        );
+
+        const narrowed = screen.getByRole('button', {
+            name: 'Sort: Oldest first',
+        });
+        expect(narrowed.hasAttribute('data-icon-only')).toBe(false);
+        expect(narrowed.textContent).toBe('Oldest first');
     });
 });

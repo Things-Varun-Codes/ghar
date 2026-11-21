@@ -5,6 +5,7 @@ import AccountMenu from '@/Shell/Components/AccountMenu';
 import BottomBar from '@/Shell/Components/BottomBar';
 import MobileTopBar from '@/Shell/Components/MobileTopBar';
 import PullToRefresh from '@/Shell/Components/PullToRefresh';
+import ScrollToTop from '@/Shell/Components/ScrollToTop';
 import Sidebar from '@/Shell/Components/Sidebar';
 import { ShellChromeProvider } from '@/Shell/Layouts/shell-chrome';
 import { activeMiniApp, miniAppForComponent } from '@/Shell/lib/active-room';
@@ -63,6 +64,9 @@ function Shell({ children }: { children: ReactNode }) {
                 >
                     <PullToRefresh>{children}</PullToRefresh>
                 </main>
+
+                {/* Keyed by the address: a new page starts at the top, so the button starts hidden. */}
+                <ScrollToTop key={url} />
 
                 <BottomBar path={path} activeRoom={activeRoom} />
             </div>

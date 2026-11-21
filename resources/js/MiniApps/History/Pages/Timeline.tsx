@@ -1,8 +1,9 @@
 import { usePage } from '@inertiajs/react';
 import { Plus } from 'lucide-react';
-import { useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Settle, SettleItem } from '@/components/motion';
 import { region } from '@/lib/dates';
+import { scrollBehavior } from '@/lib/motion';
 import EventCard from '@/MiniApps/History/Components/EventCard';
 import EventSheet from '@/MiniApps/History/Components/EventSheet';
 import OnThisDayStrip from '@/MiniApps/History/Components/OnThisDayStrip';
@@ -185,6 +186,65 @@ export default function Timeline({
         () => yearGroups.map((g) => g.year),
         [yearGroups],
     );
+    // Every year with moments, not only the loaded ones, in the timeline's order.
+    const allYears = useMemo(
+        () =>
+            Object.entries(yearCounts)
+                .map(([year, n]) => ({ year: Number(year), count: n }))
+                .sort((a, b) =>
+                    order === 'oldest-first'
+                        ? a.year - b.year
+                        : b.year - a.year,
+                ),
+        [yearCounts, order],
+    );
+
+    // A year further down may not have loaded yet, or not enough below it for it to reach the
+    // top: keep the load-more sentinel in view, which loads the next page, until it has, then
+    // scroll to it.
+    const jumpTo = useRef<number | null>(null);
+
+    const stepJump = useCallback(() => {
+        if (jumpTo.current === null) {
+            return;
+        }
+
+        const section = document.getElementById(`year-${jumpTo.current}`);
+        const allLoaded = loadedEvents.length >= eventsCount;
+        const roomBelow =
+            section !== null &&
+            document.documentElement.scrollHeight -
+                (section.getBoundingClientRect().top + window.scrollY) >=
+                window.innerHeight;
+
+        // A failed load still goes to the year if it has arrived, as far as the page allows.
+        if (section && (roomBelow || allLoaded || loadError)) {
+            jumpTo.current = null;
+            section.scrollIntoView({
+                behavior: scrollBehavior(),
+                block: 'start',
+            });
+            // Focus follows the jump, to that year's heading, without undoing the scroll. A beat
+            // later, so the closing menu has let go of focus first.
+            window.setTimeout(() =>
+                section
+                    .querySelector<HTMLElement>('.history-year-jump')
+                    ?.focus({ preventScroll: true }),
+            );
+        } else if (loadError) {
+            jumpTo.current = null;
+        } else if (!loadingMore) {
+            sentinelRef.current?.scrollIntoView({ block: 'end' });
+        }
+    }, [loadingMore, loadError, sentinelRef, loadedEvents.length, eventsCount]);
+
+    // Each page that arrives is another look for the year.
+    useEffect(stepJump, [stepJump]);
+
+    const jumpToYear = (year: number) => {
+        jumpTo.current = year;
+        stepJump();
+    };
 
     const isEmpty = loadedEvents.length === 0;
 
@@ -192,17 +252,12 @@ export default function Timeline({
         <HistoryLayout
             activeTab="timeline"
             count={
-                <span className="font-sans text-(length:--text-eyebrow) text-(--history-ink-soft)">
+                <span className="font-sans text-(length:--text-body) text-(--history-ink-soft)">
                     {countLine}
                 </span>
             }
             controls={
-                <div className="history-sort-toolbar">
-                    <SortDropdown
-                        currentOrder={order}
-                        basePath={timeline.url()}
-                    />
-                </div>
+                <SortDropdown currentOrder={order} basePath={timeline.url()} />
             }
         >
             <YearJumpRail years={distinctYears} />
@@ -236,13 +291,6 @@ export default function Timeline({
 
             {!isEmpty && (
                 <div className="timeline history-timeline-wrapper history-timeline-body relative m-0">
-                    <div className="history-sort-sticky">
-                        <SortDropdown
-                            currentOrder={order}
-                            basePath={timeline.url()}
-                        />
-                    </div>
-
                     <div
                         aria-hidden="true"
                         className="history-timeline-rail history-rail-line"
@@ -251,12 +299,16 @@ export default function Timeline({
                     {/* Only the first page settles in; rows loaded later appear in place. */}
                     <Settle>
                         {yearGroups.map(({ year, events: yearEvents }) => (
-                            <div key={year}>
+                            // The anchor is the year's section, not its pinned heading: once
+                            // scrolled past, the heading sits at the section's end.
+                            <div key={year} id={`year-${year}`}>
                                 <YearBanner
                                     year={year}
                                     count={
                                         yearCounts[year] ?? yearEvents.length
                                     }
+                                    years={allYears}
+                                    onJump={jumpToYear}
                                 />
                                 {yearEvents.map((event) => (
                                     <SettleItem

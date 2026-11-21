@@ -1,6 +1,6 @@
 import { usePage } from '@inertiajs/react';
 import type { ReactNode } from 'react';
-import HeartMark from '@/Shell/Components/HeartMark';
+import AppMark from '@/Shell/Components/AppMark';
 import GuestLayout from '@/Shell/Layouts/GuestLayout';
 
 interface Props {
@@ -25,8 +25,8 @@ export default function AuthLayout({
             <div className="grid w-full max-w-[920px] grid-cols-1 items-center gap-12 md:grid-cols-[1.1fr_1fr] md:gap-14">
                 <div className="flex flex-col items-center text-center md:items-start md:text-left">
                     <div className="shell-wordmark-auth leading-none">
+                        <AppMark />
                         {appName}
-                        <HeartMark size={30} filled />
                     </div>
                     <p className="mt-4 max-w-xs text-[18px] leading-relaxed text-(--muted-foreground)">
                         {tagline}

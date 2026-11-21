@@ -3,8 +3,9 @@ import { Images } from 'lucide-react';
 import { useRef } from 'react';
 
 import { count } from '@/lib/plural';
-import FilterRail from '@/MiniApps/History/Components/FilterRail';
-import FilterSegmented from '@/MiniApps/History/Components/FilterSegmented';
+import FilterSegmented, {
+    GALLERY_PANEL_ID,
+} from '@/MiniApps/History/Components/FilterSegmented';
 import MasonryGrid from '@/MiniApps/History/Components/MasonryGrid';
 import type { GalleryMediaItem } from '@/MiniApps/History/Components/MasonryGrid';
 import PhotoSwipeGallery from '@/MiniApps/History/Components/PhotoSwipeGallery';
@@ -82,24 +83,26 @@ export default function Gallery({
         extraParams.year = filters.year;
     }
 
-    const galleryCountLine = `${count(counts.photos, 'photo')} · ${count(counts.videos, 'video')} across ${count(counts.events, 'moment')}`;
+    // A kind with none is left out: "25 photos across 26 moments", not "· 0 videos".
+    const kinds = [
+        counts.photos > 0 && count(counts.photos, 'photo'),
+        counts.videos > 0 && count(counts.videos, 'video'),
+    ].filter(Boolean);
+    const galleryCountLine =
+        kinds.length > 0
+            ? `${kinds.join(' · ')} across ${count(counts.events, 'moment')}`
+            : '';
 
     return (
         <HistoryLayout
             activeTab="gallery"
             count={
-                <span className="font-sans text-(length:--text-eyebrow) text-(--history-ink-soft)">
+                <span className="font-sans text-(length:--text-body) text-(--history-ink-soft)">
                     {galleryCountLine}
                 </span>
             }
             controls={
                 <div className="history-gallery-controls flex items-center gap-3">
-                    <FilterRail
-                        filters={filters}
-                        availableYears={available_years}
-                        counts={counts}
-                        order={order}
-                    />
                     <FilterSegmented
                         filters={filters}
                         availableYears={available_years}
@@ -114,7 +117,11 @@ export default function Gallery({
                 </div>
             }
         >
-            <div className="history-gallery-wide min-w-0 flex-1">
+            <div
+                id={GALLERY_PANEL_ID}
+                role="tabpanel"
+                className="history-gallery-wide min-w-0 flex-1"
+            >
                 {loadedMedia.length === 0 && !hasFilters && (
                     <EmptyState
                         icon={Images}

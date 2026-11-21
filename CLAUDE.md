@@ -77,7 +77,8 @@ Password for every account: `ghar-local-dev`. Mail lands in Mailpit at `http://1
 | `kabir@example.test` | Kabir, younger, no push     | **Non-recipient**: `/apps/our-exchange/citations/1` and `coupons/1` must 403; note 1 and bouquet 1 must not be listed.                                                           |
 
 Every state the seed covers is in `database/seeders/DevDataSeeder.php` and `DevData/`; row ids are
-stable after a reset.
+stable after a reset. On Shelf, **Songs** is the per-person list ("Everyone marks their own"):
+"Kitchen Radio" is loved by Asha, Meera and Kabir but not Ravi; every other list is shared.
 
 `npm run smoke` and `npm run smoke-loadmore` seed the same household into their own databases.
 

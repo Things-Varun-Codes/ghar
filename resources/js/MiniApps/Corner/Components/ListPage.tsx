@@ -86,7 +86,7 @@ export default function ListPage({
                 navigating={navigation.navigating}
                 count={
                     // Search narrows the counts too, so while searching they read as matches.
-                    <span className="text-(length:--text-meta) font-medium text-(--corner-ink-soft) tabular-nums">
+                    <span className="text-(length:--text-body) text-(--corner-ink-soft) tabular-nums">
                         {searching
                             ? count(counts.all, 'match', 'matches')
                             : count(counts.all, 'thing')}

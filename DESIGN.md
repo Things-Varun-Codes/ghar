@@ -13,10 +13,13 @@ them. The shipped CSS and components are the source of truth.
 - **One house, many rooms.** Chrome is the same everywhere: the frame and sheet (`.shell-frame`,
   `.shell-sheet`), page titles (`.page-h1`), pill buttons, 12px fields, 16px cards, list order
   (tabs, then count, search and sort). Character lives on each room's own objects.
-- **One face, Atkinson Hyperlegible Next**, registered through `fonts:` in `vite.config.ts`, never
-  `@import`. Weights 300 (Home's date only), 400 (reading) and 600 (`--weight-display`, titles);
-  nothing heavier, no second face. Italic means "filled in or handwritten". No text under 13px, no
-  tracked capitals, no small label above a title; sizes come from the `--text-*` scale.
+- **Three faces**, registered through `fonts:` in `vite.config.ts`, never `@import`. Atkinson
+  Hyperlegible Next for reading: 300 (Home's date only) and 400; dates and years stay in it.
+  Fraunces 600 (`--font-display`, `--weight-display`) for the wordmark and titles, upright only.
+  Kalam (`--font-hand`) for what someone wrote in Our Exchange: notes, coupons, citations; it has
+  no italic, so it is never slanted. Elsewhere, italic means "filled in". No fourth face, no text
+  under 13px, no tracked capitals, no small label above a title; sizes come from the `--text-*`
+  scale.
 - **Colour has jobs.** Warm ink on warm white, never pure black or cold grey. Coral
   (`--shell-action`) is the only colour for what you press and where you are; `--shell-accent` is
   its pale wash for what is selected and never fills a button. `--magnet-*` marks people on Home
@@ -31,6 +34,9 @@ them. The shipped CSS and components are the source of truth.
   first name. The one exception is a History timeline card, where the face on the rail is the only
   "who". The Exchange's forms name people in ink, with no faces.
 - **No emoji in the UI**, except History's fixed reaction set. `HeartMark` is the one drawn mark.
+- **Ghar's own mark** (the roof over a heart) is `public/favicon.svg` and nothing else: the tab,
+  `AppMark` beside the name in the header, sidebar and sign-in page, and the loading screen all
+  show that file, and `npm run icons` draws the app icons from it.
 - **Home does work:** today's date, "Needs you" as slips pinned by the sender's face, "New this
   week", birthdays coming up. Rooms are in the bottom bar (phone) and sidebar (from 1024px), never
   on Home.
