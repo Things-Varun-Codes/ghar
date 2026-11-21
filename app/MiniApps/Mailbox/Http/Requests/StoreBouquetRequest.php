@@ -2,6 +2,7 @@
 
 namespace App\MiniApps\Mailbox\Http\Requests;
 
+use App\MiniApps\Mailbox\Http\Requests\Concerns\ValidatesFlowers;
 use App\MiniApps\Mailbox\Http\Requests\Concerns\ValidatesRecipients;
 use Closure;
 use Illuminate\Foundation\Http\FormRequest;
@@ -9,6 +10,7 @@ use Illuminate\Validation\Rule;
 
 class StoreBouquetRequest extends FormRequest
 {
+    use ValidatesFlowers;
     use ValidatesRecipients;
 
     public const MIME_EXTENSION_MAP = [
@@ -42,13 +44,11 @@ class StoreBouquetRequest extends FormRequest
     /** @return array<string, mixed> */
     public function rules(): array
     {
-        $validKeys = array_column(config('mailbox-bouquets', []), 'key');
         $allowedMimes = array_keys(self::MIME_EXTENSION_MAP);
 
         return [
             ...$this->recipientRules(),
-            'flowers' => ['required', 'array', 'min:1', 'max:5'],
-            'flowers.*' => ['required', 'string', Rule::in($validKeys)],
+            ...$this->flowerRules(),
             'note' => ['nullable', 'string', 'max:600'],
             'image' => [
                 'required',
@@ -69,10 +69,7 @@ class StoreBouquetRequest extends FormRequest
     {
         return [
             ...$this->recipientMessages(),
-            'flowers.required' => 'Choose at least one flower.',
-            'flowers.min' => 'Choose at least one flower.',
-            'flowers.max' => 'You can choose up to 5 flowers.',
-            'flowers.*.in' => 'One or more selected flowers are not in the catalog.',
+            ...$this->flowerMessages(),
             'image.required' => 'Arrange the bouquet before you send it.',
             'image.max' => 'The bouquet image is too large (max 10 MB).',
             'mime.required' => 'Image type is required.',

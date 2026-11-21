@@ -1,17 +1,10 @@
-import { Maximize2, MoreHorizontal } from 'lucide-react';
+import { Maximize2 } from 'lucide-react';
 import { useRef, useState } from 'react';
-import { Button } from '@/components/ui/button';
-import {
-    DropdownMenu,
-    DropdownMenuContent,
-    DropdownMenuItem,
-    DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
 import { cn } from '@/lib/utils';
+import MailDeleteMenu from '@/MiniApps/Mailbox/Components/MailDeleteMenu';
 import MailMeta from '@/MiniApps/Mailbox/Components/MailMeta';
 import type { FlowerEntry } from '@/MiniApps/Mailbox/Components/NoteCard';
 import AppCard from '@/Shell/Components/AppCard';
-import ConfirmDialog from '@/Shell/Components/ConfirmDialog';
 import MediaLightbox from '@/Shell/Components/MediaLightbox';
 import type { MediaLightboxHandle } from '@/Shell/Components/MediaLightbox';
 import type { Person } from '@/types/person';
@@ -40,7 +33,6 @@ export default function BouquetCard({ message, onDelete, isFocused }: Props) {
     const lightboxRef = useRef<MediaLightboxHandle>(null);
     // The generator's size isn't fixed, so the lightbox takes it from the loaded picture.
     const [size, setSize] = useState<{ width: number; height: number }>();
-    const [confirmOpen, setConfirmOpen] = useState(false);
     const recipientNames = message.recipients.map((r) => r.name).join(', ');
     const from = message.is_mine
         ? 'your bouquet'
@@ -109,50 +101,14 @@ export default function BouquetCard({ message, onDelete, isFocused }: Props) {
                     />
 
                     {message.is_mine && onDelete && (
-                        <DropdownMenu>
-                            <DropdownMenuTrigger
-                                aria-label={`Actions for your bouquet to ${recipientNames}, ${message.posted_at_human}`}
-                                render={
-                                    <Button
-                                        variant="ghost"
-                                        size="icon"
-                                        className="mailbox-card-menu-square shell-hit-44"
-                                    />
-                                }
-                            >
-                                <MoreHorizontal
-                                    size={18}
-                                    strokeWidth={1.5}
-                                    aria-hidden="true"
-                                />
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end">
-                                <DropdownMenuItem
-                                    variant="destructive"
-                                    onClick={() => setConfirmOpen(true)}
-                                >
-                                    Delete bouquet
-                                </DropdownMenuItem>
-                            </DropdownMenuContent>
-                        </DropdownMenu>
+                        <MailDeleteMenu
+                            noun="bouquet"
+                            label={`Actions for your bouquet to ${recipientNames}, ${message.posted_at_human}`}
+                            triggerClassName="mailbox-card-menu-square"
+                            onDelete={onDelete}
+                        />
                     )}
                 </div>
-
-                {message.is_mine && onDelete && (
-                    <ConfirmDialog
-                        open={confirmOpen}
-                        onOpenChange={setConfirmOpen}
-                        title="Delete this bouquet?"
-                        description="This can't be undone."
-                        cancelLabel="Keep it"
-                        confirmLabel="Delete"
-                        variant="destructive"
-                        onConfirm={() => {
-                            setConfirmOpen(false);
-                            onDelete();
-                        }}
-                    />
-                )}
             </AppCard>
 
             {message.image_url && (
