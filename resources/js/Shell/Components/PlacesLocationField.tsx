@@ -3,7 +3,11 @@ import { APIProvider, useMapsLibrary } from '@vis.gl/react-google-maps';
 import { MapPin, X } from 'lucide-react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type { RefObject } from 'react';
-import { useDebounceValue, useOnClickOutside } from 'usehooks-ts';
+import {
+    useDebounceCallback,
+    useEventCallback,
+    useOnClickOutside,
+} from 'usehooks-ts';
 import {
     Command,
     CommandInput,
@@ -98,14 +102,8 @@ function AutocompleteInput({ label, onSelect }: AutocompleteInputProps) {
         rotateSessionToken();
     }, [rotateSessionToken]);
 
-    const [typed] = useDebounceValue(query, 250);
-
-    useEffect(() => {
-        if (!places || typed.trim().length < 2) {
-            return;
-        }
-
-        void (async () => {
+    const fetchSuggestions = useDebounceCallback(
+        useEventCallback(async (input: string) => {
             try {
                 const fetcher = (
                     places as unknown as {
@@ -134,7 +132,7 @@ function AutocompleteInput({ label, onSelect }: AutocompleteInputProps) {
 
                 const { suggestions: raw } =
                     await fetcher.fetchAutocompleteSuggestions({
-                        input: typed,
+                        input,
                         sessionToken: sessionTokenRef.current ?? undefined,
                     });
 
@@ -161,8 +159,19 @@ function AutocompleteInput({ label, onSelect }: AutocompleteInputProps) {
             } catch {
                 setSuggestions([]);
             }
-        })();
-    }, [places, typed]);
+        }),
+        250,
+    );
+
+    useEffect(() => {
+        if (!places || query.trim().length < 2) {
+            return;
+        }
+
+        void fetchSuggestions(query);
+
+        return fetchSuggestions.cancel;
+    }, [places, query, fetchSuggestions]);
 
     const visibleSuggestions = query.trim().length < 2 ? [] : suggestions;
     const listOpen = open && visibleSuggestions.length > 0;
