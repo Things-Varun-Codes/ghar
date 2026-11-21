@@ -157,11 +157,13 @@ parallel worktrees. The smoke scripts use fixed ports: one run at a time per mac
 Five tiers; none replaces another. Start with [How to test locally](#how-to-test-locally).
 
 - **Unit — `npm test`.** Vitest + jsdom, files co-located with source. Inertia `router` and sonner
-  `toast` are mocked, so green proves the right call was issued, not that it landed. Pins two
+  `toast` are mocked, so green proves the right call was issued, not that it landed. Pins three
   invariants that would otherwise break silently: `useItemActions`' 5000 ms deferred delete (Undo
   cancels with zero network traffic; unmounting mid-window deliberately does **not** cancel the
-  delete) and `useCursorPagination`'s superseded-visit guard (an older visit's `onFinish` must not
-  clear a newer visit's `navigating`). Use this tier for new hook/utility logic with branching or
+  delete), `useListNavigation`'s superseded-visit guard (an older visit's `onFinish` must not
+  clear a newer visit's `navigating`), and `useConvertingRows`' in-place patch (History's photo
+  poll asks for its own `converting` prop and swaps those rows in by id; reloading the scroll prop
+  would start the list over at page one). Use this tier for new hook/utility logic with branching or
   timing. The custom ESLint rules' tests run with `npm run test:rules`, the release script's with
   `npm run test:scripts`.
 - **PHPUnit — `php artisan test`.** HTTP, Inertia payload shape, DB state, policies, middleware.

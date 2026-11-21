@@ -9,14 +9,13 @@ import FilterSegmented, {
 import MasonryGrid from '@/MiniApps/History/Components/MasonryGrid';
 import type { GalleryMediaItem } from '@/MiniApps/History/Components/MasonryGrid';
 import SortDropdown from '@/MiniApps/History/Components/SortDropdown';
-import { useConversionPolling } from '@/MiniApps/History/Hooks/useConversionPolling';
+import { useConvertingRows } from '@/MiniApps/History/Hooks/useConvertingRows';
 import HistoryLayout from '@/MiniApps/History/Layouts/HistoryLayout';
 import { gallery } from '@/routes/apps/our-history';
 import EmptyState from '@/Shell/Components/EmptyState';
-import ListLoadMoreState from '@/Shell/Components/ListLoadMoreState';
+import LoadMoreScroll from '@/Shell/Components/LoadMoreScroll';
 import MediaLightbox from '@/Shell/Components/MediaLightbox';
 import type { MediaLightboxHandle } from '@/Shell/Components/MediaLightbox';
-import { useCursorPagination } from '@/Shell/Hooks/useCursorPagination';
 
 type PaginatedMedia = {
     data: GalleryMediaItem[];
@@ -46,7 +45,7 @@ type Props = {
 };
 
 export default function Gallery({
-    media: initialMedia,
+    media,
     filters,
     available_years,
     counts,
@@ -54,17 +53,7 @@ export default function Gallery({
 }: Props) {
     const lightboxRef = useRef<MediaLightboxHandle>(null);
 
-    const {
-        items: loadedMedia,
-        sentinelRef,
-        loadingMore,
-        loadError,
-        retryLoadMore,
-        refreshInPlace,
-    } = useCursorPagination<GalleryMediaItem>({
-        initial: initialMedia,
-        propName: 'media',
-    });
+    const loadedMedia = media.data;
 
     // Same order as loadedMedia, so a tile's index is its slide's index.
     const slides = useMemo(
@@ -77,10 +66,7 @@ export default function Gallery({
         [loadedMedia],
     );
 
-    useConversionPolling(
-        loadedMedia.some((m) => m.pending),
-        refreshInPlace,
-    );
+    useConvertingRows('media', loadedMedia, (m) => m.pending === true);
 
     const hasFilters = filters.type !== 'all' || filters.year !== null;
 
@@ -160,21 +146,14 @@ export default function Gallery({
                 )}
 
                 {loadedMedia.length > 0 && (
-                    <>
+                    <LoadMoreScroll prop="media">
                         <MasonryGrid
                             media={loadedMedia}
                             onTileClick={(index) =>
                                 lightboxRef.current?.open(index)
                             }
                         />
-
-                        <ListLoadMoreState
-                            loadingMore={loadingMore}
-                            loadError={loadError}
-                            onRetry={retryLoadMore}
-                            sentinelRef={sentinelRef}
-                        />
-                    </>
+                    </LoadMoreScroll>
                 )}
             </div>
 

@@ -13,15 +13,18 @@ use App\MiniApps\History\Providers\HistoryServiceProvider;
 use App\MiniApps\History\Support\LinkedThings;
 use App\MiniApps\History\Support\MemberBirthdays;
 use App\MiniApps\History\Support\OnThisDay;
+use App\MiniApps\History\Support\PollIds;
 use App\MiniApps\History\Support\RequestedMoment;
 use App\Shell\Models\User;
 use App\Shell\Services\PushDispatcher;
 use App\Shell\Support\CursorPayload;
+use App\Shell\Support\ListPage;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
 use Inertia\Inertia;
 use Inertia\Response;
+use Inertia\ScrollMetadata;
 
 class EventsController
 {
@@ -43,10 +46,16 @@ class EventsController
 
         $links = LinkedThings::forEvents($events->items());
 
+        ListPage::startOverUnlessLoadingMore($request, 'events');
+
         // yearCounts gives each YearBanner its true total, rather than what has scrolled in so
         // far.
         return Inertia::render('MiniApps/History/Pages/Timeline', [
-            'events' => CursorPayload::make($events, fn (Event $event) => app(EventResource::class)($event, $viewer, $links[$event->id] ?? [])),
+            'events' => Inertia::scroll(
+                CursorPayload::make($events, fn (Event $event) => app(EventResource::class)($event, $viewer, $links[$event->id] ?? [])),
+                'data',
+                ScrollMetadata::fromPaginator($events),
+            ),
             'order' => $orderLabel,
             'eventsCount' => Event::query()->count(),
             'lastEventOccurredOn' => Event::query()->max('occurred_on'),
@@ -59,7 +68,21 @@ class EventsController
             'onThisDay' => fn () => self::onThisDay($viewer),
             'birthdays' => fn () => MemberBirthdays::forForm(),
             'moment' => fn () => RequestedMoment::from($request),
+            // Only when the photo poll asks: the moments it names, fresh.
+            'converting' => Inertia::optional(fn () => self::converting($request, $viewer)),
         ]);
+    }
+
+    /** @return list<array<string, mixed>> */
+    private static function converting(Request $request, ?User $viewer): array
+    {
+        $events = Event::query()->forResource()->whereKey(PollIds::from($request))->get();
+        $links = LinkedThings::forEvents($events);
+
+        return $events
+            ->map(fn (Event $event) => app(EventResource::class)($event, $viewer, $links[$event->id] ?? []))
+            ->values()
+            ->all();
     }
 
     /** @return list<array<string, mixed>> */

@@ -3,9 +3,12 @@
 namespace App\MiniApps\History\Controllers;
 
 use App\MiniApps\History\Models\Event;
+use App\MiniApps\History\Support\PollIds;
+use App\Shell\Support\ListPage;
 use App\Shell\Support\SignedUrls;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
+use Illuminate\Support\Collection;
 use Inertia\Inertia;
 use Inertia\Response;
 use Spatie\MediaLibrary\MediaCollections\Models\Media;
@@ -50,41 +53,7 @@ class GalleryController
 
         $paginator = $query->paginate(24)->withQueryString();
 
-        $videoIds = $paginator->getCollection()
-            ->where('collection_name', 'videos')
-            ->pluck('id')
-            ->all();
-
-        // Deliberately not VideoPosterResolver: an indexed array stays O(1) per video at
-        // gallery scale.
-        $postersByVideoId = [];
-        if (! empty($videoIds)) {
-            Media::where('model_type', Event::class)
-                ->where('collection_name', 'video-posters')
-                ->whereIn('custom_properties->for_media_id', $videoIds)
-                ->get()
-                ->each(function (Media $poster) use (&$postersByVideoId) {
-                    $forId = $poster->custom_properties['for_media_id'] ?? null;
-                    if ($forId !== null) {
-                        $postersByVideoId[(int) $forId] = $poster;
-                    }
-                });
-        }
-
-        $paginator->through(function (Media $m) use ($postersByVideoId) {
-            $poster = $m->collection_name === 'videos'
-                ? ($postersByVideoId[$m->id] ?? null)
-                : null;
-
-            $base = $this->signedUrls->forMedia($m, $poster);
-
-            /** @var Event|null $event */
-            $event = $m->model;
-            $base['event_title'] = $event?->title ?? '';
-            $base['event_date'] = $event?->occurred_on->format('j M Y') ?? '';
-
-            return $base;
-        });
+        $paginator->setCollection(collect($this->present($paginator->getCollection())));
 
         // Without the ?year predicate, or the rail would collapse to the selected year.
         $yearCollections = match ($type) {
@@ -112,8 +81,10 @@ class GalleryController
 
         $eventsTotal = Event::query()->count();
 
+        ListPage::startOverUnlessLoadingMore($request, 'media');
+
         return Inertia::render('MiniApps/History/Pages/Gallery', [
-            'media' => $paginator,
+            'media' => Inertia::scroll($paginator),
             'filters' => [
                 'type' => $type,
                 'year' => $year,
@@ -125,7 +96,59 @@ class GalleryController
                 'events' => $eventsTotal,
             ],
             'order' => $orderLabel,
+            // Only when the photo poll asks: the tiles it names, fresh.
+            'converting' => Inertia::optional(fn () => $this->present(
+                Media::query()
+                    ->where('model_type', Event::class)
+                    ->whereIn('collection_name', ['photos', 'videos'])
+                    ->whereKey(PollIds::from($request))
+                    ->with('model')
+                    ->get(),
+            )),
         ]);
+    }
+
+    /**
+     * @param  Collection<int, Media>  $media
+     * @return list<array<string, mixed>>
+     */
+    private function present(Collection $media): array
+    {
+        $videoIds = $media
+            ->where('collection_name', 'videos')
+            ->pluck('id')
+            ->all();
+
+        // Deliberately not VideoPosterResolver: an indexed array stays O(1) per video at
+        // gallery scale.
+        $postersByVideoId = [];
+        if (! empty($videoIds)) {
+            Media::where('model_type', Event::class)
+                ->where('collection_name', 'video-posters')
+                ->whereIn('custom_properties->for_media_id', $videoIds)
+                ->get()
+                ->each(function (Media $poster) use (&$postersByVideoId) {
+                    $forId = $poster->custom_properties['for_media_id'] ?? null;
+                    if ($forId !== null) {
+                        $postersByVideoId[(int) $forId] = $poster;
+                    }
+                });
+        }
+
+        return $media->map(function (Media $m) use ($postersByVideoId) {
+            $poster = $m->collection_name === 'videos'
+                ? ($postersByVideoId[$m->id] ?? null)
+                : null;
+
+            $base = $this->signedUrls->forMedia($m, $poster);
+
+            /** @var Event|null $event */
+            $event = $m->model;
+            $base['event_title'] = $event?->title ?? '';
+            $base['event_date'] = $event?->occurred_on->format('j M Y') ?? '';
+
+            return $base;
+        })->values()->all();
     }
 
     private function mediaQuery(): Builder

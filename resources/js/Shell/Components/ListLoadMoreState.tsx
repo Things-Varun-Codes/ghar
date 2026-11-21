@@ -1,20 +1,15 @@
-import type { RefObject } from 'react';
-
 import ErrorState from '@/Shell/Components/ErrorState';
 
 type Props = {
     loadingMore: boolean;
     loadError: boolean;
     onRetry: () => void;
-    /* useCursorPagination's trigger; CursorListBody's InfiniteScroll watches its own. */
-    sentinelRef?: RefObject<HTMLDivElement | null>;
 };
 
 export default function ListLoadMoreState({
     loadingMore,
     loadError,
     onRetry,
-    sentinelRef,
 }: Props) {
     return (
         <>
@@ -35,8 +30,6 @@ export default function ListLoadMoreState({
                     onRetry={onRetry}
                 />
             )}
-
-            {sentinelRef && <div ref={sentinelRef} className="h-[1px]" />}
         </>
     );
 }
