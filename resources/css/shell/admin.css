@@ -49,11 +49,6 @@
     border-color: color-mix(in oklab, var(--shell-text) 32%, transparent);
 }
 
-.os-admin-fill-destructive {
-    background-color: var(--destructive);
-    color: var(--destructive-foreground);
-}
-
 .os-admin-outline-destructive {
     background-color: transparent;
     color: var(--destructive);
