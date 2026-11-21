@@ -155,12 +155,13 @@ export default function BouquetSheet({
             if (err instanceof HttpResponseError) {
                 let msg = 'Could not arrange your bouquet. Please try again.';
 
+                // Only the 422s carry a message meant for the household; Laravel's own (419, 429…) don't.
                 try {
                     const json = JSON.parse(err.response.data) as {
                         message?: string;
                     };
 
-                    if (json.message) {
+                    if (err.response.status === 422 && json.message) {
                         msg = json.message;
                     }
                     // eslint-disable-next-line local/no-silent-error -- JSON parse failure on error body; msg already set to fallback string
