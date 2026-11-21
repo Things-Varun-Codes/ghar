@@ -98,7 +98,8 @@ class ListPageTest extends TestCase
         $this->assertSame([$done->id], $props['items']()['data']);
         $this->assertSame(['all' => 2, 'active' => 1, 'done' => 1], $props['items']()['counts']);
 
-        $this->assertSame('all', $this->page(['filter' => 'bogus'])->status('done_at')->filter());
+        $this->assertNull($this->page(['filter' => 'bogus'])->status('done_at')->filter());
+        $this->assertSame('active', $this->page([])->status('done_at')->props('items', 50, fn (Item $i) => $i->id)['filter']);
         $this->assertSame('all', $this->page(['filter' => 'done'])->filter());
     }
 

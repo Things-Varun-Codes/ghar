@@ -16,7 +16,12 @@ class CursorList
 {
     protected Builder $base;
 
+    /** The active rows, or all of them when none are active. */
+    public const ACTIVE_OR_ALL = 'active-or-all';
+
     protected ?string $statusColumn = null;
+
+    private string $filter = 'all';
 
     private function __construct(Builder $base)
     {
@@ -62,6 +67,12 @@ class CursorList
     public static function containsPattern(string $term): string
     {
         return '%'.str_replace(['\\', '%', '_'], ['\\\\', '\\%', '\\_'], $term).'%';
+    }
+
+    /** The filter the last page was built with, ACTIVE_OR_ALL resolved. */
+    public function filter(): string
+    {
+        return $this->filter;
     }
 
     /**
@@ -113,6 +124,12 @@ class CursorList
             $active = $all;
             $done = 0;
         }
+
+        if ($filter === self::ACTIVE_OR_ALL) {
+            $filter = $active > 0 ? 'active' : 'all';
+        }
+
+        $this->filter = $filter;
 
         $query = clone $this->base;
 
