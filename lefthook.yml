@@ -50,7 +50,7 @@ pre-push:
           - name: boundaries
             run: ./scripts/check-boundaries.sh
           - name: smoke-routes
-            # Every authenticated GET route is in scripts/smoke.mjs or on its skip-list.
+            # Every authenticated GET route is in scripts/smoke/smoke.spec.mjs or on its skip-list.
             run: node scripts/check-smoke-routes.mjs
           - name: change-files
             # Every file in .changes/ parses, so a release can't fail on one later.

@@ -116,7 +116,7 @@ jobs:
       - run: node scripts/check-smoke-routes.mjs
       - run: npm run smoke
       # Fault injection on the load-more request; reuses the bundle smoke just built.
-      - run: node scripts/loadmore-smoke.mjs
+      - run: npx playwright test -c scripts/smoke/loadmore.config.mjs
 
   # Builds the production image and starts it the way a self-hoster would, so a
   # broken Dockerfile or entrypoint fails here and not on a release tag.

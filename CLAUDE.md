@@ -50,7 +50,7 @@ Design: **`DESIGN.md`**. Everything else below guards against a real bug; the co
 provider holding `SLUG` that registers everything in `boot()` (policies, limiters, commands,
 `registerFeed`, `LinkableEntities`, `UserOwnedContent`), `routes/miniapps/{slug}.php`,
 `database/migrations/{slug}/`, `MiniApps/{App}/nav-icon.tsx`, `themes/{slug}.css` imported in
-`app.css`, smoke routes in `scripts/smoke.mjs`, and a `DevData/{App}Data.php` seeder. The shell
+`app.css`, smoke routes in `scripts/smoke/smoke.spec.mjs`, and a `DevData/{App}Data.php` seeder. The shell
 never names a room (`scripts/check-boundaries.sh`).
 
 ## How to test locally
@@ -168,8 +168,8 @@ Five tiers; none replaces another. Start with [How to test locally](#how-to-test
   Runs on **Postgres**, like prod: the `ghar_test` database on `127.0.0.1:5432` (phpunit.xml; a real
   `DB_*` env var overrides it). Start the dev container first. `RefreshDatabase` wraps each test in a
   transaction, so sequences keep counting — never assume an id is 1.
-- **Headless smoke — `npm run smoke`.** Playwright Chromium against `artisan serve` with its own env
-  block and its own `ghar_smoke` database, seeded by `DevDataSeeder` (`scripts/smoke.mjs`). Every
+- **Headless smoke — `npm run smoke`.** `@playwright/test` Chromium against `artisan serve` with its own env
+  block and its own `ghar_smoke` database, seeded by `DevDataSeeder` (`scripts/smoke/`). Every
   listed route; fails on `pageerror`/`console.error`, non-200, or no visible
   `<h1>`/`<h2>`. Catches page-mount regressions only. Add every new authenticated page, admin page
   and auth route — `scripts/check-smoke-routes.mjs` fails if a GET route is neither listed nor on

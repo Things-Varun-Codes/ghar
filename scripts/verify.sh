@@ -26,7 +26,7 @@ steps=(
     "vendor/bin/phpstan analyse --no-progress --memory-limit=1G"
     "node scripts/check-smoke-routes.mjs"
     "npm run smoke"
-    "node scripts/loadmore-smoke.mjs"
+    "npx playwright test -c scripts/smoke/loadmore.config.mjs"
     "php artisan test"
 )
 
