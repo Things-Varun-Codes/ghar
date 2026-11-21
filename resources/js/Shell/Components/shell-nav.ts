@@ -5,6 +5,7 @@ import {
     KeyRound,
     Link2,
     Send,
+    ShieldCheck,
     UserPlus,
     UserRound,
     Users,
@@ -18,6 +19,7 @@ import * as users from '@/routes/admin/users';
 import * as notifications from '@/routes/settings/notifications';
 import * as password from '@/routes/settings/password';
 import * as profile from '@/routes/settings/profile';
+import * as security from '@/routes/settings/security';
 
 export type ShellNavItem = {
     href: string;
@@ -40,6 +42,12 @@ export const SETTINGS_ITEMS: ShellNavItem[] = [
         label: 'Password',
         icon: KeyRound,
         hint: 'Change the password you sign in with',
+    },
+    {
+        href: security.show.url(),
+        label: 'Two-step sign-in',
+        icon: ShieldCheck,
+        hint: 'A code from your phone as well as your password',
     },
     {
         href: notifications.show.url(),

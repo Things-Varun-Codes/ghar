@@ -42,6 +42,14 @@ class DevDataSeeder extends Seeder
 
     public const KABIR = 'kabir@example.test';
 
+    public const LEELA = 'leela@example.test';
+
+    // Kabir and Leela have two-step sign-in on with this authenticator secret; CLAUDE.md has
+    // the line that prints its current code.
+    public const TWO_FACTOR_SECRET = 'GHARLOCALDEVCODE';
+
+    public const RECOVERY_CODES = ['ghar-recovery-one', 'ghar-recovery-two', 'ghar-recovery-three'];
+
     public const INVITE_EMAIL = 'invitee@example.test';
 
     public const INVITE_TOKEN = 'dev-invite-token-for-local-testing-only';
@@ -116,8 +124,8 @@ class DevDataSeeder extends Seeder
     {
         $password = Hash::make(self::PASSWORD);
 
-        $member = fn (string $email, string $name, string $role): User => tap(
-            User::factory()->create([
+        $member = fn (string $email, string $name, string $role, bool $twoFactor = false): User => tap(
+            User::factory()->when($twoFactor, fn ($f) => $f->withTwoFactor(self::TWO_FACTOR_SECRET, self::RECOVERY_CODES))->create([
                 'email' => $email,
                 'name' => $name,
                 'password' => $password,
@@ -133,12 +141,15 @@ class DevDataSeeder extends Seeder
             admin: $member(self::ADMIN, 'Asha Rao', 'admin'),
             ravi: $member(self::RAVI, 'Ravi Rao', 'user'),
             meera: $member(self::MEERA, 'Meera Rao', 'user'),
-            kabir: $member(self::KABIR, 'Kabir Rao', 'user'),
+            kabir: $member(self::KABIR, 'Kabir Rao', 'user', twoFactor: true),
             // The household's date, as Region::today() gives it, so "Meera's birthday is today"
             // and the on-this-day moments hold on any GHAR_TIMEZONE; midnight UTC, as stored.
             today: CarbonImmutable::parse(Region::today()->toDateString(), 'UTC'),
             faker: $faker,
         );
+
+        // Outside the Household: an account that only exists to sign in with two steps.
+        $member(self::LEELA, 'Leela Rao', 'user', twoFactor: true);
 
         $this->seedProfiles($household);
 

@@ -2,7 +2,6 @@
 
 use App\Http\Middleware\AddRobotsHeader;
 use App\Http\Middleware\AddSecurityHeaders;
-use App\Http\Middleware\BlockUnwantedFortifyRoutes;
 use App\Http\Middleware\CacheSignedMedia;
 use App\Http\Middleware\HandleAppearance;
 use App\Http\Middleware\HandleInertiaRequests;
@@ -11,6 +10,7 @@ use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
 use Illuminate\Http\Middleware\AddLinkHeadersForPreloadedAssets;
 use Illuminate\Http\Request;
+use Illuminate\Session\Middleware\AuthenticateSession;
 use Inertia\Inertia;
 use Sentry\Laravel\Integration;
 use Symfony\Component\HttpFoundation\Response as SymfonyResponse;
@@ -25,11 +25,8 @@ return Application::configure(basePath: dirname(__DIR__))
         __DIR__.'/../app/Shell/Console/Commands',
     ])
     ->withMiddleware(function (Middleware $middleware): void {
-        // Global, not in the web group: under route:cache the compiled collection matches
-        // first-registered-wins, so this must run before the router.
-        $middleware->prepend(BlockUnwantedFortifyRoutes::class);
-        // Prepended last so it is outermost and also sees responses the middleware above and
-        // the framework's own (post size, maintenance mode) return without calling the router.
+        // Prepended so it is outermost and also sees responses the framework's own middleware
+        // (post size, maintenance mode) return without calling the router.
         $middleware->prepend(AddRobotsHeader::class);
 
         $middleware->append(CacheSignedMedia::class);
@@ -39,6 +36,9 @@ return Application::configure(basePath: dirname(__DIR__))
         // AddSecurityHeaders must come after HandleInertiaRequests, so the CSP nonce exists
         // before Vite renders tags.
         $middleware->web(append: [
+            // A session ends when its account's password changes, so a new password (or a
+            // reset) signs out every other device.
+            AuthenticateSession::class,
             HandleAppearance::class,
             HandleInertiaRequests::class,
             AddSecurityHeaders::class,

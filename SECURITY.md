@@ -33,9 +33,9 @@ what other people made.
 
 ### What it protects
 
-- **Strangers.** Everything except the login, password-reset, invite-acceptance and health pages
+- **Strangers.** Everything except the login, two-step code, password-reset, invite-acceptance and health pages
   and the app manifest (which carries only the app's name) needs an account. There is no registration. Invite tokens are single-use, expire after 7 days and
-  are stored only as hashes. Login and invite acceptance are rate-limited, and reset emails are throttled per address.
+  are stored only as hashes. Login, the two-step code and invite acceptance are rate-limited, and reset emails are throttled per address.
 - **Members from each other.** Notes, flowers, coupons and citations are visible only to the sender
   and recipients; admins can't read them either. Editing or deleting a moment or list item takes its creator or
   an admin. All of it is enforced on the server.
@@ -43,7 +43,7 @@ what other people made.
   S3-compatible bucket, and are served only through signed links that expire within two hours.
   Uploads are checked against their actual bytes.
 - **Passwords.** A password must be at least 12 characters with upper and lower case, a number and a
-  symbol, and is refused if it appears in a public list of breached passwords. Sessions last 30 days.
+  symbol, and is refused if it appears in a public list of breached passwords. Sessions last 30 days, and a password change or reset ends every other session.
 - **Search engines and AI crawlers.** An install asks not to be indexed: `robots.txt` disallows
   every crawler, every page carries a `noindex` tag and every response an `X-Robots-Tag` header.
   The sign-in page has no description or preview image for a link preview to show.
@@ -55,8 +55,8 @@ what other people made.
 
 - **A malicious admin, or anyone with access to the server or database.** Mail and media aren't
   end-to-end encrypted.
-- **A stolen password.** There is no two-factor login yet, so a member's password is all an attacker
-  needs.
+- **A stolen password, for anyone without two-step sign-in.** It is optional, so a member who
+  hasn't turned it on under Settings is protected by their password alone.
 - **The app's name and address.** The sign-in page and the manifest show `APP_NAME` to anyone who
   has the address, and the robots rules above are requests that a crawler can ignore. Don't put
   anything in the name that you wouldn't want a stranger to read.

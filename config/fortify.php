@@ -24,6 +24,8 @@ return [
     'limiters' => [
         // Deliberately no 'login' limiter: it would attach route-level throttle middleware
         // that 429s before EnsureLoginIsNotThrottled can render the cooldown UI.
+        // The code challenge has no in-pipeline throttle, so it needs this one.
+        'two-factor' => 'two-factor',
     ],
 
     // Must stay true: `views` also gates GET /login.
@@ -31,5 +33,9 @@ return [
 
     'features' => [
         Features::resetPasswords(),
+        Features::twoFactorAuthentication([
+            'confirm' => true,
+            'confirmPassword' => true,
+        ]),
     ],
 ];

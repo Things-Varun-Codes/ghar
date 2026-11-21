@@ -39,5 +39,9 @@ class FortifyServiceProvider extends ServiceProvider
             'token' => $request->route('token'),
             'email' => $request->query('email', ''),
         ]));
+
+        Fortify::twoFactorChallengeView(fn () => Inertia::render('Shell/Pages/Auth/TwoFactorChallenge'));
+
+        Fortify::confirmPasswordView(fn () => Inertia::render('Shell/Pages/Auth/ConfirmPassword'));
     }
 }

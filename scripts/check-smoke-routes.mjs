@@ -28,8 +28,12 @@ const SKIP = {
         'JSON endpoint that asks an outside place search — no h1/h2 to assert, and smoke must not reach the network.',
     'user/confirmed-password-status':
         'Fortify JSON status endpoint, no view — nothing to page-mount.',
-    'user/confirm-password':
-        'Fortify registers this route by default, but Ghar defines no confirmPasswordView anywhere in app/ or resources/js/ (grep confirms zero references), so the route cannot render. Delete this SKIP entry the day a confirm-password page is added.',
+    'user/two-factor-qr-code':
+        'Fortify JSON endpoint; the Security page gets the QR code as a prop instead.',
+    'user/two-factor-secret-key':
+        'Fortify JSON endpoint; the Security page gets the setup key as a prop instead.',
+    'user/two-factor-recovery-codes':
+        'Fortify JSON endpoint; the Security page gets the recovery codes as a prop instead.',
     'settings/email/verify':
         'Requires a valid URL::temporarySignedRoute signature plus user and email query params, then 302s to settings.profile on success — a signed action endpoint, not a page-mount surface.',
     'go/{code}':

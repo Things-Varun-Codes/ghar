@@ -37,11 +37,14 @@ class GuestRoutesTest extends TestCase
             'GET reset-password/{token}',
             // Laravel's routes for the local media disk. Both refuse a URL that isn't signed.
             'GET storage/{path}',
+            // The code page after a correct password; it needs that password's session.
+            'GET two-factor-challenge',
             'GET up',
             'POST forgot-password',
             'POST invitations/{token}/accept',
             'POST login',
             'POST reset-password',
+            'POST two-factor-challenge',
             'PUT storage/{path}',
         ], $open);
     }

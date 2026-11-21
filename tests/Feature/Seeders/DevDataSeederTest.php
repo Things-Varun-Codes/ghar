@@ -73,15 +73,24 @@ class DevDataSeederTest extends TestCase
         $ravi = $this->user(DevDataSeeder::RAVI);
         $meera = $this->user(DevDataSeeder::MEERA);
         $kabir = $this->user(DevDataSeeder::KABIR);
+        $leela = $this->user(DevDataSeeder::LEELA);
 
-        $this->assertSame(4, User::count());
+        $this->assertSame(5, User::count());
         $this->assertTrue($admin->hasRole('admin'));
 
-        foreach ([$ravi, $meera, $kabir] as $member) {
+        foreach ([$ravi, $meera, $kabir, $leela] as $member) {
             $this->assertTrue($member->hasRole('user'));
             $this->assertFalse($member->hasRole('admin'));
             $this->assertTrue(Hash::check(DevDataSeeder::PASSWORD, $member->password));
         }
+
+        // Two-step sign-in: on for Kabir and Leela, with the documented secret and codes.
+        foreach ([$kabir, $leela] as $member) {
+            $this->assertTrue($member->hasEnabledTwoFactorAuthentication());
+            $this->assertSame(DevDataSeeder::TWO_FACTOR_SECRET, decrypt($member->two_factor_secret));
+            $this->assertSame(DevDataSeeder::RECOVERY_CODES, $member->recoveryCodes());
+        }
+        $this->assertFalse($ravi->hasEnabledTwoFactorAuthentication());
 
         // Past one page of Songs, the Timeline and the Gallery.
         $songs = CornerList::query()->where('slug', 'songs')->firstOrFail();
@@ -228,7 +237,7 @@ class DevDataSeederTest extends TestCase
 
         // A second run changes nothing.
         (new DevDataSeeder)->run();
-        $this->assertSame(4, User::count());
+        $this->assertSame(5, User::count());
     }
 
     public function test_it_refuses_production(): void
@@ -268,6 +277,7 @@ class DevDataSeederTest extends TestCase
             DevDataSeeder::RAVI,
             DevDataSeeder::MEERA,
             DevDataSeeder::KABIR,
+            DevDataSeeder::LEELA,
             DevDataSeeder::INVITE_TOKEN,
         ] as $value) {
             $this->assertStringContainsString($value, $harness);

@@ -101,6 +101,15 @@ class AppServiceProvider extends ServiceProvider
 
         RateLimiter::for('push-subscriptions', Limits::perUser(10));
 
+        // A redirect with an inline error, not a bare 429 page.
+        RateLimiter::for('two-factor', function (Request $request) {
+            return Limit::perMinute(5)
+                ->by('two-factor|'.$request->session()->get('login.id').'|'.$request->ip())
+                ->response(fn () => redirect()->route('two-factor.login')->withErrors([
+                    ($request->filled('recovery_code') ? 'recovery_code' : 'code') => 'Too many tries. Wait a minute, then try again.',
+                ]));
+        });
+
         RateLimiter::for('healthz', function (Request $request) {
             return Limit::perMinute(60)->by($request->ip());
         });
