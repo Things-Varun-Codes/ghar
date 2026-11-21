@@ -1,8 +1,13 @@
-import { router } from '@inertiajs/react';
+import type { HttpResponse } from '@inertiajs/core';
+import {
+    HttpCancelledError,
+    HttpNetworkError,
+    HttpResponseError,
+} from '@inertiajs/core';
+import { http, router } from '@inertiajs/react';
 import { AlertCircle, Check, Play, X } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { readXsrfToken } from '@/lib/csrf';
 import { captureSilent } from '@/lib/observability';
 import media from '@/routes/apps/our-history/media';
 import { captureVideoPoster } from './VideoPosterCapture';
@@ -43,15 +48,15 @@ function uid() {
  * 413 comes from nginx with an empty body; it never reaches PHP or the error tracker, so this
  * string is the user's only signal.
  */
-function deriveUploadErrorMessage(xhr: XMLHttpRequest): string {
-    const status = xhr.status;
+function deriveUploadErrorMessage(response: HttpResponse): string {
+    const status = response.status;
 
     switch (status) {
         case 413:
             return 'File too large. Max 96 MB per upload.';
         case 422: {
             try {
-                const body = JSON.parse(xhr.responseText);
+                const body = JSON.parse(response.data);
                 const message =
                     typeof body?.message === 'string' ? body.message : '';
                 const errors = body?.errors;
@@ -94,7 +99,7 @@ function deriveUploadErrorMessage(xhr: XMLHttpRequest): string {
     }
 }
 
-async function uploadOne(
+export async function uploadOne(
     eventId: number,
     file: File,
     onProgress: (pct: number) => void,
@@ -110,44 +115,40 @@ async function uploadOne(
         form.append('poster', poster, 'poster.webp');
     }
 
-    return new Promise<void>((resolve, reject) => {
-        const xhr = new XMLHttpRequest();
-        xhr.open('POST', media.store(eventId).url);
-        xhr.withCredentials = true;
-        xhr.setRequestHeader('Accept', 'application/json');
-        xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
-        const token = readXsrfToken();
-
-        if (token) {
-            xhr.setRequestHeader('X-XSRF-TOKEN', token);
+    try {
+        await http.getClient().request({
+            method: 'post',
+            url: media.store(eventId).url,
+            data: form,
+            headers: { Accept: 'application/json' },
+            onUploadProgress: (e) => {
+                if (e.progress !== undefined) {
+                    onProgress(e.progress * 100);
+                }
+            },
+        });
+        // eslint-disable-next-line local/no-silent-error -- every path rethrows; the upload pool reports what an operator can act on.
+    } catch (err) {
+        if (err instanceof HttpResponseError) {
+            throw new UploadError(
+                err.response.status,
+                deriveUploadErrorMessage(err.response),
+            );
         }
 
-        xhr.upload.onprogress = (e) => {
-            if (e.lengthComputable) {
-                onProgress((e.loaded / e.total) * 100);
-            }
-        };
+        if (err instanceof HttpCancelledError) {
+            throw new UploadError(null, 'Upload cancelled.');
+        }
 
-        xhr.onload = () => {
-            if (xhr.status >= 200 && xhr.status < 300) {
-                resolve();
-            } else {
-                reject(
-                    new UploadError(xhr.status, deriveUploadErrorMessage(xhr)),
-                );
-            }
-        };
-        xhr.onerror = () =>
-            reject(
-                new UploadError(
-                    null,
-                    'Network problem. Check your connection and tap Retry.',
-                ),
+        if (err instanceof HttpNetworkError) {
+            throw new UploadError(
+                null,
+                'Network problem. Check your connection and tap Retry.',
             );
-        xhr.onabort = () => reject(new UploadError(null, 'Upload cancelled.'));
+        }
 
-        xhr.send(form);
-    });
+        throw err;
+    }
 }
 
 /*

@@ -1,3 +1,6 @@
+import type { HttpRequestConfig } from '@inertiajs/core';
+import { HttpResponseError } from '@inertiajs/core';
+import { http } from '@inertiajs/react';
 import * as Sentry from '@sentry/react';
 import { act, renderHook } from '@testing-library/react';
 import { toast } from 'sonner';
@@ -17,6 +20,7 @@ type Pending = {
 };
 
 let requests: Pending[];
+const originalClient = http.getClient();
 const onFound = vi.fn();
 
 function setup() {
@@ -36,31 +40,32 @@ beforeEach(() => {
 
     // Deliberately ignores the abort signal: a response already on the wire
     // can still resolve, and the hook must drop it.
-    vi.stubGlobal(
-        'fetch',
-        vi.fn(
-            (url: string, init: RequestInit) =>
-                new Promise((resolve, reject) => {
-                    requests.push({
-                        url,
-                        signal: init.signal as AbortSignal,
-                        respond: (json) =>
-                            act(async () => {
-                                resolve({ ok: true, json: async () => json });
-                            }),
-                        fail: (error) =>
-                            act(async () => {
-                                reject(error);
-                            }),
-                    });
-                }),
-        ),
-    );
+    http.setClient({
+        request: (config: HttpRequestConfig) =>
+            new Promise((resolve, reject) => {
+                requests.push({
+                    url: config.url,
+                    signal: config.signal as AbortSignal,
+                    respond: (json) =>
+                        act(async () => {
+                            resolve({
+                                status: 200,
+                                data: JSON.stringify(json),
+                                headers: {},
+                            });
+                        }),
+                    fail: (error) =>
+                        act(async () => {
+                            reject(error);
+                        }),
+                });
+            }),
+    });
 });
 
 afterEach(() => {
     vi.useRealTimers();
-    vi.unstubAllGlobals();
+    http.setClient(originalClient);
 });
 
 describe('useLinkPreview', () => {
@@ -153,6 +158,27 @@ describe('useLinkPreview', () => {
         });
         expect(Sentry.captureException).toHaveBeenCalledTimes(1);
         expect(toast.error).not.toHaveBeenCalled();
+    });
+
+    it('treats a rejected address as a failure', async () => {
+        const { result } = setup();
+
+        act(() => result.current.trigger('https://a'));
+        await advance();
+        await requests[0].fail(
+            new HttpResponseError('422', {
+                status: 422,
+                data: JSON.stringify({ errors: { url: ['Not a link.'] } }),
+                headers: {},
+            }),
+        );
+
+        expect(result.current.preview).toEqual({
+            kind: 'error',
+            message:
+                "Couldn't reach that page. It will be saved with what you type.",
+        });
+        expect(Sentry.captureException).toHaveBeenCalledTimes(1);
     });
 
     it('does not report an aborted request', async () => {

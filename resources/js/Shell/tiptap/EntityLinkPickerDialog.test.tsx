@@ -1,3 +1,6 @@
+import type { HttpClient } from '@inertiajs/core';
+import { HttpResponseError } from '@inertiajs/core';
+import { http } from '@inertiajs/react';
 import { act, fireEvent, render, screen } from '@testing-library/react';
 import {
     afterEach,
@@ -10,10 +13,14 @@ import {
 } from 'vitest';
 import EntityLinkPickerDialog from './EntityLinkPickerDialog';
 
-vi.mock('@inertiajs/react', () => ({
+vi.mock('@inertiajs/react', async (importOriginal) => ({
+    ...(await importOriginal<object>()),
     router: { push: vi.fn(), replace: vi.fn(), on: vi.fn(() => () => {}) },
     usePage: () => ({ props: {} }),
 }));
+
+const originalClient = http.getClient();
+let request: ReturnType<typeof vi.fn<HttpClient['request']>>;
 
 beforeAll(() => {
     window.matchMedia ??= ((query: string) => ({
@@ -70,20 +77,18 @@ async function search(text: string) {
 describe('EntityLinkPickerDialog', () => {
     beforeEach(() => {
         vi.useFakeTimers();
-        vi.stubGlobal(
-            'fetch',
-            vi.fn(async () => ({
-                ok: true,
-                status: 200,
-                json: async () => ({ results }),
-            })),
-        );
+        request = vi.fn<HttpClient['request']>(async () => ({
+            status: 200,
+            data: JSON.stringify({ results }),
+            headers: {},
+        }));
+        http.setClient({ request });
         window.history.replaceState({ page: {} }, '', '/apps/our-history');
     });
 
     afterEach(() => {
         vi.useRealTimers();
-        vi.unstubAllGlobals();
+        http.setClient(originalClient);
     });
 
     it('moves through the results with the arrow keys and picks with Enter', async () => {
@@ -150,6 +155,31 @@ describe('EntityLinkPickerDialog', () => {
         );
     });
 
+    it('shows no results and no error when the server refuses the query', async () => {
+        request.mockRejectedValue(
+            new HttpResponseError('422', {
+                status: 422,
+                data: JSON.stringify({ errors: { q: ['Too long.'] } }),
+                headers: {},
+            }),
+        );
+        render(
+            <EntityLinkPickerDialog
+                open
+                onOpenChange={vi.fn()}
+                onSelect={vi.fn()}
+            />,
+        );
+
+        await search('rain');
+
+        expect(request.mock.calls[0][0].url).toBe(
+            '/api/linkable/search?q=rain',
+        );
+        expect(screen.queryByRole('option')).toBeNull();
+        expect(screen.queryByText(/Couldn't search/)).toBeNull();
+    });
+
     it('asks for two characters before searching', async () => {
         render(
             <EntityLinkPickerDialog
@@ -161,7 +191,7 @@ describe('EntityLinkPickerDialog', () => {
 
         await search('r');
 
-        expect(fetch).not.toHaveBeenCalled();
+        expect(request).not.toHaveBeenCalled();
         expect(
             screen.getByText('Type at least 2 characters to search.'),
         ).toBeTruthy();
