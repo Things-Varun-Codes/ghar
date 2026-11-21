@@ -63,6 +63,8 @@
 /.agents
 /.mcp.json
 /skills-lock.json
+/.impeccable
+/paseo.json
 
 # Build + orchestration metadata (not read inside the image)
 /Dockerfile
@@ -88,7 +90,9 @@
 # Docs not needed at runtime. LICENSE, THIRD_PARTY_NOTICES.md and LICENSES/ stay
 # off this list: the image redistributes the fonts and packages they cover.
 /CLAUDE.md
+/CODE_OF_CONDUCT.md
 /CONTRIBUTING.md
+/DESIGN.md
 /DEPLOY.md
 /README.md
 /RELEASE.md
