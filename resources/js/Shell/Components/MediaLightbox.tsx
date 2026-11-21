@@ -17,8 +17,9 @@ import { escapeHtml } from '@/lib/utils';
 export type LightboxItem = {
     kind: 'photo' | 'video';
     original: string;
-    /** A screen-sized copy of a photo, shown in place of the original when there is one. */
+    /** Screen-sized (1200px) and retina-sized (2400px) copies, used before the original. */
     medium?: string | null;
+    large?: string | null;
     poster?: string | null;
     width?: number | null;
     height?: number | null;
@@ -33,12 +34,13 @@ export type MediaLightboxHandle = {
 
 type Slide = SlideData & { title?: string; subtitle?: string; poster?: string };
 
-// The `medium` conversion's longest side (History's Event model).
+// The longest side of History's `medium` and `large` conversions (its Event model).
 const MEDIUM_BOUND = 1200;
+const LARGE_BOUND = 2400;
 
 /**
- * A photo opens on its screen-sized copy, not the camera original: a srcset would still pick
- * the original on any retina screen wider than 600px. Zoom therefore stops at the copy's size.
+ * A photo opens on a copy, never the camera original. With both copies, the srcset lets a
+ * phone take the medium one and a retina desktop the large one; zoom stops at the largest.
  */
 export function toSlide(item: LightboxItem): Slide {
     const width = item.width ?? 1600;
@@ -56,18 +58,33 @@ export function toSlide(item: LightboxItem): Slide {
         return { ...slide, type: 'video', poster: item.poster ?? undefined };
     }
 
-    if (!item.medium) {
+    const fit = (bound: number) => {
+        const scale = Math.min(1, bound / Math.max(width, height));
+
+        return [Math.round(width * scale), Math.round(height * scale)];
+    };
+
+    if (item.large && item.medium) {
+        const [w, h] = fit(LARGE_BOUND);
+
+        return {
+            ...slide,
+            src: item.large,
+            srcset: `${item.medium} ${fit(MEDIUM_BOUND)[0]}w, ${item.large} ${w}w`,
+            width: w,
+            height: h,
+        };
+    }
+
+    const copy = item.large ?? item.medium;
+
+    if (!copy) {
         return slide;
     }
 
-    const scale = Math.min(1, MEDIUM_BOUND / Math.max(width, height));
+    const [w, h] = fit(item.large ? LARGE_BOUND : MEDIUM_BOUND);
 
-    return {
-        ...slide,
-        src: item.medium,
-        width: Math.round(width * scale),
-        height: Math.round(height * scale),
-    };
+    return { ...slide, src: copy, width: w, height: h };
 }
 
 const MediaLightbox = forwardRef<

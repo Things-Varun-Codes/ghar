@@ -46,6 +46,24 @@ describe('toSlide', () => {
     });
 });
 
+it('lets the browser choose between the medium and large copies', () => {
+    const slide = toSlide({
+        kind: 'photo',
+        original: '/o.jpg',
+        medium: '/m.webp',
+        large: '/l.webp',
+        width: 4000,
+        height: 3000,
+    });
+
+    expect(slide).toMatchObject({
+        src: '/l.webp',
+        srcset: '/m.webp 1200w, /l.webp 2400w',
+        width: 2400,
+        height: 1800,
+    });
+});
+
 it('falls back to the original while the copy is still being made', () => {
     expect(toSlide({ kind: 'photo', original: '/o.jpg' }).src).toBe('/o.jpg');
 });

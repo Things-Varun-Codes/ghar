@@ -40,7 +40,7 @@ final class DashboardFeed
                     'action' => null,
                     'person' => $event->creator ? Person::short($event->creator) : null,
                     // Conversions only, so a photo still processing shows no thumbnail rather than its original.
-                    'image' => $signed['thumb'] ?? $signed['medium'] ?? null,
+                    'image' => $signed['card'] ?? $signed['thumb'] ?? $signed['medium'] ?? null,
                     'count' => $photos,
                 ];
             })

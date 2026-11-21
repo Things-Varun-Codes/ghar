@@ -147,15 +147,21 @@ class Event extends Model implements HasMedia
      */
     public function registerMediaConversions(?Media $media = null): void
     {
-        $this->addMediaConversion('thumb')
-            ->fit(Fit::Crop, 600, 600)
-            ->format('webp')
-            ->queued();
+        // A short ladder: the page picks the smallest copy that is sharp where it is shown.
+        $sizes = [
+            'card' => [Fit::Crop, 160],
+            'thumb' => [Fit::Crop, 600],
+            'medium' => [Fit::Max, 1200],
+            'large' => [Fit::Max, 2400],
+        ];
 
-        $this->addMediaConversion('medium')
-            ->fit(Fit::Max, 1200, 1200)
-            ->format('webp')
-            ->queued();
+        foreach ($sizes as $name => [$fit, $px]) {
+            $this->addMediaConversion($name)
+                ->fit($fit, $px, $px)
+                ->format('webp')
+                ->quality(80)
+                ->queued();
+        }
     }
 
     public function changes(): HasMany

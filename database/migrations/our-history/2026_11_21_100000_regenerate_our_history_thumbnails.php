@@ -5,8 +5,8 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Support\Facades\Artisan;
 
 /**
- * The thumb grew from 200px to 600px, sharp on a retina gallery tile. Thumbs are queued
- * conversions, so this only queues the work: existing photos sharpen as the worker gets to them.
+ * The photo sizes became a ladder (card, a 600px thumb, medium, large). Conversions are
+ * queued, so this only queues the work: existing photos catch up as the worker gets to them.
  */
 return new class extends Migration
 {
@@ -14,7 +14,7 @@ return new class extends Migration
     {
         Artisan::call('media-library:regenerate', [
             'modelType' => Event::class,
-            '--only' => ['thumb'],
+            '--only' => ['card', 'thumb', 'medium', 'large'],
             '--force' => true,
         ]);
     }

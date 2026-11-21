@@ -44,6 +44,7 @@ export default function EventReadView({
             renderableMedia.map((m) => ({
                 kind: m.kind,
                 medium: m.medium,
+                large: m.large,
                 original: m.original,
                 poster: m.poster,
                 width: m.width,

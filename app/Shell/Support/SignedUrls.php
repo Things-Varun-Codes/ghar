@@ -23,8 +23,10 @@ class SignedUrls
      * @return array{
      *     id: int,
      *     kind: 'photo'|'video',
+     *     card: string|null,
      *     thumb: string|null,
      *     medium: string|null,
+     *     large: string|null,
      *     original: string,
      *     poster: string|null,
      *     pending: bool,
@@ -42,14 +44,11 @@ class SignedUrls
         $isPhoto = $media->collection_name === 'photos';
         $isVideo = $media->collection_name === 'videos';
 
-        $thumb = null;
-        if ($isPhoto && $media->hasGeneratedConversion('thumb')) {
-            $thumb = $this->urlFor($media, $window, 'thumb');
-        }
-
-        $medium = null;
-        if ($isPhoto && $media->hasGeneratedConversion('medium')) {
-            $medium = $this->urlFor($media, $window, 'medium');
+        $sized = [];
+        foreach (['card', 'thumb', 'medium', 'large'] as $conversion) {
+            $sized[$conversion] = $isPhoto && $media->hasGeneratedConversion($conversion)
+                ? $this->urlFor($media, $window, $conversion)
+                : null;
         }
 
         $original = $this->urlFor($media, $window);
@@ -63,13 +62,17 @@ class SignedUrls
 
         // Conversions are queued, so thumb and medium may not exist right after upload.
         // `pending` lets the client show a placeholder instead of the full-size original.
-        $pending = $isPhoto && ($thumb === null || $medium === null);
+        // card and large are left out: photos from before they existed lack them until
+        // regenerated, and every reader falls back to thumb or medium.
+        $pending = $isPhoto && ($sized['thumb'] === null || $sized['medium'] === null);
 
         return [
             'id' => $media->id,
             'kind' => $isVideo ? 'video' : 'photo',
-            'thumb' => $thumb,
-            'medium' => $medium,
+            'card' => $sized['card'],
+            'thumb' => $sized['thumb'],
+            'medium' => $sized['medium'],
+            'large' => $sized['large'],
             'original' => $original,
             'poster' => $posterUrl,
             'pending' => $pending,

@@ -3,8 +3,10 @@ import { Play } from 'lucide-react';
 export type MediaItem = {
     id: number;
     kind: 'photo' | 'video';
+    card?: string | null;
     thumb: string | null;
     medium: string | null;
+    large?: string | null;
     original: string | null;
     poster: string | null;
     pending?: boolean;
