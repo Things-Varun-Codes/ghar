@@ -76,6 +76,18 @@ const routes = [
         description: '/apps/our-history/calendar (Our History calendar)',
     },
     {
+        path: '/apps/our-history/map',
+        auth: true,
+        description: '/apps/our-history/map (Our History map)',
+    },
+    {
+        path: '/apps/our-history/map?moment=5',
+        auth: true,
+        overlay: true,
+        description:
+            '/apps/our-history/map?moment=5 (Our History map, moment sheet)',
+    },
+    {
         path: '/settings/notifications',
         auth: true,
         description: '/settings/notifications (push opt-in settings)',
@@ -280,6 +292,11 @@ for (const route of routes) {
 
                 return;
             }
+
+            // An empty map style: the map mounts with nothing to draw and no tile is asked for.
+            await page.route('**/api/map/**', (tile) =>
+                tile.fulfill({ json: { version: 8, sources: {}, layers: [] } }),
+            );
 
             const response = await page.goto(url);
 

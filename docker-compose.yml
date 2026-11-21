@@ -107,6 +107,8 @@ services:
 
       # Optional. Place search; empty uses the public Photon at photon.komoot.io.
       PHOTON_URL: ${PHOTON_URL:-}
+      # Optional. Map tiles; empty uses tiles.openfreemap.org.
+      MAP_TILES_URL: ${MAP_TILES_URL:-}
 
       # AI bouquets (Our Exchange). No `fake` fallback on purpose: unset, the
       # flowers feature fails loudly instead of silently serving a placeholder.

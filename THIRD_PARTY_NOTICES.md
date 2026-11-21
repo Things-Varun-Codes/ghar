@@ -25,4 +25,10 @@ image; `composer licenses` lists them. All are under permissive licences except
 [HTML Purifier](https://htmlpurifier.org), which is LGPL-2.1-or-later and is used unmodified.
 
 The JavaScript the browser runs is built from the packages in `package.json`, all under permissive
-licences (MIT, ISC, 0BSD or Apache-2.0). `package-lock.json` records the licence of each.
+licences (MIT, ISC, 0BSD, BSD-3-Clause or Apache-2.0). `package-lock.json` records the licence of each.
+
+## Map data
+
+Our History's map shows data from [OpenStreetMap](https://www.openstreetmap.org/copyright), © its
+contributors, under the Open Database License, served as tiles by
+[OpenFreeMap](https://openfreemap.org). The credit stays on the map, as the licence requires.

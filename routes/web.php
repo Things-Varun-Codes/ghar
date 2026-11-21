@@ -14,6 +14,7 @@ use App\Shell\Controllers\Admin\UsersController;
 use App\Shell\Controllers\DashboardController;
 use App\Shell\Controllers\InvitationAcceptController;
 use App\Shell\Controllers\LinkableSearchController;
+use App\Shell\Controllers\MapTilesController;
 use App\Shell\Controllers\PlaceSearchController;
 use App\Shell\Controllers\Settings\EmailVerificationController;
 use App\Shell\Controllers\Settings\NotificationsController;
@@ -62,6 +63,11 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/api/places/search', [PlaceSearchController::class, 'search'])
         ->middleware('throttle:place-search')
         ->name('places.search');
+
+    Route::get('/api/map/{path}', [MapTilesController::class, 'show'])
+        ->where('path', '[A-Za-z0-9 _.,@/-]+')
+        ->middleware('throttle:map-tiles')
+        ->name('map.tiles');
 
     Route::prefix('settings')->name('settings.')->group(function () {
         Route::inertia('/', 'Shell/Pages/Settings/Index')->name('index');

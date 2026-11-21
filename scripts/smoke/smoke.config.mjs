@@ -16,5 +16,6 @@ export default defineSmokeConfig({
         VAPID_PRIVATE_KEY: 'smoke-private-key-placeholder',
         // A dead address, so a place search that slips into a smoke run fails instead of going out.
         PHOTON_URL: 'http://127.0.0.1:9',
+        MAP_TILES_URL: 'http://127.0.0.1:9',
     },
 });

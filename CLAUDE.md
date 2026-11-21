@@ -79,6 +79,9 @@ Password for every account: `ghar-local-dev`. Mail lands in Mailpit at `http://1
 Every state the seed covers is in `database/seeders/DevDataSeeder.php` and `DevData/`; row ids are
 stable after a reset. On Shelf, **Songs** is the per-person list ("Everyone marks their own"):
 "Kitchen Radio" is loved by Asha, Meera and Kabir but not Ravi; every other list is shared.
+On History's map, "Sunday at the lake" and "Kabir's first bike" share Ulsoor Lake (a place menu),
+three more moments are elsewhere, and the moments with a typed place make the "not on the map"
+count.
 
 `npm run smoke` and `npm run smoke-loadmore` seed the same household into their own databases.
 

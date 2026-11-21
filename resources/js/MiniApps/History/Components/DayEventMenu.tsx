@@ -2,6 +2,7 @@ import { useRef } from 'react';
 import {
     DropdownMenu,
     DropdownMenuContent,
+    DropdownMenuGroup,
     DropdownMenuItem,
     DropdownMenuLabel,
     DropdownMenuTrigger,
@@ -61,48 +62,53 @@ export default function DayEventMenu({
                 collisionPadding={12}
                 className="history-cal-daymenu"
             >
-                <DropdownMenuLabel className="history-cal-daymenu-head">
-                    {formatDayMonth(month, day)} ·{' '}
-                    {count(events.length, 'moment')}
-                </DropdownMenuLabel>
-                {events.map((event) => {
-                    const t = firstThumb(event);
-                    const title = event.title ?? event.date_label;
-                    const sub = event.location_name
-                        ? event.location_name
-                        : event.media.length > 0
-                          ? count(event.media.length, 'photo')
-                          : 'no photos or videos';
+                {/* Base UI only lets a menu label sit inside a group. */}
+                <DropdownMenuGroup>
+                    <DropdownMenuLabel className="history-cal-daymenu-head">
+                        {formatDayMonth(month, day)} ·{' '}
+                        {count(events.length, 'moment')}
+                    </DropdownMenuLabel>
+                    {events.map((event) => {
+                        const t = firstThumb(event);
+                        const title = event.title ?? event.date_label;
+                        const sub = event.location_name
+                            ? event.location_name
+                            : event.media.length > 0
+                              ? count(event.media.length, 'photo')
+                              : 'no photos or videos';
 
-                    return (
-                        <DropdownMenuItem
-                            key={event.id}
-                            className="history-cal-daymenu-row"
-                            onClick={() => onOpen(event, triggerRef.current)}
-                        >
-                            <span
-                                className={cn(
-                                    'history-cal-daymenu-thumb',
-                                    !t && 'history-cal-daymenu-thumb--dot',
-                                )}
-                                aria-hidden="true"
-                                style={
-                                    t
-                                        ? { backgroundImage: `url("${t}")` }
-                                        : undefined
+                        return (
+                            <DropdownMenuItem
+                                key={event.id}
+                                className="history-cal-daymenu-row"
+                                onClick={() =>
+                                    onOpen(event, triggerRef.current)
                                 }
-                            />
-                            <span className="history-cal-daymenu-text">
-                                <span className="history-cal-daymenu-title">
-                                    {title}
+                            >
+                                <span
+                                    className={cn(
+                                        'history-cal-daymenu-thumb',
+                                        !t && 'history-cal-daymenu-thumb--dot',
+                                    )}
+                                    aria-hidden="true"
+                                    style={
+                                        t
+                                            ? { backgroundImage: `url("${t}")` }
+                                            : undefined
+                                    }
+                                />
+                                <span className="history-cal-daymenu-text">
+                                    <span className="history-cal-daymenu-title">
+                                        {title}
+                                    </span>
+                                    <span className="history-cal-daymenu-sub">
+                                        {sub}
+                                    </span>
                                 </span>
-                                <span className="history-cal-daymenu-sub">
-                                    {sub}
-                                </span>
-                            </span>
-                        </DropdownMenuItem>
-                    );
-                })}
+                            </DropdownMenuItem>
+                        );
+                    })}
+                </DropdownMenuGroup>
             </DropdownMenuContent>
         </DropdownMenu>
     );

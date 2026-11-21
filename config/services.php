@@ -11,6 +11,12 @@ return [
         'url' => env('PHOTON_URL') ?: 'https://photon.komoot.io',
     ],
 
+    // The map's tiles, fetched by the server. Any host laid out like OpenFreeMap works.
+    'map' => [
+        // Empty counts as unset: compose passes an empty string through.
+        'url' => env('MAP_TILES_URL') ?: 'https://tiles.openfreemap.org',
+    ],
+
     // No 'fake' default on purpose: MailboxServiceProvider throws in production when this is
     // unset, rather than silently no-opping.
     'bouquet' => [

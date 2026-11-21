@@ -22,6 +22,8 @@ const SKIP = {
         "Returns an item's picture (an image, not a page) — no h1/h2 to assert, and a miss would fetch from the network.",
     'api/linkable/search':
         'JSON endpoint, no rendered page — smoke asserts a visible h1/h2, which does not apply.',
+    'api/map/{path}':
+        "The map's tiles and style, fetched from the tile host — not a page, and smoke must not reach the network.",
     'api/places/search':
         'JSON endpoint that asks an outside place search — no h1/h2 to assert, and smoke must not reach the network.',
     'user/confirmed-password-status':

@@ -4,6 +4,7 @@ use App\MiniApps\History\Controllers\CalendarController;
 use App\MiniApps\History\Controllers\CommentsController;
 use App\MiniApps\History\Controllers\EventsController;
 use App\MiniApps\History\Controllers\GalleryController;
+use App\MiniApps\History\Controllers\MapController;
 use App\MiniApps\History\Controllers\MediaController;
 use App\MiniApps\History\Controllers\ReactionsController;
 use App\MiniApps\History\Models\EventReaction;
@@ -13,6 +14,7 @@ Route::prefix('apps/our-history')->name('apps.our-history.')->group(function () 
     Route::get('/', [EventsController::class, 'index'])->name('timeline');
     Route::get('/gallery', [GalleryController::class, 'index'])->name('gallery');
     Route::get('/calendar', [CalendarController::class, 'index'])->name('calendar');
+    Route::get('/map', [MapController::class, 'index'])->name('map');
 
     Route::middleware('throttle:history-mutations')->group(function () {
         Route::post('/events', [EventsController::class, 'store'])->name('events.store');

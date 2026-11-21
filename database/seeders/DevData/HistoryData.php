@@ -63,7 +63,13 @@ final class HistoryData
             }
         }
 
-        $this->addStructuredLocation($events[3]);
+        // On the map: two moments at one spot, one across town, two out of the city. The rest
+        // keep a typed place, which the map counts as unplaced.
+        $this->place($events[3], 'Ulsoor Lake', 'Ulsoor, Bengaluru', 12.9830, 77.6190, 'dev-place-lake');
+        $this->place($events[18], 'Ulsoor Lake', 'Ulsoor, Bengaluru', 12.9830, 77.6190, 'dev-place-lake');
+        $this->place($events[2], 'Clay Studio', 'Indiranagar, Bengaluru', 12.9719, 77.6412);
+        $this->place($events[10], 'Jog Falls', 'Shimoga, Karnataka', 14.2290, 74.8120);
+        $this->place($events[15], 'Hampi', 'Vijayanagara, Karnataka', 15.3350, 76.4600);
         $this->linkToCorner($h, $events[0], $links);
         $this->recordEditByAdmin($h, $events[4]);
         $this->softDeleted($h);
@@ -155,14 +161,15 @@ final class HistoryData
             ->toMediaCollection('photos');
     }
 
-    private function addStructuredLocation(Event $event): void
+    private function place(Event $event, string $name, string $address, float $lat, float $lng, ?string $placeId = null): void
     {
         $event->update([
-            'location_place_id' => 'dev-place-lake',
-            'location_name' => 'Ulsoor Lake',
-            'location_address' => 'Ulsoor, Bengaluru',
-            'location_lat' => 12.9830,
-            'location_lng' => 77.6190,
+            'location_freetext' => null,
+            'location_place_id' => $placeId ?? 'dev-place-'.str($name)->slug(),
+            'location_name' => $name,
+            'location_address' => $address,
+            'location_lat' => $lat,
+            'location_lng' => $lng,
         ]);
     }
 

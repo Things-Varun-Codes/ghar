@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react';
 
 import { dashboard } from '@/routes';
-import { calendar, gallery, timeline } from '@/routes/apps/our-history';
+import { calendar, gallery, map, timeline } from '@/routes/apps/our-history';
 import Page from '@/Shell/Components/Page';
 import RoomScope from '@/Shell/Components/RoomScope';
 import SegmentedTabs from '@/Shell/Components/SegmentedTabs';
@@ -9,15 +9,16 @@ import Toolbar from '@/Shell/Components/Toolbar';
 
 export const HISTORY_ROOM = 'Our History';
 
-type HistoryViewTab = 'timeline' | 'gallery' | 'calendar';
+type HistoryViewTab = 'timeline' | 'gallery' | 'calendar' | 'map';
 
 const HISTORY_VIEW_TABS: Array<{ key: HistoryViewTab; label: string }> = [
     { key: 'timeline', label: 'Timeline' },
     { key: 'calendar', label: 'Calendar' },
     { key: 'gallery', label: 'Gallery' },
+    { key: 'map', label: 'Map' },
 ];
 
-const HISTORY_VIEW_ROUTES = { timeline, gallery, calendar };
+const HISTORY_VIEW_ROUTES = { timeline, gallery, calendar, map };
 
 // The views are tabs of one page, so back leaves the room rather than stepping to Timeline.
 const LEAVE_ROOM = { href: dashboard.url(), label: 'Home' };
