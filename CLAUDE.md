@@ -36,6 +36,8 @@ Design: **`DESIGN.md`**. Everything else below guards against a real bug; the co
   metadata addresses); a failed fetch saves what was typed, never errors.
 - **Never indexable:** `robots.txt`, the robots meta tag and `X-Robots-Tag` (middleware and nginx)
   stay in step; no Open Graph tags.
+- **Dark mode** lives in the `--shell-*` tokens (`light-dark()` pairs, see DESIGN.md): no `dark:`
+  utilities, no colour literal in a room, and `color-scheme` only on `:root` in `app.css`.
 - **Frontend:** links are Inertia `Link` and Wayfinder helpers, never a bare `route()`. A sheet or
   dialog that composes goes through `useOverlayHistory`, and one with a draft through
   `useDraftCloseGate`. Never prefetch a page whose GET changes something (Exchange marks read).

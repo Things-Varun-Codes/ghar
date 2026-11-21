@@ -1,5 +1,11 @@
+@php
+    // Light or Dark as chosen; System (and a guest) leaves it to the device.
+    $theme = auth()->user()?->theme;
+    $theme = $theme === \App\Enums\Theme::System ? null : $theme?->value;
+    $deviceScheme = ['light' => '(prefers-color-scheme: light)', 'dark' => '(prefers-color-scheme: dark)'];
+@endphp
 <!DOCTYPE html>
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}"@if ($theme) data-theme="{{ $theme }}"@endif>
     <head>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
@@ -7,8 +13,21 @@
         <meta name="robots" content="noindex, nofollow">
 
         <style>
+            /* --shell-bg and --shell-accent-text in hex; app.css isn't loaded yet. */
             html {
-                background-color: #f6f3ee;
+                --splash-bg: #f6f3ee;
+                --splash-ink: #b75536;
+                background-color: var(--splash-bg);
+            }
+            html[data-theme='dark'] {
+                --splash-bg: #1c1916;
+                --splash-ink: #ef9778;
+            }
+            @media (prefers-color-scheme: dark) {
+                html:not([data-theme='light']) {
+                    --splash-bg: #1c1916;
+                    --splash-ink: #ef9778;
+                }
             }
             #app-splash {
                 position: fixed;
@@ -17,9 +36,9 @@
                 display: flex;
                 align-items: center;
                 justify-content: center;
-                background-color: #f6f3ee;
-                /* The wordmark as the app draws it: Fraunces 600 in coral (--shell-accent-text). */
-                color: oklch(0.565 0.135 38);
+                background-color: var(--splash-bg);
+                /* The wordmark as the app draws it: Fraunces 600 in coral. */
+                color: var(--splash-ink);
                 font-family: 'Fraunces', ui-serif, Georgia, serif;
                 font-size: 48px;
                 font-weight: 600;
@@ -57,7 +76,9 @@
         <link rel="apple-touch-icon" href="/apple-touch-icon.png">
 
         <link rel="manifest" href="/manifest.webmanifest">
-        <meta name="theme-color" content="#f6f3ee">
+        @foreach (['light' => '#f6f3ee', 'dark' => '#1c1916'] as $scheme => $color)
+            <meta name="theme-color" data-scheme="{{ $scheme }}" content="{{ $color }}" media="{{ $theme ? ($theme === $scheme ? 'all' : 'not all') : $deviceScheme[$scheme] }}">
+        @endforeach
         <meta name="apple-mobile-web-app-capable" content="yes">
         <meta name="apple-mobile-web-app-status-bar-style" content="default">
         <meta name="apple-mobile-web-app-title" content="{{ config('app.name') }}">

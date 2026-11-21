@@ -5,9 +5,12 @@ import type { Person } from '@/types/person';
  * roles is the canonical admin predicate via auth.user.roles.includes('admin').
  * Keep these in sync if that contract changes.
  */
+export type Theme = 'system' | 'light' | 'dark';
+
 export type User = Person & {
     email: string;
     roles: string[];
+    theme: Theme;
 };
 
 export type Auth = {

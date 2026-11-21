@@ -7,7 +7,16 @@
             content="width=device-width, initial-scale=1, viewport-fit=cover"
         />
         <meta name="robots" content="noindex, nofollow" />
-        <meta name="theme-color" content="#f6f3ee" />
+        <meta
+            name="theme-color"
+            content="#f6f3ee"
+            media="(prefers-color-scheme: light)"
+        />
+        <meta
+            name="theme-color"
+            content="#1c1916"
+            media="(prefers-color-scheme: dark)"
+        />
         <title>Offline</title>
         <!--
             Served by the service worker in place of a page that couldn't load for lack of
@@ -23,10 +32,25 @@
                 --action-hover: #a24f35;
                 --text: #2f2a26;
                 --muted: #6f6761;
+                --on-action: #fffdfb;
                 --display: 'Fraunces', ui-serif, Georgia, serif;
                 --sans:
                     'Atkinson Hyperlegible Next', ui-sans-serif, system-ui,
                     sans-serif;
+            }
+
+            /* It knows no one, so it follows the device. */
+            @media (prefers-color-scheme: dark) {
+                :root {
+                    --bg: #1c1916;
+                    --surface: #282420;
+                    --border: #3b3631;
+                    --action: #ef9778;
+                    --action-hover: #eea186;
+                    --text: #ece7e1;
+                    --muted: #aaa39b;
+                    --on-action: #24130e;
+                }
             }
 
             * {
@@ -104,7 +128,7 @@
                 border: none;
                 border-radius: 999px;
                 background-color: var(--action);
-                color: var(--surface);
+                color: var(--on-action);
                 font: 600 16px/1 var(--sans);
                 text-decoration: none;
                 cursor: pointer;

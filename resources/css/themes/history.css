@@ -51,15 +51,19 @@
     ); /* A card's border while it is lifted */
 
     /* Over a photo: paper-white type on an ink scrim. */
-    --history-on-photo: var(--shell-surface);
-    --history-scrim: color-mix(in oklab, var(--shell-text) 62%, transparent);
+    --history-on-photo: var(--shell-paper-fixed);
+    --history-scrim: color-mix(
+        in oklab,
+        var(--shell-ink-fixed) 62%,
+        transparent
+    );
     --history-scrim-soft: color-mix(
         in oklab,
-        var(--shell-text) 45%,
+        var(--shell-ink-fixed) 45%,
         transparent
     );
     --history-float-shadow: 0 12px 32px
-        color-mix(in oklab, var(--shell-text) 10%, transparent);
+        color-mix(in oklab, var(--shell-shadow-ink) 10%, transparent);
 
     --history-focus-ring:
         0 0 0 2px var(--shell-bg), 0 0 0 4px var(--shell-action);
@@ -826,10 +830,10 @@
     object-fit: cover;
     padding: 3px;
     border-radius: 2px;
-    background: var(--history-card);
+    background: var(--shell-paper-fixed); /* a print stays white at night */
     box-shadow:
-        0 1px 2px color-mix(in oklab, var(--history-ink) 12%, transparent),
-        0 3px 8px color-mix(in oklab, var(--history-ink) 8%, transparent);
+        0 1px 2px color-mix(in oklab, var(--shell-shadow-ink) 12%, transparent),
+        0 3px 8px color-mix(in oklab, var(--shell-shadow-ink) 8%, transparent);
 }
 
 /* Who, where and what people said, as one quiet line. */

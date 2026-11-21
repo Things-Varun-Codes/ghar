@@ -2,6 +2,7 @@
 
 namespace Database\Factories;
 
+use App\Enums\Theme;
 use App\Shell\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Facades\Hash;
@@ -28,6 +29,7 @@ class UserFactory extends Factory
             'avatar_key' => null,
             'birthday' => null,
             'morning_memories' => true,
+            'theme' => Theme::System,
             'two_factor_secret' => null,
             'two_factor_recovery_codes' => null,
             'two_factor_confirmed_at' => null,

@@ -16,6 +16,7 @@ use App\Shell\Controllers\InvitationAcceptController;
 use App\Shell\Controllers\LinkableSearchController;
 use App\Shell\Controllers\MapTilesController;
 use App\Shell\Controllers\PlaceSearchController;
+use App\Shell\Controllers\Settings\AppearanceController;
 use App\Shell\Controllers\Settings\EmailVerificationController;
 use App\Shell\Controllers\Settings\NotificationsController;
 use App\Shell\Controllers\Settings\PasswordController;
@@ -90,6 +91,11 @@ Route::middleware(['auth'])->group(function () {
             ->middleware('password.confirm')
             ->name('security.show');
         Route::get('/email/verify', [EmailVerificationController::class, 'verify'])->name('email.verify');
+
+        Route::inertia('/appearance', 'Shell/Pages/Settings/Appearance')->name('appearance.show');
+        Route::patch('/appearance', AppearanceController::class)
+            ->middleware('throttle:settings-profile')
+            ->name('appearance.update');
 
         Route::get('/notifications', [NotificationsController::class, 'show'])->name('notifications.show');
         Route::patch('/notifications/morning-memories', [NotificationsController::class, 'updateMorningMemories'])
