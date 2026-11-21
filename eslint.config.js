@@ -1,3 +1,4 @@
+import { readdirSync } from 'node:fs';
 import js from '@eslint/js';
 import stylistic from '@stylistic/eslint-plugin';
 import prettier from 'eslint-config-prettier/flat';
@@ -29,6 +30,15 @@ const paddingAroundControl = [
         { blankLine: 'always', prev: stmt, next: '*' },
     ]),
 ];
+
+// Each room's folder; a new room is covered by the import zones below without editing them.
+const rooms = readdirSync(`${import.meta.dirname}/resources/js/MiniApps`, {
+    withFileTypes: true,
+})
+    .filter((entry) => entry.isDirectory())
+    .map((entry) => entry.name);
+const roomsJs = './resources/js/MiniApps';
+const roomActions = './resources/js/actions/App/MiniApps';
 
 /** @type {import('eslint').Linter.Config[]} */
 export default [
@@ -157,6 +167,42 @@ export default [
                             message:
                                 'Use the presets in @/components/motion (Fade, Rise, Pop, Reveal, Settle, Slide).',
                         },
+                    ],
+                },
+            ],
+        },
+    },
+    {
+        // The shell and the shared folders never import a room, and a room never imports another
+        // (its Wayfinder actions included). Resolved paths, so relative and dynamic imports count.
+        files: ['resources/js/**/*.ts', 'resources/js/**/*.tsx'],
+        rules: {
+            'import-x/no-restricted-paths': [
+                'error',
+                {
+                    basePath: import.meta.dirname,
+                    zones: [
+                        {
+                            target: [
+                                './resources/js/Shell',
+                                './resources/js/lib',
+                                './resources/js/hooks',
+                                './resources/js/components',
+                                './resources/js/types',
+                                './resources/js/app.tsx',
+                            ],
+                            from: [roomsJs, roomActions],
+                            message:
+                                'The shell never imports a room: take it from the registry, or let the room pass it in.',
+                        },
+                        ...rooms.flatMap((room) =>
+                            [roomsJs, roomActions].map((from) => ({
+                                target: `${roomsJs}/${room}`,
+                                from,
+                                except: [`./${room}`],
+                                message: 'A room never imports another room.',
+                            })),
+                        ),
                     ],
                 },
             ],

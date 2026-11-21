@@ -2,7 +2,6 @@
 
 namespace App\MiniApps\History\Providers;
 
-use App\MiniApps\History\Console\PruneOrphanedMedia;
 use App\MiniApps\History\Console\SendMorningMemories;
 use App\MiniApps\History\Models\Event;
 use App\MiniApps\History\Models\EventComment;
@@ -33,12 +32,13 @@ class HistoryServiceProvider extends ServiceProvider
     public function boot(LinkableEntities $linkable, DashboardSummaries $summaries): void
     {
         if ($this->app->runningInConsole()) {
-            $this->commands([PruneOrphanedMedia::class, SendMorningMemories::class]);
+            $this->commands([SendMorningMemories::class]);
         }
 
-        // Run `php artisan history:prune-media --dry-run` first to see what it will remove.
+        // Run `php artisan model:prune --model="App\MiniApps\History\Models\Event" --pretend`
+        // first to see how many moments it will remove.
         $this->callAfterResolving(Schedule::class, function (Schedule $schedule): void {
-            $schedule->command('history:prune-media')
+            $schedule->command('model:prune', ['--model' => [Event::class]])
                 ->dailyAt('03:00')
                 ->onOneServer()
                 ->runInBackground();

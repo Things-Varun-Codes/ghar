@@ -22,6 +22,12 @@ import {
     ListOrdered,
 } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import type { RefObject } from 'react';
+import {
+    useDebounceCallback,
+    useEventCallback,
+    useOnClickOutside,
+} from 'usehooks-ts';
 
 import { useLinking } from '@/Shell/linkables/use-linking';
 import { EntityLinkNode } from '@/Shell/tiptap/EntityLinkNode';
@@ -61,14 +67,15 @@ export default function TiptapEditor({
 }: TiptapEditorProps) {
     const wrapperRef = useRef<HTMLDivElement | null>(null);
 
-    const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+    // A stable callback, so a re-render mid-typing doesn't start a second debounce.
+    const debouncedOnChange = useDebounceCallback(
+        useEventCallback(onChange),
+        ONCHANGE_DEBOUNCE_MS,
+    );
 
     const flushOnChange = useCallback(
         (editorInstance: { getHTML: () => string } | null | undefined) => {
-            if (debounceTimerRef.current) {
-                clearTimeout(debounceTimerRef.current);
-                debounceTimerRef.current = null;
-            }
+            debouncedOnChange.cancel();
 
             if (!editorInstance) {
                 return;
@@ -82,7 +89,7 @@ export default function TiptapEditor({
 
             onChange(html);
         },
-        [onChange, htmlRef],
+        [onChange, htmlRef, debouncedOnChange],
     );
 
     const [linkOpen, setLinkOpen] = useState(false);
@@ -151,14 +158,7 @@ export default function TiptapEditor({
             // Debounced write: drives Inertia setData for dirty-tracking +
             // display only. Intentionally allowed to lag ~280ms behind
             // keystrokes.
-            if (debounceTimerRef.current) {
-                clearTimeout(debounceTimerRef.current);
-            }
-
-            debounceTimerRef.current = setTimeout(() => {
-                debounceTimerRef.current = null;
-                onChange(html);
-            }, ONCHANGE_DEBOUNCE_MS);
+            debouncedOnChange(html);
         },
         onBlur({ editor }) {
             // Belt-and-braces flush: converge display/dirty state even
@@ -324,34 +324,14 @@ export default function TiptapEditor({
     }, [linkOpen, closeLinkPopover]);
 
     const popoverRef = useRef<HTMLDivElement | null>(null);
-    useEffect(() => {
-        if (!linkOpen) {
-            return;
-        }
-
-        const onClick = (e: MouseEvent) => {
-            if (!popoverRef.current) {
-                return;
-            }
-
-            if (popoverRef.current.contains(e.target as Node)) {
-                return;
-            }
-
-            // Allow clicks on the link toolbar button to re-open without
-            // immediately closing on the same mousedown event.
-            const target = e.target as HTMLElement;
-
-            if (target.closest('[data-tiptap-link-toggle]')) {
-                return;
-            }
-
+    // usehooks-ts 3 types predate React 19's nullable RefObject.
+    useOnClickOutside(popoverRef as RefObject<HTMLElement>, (e) => {
+        // Allow clicks on the link toolbar button to re-open without
+        // immediately closing on the same mousedown event.
+        if (!(e.target as HTMLElement).closest('[data-tiptap-link-toggle]')) {
             closeLinkPopover();
-        };
-        window.addEventListener('mousedown', onClick);
-
-        return () => window.removeEventListener('mousedown', onClick);
-    }, [linkOpen, closeLinkPopover]);
+        }
+    });
 
     if (!editor) {
         return <div className="tiptap-editor-shell" aria-busy="true" />;

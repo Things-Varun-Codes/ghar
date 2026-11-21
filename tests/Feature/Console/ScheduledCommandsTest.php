@@ -2,6 +2,7 @@
 
 namespace Tests\Feature\Console;
 
+use App\MiniApps\History\Models\Event;
 use App\Shell\Support\Region;
 use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Support\Carbon;
@@ -20,14 +21,15 @@ class ScheduledCommandsTest extends TestCase
         $this->assertSame('30 3 * * 0', $event->expression, 'queue:prune-failed must run weekly at 03:30 on Sunday');
     }
 
-    public function test_history_prune_media_is_still_scheduled_daily(): void
+    public function test_trashed_moments_are_pruned_daily(): void
     {
         $schedule = app(Schedule::class);
 
-        $event = $this->findEventByCommandSubstring($schedule, 'history:prune-media');
+        $event = $this->findEventByCommandSubstring($schedule, 'model:prune');
 
-        $this->assertNotNull($event, 'history:prune-media must remain registered on the scheduler');
-        $this->assertSame('0 3 * * *', $event->expression, 'history:prune-media must remain scheduled daily at 03:00');
+        $this->assertNotNull($event, 'model:prune must remain registered on the scheduler');
+        $this->assertStringContainsString(Event::class, $event->command);
+        $this->assertSame('0 3 * * *', $event->expression, 'model:prune must remain scheduled daily at 03:00');
     }
 
     public function test_history_morning_memories_runs_hourly_through_the_households_morning(): void
