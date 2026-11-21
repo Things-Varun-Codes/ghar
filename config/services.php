@@ -5,17 +5,10 @@ return [
         'key' => env('RESEND_API_KEY'),
     ],
 
-    /**
-     * Public and referrer-restricted. One value both reaches the client and gates the Google
-     * CSP origins, so the two can't disagree.
-     */
-    'google_maps' => [
-        'key' => env('GOOGLE_MAPS_API_KEY'),
-    ],
-
-    // Place search without a Google key. Point it at your own Photon to keep searches in-house.
+    // Place search. Point it at your own Photon to keep searches in-house.
     'photon' => [
-        'url' => env('PHOTON_URL', 'https://photon.komoot.io'),
+        // Empty counts as unset: compose passes an empty string through.
+        'url' => env('PHOTON_URL') ?: 'https://photon.komoot.io',
     ],
 
     // No 'fake' default on purpose: MailboxServiceProvider throws in production when this is

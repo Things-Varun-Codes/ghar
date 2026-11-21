@@ -68,6 +68,19 @@ class PlaceSearchTest extends TestCase
             ->assertExactJson(['results' => []]);
     }
 
+    public function test_an_empty_photon_url_means_the_public_photon(): void
+    {
+        $_SERVER['PHOTON_URL'] = $_ENV['PHOTON_URL'] = '';
+
+        try {
+            $services = require base_path('config/services.php');
+        } finally {
+            unset($_SERVER['PHOTON_URL'], $_ENV['PHOTON_URL']);
+        }
+
+        $this->assertSame('https://photon.komoot.io', $services['photon']['url']);
+    }
+
     public function test_guests_cannot_search(): void
     {
         Http::fake();

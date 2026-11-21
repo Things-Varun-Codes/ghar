@@ -7,7 +7,7 @@ use Illuminate\Support\Facades\Http;
 use Throwable;
 
 /**
- * Place search on OpenStreetMap through a Photon server, for installs without a Google Maps key.
+ * Place search on OpenStreetMap through a Photon server.
  * Asked from here rather than the browser, so Photon never sees who in the household typed what.
  * Nominatim's usage policy forbids search-as-you-type, which is why this is Photon.
  */

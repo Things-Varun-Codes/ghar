@@ -54,7 +54,6 @@ class HandleInertiaRequests extends Middleware
                 'status' => fn () => $request->session()->get('status'),
             ],
             'vapidPublicKey' => config('webpush.vapid.public_key'),
-            'googleMapsApiKey' => $request->user() ? config('services.google_maps.key') : null,
         ];
     }
 }

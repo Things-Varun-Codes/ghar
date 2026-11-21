@@ -59,7 +59,7 @@ class DeployOpsContractTest extends TestCase
 
         foreach ([
             'VAPID_PUBLIC_KEY', 'VAPID_PRIVATE_KEY', 'VAPID_SUBJECT', 'SENTRY_LARAVEL_DSN', 'MEDIA_DISK',
-            'BOUQUET_IMAGE_PROVIDER', 'CLOUDFLARE_ACCOUNT_ID', 'CLOUDFLARE_WORKERS_AI_TOKEN', 'GOOGLE_MAPS_API_KEY',
+            'BOUQUET_IMAGE_PROVIDER', 'CLOUDFLARE_ACCOUNT_ID', 'CLOUDFLARE_WORKERS_AI_TOKEN', 'PHOTON_URL',
         ] as $key) {
             $this->assertStringContainsString("{$key}: \${{$key}:-", $content);
         }

@@ -280,12 +280,10 @@ than 90 days are pruned weekly.
 - **Web Push** works once the site is on HTTPS, using the keys made on first start.
   `VAPID_SUBJECT` defaults to `APP_URL`; a `mailto:` address works too. On iOS, push needs the app
   added to the Home Screen first (Share, Add to Home Screen).
-- **Location search** in Our History uses Google Places when `GOOGLE_MAPS_API_KEY` is set. Without
-  it, it searches OpenStreetMap through Photon, asked from the server: `photon.komoot.io` unless
-  `PHOTON_URL` points at your own. Either way someone can keep what they typed as the place. Our Shelf never needs it: a place there is a pasted map link,
-  coordinates or a typed name. To set it up, enable **Places API (New)** and
-  **Maps JavaScript API** in Google Cloud (billing must be linked), create an API key restricted to
-  your site's URL and to those two APIs, then set it and restart.
+- **Location search** in Our History searches OpenStreetMap through Photon, asked from the server:
+  `photon.komoot.io` unless `PHOTON_URL` points at your own. Someone can always keep what they
+  typed as the place. Our Shelf never needs it: a place there is a pasted map link, coordinates or a
+  typed name.
 - **AI flower pictures** in Our Exchange use Cloudflare Workers AI:
   `BOUQUET_IMAGE_PROVIDER=cloudflare` with `CLOUDFLARE_ACCOUNT_ID` and a token scoped to Workers AI
   in `CLOUDFLARE_WORKERS_AI_TOKEN`. `fake` draws a placeholder instead. The setting has no default,
@@ -313,7 +311,7 @@ Cloudflare in front of Ghar is optional. If you use it:
     ```
 
 - Cloudflare returns a 502 once the origin's response headers pass about 6 KB. The Content Security
-  Policy is the largest header, so after adding a Google Maps key or an error tracker, check that
+  Policy is the largest header, so after adding an error tracker, check that
   `curl -sI https://ghar.example.com/login` still answers.
 - Cloudflare's free plan caps uploads at 100 MB. Ghar's limit is 96 MB, set in
   `docker/nginx/default.conf` and `docker/php/php.ini`; change both together.
@@ -433,7 +431,7 @@ below. A self-host install only needs the few in `.env.selfhost.example`, becaus
 - `TELESCOPE_ENABLED`: `false`. Telescope only loads when `APP_ENV=local`.
 - `VAPID_PUBLIC_KEY` / `VAPID_PRIVATE_KEY` / `VAPID_SUBJECT`: generated on first start when empty.
   Changing them signs every device out of notifications.
-- `GOOGLE_MAPS_API_KEY`, `BOUQUET_IMAGE_PROVIDER`, `CLOUDFLARE_ACCOUNT_ID`,
+- `PHOTON_URL`, `BOUQUET_IMAGE_PROVIDER`, `CLOUDFLARE_ACCOUNT_ID`,
   `CLOUDFLARE_WORKERS_AI_TOKEN`, `CLOUDFLARE_AI_IMAGE_MODEL`: see
   [Optional features](#optional-features).
 
@@ -497,7 +495,7 @@ TELESCOPE_ENABLED=
 VAPID_PUBLIC_KEY=
 VAPID_PRIVATE_KEY=
 VAPID_SUBJECT=
-GOOGLE_MAPS_API_KEY=
+PHOTON_URL=
 BOUQUET_IMAGE_PROVIDER=
 CLOUDFLARE_ACCOUNT_ID=
 CLOUDFLARE_WORKERS_AI_TOKEN=

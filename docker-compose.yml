@@ -105,8 +105,8 @@ services:
       SENTRY_LARAVEL_DSN: ${SENTRY_LARAVEL_DSN:-}
       SENTRY_BROWSER_DSN: ${SENTRY_BROWSER_DSN:-}
 
-      # Optional. Public, referrer-restricted; empty disables the location field.
-      GOOGLE_MAPS_API_KEY: ${GOOGLE_MAPS_API_KEY:-}
+      # Optional. Place search; empty uses the public Photon at photon.komoot.io.
+      PHOTON_URL: ${PHOTON_URL:-}
 
       # AI bouquets (Our Exchange). No `fake` fallback on purpose: unset, the
       # flowers feature fails loudly instead of silently serving a placeholder.

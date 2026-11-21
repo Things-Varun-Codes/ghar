@@ -46,7 +46,5 @@
         <env name="TELESCOPE_ENABLED" value="false"/>
         <env name="RESEND_API_KEY" value="re_test"/>
         <env name="APP_KEY" value="base64:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=" force="true"/>
-        <!-- Empty so a local .env doesn't activate the Google Maps CSP origins. -->
-        <env name="GOOGLE_MAPS_API_KEY" value="" force="true"/>
     </php>
 </phpunit>
