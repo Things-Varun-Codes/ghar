@@ -69,7 +69,8 @@ class LocalMediaDiskTest extends TestCase
     {
         $url = app(SignedUrls::class)->forDiskObject('local', '7/photo.jpg', ttlMinutes: 1);
 
-        $this->travel(2)->minutes();
+        // A URL lives up to two TTLs from the top of its window; two minutes lands on the expiry second when signed on the minute.
+        $this->travel(3)->minutes();
 
         $this->get($url)->assertForbidden();
     }
