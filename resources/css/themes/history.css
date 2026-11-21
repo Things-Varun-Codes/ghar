@@ -58,7 +58,6 @@
         var(--shell-text) 45%,
         transparent
     );
-    --history-overlay: var(--shell-scrim);
     --history-float-shadow: 0 12px 32px
         color-mix(in oklab, var(--shell-text) 10%, transparent);
 
@@ -963,13 +962,6 @@
 
 [data-app='our-history'] .history-read-location {
     margin: 8px 0 0 0;
-}
-
-[data-app='our-history'] .history-skeleton-block {
-    width: 100%;
-    height: 120px;
-    border-radius: var(--history-radius-card);
-    margin-bottom: 16px;
 }
 
 /* Fixed to the viewport edge, so it floats. */

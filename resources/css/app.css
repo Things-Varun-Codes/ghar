@@ -66,15 +66,6 @@
     --color-border: var(--border);
     --color-input: var(--input);
     --color-ring: var(--ring);
-
-    --color-sidebar: var(--sidebar);
-    --color-sidebar-foreground: var(--sidebar-foreground);
-    --color-sidebar-primary: var(--sidebar-primary);
-    --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
-    --color-sidebar-accent: var(--sidebar-accent);
-    --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
-    --color-sidebar-border: var(--sidebar-border);
-    --color-sidebar-ring: var(--sidebar-ring);
 }
 
 :root {
@@ -160,13 +151,6 @@
     --input: var(--shell-border-input);
     --ring: var(--shell-accent-text);
     --sidebar: var(--shell-chrome);
-    --sidebar-foreground: var(--shell-text);
-    --sidebar-primary: var(--shell-nav-active);
-    --sidebar-primary-foreground: var(--shell-text);
-    --sidebar-accent: var(--shell-hover);
-    --sidebar-accent-foreground: var(--shell-text);
-    --sidebar-border: var(--shell-border);
-    --sidebar-ring: var(--shell-accent-text);
 }
 
 @layer base {
@@ -204,7 +188,6 @@
         --shell-toast-bottom: calc(var(--shell-bottombar-h) + 88px);
 
         /* The type scale. Nothing is set below 13px; reading text is 16px. */
-        --text-display: clamp(38px, 2.4vw + 28px, 48px); /* Home greeting */
         --text-page: clamp(30px, 1.4vw + 24px, 36px); /* page title */
         --text-title: clamp(
             24px,
@@ -566,7 +549,6 @@
 .os-admin-submit,
 .os-admin-fill-primary,
 .os-admin-fill-accent,
-.os-admin-fill-destructive,
 .os-admin-outline-destructive {
     border-radius: var(--radius-pill);
 }
@@ -1612,8 +1594,7 @@ a:hover .os-feed-action {
     border-radius: var(--radius-pill);
 }
 
-.shell-auth-submit:hover,
-.shell-error-action:hover {
+.shell-auth-submit:hover {
     background-color: var(--shell-action-hover);
 }
 
@@ -1658,19 +1639,6 @@ a:hover .os-feed-action {
     color: var(--shell-text-muted);
     line-height: 1.5;
     margin: 0;
-}
-
-.shell-error-action {
-    display: inline-flex;
-    align-items: center;
-    min-height: 44px;
-    padding: 0 24px;
-    border-radius: var(--radius-pill);
-    font-weight: 600;
-    font-size: var(--text-small);
-    text-decoration: none;
-    color: var(--primary-foreground);
-    background-color: var(--primary);
 }
 
 .shell-picker-results {
