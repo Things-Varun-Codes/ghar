@@ -67,7 +67,7 @@ describe('ChoiceMenu', () => {
         expect(onSelect).not.toHaveBeenCalled();
     });
 
-    it('is the icon alone at the default choice, and writes any other choice beside it', () => {
+    it('is the icon alone at every choice, marked away from the default', () => {
         const { rerender } = render(
             <ChoiceMenu
                 label="Sort"
@@ -81,7 +81,7 @@ describe('ChoiceMenu', () => {
         const button = screen.getByRole('button', {
             name: 'Sort: Newest first',
         });
-        expect(button.hasAttribute('data-icon-only')).toBe(true);
+        expect(button.hasAttribute('data-changed')).toBe(false);
         expect(button.textContent).toBe('');
 
         rerender(
@@ -97,7 +97,7 @@ describe('ChoiceMenu', () => {
         const narrowed = screen.getByRole('button', {
             name: 'Sort: Oldest first',
         });
-        expect(narrowed.hasAttribute('data-icon-only')).toBe(false);
-        expect(narrowed.textContent).toBe('Oldest first');
+        expect(narrowed.hasAttribute('data-changed')).toBe(true);
+        expect(narrowed.textContent).toBe('');
     });
 });

@@ -1037,6 +1037,7 @@
     justify-content: center;
     width: 44px;
     padding: 0;
+    --choice-dot: var(--history-accent-ink-strong);
 }
 
 [data-app='our-history'] .history-sort-trigger:hover,

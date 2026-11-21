@@ -6,9 +6,11 @@ import { DURATION, tween } from './presets';
 type Props = {
     /* Shared by the same thing in two places, so it glides from one to the other. */
     layoutId?: string;
+    /* Grows or shrinks to its new size on the way, not only its new place. */
+    resize?: boolean;
     as?: MotionTag;
     className?: string;
-    children: ReactNode;
+    children?: ReactNode;
 };
 
 /*
@@ -17,6 +19,7 @@ type Props = {
  */
 export default function Slide({
     layoutId,
+    resize = false,
     as = 'div',
     className,
     children,
@@ -25,7 +28,7 @@ export default function Slide({
 
     return (
         <Tag
-            layout="position"
+            layout={resize ? true : 'position'}
             layoutId={layoutId}
             className={className}
             transition={{ layout: tween(DURATION.card) }}
