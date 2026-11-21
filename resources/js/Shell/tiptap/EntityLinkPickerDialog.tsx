@@ -1,5 +1,7 @@
 /* A Dialog, not a Popover: on iOS an anchored Popover collapses the TipTap selection. */
 
+import { HttpCancelledError } from '@inertiajs/core';
+import { useHttp } from '@inertiajs/react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useDebounceCallback } from 'usehooks-ts';
 
@@ -77,7 +79,10 @@ export default function EntityLinkPickerDialog({
     const [error, setError] = useState<string | null>(null);
 
     const inputRef = useRef<HTMLInputElement | null>(null);
-    const abortRef = useRef<AbortController | null>(null);
+    const { get, cancel } = useHttp<
+        Record<string, never>,
+        { results?: ApiResultRow[] } | undefined
+    >();
 
     useEffect(() => {
         if (!open) {
@@ -95,62 +100,45 @@ export default function EntityLinkPickerDialog({
         return () => clearTimeout(t);
     }, [open]);
 
-    const runSearch = useCallback(async (q: string) => {
-        if (q.trim().length < 2) {
-            setResults([]);
-            setLoading(false);
-            setError(null);
+    const runSearch = useCallback(
+        async (q: string) => {
+            if (q.trim().length < 2) {
+                setResults([]);
+                setLoading(false);
+                setError(null);
 
-            return;
-        }
-
-        setLoading(true);
-        setError(null);
-
-        abortRef.current?.abort();
-        const ctrl = new AbortController();
-        abortRef.current = ctrl;
-
-        const params = new URLSearchParams();
-        params.set('q', q.trim());
-
-        try {
-            const res = await fetch(
-                `${linkableSearch.url()}?${params.toString()}`,
-                {
-                    signal: ctrl.signal,
-                    credentials: 'same-origin',
-                    headers: {
-                        Accept: 'application/json',
-                        'X-Requested-With': 'XMLHttpRequest',
-                    },
-                },
-            );
-
-            if (!res.ok) {
-                if (res.status === 422) {
-                    setResults([]);
-                    setLoading(false);
-
-                    return;
-                }
-
-                throw new Error(`HTTP ${res.status}`);
-            }
-
-            const body = (await res.json()) as { results?: ApiResultRow[] };
-            setResults(body.results ?? []);
-            setLoading(false);
-            // eslint-disable-next-line local/no-silent-error -- AbortError is a normal cancellation signal (we abort in-flight requests on each new keystroke + dialog close). All other errors surface via the setError banner.
-        } catch (err: unknown) {
-            if ((err as { name?: string } | null)?.name === 'AbortError') {
                 return;
             }
 
-            setError("Couldn't search. Check your connection and try again.");
-            setLoading(false);
-        }
-    }, []);
+            setLoading(true);
+            setError(null);
+
+            cancel();
+
+            const params = new URLSearchParams();
+            params.set('q', q.trim());
+
+            try {
+                // useHttp resolves a 422 (a query the server won't search) with nothing.
+                const body = await get(
+                    `${linkableSearch.url()}?${params.toString()}`,
+                );
+                setResults(body?.results ?? []);
+                setLoading(false);
+                // eslint-disable-next-line local/no-silent-error -- a cancel is normal (each keystroke and closing the dialog cancel the search in flight). All other errors surface via the setError banner.
+            } catch (err: unknown) {
+                if (err instanceof HttpCancelledError) {
+                    return;
+                }
+
+                setError(
+                    "Couldn't search. Check your connection and try again.",
+                );
+                setLoading(false);
+            }
+        },
+        [get, cancel],
+    );
 
     const debouncedSearch = useDebounceCallback(runSearch, SEARCH_DEBOUNCE_MS);
 
@@ -166,9 +154,9 @@ export default function EntityLinkPickerDialog({
 
     useEffect(() => {
         if (!open) {
-            abortRef.current?.abort();
+            cancel();
         }
-    }, [open]);
+    }, [open, cancel]);
 
     const pick = (row: ApiResultRow) => {
         onSelect({
