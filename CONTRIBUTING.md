@@ -10,7 +10,7 @@ nobody builds something that can't be merged.
 ## Getting set up
 
 You need PHP 8.4 or newer (with `pdo_pgsql`, `gd`, `intl`, `zip`, `exif`, `bcmath`, `mbstring`),
-Composer, Node 22 or newer, and Docker.
+Composer, Node 22.12 or newer, and Docker.
 
 ```sh
 npm run dev-setup   # safe to re-run; rebuilds the local database each time

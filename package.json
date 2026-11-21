@@ -2,7 +2,7 @@
     "$schema": "https://www.schemastore.org/package.json",
     "name": "ghar",
     "private": true,
-    "description": "A private, self-hosted family app for one household, with a shared timeline of photos and moments, lists of songs, movies and places, and notes to each other.",
+    "description": "A private, self-hosted family app for one household, with a shared timeline of photos and moments, lists the household keeps, and notes to each other.",
     "license": "MIT",
     "engines": {
         "node": ">=22.12"
