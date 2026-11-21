@@ -25,7 +25,7 @@ use Spatie\MediaLibrary\MediaCollections\Models\Media;
  * @property CarbonInterface $occurred_on
  * @property string|null $title
  * @property string|null $location_freetext Backfill column for legacy free-text entries
- * @property string|null $location_place_id Google Places stable ID
+ * @property string|null $location_place_id Stable id of the picked place ("osm:W123"; older ones are Google's)
  * @property string|null $location_name e.g. "Sydney Opera House"
  * @property string|null $location_address e.g. "Bennelong Point, Sydney NSW 2000"
  * @property string|null $location_lat decimal(10,7); cast to string by Laravel, exposed as float by EventResource

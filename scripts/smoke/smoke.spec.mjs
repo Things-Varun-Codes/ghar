@@ -303,19 +303,3 @@ for (const route of routes) {
         });
     });
 }
-
-test('/apps/our-history (location field without GOOGLE_MAPS_API_KEY)', async ({
-    page,
-}) => {
-    test.skip(!process.env.SMOKE_NO_GOOGLE, 'only with SMOKE_NO_GOOGLE=1');
-
-    await page.goto('/apps/our-history');
-    // The field mounts only when the EventSheet is open.
-    await page.getByRole('button', { name: /add moment/i }).click();
-
-    const input = page.locator('[data-test=location-field] input').first();
-
-    await expect(input).toBeEditable();
-    await input.fill('Kochi');
-    await expect(input).toHaveValue('Kochi');
-});

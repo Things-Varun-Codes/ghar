@@ -57,13 +57,6 @@ class AddSecurityHeaders
             $mediaSrc .= ' '.$bucketOrigin;
         }
 
-        if (filled(config('services.google_maps.key'))) {
-            $googleMapsOrigins = ' https://*.googleapis.com https://*.gstatic.com';
-            $scriptSrc .= $googleMapsOrigins;
-            $connectSrc .= $googleMapsOrigins;
-            $imgSrc .= $googleMapsOrigins;
-        }
-
         $cspDirectives = [
             "default-src 'self'",
             "script-src {$scriptSrc}",

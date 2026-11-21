@@ -17,7 +17,7 @@ class HistoryEventCrudTest extends TestCase
         /** @var User $user */
         $user = User::factory()->create();
 
-        // A typed-in location: what the form sends when there's no Google Maps key.
+        // A legacy typed-in location, from before the field only searched.
         $response = $this->actingAs($user)->post('/apps/our-history/events', [
             'occurred_on' => '2024-02-14',
             'title' => 'First date',

@@ -1,5 +1,4 @@
 import { act, fireEvent, render, screen } from '@testing-library/react';
-import type { ReactNode } from 'react';
 import {
     afterEach,
     beforeAll,
@@ -11,41 +10,14 @@ import {
 } from 'vitest';
 import PlacesLocationField from './PlacesLocationField';
 
-function prediction(placeId: string, main: string, secondary: string) {
-    return {
-        placeId,
-        mainText: { text: main },
-        secondaryText: { text: secondary },
-        toPlace: () => ({
-            id: placeId,
-            displayName: main,
-            formattedAddress: `${main}, ${secondary}`,
-            location: { lat: () => 12.9, lng: () => 77.5 },
-            fetchFields: async () => ({}),
-        }),
-    };
+function place(id: string, name: string, address: string) {
+    return { place_id: id, name, address, lat: 12.9, lng: 77.5 };
 }
 
-const places = vi.hoisted(() => ({
-    AutocompleteSessionToken: class {},
-    AutocompleteSuggestion: {
-        fetchAutocompleteSuggestions: vi.fn(),
-    },
-}));
-
-vi.mock('@vis.gl/react-google-maps', () => ({
-    APIProvider: ({ children }: { children: ReactNode }) => children,
-    useMapsLibrary: () => places,
-}));
-
-const inertia = vi.hoisted(() => ({
-    key: 'test-key' as string | null,
-    get: vi.fn(),
-}));
+const get = vi.hoisted(() => vi.fn());
 
 vi.mock('@inertiajs/react', () => ({
-    usePage: () => ({ props: { googleMapsApiKey: inertia.key } }),
-    useHttp: () => ({ get: inertia.get }),
+    useHttp: () => ({ get }),
 }));
 
 beforeAll(() => {
@@ -72,26 +44,12 @@ async function type(text: string) {
 describe('PlacesLocationField', () => {
     beforeEach(() => {
         vi.useFakeTimers();
-        places.AutocompleteSuggestion.fetchAutocompleteSuggestions.mockResolvedValue(
-            {
-                suggestions: [
-                    {
-                        placePrediction: prediction(
-                            'a',
-                            'Cubbon Park',
-                            'Bengaluru',
-                        ),
-                    },
-                    {
-                        placePrediction: prediction(
-                            'b',
-                            'Cubbonpet',
-                            'Bengaluru',
-                        ),
-                    },
-                ],
-            },
-        );
+        get.mockResolvedValue({
+            results: [
+                place('osm:a', 'Cubbon Park', 'Bengaluru'),
+                place('osm:b', 'Cubbonpet', 'Bengaluru'),
+            ],
+        });
     });
 
     afterEach(() => {
@@ -129,7 +87,7 @@ describe('PlacesLocationField', () => {
         });
 
         expect(onSelect).toHaveBeenCalledWith(
-            expect.objectContaining({ place_id: 'b', name: 'Cubbonpet' }),
+            expect.objectContaining({ place_id: 'osm:b', name: 'Cubbonpet' }),
         );
     });
 
@@ -185,33 +143,24 @@ describe('PlacesLocationField', () => {
         });
     });
 
-    it('searches OpenStreetMap through the server without a Google key', async () => {
-        inertia.key = null;
-        const place = {
-            place_id: 'osm:W1',
-            name: 'Cubbon Park',
-            address: 'Bengaluru, India',
-            lat: 12.97,
-            lng: 77.59,
-        };
-        inertia.get.mockResolvedValue({ results: [place] });
-        const onSelect = vi.fn();
-        render(<PlacesLocationField value={null} onSelect={onSelect} />);
+    it('asks the server for places, and drops an answer to an older query', async () => {
+        let answerFirst: (value: unknown) => void = () => {};
+        get.mockReturnValueOnce(
+            new Promise((resolve) => (answerFirst = resolve)),
+        );
+        render(<PlacesLocationField value={null} onSelect={vi.fn()} />);
 
-        const input = await type('Cubbon');
-        fireEvent.keyDown(input, { key: 'Enter' });
+        await type('Cub');
+        await type('Cubbon');
         await act(async () => {
-            await vi.runAllTimersAsync();
+            answerFirst({ results: [place('osm:old', 'Cubao', 'Manila')] });
         });
 
-        expect(inertia.get).toHaveBeenCalledWith(
+        expect(get).toHaveBeenCalledWith(
             expect.stringContaining('/api/places/search?q=Cubbon'),
         );
-        expect(
-            places.AutocompleteSuggestion.fetchAutocompleteSuggestions,
-        ).not.toHaveBeenCalled();
-        expect(onSelect).toHaveBeenCalledWith(place);
-        inertia.key = 'test-key';
+        expect(screen.queryByText('Cubao')).toBeNull();
+        expect(screen.getByText('Cubbonpet')).toBeTruthy();
     });
 
     it('shows a chosen place with a way to clear it', () => {
