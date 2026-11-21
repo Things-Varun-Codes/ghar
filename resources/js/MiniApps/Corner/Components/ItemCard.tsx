@@ -32,6 +32,8 @@ type Props = {
     list: CornerListInfo;
     item: CornerItem;
     onEdit?: () => void;
+    /* The list is showing only what's left to do, so ticking this one takes it out of view. */
+    onTodoTab?: boolean;
 };
 
 function firstLine(notes: string | null): string | null {
@@ -49,10 +51,14 @@ function firstLine(notes: string | null): string | null {
  * Undo toast is up, and Undo opens it again; the actions stay here, so the timer outlives the
  * folded card.
  */
-export default function ItemCard({ list, item, onEdit }: Props) {
+export default function ItemCard({ list, item, onEdit, onTodoTab }: Props) {
     const actions = useItemActions({
         id: item.id,
         title: item.title,
+        toggledMessage:
+            onTodoTab && !item.is_done
+                ? `Moved to ${list.done_label}.`
+                : undefined,
     });
 
     return (

@@ -56,7 +56,14 @@ export default function List({ list, items, filter, sort, sorts, q }: Props) {
                         ? () => editing.show(item)
                         : undefined;
 
-                    return <ItemCard list={list} item={item} onEdit={onEdit} />;
+                    return (
+                        <ItemCard
+                            list={list}
+                            item={item}
+                            onEdit={onEdit}
+                            onTodoTab={filter === 'active'}
+                        />
+                    );
                 }}
                 emptyState={{
                     all: (

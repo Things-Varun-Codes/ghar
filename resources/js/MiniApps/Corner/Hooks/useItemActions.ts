@@ -16,6 +16,8 @@ export const DELETE_GRACE_PERIOD_MS = 5000;
 export type UseItemActionsOptions = {
     id: number;
     title: string;
+    /* Shown, with Undo, once a toggle lands: for a card the toggle takes out of view. */
+    toggledMessage?: string;
     /* Runs last: the toast must exist before a detail page navigates away. */
     onDeleted?: () => void;
 };
@@ -38,6 +40,7 @@ type PendingDelete = {
 export function useItemActions({
     id,
     title,
+    toggledMessage,
     onDeleted,
 }: UseItemActionsOptions): UseItemActionsReturn {
     const [isPendingDelete, setIsPendingDelete] = useState(false);
@@ -46,7 +49,7 @@ export function useItemActions({
 
     const pendingRef = useRef<PendingDelete | null>(null);
 
-    const handleToggleDone = () => {
+    const toggle = (message?: string) => {
         // A ref, not the state: a double tap lands before the re-render that would disable it.
         if (toggleInFlightRef.current) {
             return;
@@ -60,6 +63,13 @@ export function useItemActions({
             {},
             {
                 preserveScroll: true,
+                onSuccess: () => {
+                    if (message) {
+                        toast(message, {
+                            action: { label: 'Undo', onClick: () => toggle() },
+                        });
+                    }
+                },
                 // Nothing to fill in, so a rejection is unexpected: reported, like the delete's.
                 onError: (errors) => {
                     Sentry.captureException(new Error('toggle-done rejected'), {
@@ -79,6 +89,8 @@ export function useItemActions({
             },
         );
     };
+
+    const handleToggleDone = () => toggle(toggledMessage);
 
     const undo = () => {
         const pending = pendingRef.current;

@@ -56,7 +56,11 @@ final class ListPage
         return $this;
     }
 
-    /** A nullable timestamp that splits the list into active and done, and enables `?filter`. */
+    /**
+     * A nullable timestamp that splits the list into active and done, and enables `?filter`.
+     * With no filter asked for, the page opens on the active rows, or on all of them when none
+     * are active.
+     */
     public function status(string $column): self
     {
         $this->statusColumn = $column;
@@ -82,13 +86,16 @@ final class ListPage
         return trim((string) $this->request->query('q')) ?: null;
     }
 
-    public function filter(): string
+    /** Null when the list has a status but no valid filter was asked for: the default decides. */
+    public function filter(): ?string
     {
+        if ($this->statusColumn === null) {
+            return 'all';
+        }
+
         $filter = $this->request->query('filter');
 
-        return $this->statusColumn !== null && in_array($filter, ['active', 'done'], true)
-            ? $filter
-            : 'all';
+        return in_array($filter, ['all', 'active', 'done'], true) ? $filter : null;
     }
 
     /**
@@ -119,13 +126,13 @@ final class ListPage
         self::startOverUnlessLoadingMore($this->request, $key);
 
         $props = [
-            $key => $list->scroll($filter, $perPage, $transform),
+            $key => $list->scroll($filter ?? CursorList::ACTIVE_OR_ALL, $perPage, $transform),
             'sort' => $sort,
             'q' => $q,
         ];
 
         if ($this->statusColumn !== null) {
-            $props['filter'] = $filter;
+            $props['filter'] = $list->filter();
         }
 
         return $props;

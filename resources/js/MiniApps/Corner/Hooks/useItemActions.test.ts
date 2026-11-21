@@ -208,6 +208,48 @@ describe('useItemActions', () => {
         expect(routerPatch).toHaveBeenCalledTimes(2);
     });
 
+    it('a toggle that takes the card out of view says where it went, and Undo toggles back quietly', () => {
+        routerPatch.mockClear();
+        toastFn.mockClear();
+        const { result } = renderHook(() =>
+            useItemActions({
+                id: 7,
+                title: 'Yellow',
+                toggledMessage: 'Moved to Loved.',
+            }),
+        );
+
+        act(() => {
+            result.current.handleToggleDone();
+        });
+
+        const visit = routerPatch.mock.calls[0][2] as VisitOptions & {
+            onSuccess: () => void;
+        };
+        act(() => {
+            visit.onSuccess();
+            visit.onFinish?.();
+        });
+
+        const [message, options] = toastFn.mock.calls[0] as unknown as [
+            string,
+            { action: UndoAction },
+        ];
+        expect(message).toBe('Moved to Loved.');
+
+        act(() => {
+            options.action.onClick();
+        });
+        expect(routerPatch).toHaveBeenCalledTimes(2);
+
+        act(() => {
+            (
+                routerPatch.mock.calls[1][2] as { onSuccess: () => void }
+            ).onSuccess();
+        });
+        expect(toastFn).toHaveBeenCalledTimes(1);
+    });
+
     it('a failed toggle toasts, reports, and suppresses the Inertia error surface', () => {
         const { result } = renderHook(() =>
             useItemActions({ id: 7, title: 'Yellow' }),

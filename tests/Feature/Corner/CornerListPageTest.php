@@ -66,7 +66,7 @@ class CornerListPageTest extends TestCase
                 ->where('items.data.0.notes', 'A note')
                 ->where('items.data.0.is_done', false)
                 ->where('items.data.0.addedBy.id', $this->user->id)
-                ->where('filter', 'all')
+                ->where('filter', 'active')
                 ->where('sort', 'recent')
                 ->where('q', null));
     }
@@ -193,13 +193,38 @@ class CornerListPageTest extends TestCase
                 ->has('items.data', 1)
                 ->where('items.data.0.id', $done->id));
 
-        foreach (['', '?filter=all', '?filter=garbage', '?filter[]=done'] as $query) {
+        $this->actingAs($this->user)
+            ->get("/apps/our-shelf/{$list->slug}?filter=all")
+            ->assertInertia(fn (AssertableInertia $page) => $page
+                ->where('filter', 'all')
+                ->has('items.data', 2));
+
+        foreach (['', '?filter=garbage', '?filter[]=done'] as $query) {
             $this->actingAs($this->user)
                 ->get("/apps/our-shelf/{$list->slug}{$query}")
                 ->assertInertia(fn (AssertableInertia $page) => $page
-                    ->where('filter', 'all')
-                    ->has('items.data', 2));
+                    ->where('filter', 'active')
+                    ->has('items.data', 1)
+                    ->where('items.data.0.id', $active->id));
         }
+    }
+
+    public function test_a_list_with_nothing_left_to_do_opens_on_everything(): void
+    {
+        $list = $this->listCalled('movies');
+        $this->itemIn($list, $this->user, ['done_at' => now(), 'done_by_user_id' => $this->user->id]);
+
+        $this->actingAs($this->user)
+            ->get("/apps/our-shelf/{$list->slug}")
+            ->assertInertia(fn (AssertableInertia $page) => $page
+                ->where('filter', 'all')
+                ->has('items.data', 1));
+
+        $this->actingAs($this->user)
+            ->get("/apps/our-shelf/{$list->slug}?filter=active")
+            ->assertInertia(fn (AssertableInertia $page) => $page
+                ->where('filter', 'active')
+                ->has('items.data', 0));
     }
 
     public function test_a_page_holds_fifty_rows_and_the_next_link_keeps_the_filter(): void
