@@ -38,7 +38,8 @@ them. The shipped CSS and components are the source of truth.
 - **No emoji in the UI**, except History's fixed reaction set. `HeartMark` is the one drawn mark.
 - **Ghar's own mark** (the roof over a heart) is `public/favicon.svg` and nothing else: the tab,
   `AppMark` beside the name in the header, sidebar and sign-in page, and the loading screen all
-  show that file, and `npm run icons` draws the app icons from it.
+  show that file (in-app as a mask, so it takes the coral of the current theme), and
+  `npm run icons` draws the app icons from it.
 - **Home does work:** today's date, "Needs you" as slips pinned by the sender's face, "New this
   week", birthdays coming up. Rooms are in the bottom bar (phone) and sidebar (from 1024px), never
   on Home.

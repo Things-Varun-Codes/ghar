@@ -118,7 +118,7 @@
     --shell-text: light-dark(oklch(0.29 0.01 60), oklch(0.93 0.01 75));
     --shell-text-muted: light-dark(oklch(0.52 0.014 60), oklch(0.72 0.014 70));
 
-    --shell-destructive: light-dark(oklch(0.5 0.16 25), oklch(0.72 0.14 25));
+    --shell-destructive: light-dark(oklch(0.5 0.16 25), oklch(0.68 0.17 24));
     /* What must not flip at night: ink and paper over a photo stay as they are by day. */
     --shell-ink-fixed: oklch(0.29 0.01 60);
     --shell-paper-fixed: oklch(0.995 0.003 75);
@@ -161,7 +161,8 @@
     --foreground: var(--shell-text);
     --card: var(--shell-surface);
     --card-foreground: var(--shell-text);
-    --popover: var(--shell-surface);
+    /* Floating layers sit a step above the cards at night, where a shadow can't lift them. */
+    --popover: light-dark(var(--shell-surface), oklch(0.29 0.01 65));
     --popover-foreground: var(--shell-text);
     --primary: var(--shell-action);
     --primary-foreground: var(--shell-action-fg);
@@ -169,7 +170,7 @@
     --secondary-foreground: var(--shell-text);
     --muted: var(--shell-hover);
     --muted-foreground: var(--shell-text-muted);
-    --accent: var(--shell-hover);
+    --accent: light-dark(var(--shell-hover), oklch(0.34 0.01 65));
     --accent-foreground: var(--shell-text);
     --destructive: var(--shell-destructive);
     --destructive-foreground: var(--shell-destructive-fg);
@@ -1379,6 +1380,9 @@ a:hover .os-feed-action {
     flex: none;
     width: 1em;
     height: 1em;
+    /* The favicon's shape in the coral of the hour; the file itself is fixed day coral. */
+    background: var(--shell-action);
+    mask: url('/favicon.svg') center / contain no-repeat;
 }
 
 .shell-wordmark-topbar {
@@ -1920,7 +1924,7 @@ a:hover .os-feed-action {
     background: var(--shell-action);
     color: var(--shell-action-fg);
     box-shadow: 0 8px 20px
-        color-mix(in oklab, var(--shell-action) 28%, transparent);
+        color-mix(in oklab, var(--shell-shadow-ink) 18%, transparent);
     display: flex;
     align-items: center;
     justify-content: center;

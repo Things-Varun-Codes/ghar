@@ -2484,6 +2484,24 @@
     background: var(--history-hover);
 }
 
+/* MapLibre draws + and − in a fixed #333; drawn as a mask they take the ink, by day and night. */
+[data-app='our-history']
+    .history-map
+    .maplibregl-ctrl
+    button:is(.maplibregl-ctrl-zoom-in, .maplibregl-ctrl-zoom-out)
+    .maplibregl-ctrl-icon {
+    background: var(--history-ink);
+    mask: var(--history-zoom-icon) center / contain no-repeat;
+}
+
+[data-app='our-history'] .history-map .maplibregl-ctrl-zoom-in {
+    --history-zoom-icon: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 29 29'%3E%3Cpath d='M14.5 8.5c-.75 0-1.5.75-1.5 1.5v3h-3c-.75 0-1.5.75-1.5 1.5S9.25 16 10 16h3v3c0 .75.75 1.5 1.5 1.5S16 19.75 16 19v-3h3c.75 0 1.5-.75 1.5-1.5S19.75 13 19 13h-3v-3c0-.75-.75-1.5-1.5-1.5'/%3E%3C/svg%3E");
+}
+
+[data-app='our-history'] .history-map .maplibregl-ctrl-zoom-out {
+    --history-zoom-icon: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 29 29'%3E%3Cpath d='M10 13c-.75 0-1.5.75-1.5 1.5S9.25 16 10 16h9c.75 0 1.5-.75 1.5-1.5S19.75 13 19 13z'/%3E%3C/svg%3E");
+}
+
 [data-app='our-history'] .history-map .maplibregl-ctrl-attrib,
 [data-app='our-history']
     .history-map
@@ -2530,7 +2548,8 @@
     font-variant-numeric: tabular-nums;
     color: var(--history-ink);
     background: var(--history-card);
-    border: 1px solid var(--history-rule);
+    /* The 3:1 edge: at night card and land are too close to tell apart. */
+    border: 1px solid var(--history-control-border);
     box-shadow: var(--history-float-shadow);
 }
 
@@ -2556,8 +2575,8 @@
 [data-app='our-history'] .history-map-pin:focus-visible,
 [data-app='our-history'] .history-map-cluster:focus-visible,
 [data-app='our-history'] .history-map-place:focus-visible {
-    outline: 2px solid var(--history-focus-ring);
-    outline-offset: 2px;
+    outline: none;
+    box-shadow: var(--history-focus-ring);
 }
 
 [data-app='our-history'] .history-map-places {
