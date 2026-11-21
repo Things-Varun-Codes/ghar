@@ -23,12 +23,14 @@ const routes = [
         auth: true,
         description: '/dashboard (authenticated)',
     },
+    { path: '/settings', auth: true, description: '/settings (list)' },
     { path: '/settings/profile', auth: true, description: '/settings/profile' },
     {
         path: '/settings/password',
         auth: true,
         description: '/settings/password',
     },
+    { path: '/admin', auth: true, description: '/admin (list)' },
     { path: '/admin/users', auth: true, description: '/admin/users' },
     {
         path: '/admin/rooms',

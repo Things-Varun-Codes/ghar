@@ -45,7 +45,7 @@ export default function MobileTopBar({
                 </p>
             )}
 
-            <AccountMenu withNav />
+            <AccountMenu />
         </header>
     );
 }
