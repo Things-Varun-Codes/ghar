@@ -17,7 +17,7 @@ import { escapeHtml } from '@/lib/utils';
 export type LightboxItem = {
     kind: 'photo' | 'video';
     original: string;
-    /** A screen-sized copy of a photo, used until the viewer zooms past it. */
+    /** A screen-sized copy of a photo, shown in place of the original when there is one. */
     medium?: string | null;
     poster?: string | null;
     width?: number | null;
@@ -33,11 +33,12 @@ export type MediaLightboxHandle = {
 
 type Slide = SlideData & { title?: string; subtitle?: string; poster?: string };
 
+// The `medium` conversion's longest side (History's Event model).
 const MEDIUM_BOUND = 1200;
 
 /**
- * The srcset lets the browser fetch the screen-sized copy to open and the original only
- * when the viewer zooms past it, instead of decoding a full camera photo on every tap.
+ * A photo opens on its screen-sized copy, not the camera original: a srcset would still pick
+ * the original on any retina screen wider than 600px. Zoom therefore stops at the copy's size.
  */
 export function toSlide(item: LightboxItem): Slide {
     const width = item.width ?? 1600;
@@ -55,12 +56,18 @@ export function toSlide(item: LightboxItem): Slide {
         return { ...slide, type: 'video', poster: item.poster ?? undefined };
     }
 
-    if (item.medium) {
-        const scale = Math.min(1, MEDIUM_BOUND / Math.max(width, height));
-        slide.srcset = `${item.medium} ${Math.round(width * scale)}w, ${item.original} ${width}w`;
+    if (!item.medium) {
+        return slide;
     }
 
-    return slide;
+    const scale = Math.min(1, MEDIUM_BOUND / Math.max(width, height));
+
+    return {
+        ...slide,
+        src: item.medium,
+        width: Math.round(width * scale),
+        height: Math.round(height * scale),
+    };
 }
 
 const MediaLightbox = forwardRef<

@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { toSlide } from './MediaLightbox';
 
 describe('toSlide', () => {
-    it('opens on the medium copy and keeps the original for zoom', () => {
+    it('opens on the medium copy, sized to its bound', () => {
         const slide = toSlide({
             kind: 'photo',
             original: '/o.jpg',
@@ -12,14 +12,13 @@ describe('toSlide', () => {
         });
 
         expect(slide).toMatchObject({
-            src: '/o.jpg',
-            width: 4000,
-            height: 3000,
+            src: '/m.webp',
+            width: 1200,
+            height: 900,
         });
-        expect(slide.srcset).toBe('/m.webp 1200w, /o.jpg 4000w');
     });
 
-    it('never claims the medium copy is larger than the original', () => {
+    it('never enlarges a photo smaller than the bound', () => {
         const slide = toSlide({
             kind: 'photo',
             original: '/o.jpg',
@@ -28,7 +27,11 @@ describe('toSlide', () => {
             height: 600,
         });
 
-        expect(slide.srcset).toBe('/m.webp 800w, /o.jpg 800w');
+        expect(slide).toMatchObject({
+            src: '/m.webp',
+            width: 800,
+            height: 600,
+        });
     });
 
     it('gives a video its poster and no srcset', () => {
@@ -39,6 +42,10 @@ describe('toSlide', () => {
         });
 
         expect(slide).toMatchObject({ type: 'video', poster: '/p.webp' });
-        expect(slide.srcset).toBeUndefined();
+        expect(slide.src).toBe('/v.mp4');
     });
+});
+
+it('falls back to the original while the copy is still being made', () => {
+    expect(toSlide({ kind: 'photo', original: '/o.jpg' }).src).toBe('/o.jpg');
 });
