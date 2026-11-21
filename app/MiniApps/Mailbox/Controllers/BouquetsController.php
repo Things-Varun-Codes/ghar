@@ -3,8 +3,8 @@
 namespace App\MiniApps\Mailbox\Controllers;
 
 use App\MiniApps\Mailbox\Actions\CreateBouquet;
-use App\MiniApps\Mailbox\Actions\MarkBouquetsRead;
 use App\MiniApps\Mailbox\Contracts\BouquetImageGenerator;
+use App\MiniApps\Mailbox\Controllers\Concerns\ListsSentAndReceived;
 use App\MiniApps\Mailbox\Exceptions\BouquetSafetyException;
 use App\MiniApps\Mailbox\Http\Requests\GenerateBouquetRequest;
 use App\MiniApps\Mailbox\Http\Requests\StoreBouquetRequest;
@@ -13,42 +13,24 @@ use App\MiniApps\Mailbox\Models\Bouquet;
 use App\MiniApps\Mailbox\Support\BouquetPromptBuilder;
 use App\Shell\Services\Household;
 use App\Shell\Support\FlashToast;
-use App\Shell\Support\ListPage;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
-use Inertia\Inertia;
 use Inertia\Response;
 
 class BouquetsController
 {
-    public function index(Request $request, MarkBouquetsRead $markRead, Household $household): Response
+    use ListsSentAndReceived;
+
+    public function index(Request $request, Household $household): Response
     {
         $viewer = $request->user();
-        $tab = $request->query('tab') === 'sent' ? 'sent' : 'received';
 
-        if ($tab === 'received') {
-            $markRead($viewer);
-        }
-
-        $base = Bouquet::query()
-            ->with(['sender', 'recipients']);
-
-        if ($tab === 'received') {
-            $base->receivedBy($viewer);
-        } else {
-            $base->where('sender_id', $viewer->id);
-        }
-
-        return Inertia::render('MiniApps/Mailbox/Pages/Flowers', [
-            ...ListPage::make($request, $base, ListPage::chronological('posted_at'))
-                ->searchable(['note'])
-                ->props('bouquets', 50, fn (Bouquet $b) => app(BouquetResource::class)($b, $viewer)),
-            'tab' => $tab,
-            'members' => $household->optionsFor($viewer),
-            'catalog' => config('mailbox-bouquets'),
-        ]);
+        return $this->sentAndReceived(
+            $request, $household, Bouquet::class, 'MiniApps/Mailbox/Pages/Flowers', 'bouquets', 'note',
+            fn (Bouquet $b) => app(BouquetResource::class)($b, $viewer),
+        )->with('catalog', config('mailbox-bouquets'));
     }
 
     /**

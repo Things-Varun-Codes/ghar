@@ -5,44 +5,25 @@ namespace App\MiniApps\Mailbox\Actions;
 use App\MiniApps\Mailbox\Http\Requests\IssueCitationRequest;
 use App\MiniApps\Mailbox\Models\Citation;
 use App\MiniApps\Mailbox\Support\EntryTypes;
-use App\MiniApps\Mailbox\Support\MailboxPush;
 use App\Shell\Models\User;
 use Illuminate\Support\Collection;
-use Illuminate\Support\Facades\DB;
 
-class IssueCitation
+/** @extends IssueToEachRecipient<Citation> */
+class IssueCitation extends IssueToEachRecipient
 {
-    public function __construct(
-        private readonly MailboxPush $push,
-    ) {}
-
     /** @return Collection<int, Citation> */
     public function __invoke(IssueCitationRequest $request, User $issuer): Collection
     {
-        $validated = $request->validated();
-        $recipientIds = $request->recipientIds();
+        return $this->issue($request, $issuer);
+    }
 
-        /** @var Collection<int, Citation> $citations */
-        $citations = DB::transaction(fn (): Collection => collect($recipientIds)->map(
-            fn (int $recipientId): Citation => $this->issueOne($validated, $issuer, $recipientId),
-        ));
-
-        $firstName = $issuer->firstName();
-
-        foreach ($citations as $citation) {
-            $this->push->toEntry(
-                [$citation->loadMissing('recipient')->recipient],
-                EntryTypes::CITATIONS,
-                $citation->id,
-                "{$firstName} issued you a citation",
-            );
-        }
-
-        return $citations;
+    protected function pushNotice(): array
+    {
+        return [EntryTypes::CITATIONS, 'issued you a citation'];
     }
 
     /** @param  array<string, mixed>  $validated */
-    private function issueOne(array $validated, User $issuer, int $recipientId): Citation
+    protected function issueOne(array $validated, User $issuer, int $recipientId): Citation
     {
         $citation = new Citation([
             'recipient_id' => $recipientId,

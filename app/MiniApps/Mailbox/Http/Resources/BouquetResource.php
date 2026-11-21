@@ -2,14 +2,15 @@
 
 namespace App\MiniApps\Mailbox\Http\Resources;
 
+use App\MiniApps\Mailbox\Http\Resources\Concerns\DescribesSentToMany;
 use App\MiniApps\Mailbox\Models\Bouquet;
 use App\Shell\Models\User;
-use App\Shell\Support\Person;
 use App\Shell\Support\SignedUrls;
-use Illuminate\Support\Carbon;
 
 class BouquetResource
 {
+    use DescribesSentToMany;
+
     public function __construct(
         private readonly SignedUrls $signedUrls,
     ) {}
@@ -32,11 +33,6 @@ class BouquetResource
     public function __invoke(Bouquet $bouquet, ?User $viewer = null): array
     {
         $viewer ??= auth()->user();
-        $authId = $viewer?->id;
-        $bouquet->loadMissing(['sender', 'recipients']);
-        $ownRow = $bouquet->recipients->firstWhere('id', $authId);
-        $readAt = $ownRow?->getRelation('pivot')->getAttribute('read_at');
-
         $imageUrl = $this->signedUrls->forDiskObject(config('services.bouquet.disk'), $bouquet->image_key);
 
         return [
@@ -44,16 +40,7 @@ class BouquetResource
             'note' => $bouquet->note,
             'image_url' => $imageUrl,
             'flowers' => $bouquet->flowers,
-            'posted_at' => $bouquet->posted_at->toIso8601String(),
-            'posted_at_human' => $bouquet->posted_at->diffForHumans(),
-            'read_at' => $readAt !== null ? Carbon::parse($readAt)->toIso8601String() : null,
-            'is_unread' => $ownRow !== null && $readAt === null,
-            'is_mine' => $bouquet->sender_id === $authId,
-            'sender' => Person::short($bouquet->sender),
-            'recipients' => $bouquet->recipients
-                ->map(fn (User $user): array => Person::short($user))
-                ->values()
-                ->all(),
+            ...$this->delivery($bouquet, $viewer),
         ];
     }
 }
