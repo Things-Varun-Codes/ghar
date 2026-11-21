@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// Fails if an authenticated GET route is neither in smoke.mjs's `routes` nor in SKIP
+// Fails if an authenticated GET route is neither in smoke.spec.mjs's `routes` nor in SKIP
 // below (with a written reason). Node built-ins only, so it runs without npm install.
 
 import { execFileSync } from 'node:child_process';
@@ -9,7 +9,7 @@ import { fileURLToPath } from 'node:url';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const REPO_ROOT = path.resolve(__dirname, '..');
-const SMOKE_FILE = path.join(REPO_ROOT, 'scripts', 'smoke.mjs');
+const SMOKE_FILE = path.join(REPO_ROOT, 'scripts', 'smoke', 'smoke.spec.mjs');
 
 const PLACEHOLDER = ':param';
 
@@ -90,7 +90,7 @@ function extractSmokePaths() {
 
     if (paths.length < 30) {
         throw new Error(
-            `check-smoke-routes: only extracted ${paths.length} path literals from scripts/smoke.mjs — expected 30+. ` +
+            `check-smoke-routes: only extracted ${paths.length} path literals from scripts/smoke/smoke.spec.mjs — expected 30+. ` +
                 "The extraction regex has likely stopped matching the file's shape, which silently turns this check into a no-op. Fix the regex.",
         );
     }
@@ -123,7 +123,7 @@ function main() {
         uncovered.push(route);
     }
 
-    // Informational: usually a renamed route smoke.mjs still lists.
+    // Informational: usually a renamed route smoke.spec.mjs still lists.
     const liveKeys = new Set(liveRoutes.map((r) => normaliseRouteUri(r.uri)));
     const orphanedSmokePaths = smokePaths.filter(
         (p) => !liveKeys.has(normaliseSmokePath(p)),
@@ -131,7 +131,7 @@ function main() {
 
     if (orphanedSmokePaths.length > 0) {
         console.log(
-            `[check-smoke-routes] INFO: ${orphanedSmokePaths.length} smoke.mjs path(s) match no live authenticated GET route:`,
+            `[check-smoke-routes] INFO: ${orphanedSmokePaths.length} smoke.spec.mjs path(s) match no live authenticated GET route:`,
         );
 
         for (const p of orphanedSmokePaths) {
@@ -141,7 +141,7 @@ function main() {
 
     if (uncovered.length > 0) {
         console.error(
-            `[check-smoke-routes] FAIL: ${uncovered.length} authenticated GET route(s) are covered by neither scripts/smoke.mjs's routes array nor this script's SKIP map:`,
+            `[check-smoke-routes] FAIL: ${uncovered.length} authenticated GET route(s) are covered by neither scripts/smoke/smoke.spec.mjs's routes array nor this script's SKIP map:`,
         );
 
         for (const route of uncovered) {
@@ -151,7 +151,7 @@ function main() {
         }
 
         console.error(
-            "\nFix: add each route above to scripts/smoke.mjs's routes array, or add it to SKIP in scripts/check-smoke-routes.mjs with a written reason.",
+            "\nFix: add each route above to scripts/smoke/smoke.spec.mjs's routes array, or add it to SKIP in scripts/check-smoke-routes.mjs with a written reason.",
         );
         process.exit(1);
     }

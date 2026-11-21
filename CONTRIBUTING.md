@@ -50,7 +50,7 @@ If your scenario isn't covered, extend `database/seeders/DevDataSeeder.php`.
 | `npm run smoke-mcp`      | Serves the seeded data on `127.0.0.1:8000` for testing in a real browser.                      |
 
 Test in a real browser as well when you touch uploads, drag and drop, dialogs and sheets, or a
-multi-step form. Add every new page to `scripts/smoke.mjs`; a check fails if a route is missing.
+multi-step form. Add every new page to `scripts/smoke/smoke.spec.mjs`; a check fails if a route is missing.
 
 ## The hooks and CI
 
