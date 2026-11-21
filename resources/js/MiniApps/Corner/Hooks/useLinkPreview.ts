@@ -1,3 +1,4 @@
+import { useHttp } from '@inertiajs/react';
 import * as Sentry from '@sentry/react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useDebounceCallback } from 'usehooks-ts';
@@ -37,7 +38,12 @@ export function useLinkPreview(onFound?: (link: LinkFound) => void) {
     const [preview, setPreview] = useState<LinkPreviewState>({
         kind: 'idle',
     });
-    const controller = useRef<AbortController | null>(null);
+    const { get, cancel: cancelRequest } = useHttp<
+        Record<string, never>,
+        LinkJson | undefined
+    >();
+    // Bumped by every stop(), so a response that lands after it is dropped.
+    const generation = useRef(0);
     const requestedUrl = useRef<string | null>(null);
     const latestOnFound = useRef(onFound);
 
@@ -45,73 +51,69 @@ export function useLinkPreview(onFound?: (link: LinkFound) => void) {
         latestOnFound.current = onFound;
     });
 
-    const run = useCallback(async (url: string) => {
-        const ctrl = new AbortController();
+    const run = useCallback(
+        async (url: string) => {
+            const current = generation.current;
 
-        controller.current = ctrl;
-        setPreview({ kind: 'loading' });
+            setPreview({ kind: 'loading' });
 
-        try {
-            const response = await fetch(
-                `${linkPreview.url()}?url=${encodeURIComponent(url)}`,
-                {
-                    signal: ctrl.signal,
-                    headers: { Accept: 'application/json' },
-                    credentials: 'same-origin',
-                },
-            );
+            try {
+                const json = await get(
+                    `${linkPreview.url()}?url=${encodeURIComponent(url)}`,
+                );
 
-            if (!response.ok) {
-                throw new Error(`Preview HTTP ${response.status}`);
-            }
+                if (current !== generation.current) {
+                    return;
+                }
 
-            const json = (await response.json()) as LinkJson;
+                // useHttp resolves a 422 with nothing rather than throwing.
+                if (json === undefined) {
+                    throw new Error('Preview HTTP 422');
+                }
 
-            if (ctrl.signal.aborted) {
-                return;
-            }
+                if (!json.ok) {
+                    requestedUrl.current = null;
+                    setPreview({ kind: 'error', message: NO_MATCH_MESSAGE });
 
-            if (!json.ok) {
+                    return;
+                }
+
+                const found: LinkFound = {
+                    title: json.title ?? null,
+                    image_url: json.image_url ?? null,
+                };
+
+                setPreview({ kind: 'ok', ...found });
+                latestOnFound.current?.(found);
+            } catch (error) {
+                if (current !== generation.current) {
+                    return;
+                }
+
+                Sentry.captureException(error, {
+                    tags: {
+                        component: 'Corner/ItemSheet',
+                        action: 'link.preview',
+                        surface: 'frontend',
+                    },
+                    extra: { tag: 'corner.link-preview' },
+                });
+
                 requestedUrl.current = null;
-                setPreview({ kind: 'error', message: NO_MATCH_MESSAGE });
-
-                return;
+                setPreview({ kind: 'error', message: FAILURE_MESSAGE });
             }
-
-            const found: LinkFound = {
-                title: json.title ?? null,
-                image_url: json.image_url ?? null,
-            };
-
-            setPreview({ kind: 'ok', ...found });
-            latestOnFound.current?.(found);
-        } catch (error) {
-            if (ctrl.signal.aborted) {
-                return;
-            }
-
-            Sentry.captureException(error, {
-                tags: {
-                    component: 'Corner/ItemSheet',
-                    action: 'link.preview',
-                    surface: 'frontend',
-                },
-                extra: { tag: 'corner.link-preview' },
-            });
-
-            requestedUrl.current = null;
-            setPreview({ kind: 'error', message: FAILURE_MESSAGE });
-        }
-    }, []);
+        },
+        [get],
+    );
 
     const debouncedRun = useDebounceCallback(run, DEBOUNCE_MS);
 
     const stop = useCallback(() => {
         debouncedRun.cancel();
-        controller.current?.abort();
-        controller.current = null;
+        generation.current++;
+        cancelRequest();
         requestedUrl.current = null;
-    }, [debouncedRun]);
+    }, [debouncedRun, cancelRequest]);
 
     useEffect(() => stop, [stop]);
 
