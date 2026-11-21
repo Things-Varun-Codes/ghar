@@ -15,8 +15,6 @@ set -euo pipefail
 cd "$(dirname "${BASH_SOURCE[0]}")/.."
 source scripts/lib/services.sh
 
-step() { printf '\n==> %s\n' "$1"; }
-
 main="$(main_checkout)"
 [ -n "$main" ] || { echo "error: this is the main checkout, not a worktree. Use \`npm run dev-setup\`." >&2; exit 1; }
 

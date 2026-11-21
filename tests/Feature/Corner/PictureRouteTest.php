@@ -6,7 +6,6 @@ use App\MiniApps\Corner\Models\CornerList;
 use App\MiniApps\Corner\Models\Item;
 use App\MiniApps\Corner\Support\PictureCache;
 use App\Shell\Models\User;
-use App\Shell\Services\Rooms;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Http;
@@ -166,7 +165,7 @@ class PictureRouteTest extends TestCase
 
         $this->get((string) $item->pictureUrl())->assertRedirect('/login');
 
-        app(Rooms::class)->set('our-shelf', false);
+        $this->setRoom('our-shelf', false);
         $this->actingAs($this->user)->get((string) $item->pictureUrl())->assertNotFound();
         $this->actingAs($this->user)->get('/api/corner/picture-preview?url='.urlencode(self::SOURCE))->assertNotFound();
     }

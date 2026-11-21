@@ -27,6 +27,9 @@
     --form-sheet-border: var(--mailbox-border);
     --form-sheet-font-display: var(--mailbox-font-display);
 
+    /* The shell's landing door (.shell-door-*) behind this room's peek. */
+    --door-peek-wash: var(--mailbox-coupon-tint);
+
     --mailbox-type-scale-eyebrow: var(--text-eyebrow);
     --mailbox-hand-size: var(--text-hand);
     --mailbox-rule-step: 32px;
@@ -219,74 +222,8 @@
 
 /* ── Landing: a door per pile, each showing the top of it ────────────── */
 
-/* Sized by the room, not the viewport: one door a row on a phone, two on a tablet, four wide. */
-[data-app='our-exchange'] .mailbox-doors-wrap {
-    container: mailbox-doors / inline-size;
-}
-
-[data-app='our-exchange'] .mailbox-doors {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr);
-    gap: 12px;
-}
-
-@container mailbox-doors (min-width: 560px) {
-    [data-app='our-exchange'] .mailbox-doors {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-        gap: 16px;
-    }
-}
-
-@container mailbox-doors (min-width: 1040px) {
-    [data-app='our-exchange'] .mailbox-doors {
-        grid-template-columns: repeat(4, minmax(0, 1fr));
-    }
-}
-
 [data-app='our-exchange'] .mailbox-card.mailbox-door {
-    display: flex;
-    flex-direction: column;
-    min-width: 0;
     padding: 12px;
-}
-
-[data-app='our-exchange'] .mailbox-door-peek {
-    position: relative;
-    display: flex;
-    height: 112px;
-    border-radius: var(--radius-inner);
-    overflow: hidden;
-    background: var(--mailbox-coupon-tint);
-}
-
-@container mailbox-doors (min-width: 560px) {
-    [data-app='our-exchange'] .mailbox-door-peek {
-        height: 136px;
-    }
-}
-
-[data-app='our-exchange'] .mailbox-door-name {
-    margin: 12px 4px 0;
-    font-family: var(--mailbox-font-display);
-    font-weight: var(--weight-display);
-    font-size: var(--text-title);
-    letter-spacing: var(--tracking-display);
-    line-height: 1.2;
-    color: var(--mailbox-ink);
-}
-
-[data-app='our-exchange'] .mailbox-door-name .shell-card-link {
-    color: inherit;
-    text-decoration: none;
-}
-
-[data-app='our-exchange'] .mailbox-door-live {
-    margin: 2px 4px 4px;
-    font-size: var(--text-meta);
-    font-weight: 400;
-    line-height: 1.4;
-    font-variant-numeric: tabular-nums;
-    color: var(--mailbox-ink-soft);
 }
 
 /* Waiting on you: ink, a step heavier. Coral stays for what you press. */

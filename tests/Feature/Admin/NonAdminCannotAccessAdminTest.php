@@ -10,7 +10,6 @@ use Database\Seeders\RoleSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Routing\Route as RoutingRoute;
 use Illuminate\Support\Facades\Route;
-use Illuminate\Support\Str;
 use Tests\TestCase;
 
 class NonAdminCannotAccessAdminTest extends TestCase
@@ -31,11 +30,7 @@ class NonAdminCannotAccessAdminTest extends TestCase
     {
         $user = User::factory()->create();
         $other = User::factory()->create();
-        $invite = Invitation::forceCreate([
-            'email' => 'invitee@example.com',
-            'role_name' => 'user',
-            'token_hash' => hash('sha256', Str::random(64)),
-            'expires_at' => now()->addDays(7),
+        $invite = Invitation::factory()->create([
             'invited_by_user_id' => $other->id,
         ]);
         $parameters = [

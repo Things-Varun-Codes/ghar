@@ -69,29 +69,6 @@
     color: var(--muted-foreground);
 }
 
-.os-admin-control {
-    min-height: 44px;
-    font-size: var(--text-body);
-    background-color: var(--card);
-    color: var(--foreground);
-    border-color: var(--shell-border-input);
-}
-
-/* Source order matters: must be authored after .os-admin-control so the
-   override wins — same specificity, different source position. */
-.os-admin-control--invalid {
-    border-color: var(--destructive);
-}
-
-.os-admin-input {
-    min-height: 44px;
-    font-size: var(--text-body);
-}
-
-.os-admin-textarea {
-    font-size: var(--text-body);
-}
-
 .os-admin-section-title {
     font-family: var(--font-display);
     font-size: var(--text-title);

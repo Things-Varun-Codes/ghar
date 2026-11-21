@@ -7,20 +7,13 @@ use App\Shell\Models\User;
 use App\Shell\Notifications\GenericPushNotification;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Notification;
+use Tests\Concerns\SeedsPair;
 use Tests\TestCase;
 
 class CouponLifecycleTest extends TestCase
 {
     use RefreshDatabase;
-
-    /** @return array{0: User, 1: User} */
-    private function seedPair(): array
-    {
-        $issuer = User::factory()->create(['name' => 'Alice Smith']);
-        $recipient = User::factory()->create(['name' => 'Bob Jones']);
-
-        return [$issuer, $recipient];
-    }
+    use SeedsPair;
 
     public function test_issue_creates_one_issued_row_with_unique_code_and_partner_recipient(): void
     {

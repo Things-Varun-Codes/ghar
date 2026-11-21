@@ -33,18 +33,11 @@ class RoomSwitchesTest extends TestCase
         return app(Rooms::class);
     }
 
-    private function turnOff(string $slug): void
-    {
-        $this->rooms()->set($slug, false);
-        // The switches are read once per request; a test makes several.
-        app()->forgetScopedInstances();
-    }
-
     public function test_a_room_that_is_off_has_no_routes_or_place_on_home(): void
     {
         $user = User::factory()->create();
         Event::factory()->create(['creator_id' => $user->id, 'occurred_on' => now()->subYear()->toDateString()]);
-        $this->turnOff('our-history');
+        $this->setRoom('our-history', false);
 
         $this->actingAs($user)->get('/apps/our-history')->assertNotFound();
         $this->get('/apps/our-history/timeline')->assertNotFound();
@@ -62,11 +55,10 @@ class RoomSwitchesTest extends TestCase
         $user = User::factory()->create();
         $event = Event::factory()->create(['creator_id' => $user->id]);
 
-        $this->turnOff('our-history');
+        $this->setRoom('our-history', false);
         $this->assertDatabaseHas('our_history_events', ['id' => $event->id]);
 
-        $this->rooms()->set('our-history', true);
-        app()->forgetScopedInstances();
+        $this->setRoom('our-history', true);
 
         $this->actingAs($user)->get('/apps/our-history')->assertOk();
         $this->assertDatabaseHas('our_history_events', ['id' => $event->id]);
@@ -74,7 +66,7 @@ class RoomSwitchesTest extends TestCase
 
     public function test_a_guest_is_sent_to_login_not_shown_a_404_for_a_room_that_is_off(): void
     {
-        $this->turnOff('our-history');
+        $this->setRoom('our-history', false);
 
         $this->get('/apps/our-history')->assertRedirect(route('login'));
     }
@@ -82,7 +74,7 @@ class RoomSwitchesTest extends TestCase
     public function test_a_room_that_is_off_sends_no_push(): void
     {
         Notification::fake();
-        $this->turnOff('our-exchange');
+        $this->setRoom('our-exchange', false);
         $sender = User::factory()->create();
         $recipient = User::factory()->create();
 
@@ -143,7 +135,7 @@ class RoomSwitchesTest extends TestCase
     public function test_an_admin_only_room_that_is_off_is_closed_to_admins_too(): void
     {
         $this->makeAdminOnly('our-history');
-        $this->turnOff('our-history');
+        $this->setRoom('our-history', false);
         $admin = $this->admin();
 
         $this->assertFalse($this->rooms()->canEnter($admin, 'our-history'));
@@ -152,7 +144,7 @@ class RoomSwitchesTest extends TestCase
 
     public function test_an_off_room_stays_out_of_the_manifest_shortcuts(): void
     {
-        $this->turnOff('our-history');
+        $this->setRoom('our-history', false);
 
         $urls = collect($this->get('/manifest.webmanifest')->json('shortcuts'))->pluck('url');
 

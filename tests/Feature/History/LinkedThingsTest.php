@@ -5,7 +5,6 @@ namespace Tests\Feature\History;
 use App\MiniApps\History\Models\Event;
 use App\Shell\Models\User;
 use App\Shell\Services\LinkableEntities;
-use App\Shell\Services\Rooms;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use Inertia\Testing\AssertableInertia;
@@ -74,7 +73,7 @@ class LinkedThingsTest extends TestCase
             ->where('events.data.0.links', fn ($links) => isset($links["corner.item:{$item->id}"])
                 && ! isset($links["corner.item:{$gone->id}"])));
 
-        app(Rooms::class)->set('our-shelf', false);
+        $this->setRoom('our-shelf', false);
 
         $this->get('/apps/our-history')->assertInertia(fn (AssertableInertia $page) => $page
             ->where('events.data.0.links', []));

@@ -6,7 +6,6 @@ use App\MiniApps\Corner\Models\CornerList;
 use App\MiniApps\Corner\Models\Item;
 use App\Shell\Models\User;
 use App\Shell\Services\LinkableEntities;
-use App\Shell\Services\Rooms;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use Tests\TestCase;
@@ -123,7 +122,7 @@ class LinkableEntitiesTest extends TestCase
         $this->assertNotNull($linkable->resolve('foo.roomed', 1));
         $this->assertContains('foo.roomed', $linkable->forPage()['types']);
 
-        app(Rooms::class)->set('our-shelf', false);
+        $this->setRoom('our-shelf', false);
 
         $this->assertNull($linkable->resolve('foo.roomed', 1));
         $this->assertSame([], $linkable->resolveMany('foo.roomed', [1]));

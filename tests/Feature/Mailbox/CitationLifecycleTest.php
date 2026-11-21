@@ -9,19 +9,13 @@ use App\Shell\Notifications\GenericPushNotification;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Notification;
 use Symfony\Component\HttpKernel\Exception\HttpException;
+use Tests\Concerns\SeedsPair;
 use Tests\TestCase;
 
 class CitationLifecycleTest extends TestCase
 {
     use RefreshDatabase;
-
-    private function seedPair(): array
-    {
-        $issuer = User::factory()->create(['name' => 'Alice Smith']);
-        $recipient = User::factory()->create(['name' => 'Bob Jones']);
-
-        return [$issuer, $recipient];
-    }
+    use SeedsPair;
 
     public function test_issue_creates_one_issued_row_with_unique_ref_no_and_partner_recipient(): void
     {

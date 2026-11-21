@@ -9,21 +9,19 @@ cd "$(dirname "${BASH_SOURCE[0]}")/.."
 
 [ -f .env ] || { echo "error: no .env yet. Run \`npm run dev-setup\` first." >&2; exit 1; }
 
-value() { sed -n "s/^$1=//p" .env | tail -n 1; }
+source scripts/lib/services.sh
 
 # migrate:fresh drops every table, so make sure this is the local database.
-[ "$(value APP_ENV)" = "local" ] || { echo "error: APP_ENV is not local; refusing to reset this database." >&2; exit 1; }
-case "$(value DB_HOST)" in
+[ "$(get_env APP_ENV)" = "local" ] || { echo "error: APP_ENV is not local; refusing to reset this database." >&2; exit 1; }
+case "$(get_env DB_HOST)" in
   127.0.0.1|localhost) ;;
   *) echo "error: DB_HOST is not local; refusing to reset this database." >&2; exit 1 ;;
 esac
 
-source scripts/lib/services.sh
 ensure_services
 
 php artisan config:clear --quiet
-php artisan migrate:fresh --seed --force
-bash scripts/lib/migration-stamp.sh write
+seed_household
 
 node --input-type=module -e "
 import { printDevCredentials } from './scripts/lib/dev-data.mjs';

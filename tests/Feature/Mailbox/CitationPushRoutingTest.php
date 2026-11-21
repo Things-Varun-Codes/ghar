@@ -3,23 +3,16 @@
 namespace Tests\Feature\Mailbox;
 
 use App\MiniApps\Mailbox\Models\Citation;
-use App\Shell\Models\User;
 use App\Shell\Notifications\GenericPushNotification;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Notification;
+use Tests\Concerns\SeedsPair;
 use Tests\TestCase;
 
 class CitationPushRoutingTest extends TestCase
 {
     use RefreshDatabase;
-
-    private function seedPair(): array
-    {
-        $issuer = User::factory()->create(['name' => 'Alice Smith']);
-        $recipient = User::factory()->create(['name' => 'Bob Jones']);
-
-        return [$issuer, $recipient];
-    }
+    use SeedsPair;
 
     public function test_issue_pushes_generic_body_to_recipient_only(): void
     {

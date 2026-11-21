@@ -98,12 +98,7 @@ function MailboxDoor({
             peek={peek}
             live={live.text}
             className="mailbox-card mailbox-door"
-            peekClassName="mailbox-door-peek"
-            nameClassName="mailbox-door-name"
-            liveClassName={cn(
-                'mailbox-door-live',
-                live.alert && 'mailbox-door-live--alert',
-            )}
+            liveClassName={cn(live.alert && 'mailbox-door-live--alert')}
         />
     );
 }
@@ -315,8 +310,8 @@ export default function Landing({
                         body="An admin can turn on notes, flowers, coupons and citations."
                     />
                 )}
-                <div className="mailbox-doors-wrap">
-                    <div className="mailbox-doors">
+                <div className="shell-doors-wrap">
+                    <div className="shell-doors">
                         <Settle>
                             {types.map(({ key, label }, index) => (
                                 <MailboxDoor

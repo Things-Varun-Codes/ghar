@@ -9,8 +9,8 @@ source scripts/lib/services.sh
 
 # The same name tests/bootstrap.php derives.
 slug="$(basename "$PWD" | tr '[:upper:]' '[:lower:]' | sed -E 's/[^a-z0-9]+/_/g' | cut -c1-40)"
-host="$(sed -n 's/^DB_HOST=//p' .env 2>/dev/null | tail -n 1)"
-port="$(sed -n 's/^DB_PORT=//p' .env 2>/dev/null | tail -n 1)"
+host="$(get_env DB_HOST)"
+port="$(get_env DB_PORT)"
 
 GHAR_PG_DSN="pgsql:host=${host:-127.0.0.1};port=${port:-5432};dbname=postgres" GHAR_DB="ghar_test_$slug" php -r '
   try {

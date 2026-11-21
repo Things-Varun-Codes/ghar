@@ -15,8 +15,6 @@ set -euo pipefail
 cd "$(dirname "${BASH_SOURCE[0]}")/.."
 source scripts/lib/services.sh
 
-step() { printf '\n==> %s\n' "$1"; }
-
 [ -f .env ] || { echo "error: no .env yet. Run \`npm run dev-setup\` first (in a worktree: \`bash scripts/worktree-setup.sh\`)." >&2; exit 1; }
 
 step "Starting Postgres and Mailpit"

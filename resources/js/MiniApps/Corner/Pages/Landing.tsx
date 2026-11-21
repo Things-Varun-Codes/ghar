@@ -123,10 +123,8 @@ function CornerDoor({
             name={door.name}
             peek={<DoorPeek door={door} />}
             live={liveLine(door)}
-            className="corner-card corner-door"
-            peekClassName="corner-door-peek"
+            className="corner-card"
             nameClassName="corner-door-name"
-            liveClassName="corner-door-live"
             nameBefore={
                 <LinkableIcon
                     name={door.icon}
@@ -253,9 +251,9 @@ export default function Landing({ lists, can }: Props) {
                         <Suggestions onCustom={() => creating.show(true)} />
                     )
                 ) : (
-                    <div className="corner-doors-wrap">
+                    <div className="shell-doors-wrap">
                         <Settle>
-                            <div className="corner-doors">
+                            <div className="shell-doors">
                                 {lists.map((door, i) => (
                                     // Moving a list earlier or later glides the doors to their places.
                                     <Slide
