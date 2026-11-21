@@ -3,11 +3,12 @@ import { Map, Marker, NavigationControl } from '@vis.gl/react-maplibre';
 import type { MapRef } from '@vis.gl/react-maplibre';
 import workerUrl from 'maplibre-gl/dist/maplibre-gl-worker.mjs?worker&url';
 import 'maplibre-gl/dist/maplibre-gl.css';
-import { useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import Supercluster from 'supercluster';
 import { useIsPhone } from '@/hooks/use-breakpoint';
 import { count } from '@/lib/plural';
 import PlaceButton from '@/MiniApps/History/Components/PlaceButton';
+import { applyMapTheme } from '@/MiniApps/History/lib/mapTheme';
 import type { Place } from '@/MiniApps/History/lib/places';
 import { tiles } from '@/routes/map';
 import ErrorState from '@/Shell/Components/ErrorState';
@@ -25,11 +26,15 @@ const MAX_ZOOM = 17;
 export default function MomentMap({ places, onOpen }: Props) {
     const isPhone = useIsPhone();
     const mapRef = useRef<MapRef | null>(null);
+    const frameRef = useRef<HTMLDivElement | null>(null);
+    const themeWatch = useRef<MutationObserver | null>(null);
     const [view, setView] = useState<{
         bounds: [number, number, number, number];
         zoom: number;
     } | null>(null);
     const [failed, setFailed] = useState(false);
+
+    useEffect(() => () => themeWatch.current?.disconnect(), []);
 
     const index = useMemo(() => {
         const clusters = new Supercluster<PlaceProps, ClusterSum>({
@@ -97,7 +102,7 @@ export default function MomentMap({ places, onOpen }: Props) {
 
     return (
         // Pull to refresh leaves drags that start on the map alone.
-        <div className="history-map" data-scroll-container>
+        <div className="history-map" data-scroll-container ref={frameRef}>
             <Map
                 ref={mapRef}
                 workerUrl={workerUrl}
@@ -111,6 +116,22 @@ export default function MomentMap({ places, onOpen }: Props) {
                 pitchWithRotate={false}
                 touchPitch={false}
                 attributionControl={{ compact: true }}
+                onStyleData={(e) => {
+                    // Before the first frame, so the grey basemap never shows.
+                    const frame = frameRef.current;
+
+                    if (themeWatch.current || !frame) {
+                        return;
+                    }
+
+                    const paint = () => applyMapTheme(e.target, frame);
+                    paint();
+                    // A theme is switched on <html>; repaint in its colours.
+                    themeWatch.current = new MutationObserver(paint);
+                    themeWatch.current.observe(document.documentElement, {
+                        attributeFilter: ['class', 'data-theme'],
+                    });
+                }}
                 onLoad={(e) => {
                     e.target.touchZoomRotate.disableRotation();
                     syncView();
