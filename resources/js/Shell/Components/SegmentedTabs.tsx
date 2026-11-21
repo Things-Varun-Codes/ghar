@@ -1,6 +1,7 @@
 import { Link } from '@inertiajs/react';
 import type { LucideIcon } from 'lucide-react';
 import type { ReactNode } from 'react';
+import { Slide } from '@/components/motion';
 import {
     Tabs,
     TabsIndicator,
@@ -117,6 +118,15 @@ export default function SegmentedTabs<T extends string>(
                         data-active={isActive ? '' : undefined}
                         className="shell-segmented-item shell-focus"
                     >
+                        {/* Each tab is a page visit: the shared layoutId glides the pill from the last page's tabs. */}
+                        {isActive && (
+                            <Slide
+                                as="span"
+                                layoutId={`segmented-pill:${ariaLabel}`}
+                                resize
+                                className="shell-segmented-pill"
+                            />
+                        )}
                         {renderLabel(item)}
                     </Link>
                 );

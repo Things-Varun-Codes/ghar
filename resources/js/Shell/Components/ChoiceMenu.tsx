@@ -67,9 +67,9 @@ type Props = TriggerProps & {
 };
 
 /*
- * An icon button that opens the choices as radio items, the chosen one ticked. At the first
- * choice (the default) it is the icon alone; any other choice is also written beside it, so a
- * list that has been narrowed or reordered says so.
+ * An icon button that opens the choices as radio items, the chosen one ticked. It stays the same
+ * 44px circle whatever is chosen, so it never reflows the row; away from the first choice (the
+ * default) a dot on it says the list has been narrowed or reordered.
  */
 export default function ChoiceMenu({
     label,
@@ -101,7 +101,8 @@ export default function ChoiceMenu({
                 <DropdownMenuTrigger
                     className={classNames.trigger}
                     aria-label={`${label}: ${activeLabel}`}
-                    data-icon-only={isDefault ? '' : undefined}
+                    data-icon-only=""
+                    data-changed={isDefault ? undefined : ''}
                 >
                     <Icon
                         aria-hidden="true"
@@ -109,9 +110,6 @@ export default function ChoiceMenu({
                         strokeWidth={1.5}
                         className="shrink-0"
                     />
-                    {!isDefault && (
-                        <span aria-hidden="true">{activeLabel}</span>
-                    )}
                 </DropdownMenuTrigger>
             ) : (
                 <DropdownMenuTrigger className={classNames.trigger}>

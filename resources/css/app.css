@@ -1208,13 +1208,29 @@ a:hover .os-feed-action {
     white-space: nowrap;
 }
 
-/* At its default choice a sort or filter menu is its icon alone, in a 44px circle that a
-   growing search field beside it can't squeeze. */
+/* A sort or filter menu is its icon alone, in a 44px circle that a growing search field beside
+   it can't squeeze. */
 .shell-sort-trigger[data-icon-only] {
     flex: none;
     justify-content: center;
     width: 44px;
     padding: 0;
+}
+
+/* Away from its default choice: a dot on its edge, so the button never changes size. */
+[data-slot='dropdown-menu-trigger'][data-changed] {
+    position: relative;
+}
+
+[data-slot='dropdown-menu-trigger'][data-changed]::after {
+    content: '';
+    position: absolute;
+    top: 4px;
+    right: 4px;
+    width: 9px;
+    height: 9px;
+    border-radius: var(--radius-pill);
+    background-color: var(--choice-dot, var(--shell-accent-text));
 }
 
 .shell-sort-menu {
@@ -1897,12 +1913,11 @@ a:hover .os-feed-action {
     color: var(--shell-text);
 }
 
-/* Selected reads by its border and weight as well as the fill. */
+/* Selected reads by its border and weight as well as the fill, which is its own pill: the
+   indicator in client tabs, .shell-segmented-pill in page tabs. */
 .shell-segmented-item[data-active] {
     font-weight: 600;
     color: var(--shell-accent-fg);
-    background-color: var(--shell-accent);
-    border-color: var(--shell-accent-text);
     cursor: default;
 }
 
@@ -2092,14 +2107,22 @@ a:hover .os-feed-action {
     z-index: 1;
 }
 
-.shell-segmented[data-slot='tabs-list'] .shell-segmented-item[data-active] {
-    background-color: transparent;
-    border-color: transparent;
-}
-
-.shell-segmented-indicator {
+.shell-segmented-indicator,
+.shell-segmented-pill {
     z-index: 0;
     background-color: var(--shell-accent);
     border: 1.5px solid var(--shell-accent-text);
     border-radius: var(--radius-pill);
+}
+
+/* Page tabs (SegmentedTabs nav): the chosen fill sits under the label of the active link. */
+nav.shell-segmented .shell-segmented-item {
+    position: relative;
+    isolation: isolate;
+}
+
+.shell-segmented-pill {
+    position: absolute;
+    inset: -1.5px;
+    z-index: -1;
 }
