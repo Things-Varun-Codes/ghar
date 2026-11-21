@@ -1,6 +1,6 @@
-import { usePage } from '@inertiajs/react';
+import { useHttp, usePage } from '@inertiajs/react';
 import { APIProvider, useMapsLibrary } from '@vis.gl/react-google-maps';
-import { MapPin, X } from 'lucide-react';
+import { MapPin, PenLine, X } from 'lucide-react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type { RefObject } from 'react';
 import {
@@ -14,13 +14,14 @@ import {
     CommandItem,
     CommandList,
 } from '@/components/ui/command';
+import * as placesRoutes from '@/routes/places';
 
 type StructuredLocation = {
-    place_id: string;
+    place_id: string | null;
     name: string;
-    address: string;
-    lat: number;
-    lng: number;
+    address: string | null;
+    lat: number | null;
+    lng: number | null;
 };
 
 export type SelectedLocationView = {
@@ -34,6 +35,16 @@ type PlacesLocationFieldProps = {
     onSelect: (loc: StructuredLocation | null) => void;
     value: SelectedLocationView | null;
 };
+
+type Suggestion = {
+    id: string;
+    mainText: string;
+    secondaryText: string;
+    /* Null when the place can't be resolved; the field stays open to pick again. */
+    pick: () => Promise<StructuredLocation | null>;
+};
+
+type Search = (input: string) => Promise<Suggestion[]>;
 
 function displayLabel(view: SelectedLocationView): string {
     const { name, address } = view;
@@ -56,168 +67,92 @@ function displayLabel(view: SelectedLocationView): string {
 type AutocompleteInputProps = {
     label: string;
     onSelect: (loc: StructuredLocation) => void;
+    /* Null until the provider is ready. */
+    search: Search | null;
 };
 
-function AutocompleteInput({ label, onSelect }: AutocompleteInputProps) {
-    const places = useMapsLibrary('places');
+function AutocompleteInput({
+    label,
+    onSelect,
+    search,
+}: AutocompleteInputProps) {
     const [query, setQuery] = useState('');
-    const [suggestions, setSuggestions] = useState<
-        Array<{
-            placeId: string;
-            mainText: string;
-            secondaryText: string;
-            placePrediction: {
-                toPlace: () => {
-                    id: string | null;
-                    displayName?: string | null;
-                    formattedAddress?: string | null;
-                    location?: {
-                        lat: () => number;
-                        lng: () => number;
-                    } | null;
-                    fetchFields: (opts: {
-                        fields: string[];
-                    }) => Promise<unknown>;
-                };
-            };
-        }>
-    >([]);
+    const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
+    // The query the suggestions answer. Offering the typed text before then would put cmdk's
+    // selection on it, and Enter would take it instead of the top match about to arrive.
+    const [answered, setAnswered] = useState<string | null>(null);
     const [open, setOpen] = useState(false);
-    const sessionTokenRef = useRef<unknown>(null);
     const wrapperRef = useRef<HTMLDivElement | null>(null);
-
-    const rotateSessionToken = useCallback(() => {
-        const ctor = (
-            places as unknown as {
-                AutocompleteSessionToken?: new () => unknown;
-            } | null
-        )?.AutocompleteSessionToken;
-
-        if (ctor) {
-            sessionTokenRef.current = new ctor();
-        }
-    }, [places]);
-
-    useEffect(() => {
-        rotateSessionToken();
-    }, [rotateSessionToken]);
+    const latestQuery = useRef('');
 
     const fetchSuggestions = useDebounceCallback(
         useEventCallback(async (input: string) => {
+            if (!search) {
+                return;
+            }
+
             try {
-                const fetcher = (
-                    places as unknown as {
-                        AutocompleteSuggestion?: {
-                            fetchAutocompleteSuggestions: (req: {
-                                input: string;
-                                sessionToken?: unknown;
-                            }) => Promise<{
-                                suggestions: Array<{
-                                    placePrediction?: {
-                                        placeId?: string;
-                                        mainText?: { text?: string };
-                                        secondaryText?: { text?: string };
-                                        text?: { text?: string };
-                                        toPlace: () => unknown;
-                                    };
-                                }>;
-                            }>;
-                        };
-                    }
-                ).AutocompleteSuggestion;
+                const found = await search(input);
 
-                if (!fetcher) {
-                    return;
+                // A slower answer to an older query mustn't replace a newer one.
+                if (input === latestQuery.current) {
+                    setSuggestions(found);
+                    setAnswered(input);
                 }
-
-                const { suggestions: raw } =
-                    await fetcher.fetchAutocompleteSuggestions({
-                        input,
-                        sessionToken: sessionTokenRef.current ?? undefined,
-                    });
-
-                const normalised = raw
-                    .map((s) => s.placePrediction)
-                    .filter(
-                        (
-                            p,
-                        ): p is NonNullable<
-                            (typeof raw)[number]['placePrediction']
-                        > => !!p && !!p.placeId,
-                    )
-                    .map((p) => ({
-                        placeId: p.placeId as string,
-                        mainText:
-                            p.mainText?.text ?? p.text?.text ?? '(unnamed)',
-                        secondaryText: p.secondaryText?.text ?? '',
-                        placePrediction: p as never,
-                    }));
-
-                setSuggestions(normalised);
-                setOpen(true);
-                // eslint-disable-next-line local/no-silent-error -- Google Maps quota/network errors are expected; empty suggestions is the contract, and reporting would flood the error tracker on quota days.
+                // eslint-disable-next-line local/no-silent-error -- search quota/network errors are expected; empty suggestions is the contract (typing your own place still works), and reporting would flood the error tracker on quota days.
             } catch {
                 setSuggestions([]);
+                setAnswered(input);
             }
         }),
         250,
     );
 
     useEffect(() => {
-        if (!places || query.trim().length < 2) {
+        latestQuery.current = query;
+
+        if (!search || query.trim().length < 2) {
             return;
         }
 
         void fetchSuggestions(query);
 
         return fetchSuggestions.cancel;
-    }, [places, query, fetchSuggestions]);
+    }, [search, query, fetchSuggestions]);
 
-    const visibleSuggestions = query.trim().length < 2 ? [] : suggestions;
-    const listOpen = open && visibleSuggestions.length > 0;
+    const typed = query.trim();
+    const visibleSuggestions = typed.length < 2 ? [] : suggestions;
+    const offerTyped = typed.length >= 2 && answered === query;
+    const listOpen = open && (visibleSuggestions.length > 0 || offerTyped);
 
     // usehooks-ts 3 types predate React 19's nullable RefObject.
     useOnClickOutside(wrapperRef as RefObject<HTMLElement>, () =>
         setOpen(false),
     );
 
-    async function pick(s: (typeof suggestions)[number]) {
+    function choose(loc: StructuredLocation) {
+        onSelect(loc);
+        setQuery('');
+        setSuggestions([]);
+        setAnswered(null);
+        setOpen(false);
+    }
+
+    async function pick(s: Suggestion) {
         try {
-            const place = s.placePrediction.toPlace();
-            await place.fetchFields({
-                fields: ['id', 'displayName', 'formattedAddress', 'location'],
-            });
+            const loc = await s.pick();
 
-            const id = place.id;
-            const displayName = place.displayName ?? '';
-            const formattedAddress = place.formattedAddress ?? '';
-            const lat = place.location?.lat() ?? null;
-            const lng = place.location?.lng() ?? null;
-
-            if (!id || lat === null || lng === null) {
-                return;
+            if (loc) {
+                choose(loc);
             }
-
-            onSelect({
-                place_id: id,
-                name: displayName,
-                address: formattedAddress,
-                lat,
-                lng,
-            });
-
-            setQuery('');
-            setSuggestions([]);
-            setOpen(false);
-            rotateSessionToken();
-            // eslint-disable-next-line local/no-silent-error -- Place Details (fetchFields) failures are quota-bound; the contract is "user picks again" (no chip rendered).
+            // eslint-disable-next-line local/no-silent-error -- place detail failures are quota-bound; the contract is "user picks again" (no chip rendered).
         } catch {
             // Intentionally empty — see directive above.
         }
     }
 
-    // cmdk moves through the suggestions with the arrow keys and picks with Enter; Google has
-    // already matched them, so it doesn't filter.
+    // cmdk moves through the suggestions with the arrow keys and picks with Enter; the search
+    // has already matched them, so it doesn't filter.
     return (
         <Command
             ref={wrapperRef}
@@ -254,7 +189,7 @@ function AutocompleteInput({ label, onSelect }: AutocompleteInputProps) {
                     setOpen(true);
                 }}
                 onFocus={() => {
-                    if (visibleSuggestions.length > 0) {
+                    if (visibleSuggestions.length > 0 || offerTyped) {
                         setOpen(true);
                     }
                 }}
@@ -268,8 +203,8 @@ function AutocompleteInput({ label, onSelect }: AutocompleteInputProps) {
             >
                 {visibleSuggestions.map((s) => (
                     <CommandItem
-                        key={s.placeId}
-                        value={s.placeId}
+                        key={s.id}
+                        value={s.id}
                         onSelect={() => pick(s)}
                         className="items-start"
                     >
@@ -292,60 +227,195 @@ function AutocompleteInput({ label, onSelect }: AutocompleteInputProps) {
                         </div>
                     </CommandItem>
                 ))}
+                {/* Last, so Enter still takes the top match. "Grandma's house" is on no map. */}
+                {offerTyped && (
+                    <CommandItem
+                        value="typed-place"
+                        onSelect={() =>
+                            choose({
+                                place_id: null,
+                                name: typed.slice(0, 200),
+                                address: null,
+                                lat: null,
+                                lng: null,
+                            })
+                        }
+                        className="items-start"
+                    >
+                        <PenLine
+                            aria-hidden="true"
+                            size={14}
+                            strokeWidth={1.5}
+                            color="var(--shell-text-muted)"
+                            className="mt-1 shrink-0"
+                        />
+                        <div className="shell-places-main min-w-0 flex-1">
+                            Use “{typed}”
+                        </div>
+                    </CommandItem>
+                )}
             </CommandList>
         </Command>
+    );
+}
+
+type PlacesLibrary = {
+    AutocompleteSessionToken?: new () => unknown;
+    AutocompleteSuggestion?: {
+        fetchAutocompleteSuggestions: (req: {
+            input: string;
+            sessionToken?: unknown;
+        }) => Promise<{
+            suggestions: Array<{
+                placePrediction?: {
+                    placeId?: string;
+                    mainText?: { text?: string };
+                    secondaryText?: { text?: string };
+                    text?: { text?: string };
+                    toPlace: () => {
+                        id: string | null;
+                        displayName?: string | null;
+                        formattedAddress?: string | null;
+                        location?: {
+                            lat: () => number;
+                            lng: () => number;
+                        } | null;
+                        fetchFields: (opts: {
+                            fields: string[];
+                        }) => Promise<unknown>;
+                    };
+                };
+            }>;
+        }>;
+    };
+};
+
+function GooglePlacesInput({
+    label,
+    onSelect,
+}: Omit<AutocompleteInputProps, 'search'>) {
+    const places = useMapsLibrary('places') as unknown as PlacesLibrary | null;
+    const sessionTokenRef = useRef<unknown>(null);
+
+    const rotateSessionToken = useCallback(() => {
+        const ctor = places?.AutocompleteSessionToken;
+
+        if (ctor) {
+            sessionTokenRef.current = new ctor();
+        }
+    }, [places]);
+
+    useEffect(() => {
+        rotateSessionToken();
+    }, [rotateSessionToken]);
+
+    const search = useCallback<Search>(
+        async (input) => {
+            const fetcher = places?.AutocompleteSuggestion;
+
+            if (!fetcher) {
+                return [];
+            }
+
+            const { suggestions } = await fetcher.fetchAutocompleteSuggestions({
+                input,
+                sessionToken: sessionTokenRef.current ?? undefined,
+            });
+
+            return suggestions.flatMap(({ placePrediction: p }) =>
+                p?.placeId
+                    ? [
+                          {
+                              id: p.placeId,
+                              mainText:
+                                  p.mainText?.text ??
+                                  p.text?.text ??
+                                  '(unnamed)',
+                              secondaryText: p.secondaryText?.text ?? '',
+                              pick: async () => {
+                                  const place = p.toPlace();
+                                  await place.fetchFields({
+                                      fields: [
+                                          'id',
+                                          'displayName',
+                                          'formattedAddress',
+                                          'location',
+                                      ],
+                                  });
+
+                                  const lat = place.location?.lat() ?? null;
+                                  const lng = place.location?.lng() ?? null;
+
+                                  if (
+                                      !place.id ||
+                                      lat === null ||
+                                      lng === null
+                                  ) {
+                                      return null;
+                                  }
+
+                                  rotateSessionToken();
+
+                                  return {
+                                      place_id: place.id,
+                                      name: place.displayName ?? '',
+                                      address: place.formattedAddress ?? '',
+                                      lat,
+                                      lng,
+                                  };
+                              },
+                          },
+                      ]
+                    : [],
+            );
+        },
+        [places, rotateSessionToken],
+    );
+
+    return (
+        <AutocompleteInput
+            label={label}
+            onSelect={onSelect}
+            search={places ? search : null}
+        />
+    );
+}
+
+type FoundPlace = StructuredLocation & { place_id: string; address: string };
+
+function OpenStreetMapInput({
+    label,
+    onSelect,
+}: Omit<AutocompleteInputProps, 'search'>) {
+    const { get } = useHttp<
+        Record<string, never>,
+        { results: FoundPlace[] } | undefined
+    >();
+
+    const search = useCallback<Search>(
+        async (input) => {
+            const body = await get(
+                `${placesRoutes.search.url()}?q=${encodeURIComponent(input)}`,
+            );
+
+            return (body?.results ?? []).map((place) => ({
+                id: place.place_id,
+                mainText: place.name,
+                secondaryText: place.address,
+                pick: async () => place,
+            }));
+        },
+        [get],
+    );
+
+    return (
+        <AutocompleteInput label={label} onSelect={onSelect} search={search} />
     );
 }
 
 function useGoogleMapsKey(): string | null {
     return usePage<{ googleMapsApiKey: string | null }>().props
         .googleMapsApiKey;
-}
-
-/** Without a Google Maps key, callers render plain inputs instead of the search field. */
-export function useHasPlacesSearch(): boolean {
-    return Boolean(useGoogleMapsKey());
-}
-
-type ManualLocationInputProps = {
-    id: string;
-    value: string;
-    onChange: (value: string) => void;
-    placeholder: string;
-    maxLength: number;
-};
-
-export function ManualLocationInput({
-    id,
-    value,
-    onChange,
-    placeholder,
-    maxLength,
-}: ManualLocationInputProps) {
-    return (
-        <div
-            data-test="location-field"
-            className="shell-field-focus shell-places-field"
-        >
-            <MapPin
-                aria-hidden="true"
-                size={14}
-                strokeWidth={1.5}
-                color="var(--shell-text-muted)"
-                className="shrink-0"
-            />
-            <input
-                id={id}
-                type="text"
-                value={value}
-                onChange={(e) => onChange(e.target.value)}
-                placeholder={placeholder}
-                maxLength={maxLength}
-                autoComplete="off"
-                className="shell-places-input"
-            />
-        </div>
-    );
 }
 
 export default function PlacesLocationField({
@@ -381,15 +451,12 @@ export default function PlacesLocationField({
     }
 
     if (!apiKey) {
-        return null;
+        return <OpenStreetMapInput label={label} onSelect={onSelect} />;
     }
 
     return (
         <APIProvider apiKey={apiKey}>
-            <AutocompleteInput
-                label={label}
-                onSelect={(loc) => onSelect(loc)}
-            />
+            <GooglePlacesInput label={label} onSelect={onSelect} />
         </APIProvider>
     );
 }

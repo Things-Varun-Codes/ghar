@@ -13,6 +13,11 @@ return [
         'key' => env('GOOGLE_MAPS_API_KEY'),
     ],
 
+    // Place search without a Google key. Point it at your own Photon to keep searches in-house.
+    'photon' => [
+        'url' => env('PHOTON_URL', 'https://photon.komoot.io'),
+    ],
+
     // No 'fake' default on purpose: MailboxServiceProvider throws in production when this is
     // unset, rather than silently no-opping.
     'bouquet' => [

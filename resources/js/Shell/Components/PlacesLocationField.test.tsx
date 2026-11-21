@@ -38,8 +38,14 @@ vi.mock('@vis.gl/react-google-maps', () => ({
     useMapsLibrary: () => places,
 }));
 
+const inertia = vi.hoisted(() => ({
+    key: 'test-key' as string | null,
+    get: vi.fn(),
+}));
+
 vi.mock('@inertiajs/react', () => ({
-    usePage: () => ({ props: { googleMapsApiKey: 'test-key' } }),
+    usePage: () => ({ props: { googleMapsApiKey: inertia.key } }),
+    useHttp: () => ({ get: inertia.get }),
 }));
 
 beforeAll(() => {
@@ -106,7 +112,9 @@ describe('PlacesLocationField', () => {
 
         expect(screen.getByRole('combobox', { name: 'Location' })).toBe(input);
         expect(input.value).toBe('Cubbon');
-        expect(screen.getAllByRole('option')).toHaveLength(2);
+        expect(screen.getAllByRole('option').map((o) => o.textContent)).toEqual(
+            ['Cubbon ParkBengaluru', 'CubbonpetBengaluru', 'Use “Cubbon”'],
+        );
     });
 
     it('moves through the suggestions with the arrow keys and picks with Enter', async () => {
@@ -159,6 +167,51 @@ describe('PlacesLocationField', () => {
 
         expect(enter).toBe(false);
         expect(onSelect).not.toHaveBeenCalled();
+    });
+
+    it('keeps what was typed when the place is on no map', async () => {
+        const onSelect = vi.fn();
+        render(<PlacesLocationField value={null} onSelect={onSelect} />);
+
+        await type("Grandma's house");
+        fireEvent.click(screen.getByRole('option', { name: /Use/ }));
+
+        expect(onSelect).toHaveBeenCalledWith({
+            place_id: null,
+            name: "Grandma's house",
+            address: null,
+            lat: null,
+            lng: null,
+        });
+    });
+
+    it('searches OpenStreetMap through the server without a Google key', async () => {
+        inertia.key = null;
+        const place = {
+            place_id: 'osm:W1',
+            name: 'Cubbon Park',
+            address: 'Bengaluru, India',
+            lat: 12.97,
+            lng: 77.59,
+        };
+        inertia.get.mockResolvedValue({ results: [place] });
+        const onSelect = vi.fn();
+        render(<PlacesLocationField value={null} onSelect={onSelect} />);
+
+        const input = await type('Cubbon');
+        fireEvent.keyDown(input, { key: 'Enter' });
+        await act(async () => {
+            await vi.runAllTimersAsync();
+        });
+
+        expect(inertia.get).toHaveBeenCalledWith(
+            expect.stringContaining('/api/places/search?q=Cubbon'),
+        );
+        expect(
+            places.AutocompleteSuggestion.fetchAutocompleteSuggestions,
+        ).not.toHaveBeenCalled();
+        expect(onSelect).toHaveBeenCalledWith(place);
+        inertia.key = 'test-key';
     });
 
     it('shows a chosen place with a way to clear it', () => {

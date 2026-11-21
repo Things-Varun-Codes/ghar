@@ -23,10 +23,7 @@ import {
 import type { MemberBirthday } from '@/MiniApps/History/lib/types';
 import events from '@/routes/apps/our-history/events';
 import PersonAvatar from '@/Shell/Components/PersonAvatar';
-import PlacesLocationField, {
-    ManualLocationInput,
-    useHasPlacesSearch,
-} from '@/Shell/Components/PlacesLocationField';
+import PlacesLocationField from '@/Shell/Components/PlacesLocationField';
 import type { SelectedLocationView } from '@/Shell/Components/PlacesLocationField';
 import type { Person } from '@/types/person';
 import CurrentMediaStrip from './CurrentMediaStrip';
@@ -233,8 +230,6 @@ const EventForm = forwardRef<EventFormHandle, EventFormProps>(
         // Never lags: TiptapEditor writes here on every keystroke, while setData is debounced.
         const bodyHtmlRef = useRef<string>(initialEvent?.body_html ?? '');
 
-        const hasPlacesSearch = useHasPlacesSearch();
-
         const birthdayPeople = birthdaysOn(data.occurred_on, birthdays);
 
         const { isDirty, setDefaults } = form;
@@ -386,57 +381,41 @@ const EventForm = forwardRef<EventFormHandle, EventFormProps>(
                     </div>
 
                     <div className="[grid-area:loc]">
-                        <FormFieldLabel
-                            htmlFor={
-                                hasPlacesSearch ? undefined : 'event-location'
-                            }
-                        >
-                            Location
-                        </FormFieldLabel>
-                        {hasPlacesSearch ? (
-                            <PlacesLocationField
-                                label="Location"
-                                value={(() => {
-                                    if (
-                                        data.location_name ||
-                                        data.location_address ||
-                                        data.location_place_id
-                                    ) {
-                                        const v: SelectedLocationView = {
-                                            name: data.location_name,
-                                            address: data.location_address,
-                                        };
+                        <FormFieldLabel>Location</FormFieldLabel>
+                        <PlacesLocationField
+                            label="Location"
+                            value={(() => {
+                                // An older moment may hold only what was typed.
+                                const name =
+                                    data.location_name ??
+                                    data.location_freetext;
 
-                                        return v;
-                                    }
+                                if (name || data.location_address) {
+                                    const v: SelectedLocationView = {
+                                        name,
+                                        address: data.location_address,
+                                    };
 
-                                    return null;
-                                })()}
-                                onSelect={(loc) => {
-                                    setData(
-                                        'location_place_id',
-                                        loc?.place_id ?? null,
-                                    );
-                                    setData('location_name', loc?.name ?? null);
-                                    setData(
-                                        'location_address',
-                                        loc?.address ?? null,
-                                    );
-                                    setData('location_lat', loc?.lat ?? null);
-                                    setData('location_lng', loc?.lng ?? null);
-                                }}
-                            />
-                        ) : (
-                            <ManualLocationInput
-                                id="event-location"
-                                value={data.location_freetext ?? ''}
-                                onChange={(value) =>
-                                    setData('location_freetext', value || null)
+                                    return v;
                                 }
-                                placeholder="Where was it?"
-                                maxLength={200}
-                            />
-                        )}
+
+                                return null;
+                            })()}
+                            onSelect={(loc) => {
+                                setData('location_freetext', null);
+                                setData(
+                                    'location_place_id',
+                                    loc?.place_id ?? null,
+                                );
+                                setData('location_name', loc?.name ?? null);
+                                setData(
+                                    'location_address',
+                                    loc?.address ?? null,
+                                );
+                                setData('location_lat', loc?.lat ?? null);
+                                setData('location_lng', loc?.lng ?? null);
+                            }}
+                        />
                     </div>
 
                     <div className="[grid-area:body]">

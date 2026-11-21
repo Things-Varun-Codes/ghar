@@ -281,7 +281,8 @@ than 90 days are pruned weekly.
   `VAPID_SUBJECT` defaults to `APP_URL`; a `mailto:` address works too. On iOS, push needs the app
   added to the Home Screen first (Share, Add to Home Screen).
 - **Location search** in Our History uses Google Places when `GOOGLE_MAPS_API_KEY` is set. Without
-  it, people type places in by hand. Our Shelf never needs it: a place there is a pasted map link,
+  it, it searches OpenStreetMap through Photon, asked from the server: `photon.komoot.io` unless
+  `PHOTON_URL` points at your own. Either way someone can keep what they typed as the place. Our Shelf never needs it: a place there is a pasted map link,
   coordinates or a typed name. To set it up, enable **Places API (New)** and
   **Maps JavaScript API** in Google Cloud (billing must be linked), create an API key restricted to
   your site's URL and to those two APIs, then set it and restart.

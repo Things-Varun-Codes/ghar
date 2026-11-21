@@ -94,6 +94,8 @@ class AppServiceProvider extends ServiceProvider
 
         RateLimiter::for('linkable-picker', Limits::perUser(30));
 
+        RateLimiter::for('place-search', Limits::perUser(60));
+
         RateLimiter::for('push-subscriptions', Limits::perUser(10));
 
         RateLimiter::for('healthz', function (Request $request) {

@@ -91,7 +91,7 @@ Admin, Invites. [`DEPLOY.md`](./DEPLOY.md) covers HTTPS with Caddy, mail, S3-com
 backups, upgrades and running behind Cloudflare.
 
 Ghar works without any outside accounts. Optional extras: Google Places for location search (without
-it you type places in), Cloudflare Workers AI for the flower pictures, and any Sentry-compatible
+it, search uses OpenStreetMap), Cloudflare Workers AI for the flower pictures, and any Sentry-compatible
 error tracker.
 
 ## What leaves your server
@@ -108,6 +108,9 @@ for these:
   coordinates, and fetches the picture to show it. Browsers only ever talk to your install: Ghar
   serves the picture itself, from a small cache that may be thrown away. These fetches go only to
   public addresses, never into your own network.
+- **Place search**: without a Google key, what someone types in a moment's Location field is sent
+  from the server to Photon, an OpenStreetMap search (`photon.komoot.io`, or your own via
+  `PHOTON_URL`). It sees only the words typed, never who typed them.
 - **Password check**: when someone sets a password, it is checked against a public list of breached
   passwords. Only the first five characters of its hash are sent.
 
