@@ -92,24 +92,18 @@ function MasonryTile({ item, index, onTileClick }: TileProps) {
         >
             {isPendingPhoto ? (
                 <div
-                    className="history-pending-tile shell-skeleton"
+                    className="history-pending-tile shell-skeleton aspect-square"
                     aria-hidden="true"
-                    style={{
-                        aspectRatio:
-                            item.width && item.height
-                                ? `${item.width} / ${item.height}`
-                                : '1',
-                    }}
                 />
             ) : (
+                // The thumb is a square crop: sized as one before it loads, the grid never
+                // reflows from the original's shape to a square.
                 <img
                     src={thumbSrc}
                     alt={item.alt || ''}
-                    width={item.width ?? undefined}
-                    height={item.height ?? undefined}
                     loading="lazy"
                     decoding="async"
-                    className="block h-auto w-full"
+                    className="block aspect-square w-full object-cover"
                 />
             )}
 

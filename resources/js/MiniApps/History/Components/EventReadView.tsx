@@ -2,17 +2,17 @@ import { MapPin } from 'lucide-react';
 import { useMemo, useRef } from 'react';
 import { displayLocation } from '@/MiniApps/History/lib/moment';
 import type { EventComment, HistoryEvent } from '@/MiniApps/History/lib/types';
+import MediaLightbox from '@/Shell/Components/MediaLightbox';
+import type {
+    LightboxItem,
+    MediaLightboxHandle,
+} from '@/Shell/Components/MediaLightbox';
 import ActivityStrip from './ActivityStrip';
 import BirthdayLabel from './BirthdayLabel';
 import BodyHtml from './BodyHtml';
 import CommentsSection from './CommentsSection';
 import MediaGrid from './MediaGrid';
 import type { MediaItem } from './MediaGrid';
-import PhotoSwipeGallery from './PhotoSwipeGallery';
-import type {
-    GalleryMediaItem,
-    PhotoSwipeGalleryHandle,
-} from './PhotoSwipeGallery';
 import ReactionsRow from './ReactionsRow';
 
 type Props = {
@@ -28,7 +28,7 @@ export default function EventReadView({
     onCommentDraftChange,
     onDeleteComment,
 }: Props) {
-    const lightboxRef = useRef<PhotoSwipeGalleryHandle>(null);
+    const lightboxRef = useRef<MediaLightboxHandle>(null);
 
     const renderableMedia = useMemo(
         () =>
@@ -39,23 +39,20 @@ export default function EventReadView({
         [event.media],
     );
 
-    const lightboxMedia: GalleryMediaItem[] = useMemo(
+    const lightboxMedia: LightboxItem[] = useMemo(
         () =>
             renderableMedia.map((m) => ({
-                id: m.id,
                 kind: m.kind,
-                thumb: m.thumb,
                 medium: m.medium,
                 original: m.original,
                 poster: m.poster,
-                width: m.width ?? null,
-                height: m.height ?? null,
-                mime_type: null,
+                width: m.width,
+                height: m.height,
                 alt: event.title
                     ? `${m.kind === 'video' ? 'Video' : 'Photo'} from ${event.title}`
                     : `${m.kind === 'video' ? 'Video' : 'Photo'} from ${event.date_label}`,
-                event_title: event.title ?? undefined,
-                event_date: event.date_label,
+                title: event.title ?? undefined,
+                subtitle: event.date_label,
             })),
         [renderableMedia, event.title, event.date_label],
     );
@@ -114,7 +111,7 @@ export default function EventReadView({
             )}
 
             {lightboxMedia.length > 0 && (
-                <PhotoSwipeGallery ref={lightboxRef} media={lightboxMedia} />
+                <MediaLightbox ref={lightboxRef} media={lightboxMedia} />
             )}
 
             <ReactionsRow event={event} />
