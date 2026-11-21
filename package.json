@@ -34,7 +34,7 @@
         "verify": "bash scripts/verify.sh"
     },
     "devDependencies": {
-        "@babel/core": "^7.29.13",
+        "@babel/core": "^8.1.2",
         "@eslint/js": "^10.0.1",
         "@inertiajs/vite": "^3.9.1",
         "@laravel/vite-plugin-wayfinder": "^0.1.11",
