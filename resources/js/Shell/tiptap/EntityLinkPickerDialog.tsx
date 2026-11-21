@@ -1,6 +1,7 @@
 /* A Dialog, not a Popover: on iOS an anchored Popover collapses the TipTap selection. */
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useDebounceCallback } from 'usehooks-ts';
 
 import {
     Command,
@@ -76,7 +77,6 @@ export default function EntityLinkPickerDialog({
     const [error, setError] = useState<string | null>(null);
 
     const inputRef = useRef<HTMLInputElement | null>(null);
-    const debounceTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
     const abortRef = useRef<AbortController | null>(null);
 
     useEffect(() => {
@@ -152,25 +152,17 @@ export default function EntityLinkPickerDialog({
         }
     }, []);
 
+    const debouncedSearch = useDebounceCallback(runSearch, SEARCH_DEBOUNCE_MS);
+
     useEffect(() => {
         if (!open) {
             return;
         }
 
-        if (debounceTimer.current) {
-            clearTimeout(debounceTimer.current);
-        }
+        void debouncedSearch(query);
 
-        debounceTimer.current = setTimeout(() => {
-            runSearch(query);
-        }, SEARCH_DEBOUNCE_MS);
-
-        return () => {
-            if (debounceTimer.current) {
-                clearTimeout(debounceTimer.current);
-            }
-        };
-    }, [query, open, runSearch]);
+        return debouncedSearch.cancel;
+    }, [query, open, debouncedSearch]);
 
     useEffect(() => {
         if (!open) {

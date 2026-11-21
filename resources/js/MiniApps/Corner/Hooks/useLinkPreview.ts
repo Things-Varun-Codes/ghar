@@ -1,5 +1,6 @@
 import * as Sentry from '@sentry/react';
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { useDebounceCallback } from 'usehooks-ts';
 import { preview as linkPreview } from '@/routes/apps/our-shelf/link';
 
 /* What a pasted page says about itself. */
@@ -36,7 +37,6 @@ export function useLinkPreview(onFound?: (link: LinkFound) => void) {
     const [preview, setPreview] = useState<LinkPreviewState>({
         kind: 'idle',
     });
-    const timer = useRef<number | null>(null);
     const controller = useRef<AbortController | null>(null);
     const requestedUrl = useRef<string | null>(null);
     const latestOnFound = useRef(onFound);
@@ -44,19 +44,6 @@ export function useLinkPreview(onFound?: (link: LinkFound) => void) {
     useEffect(() => {
         latestOnFound.current = onFound;
     });
-
-    const stop = useCallback(() => {
-        if (timer.current !== null) {
-            window.clearTimeout(timer.current);
-            timer.current = null;
-        }
-
-        controller.current?.abort();
-        controller.current = null;
-        requestedUrl.current = null;
-    }, []);
-
-    useEffect(() => stop, [stop]);
 
     const run = useCallback(async (url: string) => {
         const ctrl = new AbortController();
@@ -117,6 +104,17 @@ export function useLinkPreview(onFound?: (link: LinkFound) => void) {
         }
     }, []);
 
+    const debouncedRun = useDebounceCallback(run, DEBOUNCE_MS);
+
+    const stop = useCallback(() => {
+        debouncedRun.cancel();
+        controller.current?.abort();
+        controller.current = null;
+        requestedUrl.current = null;
+    }, [debouncedRun]);
+
+    useEffect(() => stop, [stop]);
+
     const trigger = useCallback(
         (url: string) => {
             const trimmed = url.trim();
@@ -134,12 +132,9 @@ export function useLinkPreview(onFound?: (link: LinkFound) => void) {
             }
 
             requestedUrl.current = trimmed;
-            timer.current = window.setTimeout(() => {
-                timer.current = null;
-                void run(trimmed);
-            }, DEBOUNCE_MS);
+            debouncedRun(trimmed);
         },
-        [run, stop],
+        [debouncedRun, stop],
     );
 
     const cancel = useCallback(() => {

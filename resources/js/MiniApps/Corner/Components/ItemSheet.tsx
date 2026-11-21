@@ -1,6 +1,7 @@
 import { useForm } from '@inertiajs/react';
 import { ImageOff, RotateCw } from 'lucide-react';
-import { useEffect, useId, useState } from 'react';
+import { useId, useState } from 'react';
+import { useDebounceValue } from 'usehooks-ts';
 
 import { Reveal } from '@/components/motion';
 import { Button } from '@/components/ui/button';
@@ -115,7 +116,7 @@ export default function ItemSheet({ list, open, onOpenChange, item }: Props) {
     };
 
     // Previewed once typing stops, not for every half-typed address.
-    const pictureAddress = useDeferredTyping(data.image_url.trim());
+    const [pictureAddress] = useDebounceValue(data.image_url.trim(), 500);
     const pictureSrc =
         pictureAddress === ''
             ? null
@@ -363,22 +364,4 @@ export default function ItemSheet({ list, open, onOpenChange, item }: Props) {
             </div>
         </FormSheet>
     );
-}
-
-const TYPING_PAUSE_MS = 500;
-
-/* The value once it has stopped changing for a moment. */
-function useDeferredTyping(value: string): string {
-    const [settled, setSettled] = useState(value);
-
-    useEffect(() => {
-        const timer = window.setTimeout(
-            () => setSettled(value),
-            TYPING_PAUSE_MS,
-        );
-
-        return () => window.clearTimeout(timer);
-    }, [value]);
-
-    return settled;
 }

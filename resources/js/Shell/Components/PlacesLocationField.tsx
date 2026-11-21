@@ -2,6 +2,8 @@ import { usePage } from '@inertiajs/react';
 import { APIProvider, useMapsLibrary } from '@vis.gl/react-google-maps';
 import { MapPin, X } from 'lucide-react';
 import { useCallback, useEffect, useRef, useState } from 'react';
+import type { RefObject } from 'react';
+import { useDebounceValue, useOnClickOutside } from 'usehooks-ts';
 import {
     Command,
     CommandInput,
@@ -96,12 +98,14 @@ function AutocompleteInput({ label, onSelect }: AutocompleteInputProps) {
         rotateSessionToken();
     }, [rotateSessionToken]);
 
+    const [typed] = useDebounceValue(query, 250);
+
     useEffect(() => {
-        if (!places || query.trim().length < 2) {
+        if (!places || typed.trim().length < 2) {
             return;
         }
 
-        const handle = window.setTimeout(async () => {
+        void (async () => {
             try {
                 const fetcher = (
                     places as unknown as {
@@ -130,7 +134,7 @@ function AutocompleteInput({ label, onSelect }: AutocompleteInputProps) {
 
                 const { suggestions: raw } =
                     await fetcher.fetchAutocompleteSuggestions({
-                        input: query,
+                        input: typed,
                         sessionToken: sessionTokenRef.current ?? undefined,
                     });
 
@@ -157,32 +161,16 @@ function AutocompleteInput({ label, onSelect }: AutocompleteInputProps) {
             } catch {
                 setSuggestions([]);
             }
-        }, 250);
-
-        return () => window.clearTimeout(handle);
-    }, [places, query]);
+        })();
+    }, [places, typed]);
 
     const visibleSuggestions = query.trim().length < 2 ? [] : suggestions;
     const listOpen = open && visibleSuggestions.length > 0;
 
-    useEffect(() => {
-        if (!open) {
-            return;
-        }
-
-        const handler = (ev: MouseEvent) => {
-            if (
-                wrapperRef.current &&
-                !wrapperRef.current.contains(ev.target as Node)
-            ) {
-                setOpen(false);
-            }
-        };
-
-        document.addEventListener('mousedown', handler);
-
-        return () => document.removeEventListener('mousedown', handler);
-    }, [open]);
+    // usehooks-ts 3 types predate React 19's nullable RefObject.
+    useOnClickOutside(wrapperRef as RefObject<HTMLElement>, () =>
+        setOpen(false),
+    );
 
     async function pick(s: (typeof suggestions)[number]) {
         try {
