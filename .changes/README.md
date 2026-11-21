@@ -32,7 +32,7 @@ moves to **Upgrading**, the next release is a major version, and the detail must
 
 - Write for the person using the app or running the install. Name the page, button or setting, not
   the class or the file.
-- One or two full sentences, plain and in the app's own words (a _moment_, a _note_, a _challan_).
+- One or two full sentences, plain and in the app's own words (a _moment_, a _note_, a _citation_).
 - `added` and `changed` say how it is now. `fixed` says what was wrong, in the past tense.
 - No pull request numbers, no names, and nothing about how the code changed.
 - For a security fix, say what is safer now, not how to exploit what came before.

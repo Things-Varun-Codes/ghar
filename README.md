@@ -1,8 +1,8 @@
 # Ghar
 
 Ghar is a private, self-hosted web app for one family or household: a shared timeline of your photos
-and moments, lists of the songs, movies and places you want to get to, and a mailbox for notes to
-each other. You run it yourself with Docker, nobody joins without an invite, and your photos stay on
+and moments, lists of whatever the household wants to keep (songs, films, places, books), and notes,
+flowers and coupons for each other. You run it yourself with Docker, nobody joins without an invite, and your photos stay on
 your own disk. It is open source under the MIT licence. "Ghar" is the Hindi and Urdu word for home.
 
 [![CI](https://github.com/Things-Varun-Codes/ghar/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/Things-Varun-Codes/ghar/actions/workflows/ci.yml)
@@ -11,10 +11,10 @@ your own disk. It is open source under the MIT licence. "Ghar" is the Hindi and 
 [![License: MIT](https://img.shields.io/github/license/Things-Varun-Codes/ghar)](./LICENSE)
 
 <p>
-  <img src="docs/screenshots/dashboard.webp" alt="Ghar's Home screen, with a door for each app showing its latest photos, songs and notes" width="49%">
-  <img src="docs/screenshots/timeline.webp" alt="Our History timeline with a moment, its photos and the songs and places linked to it" width="49%">
-  <img src="docs/screenshots/mailbox.webp" alt="Our Exchange notes, handwritten on ruled paper" width="49%">
-  <img src="docs/screenshots/citation.webp" alt="A joke traffic ticket for leaving wet towels on the bed" width="49%">
+  <img src="docs/screenshots/dashboard.webp" alt="Home on a phone: a note waiting to be read under Needs you, and the things the household added this week" width="24%">
+  <img src="docs/screenshots/timeline.webp" alt="The Our History timeline: each moment with its date, place, title and a small print of its photo" width="24%">
+  <img src="docs/screenshots/mailbox.webp" alt="Notes received in Our Exchange, handwritten on ruled paper" width="24%">
+  <img src="docs/screenshots/citation.webp" alt="A citation, a joke traffic ticket for leaving wet towels on the bed, with laundry to fold as the penalty" width="24%">
 </p>
 
 <sub>The screenshots show the sample household that <code>npm run dev-setup</code> creates.</sub>
