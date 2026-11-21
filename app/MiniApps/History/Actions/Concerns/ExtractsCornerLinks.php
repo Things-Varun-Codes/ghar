@@ -3,6 +3,7 @@
 namespace App\MiniApps\History\Actions\Concerns;
 
 use App\Shell\Services\LinkableEntities;
+use Dom\HTMLDocument;
 
 trait ExtractsCornerLinks
 {
@@ -18,36 +19,20 @@ trait ExtractsCornerLinks
             return [];
         }
 
-        // TipTap's HTML5 entities and bare attributes trip libxml's HTML4 parser.
-        $previous = libxml_use_internal_errors(true);
-        $doc = new \DOMDocument;
-        $doc->loadHTML(
-            '<?xml encoding="UTF-8"><div>'.$html.'</div>',
-            LIBXML_HTML_NOIMPLIED | LIBXML_HTML_NODEFDTD,
-        );
-        libxml_clear_errors();
-        libxml_use_internal_errors($previous);
-
-        $xpath = new \DOMXPath($doc);
-        $nodes = $xpath->query('//span[@data-corner-type and @data-corner-id]');
+        $doc = HTMLDocument::createFromString($html, LIBXML_NOERROR, 'UTF-8');
 
         $refs = [];
-        if ($nodes !== false) {
-            foreach ($nodes as $node) {
-                /** @var \DOMElement $node */
-                $type = $node->getAttribute('data-corner-type');
-                $rawId = $node->getAttribute('data-corner-id');
-
-                $id = (int) $rawId;
-                if ($id <= 0) {
-                    continue;
-                }
-                if (! in_array($type, $allowed, true)) {
-                    continue;
-                }
-
-                $refs[] = $type.':'.$id;
+        foreach ($doc->querySelectorAll('span[data-corner-type][data-corner-id]') as $node) {
+            $type = $node->getAttribute('data-corner-type');
+            $id = (int) $node->getAttribute('data-corner-id');
+            if ($id <= 0) {
+                continue;
             }
+            if (! in_array($type, $allowed, true)) {
+                continue;
+            }
+
+            $refs[] = $type.':'.$id;
         }
 
         return array_values(array_unique($refs));

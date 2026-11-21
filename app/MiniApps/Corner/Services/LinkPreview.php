@@ -6,9 +6,7 @@ use App\MiniApps\Corner\Support\ItemRules;
 use App\MiniApps\Corner\Support\LinkKey;
 use App\MiniApps\Corner\Support\PictureCache;
 use App\Shell\Support\Http\SafeFetcher;
-use DOMDocument;
-use DOMElement;
-use DOMXPath;
+use Dom\HTMLDocument;
 use GuzzleHttp\Psr7\Uri;
 use GuzzleHttp\Psr7\UriResolver;
 use Illuminate\Support\Facades\Cache;
@@ -96,23 +94,16 @@ class LinkPreview
      */
     private function meta(string $html, string $base): array
     {
-        $previous = libxml_use_internal_errors(true);
-        $doc = new DOMDocument;
-        $doc->loadHTML('<?xml encoding="UTF-8">'.$html, LIBXML_NOERROR | LIBXML_NONET);
-        libxml_clear_errors();
-        libxml_use_internal_errors($previous);
-
-        $xpath = new DOMXPath($doc);
+        $doc = HTMLDocument::createFromString($html, LIBXML_NOERROR, 'UTF-8');
         $found = [
             'oembed' => null, 'title' => null, 'author' => null, 'icon' => null,
             'og:title' => null, 'og:image' => null, 'og:site_name' => null,
             'twitter:title' => null, 'twitter:image' => null,
         ];
 
-        foreach ($xpath->query('//meta') ?: [] as $node) {
-            /** @var DOMElement $node */
-            $name = strtolower($node->getAttribute('property') ?: $node->getAttribute('name'));
-            $content = trim($node->getAttribute('content'));
+        foreach ($doc->querySelectorAll('meta') as $node) {
+            $name = strtolower($node->getAttribute('property') ?: $node->getAttribute('name') ?? '');
+            $content = trim($node->getAttribute('content') ?? '');
             if ($content === '') {
                 continue;
             }
@@ -128,14 +119,13 @@ class LinkPreview
             }
         }
 
-        $found['title'] = trim((string) $xpath->evaluate('string(//title)')) ?: null;
+        $found['title'] = trim($doc->querySelector('title')?->textContent ?? '') ?: null;
 
         $bestIcon = 0;
-        foreach ($xpath->query('//link[@href]') ?: [] as $node) {
-            /** @var DOMElement $node */
-            $rel = strtolower($node->getAttribute('rel'));
-            $type = strtolower($node->getAttribute('type'));
-            $href = trim($node->getAttribute('href'));
+        foreach ($doc->querySelectorAll('link[href]') as $node) {
+            $rel = strtolower($node->getAttribute('rel') ?? '');
+            $type = strtolower($node->getAttribute('type') ?? '');
+            $href = trim($node->getAttribute('href') ?? '');
 
             if ($rel === 'alternate' && $type === 'application/json+oembed' && $found['oembed'] === null) {
                 $found['oembed'] = self::absolute($href, $base);
@@ -143,7 +133,7 @@ class LinkPreview
 
             if (str_contains($rel, 'icon')) {
                 // apple-touch-icon is 180px unless it says otherwise; a bare icon is usually tiny.
-                $size = (int) explode('x', strtolower($node->getAttribute('sizes')))[0]
+                $size = (int) explode('x', strtolower($node->getAttribute('sizes') ?? ''))[0]
                     ?: (str_contains($rel, 'apple-touch-icon') ? 180 : 16);
                 if ($size > $bestIcon && ! str_ends_with(strtolower(parse_url($href, PHP_URL_PATH) ?: ''), '.svg')) {
                     $bestIcon = $size;
