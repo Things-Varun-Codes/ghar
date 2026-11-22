@@ -69,26 +69,37 @@
 }
 
 :root {
+    /* Each colour is light-dark(day, night): data-theme on <html> picks one, and with none the
+       device decides. color-scheme is set here and nowhere else: the production build turns
+       light-dark() into variables it toggles on exactly these rules. */
+    color-scheme: light dark;
+
     /* Warm enamel white, like a fridge door. Coral --shell-action is the one action colour and marks
        where you are; --shell-accent is its pale wash for what is selected and never fills a button.
        The magnet colours mark people on Home's slips and nothing else. */
 
-    --shell-bg: oklch(0.966 0.008 75);
-    --shell-chrome: oklch(0.945 0.01 75);
-    --shell-surface: oklch(0.995 0.003 75);
-    --shell-border: oklch(0.905 0.012 70);
-    --shell-border-input: oklch(
-        0.66 0.02 60
-    ); /* 3:1 on the surface (WCAG 1.4.11) */
-    --shell-hover: oklch(0.945 0.01 75);
+    --shell-bg: light-dark(oklch(0.966 0.008 75), oklch(0.215 0.008 65));
+    --shell-chrome: light-dark(oklch(0.945 0.01 75), oklch(0.185 0.008 65));
+    --shell-surface: light-dark(oklch(0.995 0.003 75), oklch(0.262 0.009 65));
+    --shell-border: light-dark(oklch(0.905 0.012 70), oklch(0.335 0.011 65));
+    /* 3:1 on the surface (WCAG 1.4.11) */
+    --shell-border-input: light-dark(
+        oklch(0.66 0.02 60),
+        oklch(0.575 0.018 65)
+    );
+    --shell-hover: light-dark(oklch(0.945 0.01 75), oklch(0.3 0.01 65));
 
-    --shell-accent: oklch(0.91 0.045 40);
-    --shell-accent-fg: oklch(0.36 0.09 38);
-    /* L 0.57 keeps a white label at 4.6:1 and coral text at 4.5:1 on the surface. */
-    --shell-accent-text: oklch(0.565 0.135 38);
+    --shell-accent: light-dark(oklch(0.91 0.045 40), oklch(0.37 0.06 40));
+    --shell-accent-fg: light-dark(oklch(0.36 0.09 38), oklch(0.9 0.045 45));
+    /* By day L 0.57 keeps a white label at 4.6:1 and coral text at 4.5:1 on the surface. No one
+       coral does both at night, so the night coral is lighter and its label is dark ink. */
+    --shell-accent-text: light-dark(
+        oklch(0.565 0.135 38),
+        oklch(0.76 0.115 40)
+    );
 
     --shell-action: var(--shell-accent-text);
-    --shell-action-fg: oklch(1 0 0);
+    --shell-action-fg: light-dark(oklch(1 0 0), oklch(0.21 0.03 40));
 
     --shell-attention: var(--shell-action);
 
@@ -104,15 +115,23 @@
         var(--shell-surface)
     );
 
-    --shell-text: oklch(0.29 0.01 60);
-    --shell-text-muted: oklch(0.52 0.014 60);
+    --shell-text: light-dark(oklch(0.29 0.01 60), oklch(0.93 0.01 75));
+    --shell-text-muted: light-dark(oklch(0.52 0.014 60), oklch(0.72 0.014 70));
 
-    --shell-destructive: oklch(0.5 0.16 25);
-    --shell-destructive-fg: oklch(1 0 0);
+    --shell-destructive: light-dark(oklch(0.5 0.16 25), oklch(0.68 0.17 24));
+    /* What must not flip at night: ink and paper over a photo stay as they are by day. */
+    --shell-ink-fixed: oklch(0.29 0.01 60);
+    --shell-paper-fixed: oklch(0.995 0.003 75);
+    /* Shadows: warm ink by day, black at night (ink would glow). */
+    --shell-shadow-ink: light-dark(var(--shell-ink-fixed), oklch(0 0 0));
+    /* Home's slips have no border; at night a hairline lifts them off the ground. */
+    --shell-night-edge: light-dark(transparent, var(--shell-border));
+
+    --shell-destructive-fg: light-dark(oklch(1 0 0), oklch(0.2 0.04 25));
     /* A map's water and green: the palette's only cool and green hues, dusty so a coral pin
        still leads. A theme sets its own pair. */
-    --shell-map-water: oklch(0.86 0.032 225);
-    --shell-map-green: oklch(0.925 0.03 130);
+    --shell-map-water: light-dark(oklch(0.86 0.032 225), oklch(0.33 0.035 235));
+    --shell-map-green: light-dark(oklch(0.925 0.03 130), oklch(0.3 0.03 140));
 
     /* Derived recipes, mixed once here; a room token aliases one instead of rebuilding it. */
     --shell-hover-wash: color-mix(
@@ -133,13 +152,17 @@
     --shell-field-focus:
         0 0 0 1px var(--shell-action),
         0 0 0 4px color-mix(in oklab, var(--shell-action) 20%, transparent);
-    --shell-scrim: color-mix(in oklab, var(--shell-text) 55%, transparent);
+    --shell-scrim: light-dark(
+        color-mix(in oklab, var(--shell-ink-fixed) 55%, transparent),
+        oklch(0.1 0.005 65 / 65%)
+    );
 
     --background: var(--shell-bg);
     --foreground: var(--shell-text);
     --card: var(--shell-surface);
     --card-foreground: var(--shell-text);
-    --popover: var(--shell-surface);
+    /* Floating layers sit a step above the cards at night, where a shadow can't lift them. */
+    --popover: light-dark(var(--shell-surface), oklch(0.29 0.01 65));
     --popover-foreground: var(--shell-text);
     --primary: var(--shell-action);
     --primary-foreground: var(--shell-action-fg);
@@ -147,7 +170,7 @@
     --secondary-foreground: var(--shell-text);
     --muted: var(--shell-hover);
     --muted-foreground: var(--shell-text-muted);
-    --accent: var(--shell-hover);
+    --accent: light-dark(var(--shell-hover), oklch(0.34 0.01 65));
     --accent-foreground: var(--shell-text);
     --destructive: var(--shell-destructive);
     --destructive-foreground: var(--shell-destructive-fg);
@@ -155,6 +178,14 @@
     --input: var(--shell-border-input);
     --ring: var(--shell-accent-text);
     --sidebar: var(--shell-chrome);
+}
+
+:root[data-theme='light'] {
+    color-scheme: light;
+}
+
+:root[data-theme='dark'] {
+    color-scheme: dark;
 }
 
 @layer base {
@@ -276,7 +307,8 @@
      * Guest pages have no shell chrome, so restore the focus ring: 2px paper gap plus ink
      * ring.
      */
-    [data-shell='guest'] input:focus-visible,
+    [data-shell='guest']
+        input:not([data-slot='input-group-control']):focus-visible,
     [data-shell='guest'] textarea:focus-visible,
     [data-shell='guest'] select:focus-visible,
     [data-shell='guest'] button:focus-visible,
@@ -492,7 +524,8 @@
     font-family: var(--font-sans);
     font-size: var(--text-small);
     border: 1px solid var(--shell-border);
-    box-shadow: 0 2px 8px color-mix(in oklab, var(--shell-text) 6%, transparent);
+    box-shadow: 0 2px 8px
+        color-mix(in oklab, var(--shell-shadow-ink) 6%, transparent);
 }
 
 [data-sonner-toaster] [data-sonner-toast][data-styled='true'] [data-button] {
@@ -925,7 +958,8 @@ button[type='submit'][data-slot='button'] {
 }
 
 .os-home-h2-count {
-    color: var(--shell-attention);
+    /* On the page ground, not a card: the day coral is 4.35:1 here, its darker ink passes. */
+    color: light-dark(var(--shell-accent-fg), var(--shell-attention));
     font-variant-numeric: tabular-nums;
 }
 
@@ -969,8 +1003,9 @@ button[type='submit'][data-slot='button'] {
     color: var(--shell-text);
     text-decoration: none;
     box-shadow:
-        0 1px 2px color-mix(in oklab, var(--shell-text) 10%, transparent),
-        0 4px 12px color-mix(in oklab, var(--shell-text) 6%, transparent);
+        0 0 0 1px var(--shell-night-edge),
+        0 1px 2px color-mix(in oklab, var(--shell-shadow-ink) 10%, transparent),
+        0 4px 12px color-mix(in oklab, var(--shell-shadow-ink) 6%, transparent);
     transition:
         rotate var(--dur-card) var(--ease-ui),
         translate var(--dur-card) var(--ease-ui);
@@ -994,7 +1029,7 @@ button[type='submit'][data-slot='button'] {
     border-radius: 50%;
     background: var(--magnet);
     box-shadow: 0 2px 4px
-        color-mix(in oklab, var(--shell-text) 22%, transparent);
+        color-mix(in oklab, var(--shell-shadow-ink) 22%, transparent);
 }
 
 .os-slip-title {
@@ -1347,6 +1382,9 @@ a:hover .os-feed-action {
     flex: none;
     width: 1em;
     height: 1em;
+    /* The favicon's shape in the coral of the hour; the file itself is fixed day coral. */
+    background: var(--shell-action);
+    mask: url('/favicon.svg') center / contain no-repeat;
 }
 
 .shell-wordmark-topbar {
@@ -1404,7 +1442,7 @@ a:hover .os-feed-action {
     border: 1px solid var(--shell-border);
     border-radius: var(--radius-pop);
     box-shadow: 0 6px 24px
-        color-mix(in oklab, var(--shell-text) 8%, transparent);
+        color-mix(in oklab, var(--shell-shadow-ink) 8%, transparent);
     max-height: 320px;
     overflow-y: auto;
 }
@@ -1888,7 +1926,7 @@ a:hover .os-feed-action {
     background: var(--shell-action);
     color: var(--shell-action-fg);
     box-shadow: 0 8px 20px
-        color-mix(in oklab, var(--shell-action) 28%, transparent);
+        color-mix(in oklab, var(--shell-shadow-ink) 18%, transparent);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -1919,7 +1957,7 @@ a:hover .os-feed-action {
     background: var(--shell-surface);
     color: var(--shell-text);
     box-shadow: 0 6px 16px
-        color-mix(in oklab, var(--shell-text) 12%, transparent);
+        color-mix(in oklab, var(--shell-shadow-ink) 12%, transparent);
     cursor: pointer;
 }
 

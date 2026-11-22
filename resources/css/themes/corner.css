@@ -4,6 +4,8 @@
     --corner-card: var(--shell-surface);
     --corner-ink: var(--shell-text);
     --corner-ink-soft: var(--shell-text-muted);
+    /* Shelf icons are ink, never coral (the shell's EmptyState reads this). */
+    --empty-state-icon: var(--corner-ink-soft);
     --corner-border: var(--shell-border);
     --corner-border-input: var(--shell-border-input);
     --corner-accent: var(--shell-accent);
@@ -24,7 +26,10 @@
     --form-sheet-font-display: var(--corner-font-display);
 
     /* The shell's landing door (.shell-door-*) behind this room's peek. */
-    --door-peek-wash: var(--corner-tile-wash-strong);
+    --door-peek-wash: light-dark(
+        var(--corner-tile-wash-strong),
+        color-mix(in oklab, var(--shell-accent) 35%, var(--shell-surface))
+    );
 
     /* Kept as names the room already uses; they are the house radii. */
     --corner-radius-card: var(--radius-card);
@@ -41,6 +46,11 @@
         in oklab,
         var(--shell-accent) 15%,
         var(--shell-surface)
+    );
+    /* A list's icon where a picture would be. A dark wash needs more of the accent to show hue. */
+    --corner-icon-wash: light-dark(
+        color-mix(in oklab, var(--shell-accent) 18%, var(--shell-surface)),
+        color-mix(in oklab, var(--shell-accent) 50%, var(--shell-surface))
     );
     --corner-hairline: color-mix(in oklab, var(--shell-text) 8%, transparent);
     --corner-border-hover: var(--shell-lift-border);
@@ -77,7 +87,7 @@
 
 /* ── Cards and tiles ─────────────────────────────────────────────────────── */
 
-/* The house card with the room's sage wash: the wash is what makes it a shelf. */
+/* The house card with the room's accent wash: the wash is what makes it a shelf. */
 [data-app='our-shelf'] .corner-card {
     background: var(--corner-tile-wash);
     color: var(--corner-ink);
@@ -199,7 +209,19 @@
     );
 }
 
-/* Selected, not filled-for-action: the light sage marks what is already loved or done. */
+/* A link and a place: only the first is filled, so the page keeps one action. */
+[data-app='our-shelf'] .corner-detail-cta ~ .corner-detail-cta,
+[data-app='our-shelf'] .corner-detail-cta ~ .corner-detail-cta:hover {
+    border-color: var(--corner-border-input);
+    background: var(--corner-paper);
+    color: var(--corner-ink);
+}
+
+[data-app='our-shelf'] .corner-detail-cta ~ .corner-detail-cta:hover {
+    background: var(--corner-hover-fill);
+}
+
+/* Selected, not filled-for-action: the light accent wash marks what is already loved or done. */
 [data-app='our-shelf'] .corner-done-toggle[data-pressed],
 [data-app='our-shelf'] .corner-done-toggle[data-pressed]:hover {
     background: var(--corner-accent);
@@ -772,11 +794,7 @@
     justify-content: center;
     overflow: hidden;
     border-radius: var(--corner-radius-inner);
-    background: color-mix(
-        in oklab,
-        var(--shell-accent) 18%,
-        var(--shell-surface)
-    );
+    background: var(--corner-icon-wash);
     color: var(--corner-ink-soft);
 }
 
@@ -863,11 +881,7 @@
     width: auto;
     height: 100%;
     aspect-ratio: 1;
-    background: color-mix(
-        in oklab,
-        var(--shell-accent) 18%,
-        var(--shell-surface)
-    );
+    background: var(--corner-icon-wash);
 }
 
 /* ── The add and edit sheet ──────────────────────────────────────────────── */
@@ -1008,11 +1022,7 @@
     width: 44px;
     height: 44px;
     border-radius: var(--radius-inner);
-    background: color-mix(
-        in oklab,
-        var(--shell-accent) 18%,
-        var(--shell-surface)
-    );
+    background: var(--corner-icon-wash);
     color: var(--corner-accent-text);
 }
 

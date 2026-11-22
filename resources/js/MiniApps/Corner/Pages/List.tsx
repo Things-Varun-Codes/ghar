@@ -68,6 +68,7 @@ export default function List({ list, items, filter, sort, sorts, q }: Props) {
                 emptyState={{
                     all: (
                         <EmptyState
+                            iconName={list.icon}
                             title={`Nothing in ${list.name} yet.`}
                             body="Add the first one: a name is enough, and a pasted link brings its own."
                             action={

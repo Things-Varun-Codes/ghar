@@ -6,6 +6,7 @@ import {
     Link2,
     Send,
     ShieldCheck,
+    SunMoon,
     UserPlus,
     UserRound,
     Users,
@@ -16,6 +17,7 @@ import * as adminNotifications from '@/routes/admin/notifications';
 import * as rooms from '@/routes/admin/rooms';
 import * as shortlinks from '@/routes/admin/shortlinks';
 import * as users from '@/routes/admin/users';
+import * as appearance from '@/routes/settings/appearance';
 import * as notifications from '@/routes/settings/notifications';
 import * as password from '@/routes/settings/password';
 import * as profile from '@/routes/settings/profile';
@@ -54,6 +56,12 @@ export const SETTINGS_ITEMS: ShellNavItem[] = [
         label: 'Notifications',
         icon: Bell,
         hint: 'What this device alerts you about',
+    },
+    {
+        href: appearance.show.url(),
+        label: 'Appearance',
+        icon: SunMoon,
+        hint: 'Light, dark or the same as this device',
     },
 ];
 

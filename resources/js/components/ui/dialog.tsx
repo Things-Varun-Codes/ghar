@@ -59,7 +59,7 @@ function DialogContent({
         data-slot="dialog-content"
         data-scroll-container=""
         className={cn(
-          "bg-background fixed top-[50%] left-[50%] z-(--z-overlay) grid max-h-[calc(100dvh-2rem)] w-full max-w-[calc(100%-2rem)] translate-x-[-50%] translate-y-[-50%] gap-4 overflow-y-auto rounded-lg border p-6 outline-none sm:max-w-lg",
+          "bg-popover fixed top-[50%] left-[50%] z-(--z-overlay) grid max-h-[calc(100dvh-2rem)] w-full max-w-[calc(100%-2rem)] translate-x-[-50%] translate-y-[-50%] gap-4 overflow-y-auto rounded-lg border p-6 outline-none sm:max-w-lg",
           "transition-[opacity,translate] duration-(--dur-card) ease-(--ease-ui) data-ending-style:opacity-0 data-ending-style:duration-(--dur-out) data-starting-style:translate-y-[calc(-50%+8px)] data-starting-style:opacity-0",
           "max-md:has-[:is(input,textarea):focus]:top-[max(12px,env(safe-area-inset-top))] max-md:has-[:is(input,textarea):focus]:translate-y-0",
           className as string

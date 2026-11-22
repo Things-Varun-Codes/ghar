@@ -2,6 +2,7 @@
 
 namespace App\Shell\Models;
 
+use App\Enums\Theme;
 use App\Shell\Notifications\ResetPasswordNotification;
 use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
@@ -27,13 +28,14 @@ use Spatie\Permission\Traits\HasRoles;
  * @property ?string $avatar_key
  * @property ?Carbon $birthday
  * @property bool $morning_memories
+ * @property Theme $theme
  * @property ?string $two_factor_secret
  * @property ?string $two_factor_recovery_codes
  * @property ?Carbon $two_factor_confirmed_at
  */
 // avatar_key isn't fillable either: it names an object on the media disk, and a key from
 // request input could point a signed URL at someone else's file. Set it with forceFill.
-#[Fillable(['name', 'email', 'password', 'birthday', 'morning_memories'])]
+#[Fillable(['name', 'email', 'password', 'birthday', 'morning_memories', 'theme'])]
 #[Hidden(['password', 'remember_token', 'two_factor_secret', 'two_factor_recovery_codes'])]
 class User extends Authenticatable
 {
@@ -70,6 +72,7 @@ class User extends Authenticatable
             'password' => 'hashed',
             'birthday' => 'date',
             'morning_memories' => 'boolean',
+            'theme' => Theme::class,
             'two_factor_confirmed_at' => 'datetime',
         ];
     }

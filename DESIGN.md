@@ -20,12 +20,14 @@ them. The shipped CSS and components are the source of truth.
   no italic, so it is never slanted. Elsewhere, italic means "filled in". No fourth face, no text
   under 13px, no tracked capitals, no small label above a title; sizes come from the `--text-*`
   scale.
-- **Colour has jobs.** Warm ink on warm white, never pure black or cold grey. Coral
+- **Colour has jobs.** Warm ink on warm white by day, warm light on warm dark by night (each
+  person picks Light, Dark or their device's setting in Settings → Appearance); never pure black or
+  cold grey. Coral
   (`--shell-action`) is the only colour for what you press and where you are; `--shell-accent` is
   its pale wash for what is selected and never fills a button. `--magnet-*` marks people on Home
   and nothing else. Destructive stays outlined until the final confirm. No side stripes.
 - **Shapes and depth:** the `--radius-*` tokens only. Cards are flat at rest; only Home's paper
-  slips and floating layers cast a shadow. A fill darkens toward the ink on hover, never lightens.
+  slips and floating layers cast a shadow. A fill moves toward the ink on hover (darker by day, lighter by night), never away from it.
 - **Shared recipes, not copies:** `.shell-press` (buttons), `.shell-field`, `.shell-lift` (a card
   that opens something), `.shell-hit-44` (every tap is at least 44px), `.shell-card-stretch` +
   `.shell-card-link` (a card opens from anywhere on it). Breakpoints are `@variant md` / `lg` in CSS
@@ -36,7 +38,8 @@ them. The shipped CSS and components are the source of truth.
 - **No emoji in the UI**, except History's fixed reaction set. `HeartMark` is the one drawn mark.
 - **Ghar's own mark** (the roof over a heart) is `public/favicon.svg` and nothing else: the tab,
   `AppMark` beside the name in the header, sidebar and sign-in page, and the loading screen all
-  show that file, and `npm run icons` draws the app icons from it.
+  show that file (in-app as a mask, so it takes the coral of the current theme), and
+  `npm run icons` draws the app icons from it.
 - **Home does work:** today's date, "Needs you" as slips pinned by the sender's face, "New this
   week", birthdays coming up. Rooms are in the bottom bar (phone) and sidebar (from 1024px), never
   on Home.
@@ -44,6 +47,10 @@ them. The shipped CSS and components are the source of truth.
 ## Theme layers
 
 1. `--shell-*`: the one palette, defined only on `:root` in `app.css`. Rooms never define them.
+   Each colour is a `light-dark(day, night)` pair. `color-scheme` is set only on `:root` and
+   `:root[data-theme=…]`: the build turns `light-dark()` into variables it toggles on exactly those
+   rules, so a subtree can't stay light. What must not flip uses `--shell-ink-fixed` /
+   `--shell-paper-fixed` (type and scrims over a photo); shadows use `--shell-shadow-ink`.
 2. `--<room>-*`: a room's identity (radii, textures, font roles). Colours here only alias or mix
    `--shell-*`, never a literal, and never another room's tokens.
 3. `.<room>-*` classes scoped under `[data-app='<slug>']` (a portaled root that carries `data-app`
