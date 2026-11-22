@@ -9,6 +9,77 @@ Minor and patch versions don't.
 Before any upgrade, back up the database and the media volume (DEPLOY.md, "Backups and restore").
 Migrations only run forward.
 
+## [1.4.0] - 2026-11-22
+
+### Added
+
+- After you send or resend an invite, Admin → Invites shows the invite link with a Copy link button,
+  so you can pass it on yourself as well as by email.
+- Ghar has a dark look. Everyone picks Light, Dark or the same as their device in Settings →
+  Appearance, and it starts on the device's setting.
+    - At night the rooms, the map and the sign-in page all turn warm and dim; photos keep their white
+      borders.
+- Our History has a Map tab that shows every moment with a picked place. Tap a pin to open the
+  moment, or choose from the moments at a place you've been to more than once.
+    - A list of the places sits under the map and works without it.
+    - The map is drawn in the app's own colours: warm paper land, soft blue water and sage parks.
+    - The map's tiles come from OpenFreeMap through your own server, so nobody's address reaches the
+      tile host. `MAP_TILES_URL` points it at another host.
+- A moment's Location field searches OpenStreetMap when no Google Maps key is set, and you can
+  always keep what you typed as the place when it isn't on a map.
+    - Searches are sent from the server, so the search service never sees who typed them. `PHOTON_URL`
+      points it at your own Photon server instead of `photon.komoot.io`.
+- Two-step sign-in: under Settings → Two-step sign-in, anyone can make signing in ask for a code
+  from an authenticator app as well as their password.
+    - Recovery codes sign you in if you lose your phone; each works once, and you can make new ones.
+    - Admin → Users shows who has it on.
+    - If someone loses both, `php artisan ghar:two-factor-off <email>` turns it off for them.
+
+### Changed
+
+- The account menu now holds just Settings, Admin settings (for admins) and Sign out, on phones and
+  computers alike. Settings and Admin settings each open a page listing what's inside.
+    - Back from Profile, Password or Notifications returns to Settings; back from an admin page
+      returns to Admin settings.
+- A moment's Location field always searches OpenStreetMap, and Ghar no longer uses Google Maps, so
+  `GOOGLE_MAPS_API_KEY` does nothing and can be removed.
+    - Places picked through Google before this keep their name, address and coordinates.
+    - Google's terms don't let a place found through Google be stored for good or shown on another
+      map, which a family history and the coming map view both need.
+- On a phone, the preview on each Our Shelf list is a little taller, the same height as the previews
+  in Our Exchange.
+    - An invalid role on the admin Invitations and Edit user pages is outlined like every other field
+      that needs fixing.
+- A list on Our Shelf now opens on the things you haven't got to yet, like To watch or To read. If
+  nothing is left to do, it opens on everything.
+    - Ticking something off there says which tab it moved to, with Undo.
+
+### Fixed
+
+- On an iPhone, the Birthday field on your profile and on an admin's edit page for someone ran off
+  the right edge of the screen.
+- On Our History's Calendar, tapping a day with more than one moment showed "Something broke"
+  instead of the list of that day's moments.
+- Opening Our History on an iPhone drew a box around the page title.
+- A few things looked off and now don't.
+    - Home's "Needs you" count was a little hard to read on the light background.
+    - Password fields on the sign-in pages showed two focus rings at once.
+    - A "Discard?" question over an open sheet left the sheet bright behind it.
+    - A Shelf item with both a link and a place showed two filled buttons; only the link is filled
+      now.
+    - An empty Shelf list shows its own icon, in ink, instead of a coral heart.
+- Choosing another sort or filter turned its round button into a wide one that pushed onto a line of
+  its own, on Our History, Our Shelf and Our Exchange.
+    - The button stays the same size whatever is chosen; a small dot on it shows the list isn't in its
+      usual order.
+    - Switching between Timeline, Calendar and Gallery, or between tabs in Our Exchange, now slides
+      the highlight across like the other tab switchers.
+
+### Security
+
+- Changing or resetting your password now signs you out on every other device, and any password
+  reset link sent before the change stops working.
+
 ## [1.3.0] - 2026-11-21
 
 ### Added
