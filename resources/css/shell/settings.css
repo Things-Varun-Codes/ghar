@@ -20,21 +20,6 @@
     );
 }
 
-.os-settings-link {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    min-height: 44px;
-    padding: 0 4px;
-    border-radius: var(--radius-pill);
-    font-size: var(--text-small);
-    color: var(--muted-foreground);
-}
-
-.os-settings-link:hover {
-    color: var(--foreground);
-}
-
 .os-settings-row-label {
     font-size: var(--text-small);
     font-weight: 400;

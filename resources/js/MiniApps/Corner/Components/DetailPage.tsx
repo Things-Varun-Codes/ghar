@@ -60,83 +60,86 @@ export default function DetailPage({
                     <div className="corner-detail-main">
                         <article className="corner-detail-article">
                             {hero}
-                            {body}
+                            <div className="corner-detail-body">
+                                {body}
 
-                            <p className="corner-detail-meta corner-added-by">
-                                <PersonAvatar person={addedBy} size={24} />
-                                {addedBy.name}
-                            </p>
+                                <p className="corner-detail-meta corner-added-by">
+                                    <PersonAvatar person={addedBy} size={24} />
+                                    {addedBy.name}
+                                </p>
 
-                            {doneBy.length > 0 && (
-                                <ul className="corner-done-by-list">
-                                    {doneBy.map((mark) => (
-                                        <li
-                                            key={mark.person.id}
-                                            className="corner-detail-meta corner-done-by"
+                                {doneBy.length > 0 && (
+                                    <ul className="corner-done-by-list">
+                                        {doneBy.map((mark) => (
+                                            <li
+                                                key={mark.person.id}
+                                                className="corner-detail-meta corner-done-by"
+                                            >
+                                                <PersonAvatar
+                                                    person={mark.person}
+                                                    size={24}
+                                                />
+                                                {doneLabel} by{' '}
+                                                {mark.person.id === viewerId
+                                                    ? 'you'
+                                                    : mark.person.name}{' '}
+                                                on{' '}
+                                                {formatPlainDate(mark.on, {
+                                                    intl: {
+                                                        day: 'numeric',
+                                                        month: 'short',
+                                                        year: 'numeric',
+                                                    },
+                                                })}
+                                            </li>
+                                        ))}
+                                    </ul>
+                                )}
+
+                                <div className="corner-detail-actions">
+                                    {externalCta}
+
+                                    <Toggle
+                                        className="corner-done-toggle shell-press"
+                                        pressed={isDone}
+                                        onPressedChange={
+                                            itemActions.handleToggleDone
+                                        }
+                                        aria-disabled={
+                                            itemActions.isTogglePending ||
+                                            undefined
+                                        }
+                                    >
+                                        <DoneGlyph
+                                            icon={doneIcon}
+                                            done={isDone}
+                                            size={16}
+                                        />
+                                        {doneLabel}
+                                    </Toggle>
+
+                                    {can.update && (
+                                        <Button
+                                            type="button"
+                                            variant="outline"
+                                            className="corner-detail-action shell-press"
+                                            onClick={onEdit}
                                         >
-                                            <PersonAvatar
-                                                person={mark.person}
-                                                size={24}
-                                            />
-                                            {doneLabel} by{' '}
-                                            {mark.person.id === viewerId
-                                                ? 'you'
-                                                : mark.person.name}{' '}
-                                            on{' '}
-                                            {formatPlainDate(mark.on, {
-                                                intl: {
-                                                    day: 'numeric',
-                                                    month: 'short',
-                                                    year: 'numeric',
-                                                },
-                                            })}
-                                        </li>
-                                    ))}
-                                </ul>
-                            )}
-
-                            <div className="corner-detail-actions">
-                                {externalCta}
-
-                                <Toggle
-                                    className="corner-done-toggle shell-press"
-                                    pressed={isDone}
-                                    onPressedChange={
-                                        itemActions.handleToggleDone
-                                    }
-                                    aria-disabled={
-                                        itemActions.isTogglePending || undefined
-                                    }
-                                >
-                                    <DoneGlyph
-                                        icon={doneIcon}
-                                        done={isDone}
-                                        size={16}
-                                    />
-                                    {doneLabel}
-                                </Toggle>
-
-                                {can.update && (
-                                    <Button
-                                        type="button"
-                                        variant="outline"
-                                        className="corner-detail-action shell-press"
-                                        onClick={onEdit}
-                                    >
-                                        Edit
-                                    </Button>
-                                )}
-                                {can.delete && (
-                                    // No confirm: the removal waits five seconds behind an Undo.
-                                    <Button
-                                        type="button"
-                                        variant="outline"
-                                        className="corner-detail-action corner-detail-action--destructive shell-press"
-                                        onClick={itemActions.handleDelete}
-                                    >
-                                        Remove
-                                    </Button>
-                                )}
+                                            Edit
+                                        </Button>
+                                    )}
+                                    {can.delete && (
+                                        // No confirm: the removal waits five seconds behind an Undo.
+                                        <Button
+                                            type="button"
+                                            variant="outline"
+                                            className="corner-detail-action corner-detail-action--destructive shell-press"
+                                            onClick={itemActions.handleDelete}
+                                        >
+                                            Remove
+                                        </Button>
+                                    )}
+                                </div>
                             </div>
                         </article>
                     </div>

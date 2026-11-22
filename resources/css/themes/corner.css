@@ -413,9 +413,23 @@
     }
 }
 
-[data-app='our-shelf'] .corner-detail-hero-media {
+/* Doubled class: .corner-thumb comes later in this file and would keep it inline. */
+[data-app='our-shelf'] .corner-thumb.corner-detail-hero-media {
     display: flex;
     margin-bottom: 16px;
+}
+
+@container corner-detail-main (min-width: 560px) {
+    [data-app='our-shelf'] .corner-detail-article {
+        display: grid;
+        grid-template-columns: minmax(0, 2fr) minmax(0, 3fr);
+        column-gap: 32px;
+        align-items: start;
+    }
+
+    [data-app='our-shelf'] .corner-thumb.corner-detail-hero-media {
+        margin-bottom: 0;
+    }
 }
 
 [data-app='our-shelf'] .corner-detail-lede {

@@ -1,9 +1,7 @@
-import { Link, useForm, usePage } from '@inertiajs/react';
-import { ArrowLeft } from 'lucide-react';
+import { useForm, usePage } from '@inertiajs/react';
 import type { FormEventHandler } from 'react';
 import PasswordInput from '@/components/password-input';
 import * as passwordRoute from '@/routes/settings/password';
-import * as profile from '@/routes/settings/profile';
 import FormField from '@/Shell/Components/FormField';
 import Page from '@/Shell/Components/Page';
 import SubmitButton from '@/Shell/Components/SubmitButton';
@@ -105,20 +103,6 @@ export default function Password() {
                             </SubmitButton>
                         </div>
                     </form>
-                </div>
-
-                <div className="mt-4 text-right">
-                    <Link
-                        href={profile.show.url()}
-                        className="os-settings-link shell-focus"
-                    >
-                        <ArrowLeft
-                            size={16}
-                            strokeWidth={1.5}
-                            aria-hidden="true"
-                        />
-                        Back to profile
-                    </Link>
                 </div>
             </Page>
         </>
