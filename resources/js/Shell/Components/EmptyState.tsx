@@ -2,6 +2,7 @@ import { SearchX } from 'lucide-react';
 import type { ComponentType, ReactNode } from 'react';
 import { Button } from '@/components/ui/button';
 import HeartMark from '@/Shell/Components/HeartMark';
+import LinkableIcon from '@/Shell/linkables/LinkableIcon';
 
 type IconComponent = ComponentType<{
     size?: number;
@@ -12,6 +13,8 @@ type IconComponent = ComponentType<{
 
 type Props = {
     icon?: IconComponent;
+    /* A lucide icon by name, such as a list's own icon; wins over `icon`. */
+    iconName?: string;
     title: string;
     body?: string;
     action?: ReactNode;
@@ -29,6 +32,7 @@ export function noMatchesTitle(noun: string, query: string): string {
 
 export default function EmptyState({
     icon,
+    iconName,
     title,
     body,
     action,
@@ -52,12 +56,22 @@ export default function EmptyState({
 
     return (
         <div className="mx-auto mt-16 mb-0 flex max-w-[360px] flex-col items-center text-center">
-            <Icon
-                size={40}
-                strokeWidth={1.5}
-                className="text-(--shell-accent-text)"
-                aria-hidden="true"
-            />
+            {iconName && !searching ? (
+                <LinkableIcon
+                    name={iconName}
+                    size={40}
+                    strokeWidth={1.5}
+                    className="text-(--empty-state-icon,var(--shell-accent-text))"
+                    aria-hidden="true"
+                />
+            ) : (
+                <Icon
+                    size={40}
+                    strokeWidth={1.5}
+                    className="text-(--empty-state-icon,var(--shell-accent-text))"
+                    aria-hidden="true"
+                />
+            )}
             <h2 className="shell-empty-title mt-4 leading-tight">{title}</h2>
             {body && (
                 <p className="mt-2 text-[16px] leading-[1.5] text-(--shell-text-muted)">

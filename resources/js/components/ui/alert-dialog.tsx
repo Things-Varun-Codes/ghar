@@ -27,6 +27,8 @@ function AlertDialogOverlay({
 }: AlertDialogPrimitive.Backdrop.Props) {
   return (
     <AlertDialogPrimitive.Backdrop
+      // Base UI drops a nested backdrop; a confirm over a sheet still dims the sheet.
+      forceRender
       data-slot="alert-dialog-overlay"
       className={cn(
         "shell-scrim fixed inset-0 z-(--z-overlay-raised) transition-opacity duration-(--dur-card) ease-(--ease-ui) data-ending-style:opacity-0 data-ending-style:duration-(--dur-out) data-starting-style:opacity-0",

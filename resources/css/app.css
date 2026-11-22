@@ -307,7 +307,8 @@
      * Guest pages have no shell chrome, so restore the focus ring: 2px paper gap plus ink
      * ring.
      */
-    [data-shell='guest'] input:focus-visible,
+    [data-shell='guest']
+        input:not([data-slot='input-group-control']):focus-visible,
     [data-shell='guest'] textarea:focus-visible,
     [data-shell='guest'] select:focus-visible,
     [data-shell='guest'] button:focus-visible,
@@ -957,7 +958,8 @@ button[type='submit'][data-slot='button'] {
 }
 
 .os-home-h2-count {
-    color: var(--shell-attention);
+    /* On the page ground, not a card: the day coral is 4.35:1 here, its darker ink passes. */
+    color: light-dark(var(--shell-accent-fg), var(--shell-attention));
     font-variant-numeric: tabular-nums;
 }
 

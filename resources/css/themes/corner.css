@@ -4,6 +4,8 @@
     --corner-card: var(--shell-surface);
     --corner-ink: var(--shell-text);
     --corner-ink-soft: var(--shell-text-muted);
+    /* Shelf icons are ink, never coral (the shell's EmptyState reads this). */
+    --empty-state-icon: var(--corner-ink-soft);
     --corner-border: var(--shell-border);
     --corner-border-input: var(--shell-border-input);
     --corner-accent: var(--shell-accent);
@@ -205,6 +207,18 @@
         var(--corner-action) 86%,
         var(--corner-ink)
     );
+}
+
+/* A link and a place: only the first is filled, so the page keeps one action. */
+[data-app='our-shelf'] .corner-detail-cta ~ .corner-detail-cta,
+[data-app='our-shelf'] .corner-detail-cta ~ .corner-detail-cta:hover {
+    border-color: var(--corner-border-input);
+    background: var(--corner-paper);
+    color: var(--corner-ink);
+}
+
+[data-app='our-shelf'] .corner-detail-cta ~ .corner-detail-cta:hover {
+    background: var(--corner-hover-fill);
 }
 
 /* Selected, not filled-for-action: the light accent wash marks what is already loved or done. */
