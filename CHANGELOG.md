@@ -9,6 +9,16 @@ Minor and patch versions don't.
 Before any upgrade, back up the database and the media volume (DEPLOY.md, "Backups and restore").
 Migrations only run forward.
 
+## [1.4.1] - 2026-11-22
+
+### Fixed
+
+- On an install that didn't set `QUEUE_CONNECTION`, a large photo could run out of memory while its
+  sizes were made, and upgrading to 1.4.0 could stop partway: Settings → Appearance then said
+  "Couldn't update that" for every choice.
+    - Photo sizes are now always made in the background, where large photos have the memory they need.
+      Restarting after the upgrade finishes the update.
+
 ## [1.4.0] - 2026-11-22
 
 ### Added
