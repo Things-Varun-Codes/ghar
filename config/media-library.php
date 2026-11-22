@@ -38,7 +38,9 @@ return [
 
     'allowed_extensions' => null,
 
-    'queue_connection_name' => env('QUEUE_CONNECTION', 'sync'),
+    // Same fallback as config/queue.php: on sync, a big photo converts in the web or migrate
+    // process at php-fpm's 256M instead of on the worker's 512M, and runs out of memory.
+    'queue_connection_name' => env('QUEUE_CONNECTION', 'database'),
 
     'queue_name' => env('MEDIA_QUEUE', ''),
 
