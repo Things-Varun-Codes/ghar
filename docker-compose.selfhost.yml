@@ -47,7 +47,7 @@ services:
       start_period: 60s
 
   db:
-    image: postgres:17.11-alpine3.24
+    image: postgres:17.12-alpine3.24
     restart: unless-stopped
     environment:
       POSTGRES_USER: ghar
@@ -64,7 +64,7 @@ services:
   # Rate limits and health heartbeats. Nothing here needs to survive a restart, so
   # it keeps no data on disk and is reachable only from the app.
   cache:
-    image: valkey/valkey:9.0.1-alpine3.23
+    image: valkey/valkey:9.0.8-alpine3.24
     restart: unless-stopped
     command: ['valkey-server', '--save', '', '--appendonly', 'no', '--maxmemory', '64mb', '--maxmemory-policy', 'allkeys-lru']
     healthcheck:
