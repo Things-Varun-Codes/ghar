@@ -26,7 +26,7 @@ jobs:
     timeout-minutes: 20
     services:
       postgres:
-        image: postgres:17.11-alpine3.24
+        image: postgres:17.12-alpine3.24
         env:
           POSTGRES_USER: ghar
           POSTGRES_PASSWORD: ghar
@@ -81,7 +81,7 @@ jobs:
     timeout-minutes: 20
     services:
       postgres:
-        image: postgres:17.11-alpine3.24
+        image: postgres:17.12-alpine3.24
         env:
           POSTGRES_USER: ghar
           POSTGRES_PASSWORD: ghar
