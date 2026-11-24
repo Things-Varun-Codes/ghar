@@ -31,8 +31,6 @@ final class ItemRules
             'image_url' => ['nullable', 'string', self::WEB_URL, 'max:2048'],
             // The picture was taken away on purpose, so a link's own isn't put back.
             'no_picture' => ['nullable', 'boolean'],
-            'location' => ['nullable', 'string', 'max:2048'],
-            'address' => ['nullable', 'string', 'max:1024'],
         ];
     }
 
@@ -47,8 +45,6 @@ final class ItemRules
             'url.max' => 'Links are limited to 2048 characters.',
             'image_url.url' => "That doesn't look like the address of a picture.",
             'image_url.max' => 'Picture addresses are limited to 2048 characters.',
-            'location.max' => 'Keep the place to 2048 characters.',
-            'address.max' => 'Addresses are limited to 1024 characters.',
         ];
     }
 }

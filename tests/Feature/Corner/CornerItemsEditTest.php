@@ -161,93 +161,6 @@ class CornerItemsEditTest extends TestCase
             ->assertSessionHasErrors(['title']);
     }
 
-    public function test_a_place_edit_replaces_its_details(): void
-    {
-        Http::fake();
-        $place = $this->itemIn($this->places(), $this->adder, ['title' => 'Old Cafe']);
-
-        $this->actingAs($this->adder)
-            ->patch("/apps/our-shelf/items/{$place->id}", [
-                'title' => 'New Cafe',
-                'location' => 'geo:40.7484,-73.9857?q=Empire+State+Building',
-                'address' => '20 W 34th St, New York, NY 10001',
-            ])
-            ->assertRedirect();
-
-        $this->assertDatabaseHas('corner_items', [
-            'id' => $place->id,
-            'title' => 'New Cafe',
-            'location_label' => 'Empire State Building',
-            'location_url' => 'geo:40.7484,-73.9857?q=Empire+State+Building',
-            'lat' => '40.7484000',
-            'lng' => '-73.9857000',
-            'address' => '20 W 34th St, New York, NY 10001',
-        ]);
-        Notification::assertNothingSent();
-
-        // Clearing the place clears its coordinates.
-        $this->actingAs($this->adder)
-            ->patch("/apps/our-shelf/items/{$place->id}", ['title' => 'New Cafe', 'location' => ''])
-            ->assertSessionHasNoErrors();
-
-        $this->assertDatabaseHas('corner_items', ['id' => $place->id, 'location_label' => null, 'lat' => null, 'lng' => null]);
-    }
-
-    public function test_an_upgraded_place_without_a_link_keeps_its_coordinates_when_edited(): void
-    {
-        Http::fake();
-        // What the upgrade made of an old place: a name, a place id and coordinates, no map link.
-        $place = Item::factory()->create([
-            'list_id' => $this->places()->id,
-            'added_by_user_id' => $this->adder->id,
-            'title' => 'Lalbagh',
-            'location_label' => 'Lalbagh',
-            'place_id' => 'ChIJlalbagh',
-            'lat' => 12.9507,
-            'lng' => 77.5848,
-            'legacy_type' => 'corner.place',
-            'legacy_id' => 3,
-        ]);
-
-        $this->actingAs($this->adder)
-            ->patch("/apps/our-shelf/items/{$place->id}", ['title' => 'Lalbagh gardens', 'location' => 'Lalbagh', 'notes' => 'Go early'])
-            ->assertSessionHasNoErrors();
-
-        $this->assertDatabaseHas('corner_items', [
-            'id' => $place->id,
-            'title' => 'Lalbagh gardens',
-            'location_label' => 'Lalbagh',
-            'location_url' => null,
-            'place_id' => 'ChIJlalbagh',
-            'lat' => '12.9507000',
-            'lng' => '77.5848000',
-            'notes' => 'Go early',
-        ]);
-        Http::assertNothingSent();
-    }
-
-    public function test_an_upgraded_places_id_survives_a_new_or_cleared_location(): void
-    {
-        Http::fake();
-        $place = Item::factory()->create([
-            'list_id' => $this->places()->id,
-            'added_by_user_id' => $this->adder->id,
-            'title' => 'Lalbagh',
-            'location_label' => 'Lalbagh',
-            'place_id' => 'ChIJlalbagh',
-        ]);
-
-        $this->actingAs($this->adder)
-            ->patch("/apps/our-shelf/items/{$place->id}", ['title' => 'Lalbagh', 'location' => 'Cubbon Park'])
-            ->assertSessionHasNoErrors();
-        $this->assertSame('ChIJlalbagh', $place->fresh()->place_id);
-
-        $this->actingAs($this->adder)
-            ->patch("/apps/our-shelf/items/{$place->id}", ['title' => 'Lalbagh'])
-            ->assertSessionHasNoErrors();
-        $this->assertSame('ChIJlalbagh', $place->fresh()->place_id);
-    }
-
     public function test_an_edit_never_moves_an_item_to_another_list_or_rewrites_who_added_it(): void
     {
         $list = $this->activities();
@@ -272,5 +185,21 @@ class CornerItemsEditTest extends TestCase
         $this->actingAs($this->adder)
             ->patch('/apps/our-shelf/items/'.(Item::max('id') + 1000), ['title' => 'X'])
             ->assertNotFound();
+    }
+
+    public function test_a_link_the_upgrade_left_without_its_key_can_still_be_edited(): void
+    {
+        Http::fake();
+        $places = $this->places();
+        $pin = 'https://www.google.com/maps/search/?api=1&query=12.98,77.62';
+        Item::factory()->create(['list_id' => $places->id, 'added_by_user_id' => $this->adder->id, 'url' => $pin, 'url_key' => LinkKey::for($pin)]);
+        $twin = Item::factory()->create(['list_id' => $places->id, 'added_by_user_id' => $this->adder->id, 'title' => 'Lake two', 'url' => $pin, 'url_key' => null]);
+
+        $this->actingAs($this->adder)
+            ->patch("/apps/our-shelf/items/{$twin->id}", ['url' => $pin, 'title' => 'Lake two', 'notes' => 'Same lake'])
+            ->assertSessionHasNoErrors();
+
+        $this->assertDatabaseHas('corner_items', ['id' => $twin->id, 'notes' => 'Same lake', 'url_key' => null]);
+        Http::assertNothingSent();
     }
 }

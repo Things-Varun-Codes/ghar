@@ -1,5 +1,5 @@
 import { Link, usePage } from '@inertiajs/react';
-import { MapPin, MoreHorizontal } from 'lucide-react';
+import { MoreHorizontal } from 'lucide-react';
 
 import { Reveal } from '@/components/motion';
 import { Button } from '@/components/ui/button';
@@ -21,7 +21,6 @@ import { useItemActions } from '@/MiniApps/Corner/Hooks/useItemActions';
 import type { UseItemActionsReturn } from '@/MiniApps/Corner/Hooks/useItemActions';
 import { bylineOf } from '@/MiniApps/Corner/lib/copy';
 import { doneByLine } from '@/MiniApps/Corner/lib/done-by';
-import { hasPlace, placeLabel } from '@/MiniApps/Corner/lib/maps';
 import type { CornerItem, CornerListInfo } from '@/MiniApps/Corner/lib/types';
 import { show } from '@/routes/apps/our-shelf/items';
 import AppCard from '@/Shell/Components/AppCard';
@@ -118,16 +117,6 @@ function ItemCardBody({
                     )}
                     {preview && (
                         <span className="corner-item-notes">{preview}</span>
-                    )}
-                    {hasPlace(item) && placeLabel(item) !== item.title && (
-                        <span className="corner-item-place">
-                            <MapPin
-                                aria-hidden="true"
-                                size={14}
-                                strokeWidth={1.5}
-                            />
-                            {placeLabel(item)}
-                        </span>
                     )}
                     {/* Who put it here: their face and name say it, no "Added by" needed. */}
                     <span className="corner-row-meta corner-added-by">

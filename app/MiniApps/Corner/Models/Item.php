@@ -22,12 +22,6 @@ use Illuminate\Support\Carbon;
  * @property string|null $author
  * @property string|null $url_key
  * @property string|null $site_name
- * @property string|null $location_label
- * @property string|null $location_url
- * @property string|null $place_id
- * @property string|null $lat decimal(10,7), cast to string
- * @property string|null $lng decimal(10,7), cast to string
- * @property string|null $address
  * @property string|null $legacy_type
  * @property int|null $legacy_id
  * @property int $added_by_user_id
@@ -48,12 +42,6 @@ use Illuminate\Support\Carbon;
     'author',
     'url_key',
     'site_name',
-    'location_label',
-    'location_url',
-    'place_id',
-    'lat',
-    'lng',
-    'address',
     'legacy_type',
     'legacy_id',
     'added_by_user_id',
@@ -140,8 +128,6 @@ class Item extends Model
         return [
             'added_at' => 'datetime',
             'done_at' => 'datetime',
-            'lat' => 'decimal:7',
-            'lng' => 'decimal:7',
         ];
     }
 }

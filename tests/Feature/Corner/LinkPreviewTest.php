@@ -55,6 +55,7 @@ class LinkPreviewTest extends TestCase
             'image_url' => 'https://img.video.example.com/1/hq.jpg',
             'author' => 'The Monsoon Club',
             'site_name' => 'VideoSite',
+            'url' => 'https://video.example.com/watch?v=1',
         ], $this->preview()->lookup('https://video.example.com/watch?v=1'));
 
         Http::assertSent(fn ($request) => $request->url() === 'https://video.example.com/oembed?url=https%3A%2F%2Fvideo.example.com%2Fwatch%3Fv%3D1&format=json');
@@ -84,6 +85,7 @@ class LinkPreviewTest extends TestCase
             'image_url' => 'https://shop.example.com/img/cover.jpg',
             'author' => 'A. Writer',
             'site_name' => 'Example Books',
+            'url' => 'https://shop.example.com/og',
         ], $this->preview()->lookup('https://shop.example.com/og'));
 
         $tw = $this->preview()->lookup('https://shop.example.com/tw');
@@ -125,21 +127,22 @@ class LinkPreviewTest extends TestCase
             'image_url' => 'https://photos.example.com/kite.png',
             'author' => null,
             'site_name' => 'photos.example.com',
+            'url' => 'https://photos.example.com/kite.png',
         ], $this->preview()->lookup('https://photos.example.com/kite.png'));
     }
 
     public function test_an_unreachable_or_odd_page_gives_nothing_but_its_host(): void
     {
-        $empty = fn (string $site): array => ['title' => null, 'image_url' => null, 'author' => null, 'site_name' => $site];
+        $empty = fn (string $site, string $url): array => ['title' => null, 'image_url' => null, 'author' => null, 'site_name' => $site, 'url' => $url];
 
         Http::fake(fn () => throw new ConnectionException('timed out'));
-        $this->assertSame($empty('down.example.com'), $this->preview()->lookup('https://www.down.example.com/x'));
+        $this->assertSame($empty('down.example.com', 'https://www.down.example.com/x'), $this->preview()->lookup('https://www.down.example.com/x'));
 
         Http::fake(['*' => Http::response('nope', 500, ['Content-Type' => 'text/html'])]);
-        $this->assertSame($empty('error.example.com'), $this->preview()->lookup('https://error.example.com/x'));
+        $this->assertSame($empty('error.example.com', 'https://error.example.com/x'), $this->preview()->lookup('https://error.example.com/x'));
 
         Http::fake(['*' => Http::response('%PDF-1.7', 200, ['Content-Type' => 'application/pdf'])]);
-        $this->assertSame($empty('files.example.com'), $this->preview()->lookup('https://files.example.com/x.pdf'));
+        $this->assertSame($empty('files.example.com', 'https://files.example.com/x.pdf'), $this->preview()->lookup('https://files.example.com/x.pdf'));
     }
 
     public function test_a_link_to_a_private_address_is_never_fetched(): void
@@ -148,11 +151,11 @@ class LinkPreviewTest extends TestCase
         $this->app->instance(SafeFetcher::class, new SafeFetcher(fn (): array => ['192.168.1.10']));
 
         $this->assertSame(
-            ['title' => null, 'image_url' => null, 'author' => null, 'site_name' => 'router.example.com'],
+            ['title' => null, 'image_url' => null, 'author' => null, 'site_name' => 'router.example.com', 'url' => 'http://router.example.com/'],
             $this->preview()->lookup('http://router.example.com/'),
         );
         $this->assertSame(
-            ['title' => null, 'image_url' => null, 'author' => null, 'site_name' => '169.254.169.254'],
+            ['title' => null, 'image_url' => null, 'author' => null, 'site_name' => '169.254.169.254', 'url' => 'http://169.254.169.254/latest/meta-data/'],
             $this->preview()->lookup('http://169.254.169.254/latest/meta-data/'),
         );
         Http::assertNothingSent();
@@ -203,6 +206,7 @@ class LinkPreviewTest extends TestCase
                 'image_url' => 'https://example.com/p.jpg',
                 'author' => null,
                 'site_name' => 'example.com',
+                'url' => 'https://example.com/thing',
             ]);
 
         $this->actingAs($user)

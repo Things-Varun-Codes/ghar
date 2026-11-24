@@ -389,7 +389,6 @@ class CornerItemsAddTest extends TestCase
             'url_key' => 'forged',
             'site_name' => 'Forged',
             'author' => 'Forged',
-            'place_id' => 'forged',
             'legacy_type' => 'corner.song',
             'legacy_id' => 5,
             'list_id' => 999,
@@ -402,85 +401,67 @@ class CornerItemsAddTest extends TestCase
         $this->assertNull($item->url_key);
         $this->assertNull($item->site_name);
         $this->assertNull($item->author);
-        $this->assertNull($item->place_id);
         $this->assertNull($item->legacy_type);
         $this->assertNull($item->legacy_id);
         $this->assertNull($item->done_at);
     }
 
-    // Places
+    // Places: a map link, named by its place
 
-    public function test_a_location_from_a_map_link_stores_its_label_link_and_coordinates(): void
+    private const SHORT_MAP = 'https://maps.example.com/s/park';
+
+    private const FULL_MAP = 'https://maps.example.com/maps/place/Park%27s+Inn/@33.5708898,-98.1173305,10z/data=!8m2!3d33.5633544!4d-97.8578567';
+
+    private function fakeMapPage(string $title): void
     {
-        Notification::fake();
-        Http::fake();
-        $this->places();
-        $map = 'https://maps.example.com/maps/place/Sydney+Opera+House/@-33.8567844,151.2152967,17z';
-
-        $this->actingAs(User::factory()->create())->post('/apps/our-shelf/places', [
-            'title' => 'The Opera House',
-            'location' => $map,
-            'address' => 'Bennelong Point, Sydney NSW 2000',
-        ])->assertRedirect('/apps/our-shelf/places');
-
-        $this->assertDatabaseHas('corner_items', [
-            'title' => 'The Opera House',
-            'location_label' => 'Sydney Opera House',
-            'location_url' => $map,
-            'lat' => '-33.8567844',
-            'lng' => '151.2152967',
-            'address' => 'Bennelong Point, Sydney NSW 2000',
+        Http::fake([
+            'maps.example.com/s/*' => Http::response('', 302, ['Location' => self::FULL_MAP]),
+            'maps.example.com/maps/*' => Http::response(
+                '<html><head><meta property="og:title" content="'.$title.'">'
+                .'<meta property="og:image" content="https://photos.example.com/inn.jpg"></head></html>',
+                200,
+                ['Content-Type' => 'text/html'],
+            ),
         ]);
-        // The coordinates were in the link: nothing had to be followed.
-        Http::assertNothingSent();
     }
 
-    public function test_a_typed_place_stores_only_its_name(): void
+    public function test_a_short_map_link_is_named_by_its_place_and_takes_its_picture(): void
     {
         Notification::fake();
-        Http::fake();
+        $this->fakeMapPage('Park&#39;s Inn · 708 W Wise St, Bowie, TX 76230');
         $this->places();
 
         $this->actingAs(User::factory()->create())
-            ->post('/apps/our-shelf/places', ['title' => 'Bakery', 'location' => 'The bakery on 4th Cross', 'address' => ''])
-            ->assertRedirect('/apps/our-shelf/places');
-
-        $place = Item::query()->sole();
-        $this->assertSame('The bakery on 4th Cross', $place->location_label);
-        $this->assertNull($place->location_url);
-        $this->assertNull($place->place_id);
-        $this->assertNull($place->lat);
-        $this->assertNull($place->lng);
-        $this->assertNull($place->address);
-        Http::assertNothingSent();
-    }
-
-    public function test_coordinates_out_of_range_are_not_a_point(): void
-    {
-        Notification::fake();
-        $this->places();
-
-        $this->actingAs(User::factory()->create())
-            ->post('/apps/our-shelf/places', ['title' => 'Off the map', 'location' => '91, 0'])
+            ->post('/apps/our-shelf/places', ['url' => self::SHORT_MAP, 'title' => ''])
             ->assertSessionHasNoErrors();
 
-        $place = Item::query()->sole();
-        $this->assertNull($place->lat);
-        $this->assertNull($place->lng);
+        $this->assertDatabaseHas('corner_items', [
+            'url' => self::SHORT_MAP,
+            'title' => "Park's Inn",
+            'image_url' => 'https://photos.example.com/inn.jpg',
+        ]);
     }
 
-    public function test_coordinates_are_kept_to_seven_decimal_places(): void
+    public function test_a_map_page_that_only_names_itself_leaves_the_name_to_the_link(): void
     {
         Notification::fake();
+        $this->fakeMapPage('Maps');
         $this->places();
 
-        $this->actingAs(User::factory()->create())->post('/apps/our-shelf/places', [
-            'title' => 'Precision Probe',
-            'location' => '12.3456789, -98.7654321',
-        ])->assertRedirect();
+        $this->actingAs(User::factory()->create())
+            ->post('/apps/our-shelf/places', ['url' => self::FULL_MAP, 'title' => ''])
+            ->assertSessionHasNoErrors();
 
-        $place = Item::query()->sole();
-        $this->assertSame('12.3456789', $place->lat);
-        $this->assertSame('-98.7654321', $place->lng);
+        $this->assertDatabaseHas('corner_items', ['url' => self::FULL_MAP, 'title' => "Park's Inn"]);
+    }
+
+    public function test_the_preview_names_a_map_link_by_its_place(): void
+    {
+        $this->fakeMapPage('Park&#39;s Inn · 708 W Wise St');
+
+        $this->actingAs(User::factory()->create())
+            ->getJson('/api/corner/link-preview?url='.urlencode(self::SHORT_MAP))
+            ->assertOk()
+            ->assertJsonPath('title', "Park's Inn");
     }
 }

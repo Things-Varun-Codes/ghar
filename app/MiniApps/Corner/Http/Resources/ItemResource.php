@@ -30,11 +30,6 @@ class ItemResource
             // Where the picture comes from, for the edit form; pages draw picture_url.
             'image_url' => $item->image_url,
             'picture_url' => $item->pictureUrl(),
-            'location_label' => $item->location_label,
-            'location_url' => $item->location_url,
-            'lat' => $item->lat === null ? null : (float) $item->lat,
-            'lng' => $item->lng === null ? null : (float) $item->lng,
-            'address' => $item->address,
             // On a per-person list, whether the viewer has marked it; otherwise whether anyone has.
             'is_done' => $perPerson
                 ? $viewer !== null && $item->markers->contains('id', $viewer->id)

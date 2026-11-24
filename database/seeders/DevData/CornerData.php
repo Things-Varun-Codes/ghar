@@ -186,7 +186,7 @@ final class CornerData
     }
 
     /**
-     * Places with coordinates and an address but no map link, as the upgrade leaves them.
+     * Places as the upgrade leaves them: a map link to where they are, the address in the notes.
      *
      * @return array<string, array{id: int, title: string, type: string, slug: string}>
      */
@@ -209,11 +209,9 @@ final class CornerData
             $place = Item::factory()->create([
                 'list_id' => $list->id,
                 'title' => $title,
-                'location_label' => $title,
-                'place_id' => 'dev-place-'.$i,
-                'lat' => $lat,
-                'lng' => $lng,
-                'address' => $address,
+                ...$this->linkTo("https://www.google.com/maps/search/?api=1&query={$lat},{$lng}"),
+                'site_name' => 'Google Maps',
+                'notes' => $address,
                 'added_by_user_id' => $adder->id,
                 'added_at' => $h->daysAgo($added),
                 ...$this->legacy('corner.place'),
@@ -318,11 +316,9 @@ final class CornerData
         $malabar = Item::factory()->create([
             'list_id' => $list->id,
             'title' => 'Malabar Kitchen',
-            'notes' => 'Ask for the fish curry.',
-            'location_label' => 'Malabar Kitchen',
-            'lat' => 12.9752,
-            'lng' => 77.6050,
-            'address' => '3 Church Street, Bengaluru',
+            'notes' => "Ask for the fish curry.\n\n3 Church Street, Bengaluru",
+            ...$this->linkTo('https://www.google.com/maps/search/?api=1&query=12.9752,77.605'),
+            'site_name' => 'Google Maps',
             'added_by_user_id' => $h->meera->id,
             'added_at' => $h->daysAgo(9),
             ...$this->done($h, $h->kabir, 2),
@@ -331,7 +327,7 @@ final class CornerData
         $dosa = Item::factory()->create([
             'list_id' => $list->id,
             'title' => 'The Dosa Window',
-            'location_label' => 'The Dosa Window, MG Road',
+            'notes' => 'MG Road',
             'added_by_user_id' => $h->kabir->id,
             'added_at' => $h->daysAgo(8),
         ]);
@@ -400,23 +396,20 @@ final class CornerData
             ],
             'idea-3' => [
                 'title' => 'Sunday farmers market',
-                'location_url' => 'https://maps.app.goo.gl/devFarmersMarket',
+                ...$this->linkTo('https://maps.app.goo.gl/devFarmersMarket'),
                 'added_by_user_id' => $h->kabir->id,
                 'added_at' => $h->daysAgo(3),
                 ...$this->done($h, $h->meera, 1),
             ],
             'idea-4' => [
                 'title' => 'Pottery cafe in Indiranagar',
-                'notes' => 'They keep your bowl for a week while it dries.',
+                // A website with a separate pin, as the upgrade leaves it: the pin is in the notes.
+                'notes' => "They keep your bowl for a week while it dries.\n\n"
+                    ."https://www.google.com/maps/place/Clay+Studio/@12.9719,77.6412,17z\nClay Studio, Indiranagar\n100 Feet Road, Indiranagar, Bengaluru",
                 ...$this->linkTo('https://www.lonelyplanet.com/india/karnataka/bengaluru'),
                 'site_name' => 'Lonely Planet',
                 'author' => 'Lonely Planet',
                 'image_url' => $this->picture('https://lp-cms-production.imgix.net/bengaluru-og.jpg', 'Bengaluru', 600, 400),
-                'location_label' => 'Clay Studio, Indiranagar',
-                'location_url' => 'https://www.google.com/maps/place/Clay+Studio/@12.9719,77.6412,17z',
-                'lat' => 12.9719,
-                'lng' => 77.6412,
-                'address' => '100 Feet Road, Indiranagar, Bengaluru',
                 'added_by_user_id' => $h->ravi->id,
                 'added_at' => $h->daysAgo(2),
             ],

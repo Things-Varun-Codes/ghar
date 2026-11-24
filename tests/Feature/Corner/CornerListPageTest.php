@@ -120,14 +120,7 @@ class CornerListPageTest extends TestCase
         $songs = $this->songs();
         $song = $this->itemIn($songs, $this->user, ['author' => 'Queen', 'notes' => 'Loud']);
         $places = $this->places();
-        $place = $this->itemIn($places, $this->user, [
-            'location_label' => 'The bakery',
-            'location_url' => 'https://maps.example.com/?q=12.3456789,-98.7654321',
-            'place_id' => 'ChIJbakery',
-            'lat' => 12.3456789,
-            'lng' => -98.7654321,
-            'address' => '1 High St',
-        ]);
+        $place = $this->itemIn($places, $this->user, ['url' => null, 'url_key' => null, 'site_name' => null]);
         $doneBy = User::factory()->create();
         $place->markDone($doneBy);
 
@@ -144,8 +137,6 @@ class CornerListPageTest extends TestCase
                 ->where('item.author', 'Queen')
                 ->where('item.image_url', $song->image_url)
                 ->where('item.picture_url', $song->pictureUrl())
-                ->where('item.location_label', null)
-                ->where('item.lat', null)
                 ->where('item.is_done', false)
                 ->missing('item.added_by_user_id')
                 ->missing('item.added_at')
@@ -157,12 +148,9 @@ class CornerListPageTest extends TestCase
         $this->actingAs($this->user)
             ->get("/apps/our-shelf/places/{$place->id}")
             ->assertInertia(fn (AssertableInertia $page) => $page
-                ->where('item.location_label', 'The bakery')
-                ->where('item.location_url', 'https://maps.example.com/?q=12.3456789,-98.7654321')
-                ->missing('item.place_id')
-                ->where('item.lat', 12.3456789)
-                ->where('item.lng', -98.7654321)
-                ->where('item.address', '1 High St')
+                ->missing('item.location_url')
+                ->missing('item.lat')
+                ->missing('item.address')
                 ->where('item.is_done', true)
                 ->missing('item.done_at')
                 ->where('item.url', null)
@@ -312,15 +300,15 @@ class CornerListPageTest extends TestCase
             ->assertInertia(fn (AssertableInertia $page) => $page->where('q', null)->has('items.data', 3));
     }
 
-    public function test_search_reads_the_notes_and_a_places_name_and_address(): void
+    public function test_search_reads_the_notes(): void
     {
         $activities = $this->activities();
         $noted = $this->itemIn($activities, $this->user, ['title' => 'Hike', 'notes' => 'Bring sunscreen']);
         $this->itemIn($activities, $this->user, ['title' => 'Swim']);
 
         $places = $this->places();
-        $bakery = $this->itemIn($places, $this->user, ['title' => 'Bakery', 'address' => '4 Market Street, Mysuru']);
-        $this->itemIn($places, $this->user, ['title' => 'Cafe', 'address' => '1 Fort Road, Kochi']);
+        $bakery = $this->itemIn($places, $this->user, ['title' => 'Bakery', 'notes' => '4 Market Street, Mysuru']);
+        $this->itemIn($places, $this->user, ['title' => 'Cafe', 'notes' => '1 Fort Road, Kochi']);
 
         $this->actingAs($this->user)
             ->get("/apps/our-shelf/{$activities->slug}?q=sunscreen")
@@ -329,11 +317,6 @@ class CornerListPageTest extends TestCase
         $this->actingAs($this->user)
             ->get('/apps/our-shelf/places?q=mysuru')
             ->assertInertia(fn (AssertableInertia $page) => $page->has('items.data', 1)->where('items.data.0.id', $bakery->id));
-
-        $this->itemIn($places, $this->user, ['title' => 'Dosa', 'location_label' => 'Vidyarthi Bhavan', 'address' => null]);
-        $this->actingAs($this->user)
-            ->get('/apps/our-shelf/places?q=vidyarthi')
-            ->assertInertia(fn (AssertableInertia $page) => $page->has('items.data', 1)->where('items.data.0.title', 'Dosa'));
     }
 
     public function test_search_treats_wildcards_as_text(): void

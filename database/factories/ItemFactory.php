@@ -49,10 +49,9 @@ class ItemFactory extends Factory
     public function place(): static
     {
         return $this->state(fn () => [
-            'location_label' => fake()->company(),
-            'lat' => fake()->latitude(),
-            'lng' => fake()->longitude(),
-            'address' => fake()->address(),
+            'url' => $url = 'https://maps.example.com/maps/place/'.urlencode(fake()->company()).'/@'.fake()->latitude().','.fake()->longitude().',17z',
+            'url_key' => LinkKey::for($url),
+            'site_name' => LinkKey::siteOf($url),
         ]);
     }
 

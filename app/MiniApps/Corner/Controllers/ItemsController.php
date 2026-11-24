@@ -24,7 +24,7 @@ class ItemsController
 {
     private const PER_PAGE = 50;
 
-    private const SEARCH_COLUMNS = ['title', 'notes', 'author', 'site_name', 'location_label', 'address'];
+    private const SEARCH_COLUMNS = ['title', 'notes', 'author', 'site_name'];
 
     private const SORTS = [
         'recent' => [['added_at', 'desc'], ['id', 'desc']],

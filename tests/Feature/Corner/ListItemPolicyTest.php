@@ -43,7 +43,7 @@ class ListItemPolicyTest extends TestCase
             'songs' => ['songs', ['url' => 'https://example.com/new-track']],
             'movies' => ['movies', ['title' => 'Edited']],
             'activities' => ['activities', ['title' => 'Edited']],
-            'places' => ['places', ['title' => 'Edited', 'location' => '12.97, 77.59', 'address' => 'Somewhere']],
+            'places' => ['places', ['title' => 'Edited', 'notes' => 'Somewhere']],
         ];
     }
 
