@@ -37,11 +37,12 @@ class LinkPreview
     /**
      * Cached, so the preview while typing and the save that follows cost one fetch.
      *
-     * @return array{title: ?string, image_url: ?string, author: ?string, site_name: ?string}
+     * @return array{title: ?string, image_url: ?string, author: ?string, site_name: ?string, url: string}
      */
     public function lookup(string $url): array
     {
-        $key = 'corner:link-preview:'.(LinkKey::for($url) ?? sha1($url));
+        // v2: an entry also holds where the link landed.
+        $key = 'corner:link-preview:v2:'.(LinkKey::for($url) ?? sha1($url));
 
         $cached = Cache::get($key);
         if (is_array($cached)) {
@@ -55,10 +56,10 @@ class LinkPreview
         return $found;
     }
 
-    /** @return array{title: ?string, image_url: ?string, author: ?string, site_name: ?string} */
+    /** @return array{title: ?string, image_url: ?string, author: ?string, site_name: ?string, url: string} */
     private function read(string $url): array
     {
-        $empty = ['title' => null, 'image_url' => null, 'author' => null, 'site_name' => LinkKey::siteOf($url)];
+        $empty = ['title' => null, 'image_url' => null, 'author' => null, 'site_name' => LinkKey::siteOf($url), 'url' => $url];
 
         $page = $this->fetcher->get($url, [...self::PAGE_TYPES, ...PictureCache::TYPES], self::PAGE_BYTES, truncate: true);
         if ($page === null) {
@@ -67,7 +68,7 @@ class LinkPreview
 
         // A link straight to a picture is its own picture.
         if (in_array($page->contentType, PictureCache::TYPES, true)) {
-            return ['image_url' => $page->url] + $empty;
+            return ['image_url' => $page->url, 'url' => $page->url] + $empty;
         }
 
         try {
@@ -86,6 +87,8 @@ class LinkPreview
             'author' => self::clean($oembed['author_name'] ?? $meta['author'], 255),
             'site_name' => self::clean($meta['og:site_name'] ?? $oembed['provider_name'] ?? null, 120)
                 ?? LinkKey::siteOf($page->url),
+            // Where the link landed, so a short link to a map can be read for its place.
+            'url' => $page->url,
         ];
     }
 

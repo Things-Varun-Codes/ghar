@@ -34,7 +34,8 @@ class SafeFetcher
 
     private const TIMEOUT_SECONDS = 6;
 
-    private const USER_AGENT = 'Mozilla/5.0 (compatible; Ghar link preview)';
+    // The preview-bot token is what map and film pages answer with a place's or title's real name and picture.
+    private const USER_AGENT = 'Mozilla/5.0 (compatible; Ghar link preview; facebookexternalhit/1.1)';
 
     /**
      * Ranges no fetch may reach that neither PHP's private and reserved ranges nor Symfony's

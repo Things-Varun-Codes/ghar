@@ -32,33 +32,9 @@ type FormShape = {
     image_url: string;
     no_picture: boolean;
     notes: string;
-    location: string;
-    address: string;
 };
 
-const SHOWN_FIELDS = [
-    'url',
-    'title',
-    'image_url',
-    'notes',
-    'location',
-    'address',
-];
-
-/* What the location field shows for an item: the link it came from, else its name or point. */
-function locationOf(item: CornerItem): string {
-    if (item.location_url) {
-        return item.location_url;
-    }
-
-    if (item.location_label) {
-        return item.location_label;
-    }
-
-    return item.lat !== null && item.lng !== null
-        ? `${item.lat}, ${item.lng}`
-        : '';
-}
+const SHOWN_FIELDS = ['url', 'title', 'image_url', 'notes'];
 
 function shapeOf(item?: CornerItem): FormShape {
     return {
@@ -67,8 +43,6 @@ function shapeOf(item?: CornerItem): FormShape {
         image_url: item?.image_url ?? '',
         no_picture: false,
         notes: item?.notes ?? '',
-        location: item ? locationOf(item) : '',
-        address: item?.address ?? '',
     };
 }
 
@@ -103,10 +77,6 @@ export default function ItemSheet({ list, open, onOpenChange, item }: Props) {
     const changeUrl = (next: string) => {
         setData('url', next);
         link.trigger(next);
-    };
-
-    const changeLocation = (next: string) => {
-        setData('location', next);
     };
 
     const removePicture = () => {
@@ -161,7 +131,7 @@ export default function ItemSheet({ list, open, onOpenChange, item }: Props) {
                 onOpenChange(next);
             }}
             title={isEdit ? 'Edit' : `Add to ${list.name}`}
-            description="A name, and if you like a link, a picture, notes and a place."
+            description="A name, and if you like a link, a picture and notes."
             isDirty={isDirty}
             onDiscard={() => {
                 reset();
@@ -183,7 +153,7 @@ export default function ItemSheet({ list, open, onOpenChange, item }: Props) {
                     type="url"
                     inputMode="url"
                     autoComplete="off"
-                    placeholder="Paste a link to anything"
+                    placeholder="Paste a link to anything, a map too"
                     maxLength={2048}
                     value={data.url}
                     onChange={(e) => changeUrl(e.target.value)}
@@ -322,46 +292,6 @@ export default function ItemSheet({ list, open, onOpenChange, item }: Props) {
                 onChange={(v) => setData('notes', v)}
                 error={errors.notes}
             />
-
-            <FormField
-                label="Where (optional)"
-                name="location"
-                error={errors.location}
-            >
-                <Input
-                    id="location"
-                    type="text"
-                    autoComplete="off"
-                    placeholder="A map link, coordinates or the name of a place"
-                    maxLength={2048}
-                    value={data.location}
-                    onChange={(e) => changeLocation(e.target.value)}
-                    className="text-(length:--text-body)"
-                />
-            </FormField>
-
-            <div className="corner-reveal-slot">
-                <Reveal
-                    show={data.location.trim() !== ''}
-                    className="corner-reveal"
-                >
-                    <FormField
-                        label="Address (optional)"
-                        name="address"
-                        error={errors.address}
-                    >
-                        <Input
-                            id="address"
-                            type="text"
-                            autoComplete="off"
-                            maxLength={1024}
-                            value={data.address}
-                            onChange={(e) => setData('address', e.target.value)}
-                            className="text-(length:--text-body)"
-                        />
-                    </FormField>
-                </Reveal>
-            </div>
         </FormSheet>
     );
 }

@@ -26,9 +26,14 @@ final class MapLink
 
     /** Patterns whose first group names the place. */
     private const LABEL_PATTERNS = [
-        '#/place/([^/@?]+)#',
+        self::PLACE_PATH,
         '#[?&](?:q|query|name)=([^&]+)#i',
     ];
+
+    private const PLACE_PATH = '#/place/([^/@?]+)#';
+
+    /** How a map page titles a place: its name, then where it is. */
+    private const TITLE_SEPARATOR = ' · ';
 
     private const FOLLOWED_SECONDS = 86400;
 
@@ -81,6 +86,36 @@ final class MapLink
         }
 
         return ['url' => mb_substr($input, 0, 2048)] + $found;
+    }
+
+    /**
+     * The place a pasted link is a map of, or null when it is a link to anything else. A search
+     * query alone (`?q=`) is not enough: plenty of pages that aren't maps have one.
+     *
+     * @return array{label: ?string, lat: ?float, lng: ?float}|null
+     */
+    public static function place(string $url): ?array
+    {
+        $found = self::fromUrl($url);
+
+        return $found['lat'] !== null || ($found['label'] !== null && preg_match(self::PLACE_PATH, $url) === 1)
+            ? $found
+            : null;
+    }
+
+    /**
+     * A map page's title split into the place's name and its address. A title without both is
+     * the map site's own name, not the place's.
+     *
+     * @return array{name: ?string, address: ?string}
+     */
+    public static function splitTitle(?string $title): array
+    {
+        $parts = explode(self::TITLE_SEPARATOR, $title ?? '', 2);
+
+        return count($parts) === 2
+            ? ['name' => self::text($parts[0]), 'address' => self::text($parts[1])]
+            : ['name' => null, 'address' => null];
     }
 
     /** Remembered, so saving or editing the same pasted link doesn't walk its redirects again. */

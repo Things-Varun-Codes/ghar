@@ -483,4 +483,81 @@ class CornerItemsAddTest extends TestCase
         $this->assertSame('12.3456789', $place->lat);
         $this->assertSame('-98.7654321', $place->lng);
     }
+
+    // One field: a map link is also where the item is
+
+    private const SHORT_MAP = 'https://maps.example.com/s/park';
+
+    private const FULL_MAP = 'https://maps.example.com/maps/place/Park%27s+Inn/@33.5708898,-98.1173305,10z/data=!8m2!3d33.5633544!4d-97.8578567';
+
+    private function fakeMapPage(string $title): void
+    {
+        Http::fake([
+            'maps.example.com/s/*' => Http::response('', 302, ['Location' => self::FULL_MAP]),
+            'maps.example.com/maps/*' => Http::response(
+                '<html><head><meta property="og:title" content="'.$title.'">'
+                .'<meta property="og:image" content="https://photos.example.com/inn.jpg"></head></html>',
+                200,
+                ['Content-Type' => 'text/html'],
+            ),
+        ]);
+    }
+
+    public function test_a_short_map_link_gives_the_place_its_name_picture_point_and_address(): void
+    {
+        Notification::fake();
+        $this->fakeMapPage('Park&#39;s Inn · 708 W Wise St, Bowie, TX 76230');
+        $this->places();
+
+        $this->actingAs(User::factory()->create())
+            ->post('/apps/our-shelf/places', ['url' => self::SHORT_MAP, 'title' => ''])
+            ->assertSessionHasNoErrors();
+
+        $this->assertDatabaseHas('corner_items', [
+            'url' => self::SHORT_MAP,
+            'title' => "Park's Inn",
+            'image_url' => 'https://photos.example.com/inn.jpg',
+            'location_label' => "Park's Inn",
+            'location_url' => self::SHORT_MAP,
+            'lat' => '33.5633544',
+            'lng' => '-97.8578567',
+            'address' => '708 W Wise St, Bowie, TX 76230',
+        ]);
+    }
+
+    public function test_a_map_page_that_only_names_itself_leaves_the_name_to_the_link(): void
+    {
+        Notification::fake();
+        $this->fakeMapPage('Maps');
+        $this->places();
+
+        $this->actingAs(User::factory()->create())
+            ->post('/apps/our-shelf/places', ['url' => self::FULL_MAP, 'title' => ''])
+            ->assertSessionHasNoErrors();
+
+        $this->assertDatabaseHas('corner_items', ['url' => self::FULL_MAP, 'title' => "Park's Inn", 'address' => null]);
+    }
+
+    public function test_a_link_to_anything_else_is_no_place(): void
+    {
+        Notification::fake();
+        Http::fake(['*' => Http::response('<html><head><title>Search</title></head></html>', 200, ['Content-Type' => 'text/html'])]);
+        $this->places();
+
+        $this->actingAs(User::factory()->create())
+            ->post('/apps/our-shelf/places', ['url' => 'https://search.example.com/find?q=lakes', 'title' => ''])
+            ->assertSessionHasNoErrors();
+
+        $this->assertDatabaseHas('corner_items', ['title' => 'Search', 'location_label' => null, 'location_url' => null, 'lat' => null]);
+    }
+
+    public function test_the_preview_names_a_map_link_by_its_place(): void
+    {
+        $this->fakeMapPage('Park&#39;s Inn · 708 W Wise St');
+
+        $this->actingAs(User::factory()->create())
+            ->getJson('/api/corner/link-preview?url='.urlencode(self::SHORT_MAP))
+            ->assertOk()
+            ->assertJsonPath('title', "Park's Inn");
+    }
 }

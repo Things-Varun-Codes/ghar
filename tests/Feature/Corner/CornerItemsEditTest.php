@@ -273,4 +273,48 @@ class CornerItemsEditTest extends TestCase
             ->patch('/apps/our-shelf/items/'.(Item::max('id') + 1000), ['title' => 'X'])
             ->assertNotFound();
     }
+
+    public function test_a_place_keeps_where_it_is_when_the_sheet_sends_no_location(): void
+    {
+        Http::fake();
+        $places = $this->places();
+        // A website and a separate map pin, from before the sheet had one field for links.
+        $cafe = Item::factory()->create([
+            'list_id' => $places->id,
+            'added_by_user_id' => $this->adder->id,
+            'title' => 'Cafe',
+            'url' => 'https://cafe.example.com/',
+            'url_key' => LinkKey::for('https://cafe.example.com/'),
+            'location_label' => 'Cafe',
+            'location_url' => 'https://maps.example.com/s/cafe',
+            'lat' => 12.97,
+            'lng' => 77.59,
+            'address' => '1 Church St',
+        ]);
+        $lake = Item::factory()->create([
+            'list_id' => $places->id,
+            'added_by_user_id' => $this->adder->id,
+            'title' => 'Lake',
+            'location_label' => 'Lake',
+            'lat' => 12.98,
+            'lng' => 77.62,
+            'address' => 'Halasuru',
+        ]);
+
+        foreach ([$cafe, $lake] as $place) {
+            $this->actingAs($this->adder)
+                ->patch("/apps/our-shelf/items/{$place->id}", ['url' => $place->url, 'title' => $place->title, 'notes' => 'Again'])
+                ->assertSessionHasNoErrors();
+
+            $this->assertDatabaseHas('corner_items', [
+                'id' => $place->id,
+                'location_url' => $place->location_url,
+                'lat' => $place->lat,
+                'lng' => $place->lng,
+                'address' => $place->address,
+                'notes' => 'Again',
+            ]);
+        }
+        Http::assertNothingSent();
+    }
 }
