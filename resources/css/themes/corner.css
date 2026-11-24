@@ -456,32 +456,11 @@
     color: var(--corner-ink-soft);
 }
 
-[data-app='our-shelf'] .corner-detail-coords {
-    margin: 0 0 12px 0;
-    font-size: var(--text-meta);
-    font-weight: 400;
-    font-variant-numeric: tabular-nums;
-    color: var(--corner-ink-soft);
-}
-
 [data-app='our-shelf'] .corner-detail-actions {
     display: flex;
     align-items: center;
     gap: 12px;
     flex-wrap: wrap;
-}
-
-/* The pin. */
-[data-app='our-shelf'] .corner-detail-place {
-    display: flex;
-    gap: 12px;
-    align-items: flex-start;
-    margin-bottom: 8px;
-}
-
-[data-app='our-shelf'] .corner-detail-place-icon {
-    flex-shrink: 0;
-    color: var(--corner-ink-soft);
 }
 
 /* ── "Mentioned in" ──────────────────────────────────────────────────────── */
@@ -869,8 +848,7 @@
 }
 
 [data-app='our-shelf'] .corner-item-byline,
-[data-app='our-shelf'] .corner-item-notes,
-[data-app='our-shelf'] .corner-item-place {
+[data-app='our-shelf'] .corner-item-notes {
     max-width: 100%;
     font-size: var(--text-small);
     line-height: 1.5;
@@ -878,17 +856,6 @@
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
-}
-
-[data-app='our-shelf'] .corner-item-place {
-    display: inline-flex;
-    align-items: center;
-    gap: 4px;
-}
-
-[data-app='our-shelf'] .corner-item-place svg {
-    flex: none;
-    color: var(--corner-ink-soft);
 }
 
 [data-app='our-shelf'] .corner-door-shelf > .corner-door-cover {

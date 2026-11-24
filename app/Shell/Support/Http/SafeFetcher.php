@@ -108,12 +108,6 @@ class SafeFetcher
         return null;
     }
 
-    /** The final address a link lands on, without reading what is there. */
-    public function finalUrl(string $url): ?string
-    {
-        return $this->get($url, ['text/html', '*/*'], 1, truncate: true)?->url;
-    }
-
     /**
      * The curl "host:port:address" pin for a URL that may be fetched, or null.
      */

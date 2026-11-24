@@ -189,10 +189,8 @@ class SafeFetcherTest extends TestCase
         $this->assertNotNull($found);
         $this->assertSame('https://example.com/hop/0', $found->url);
         $this->assertSame('<p>here</p>', $found->body);
-        $this->assertSame('https://example.com/hop/0', $fetcher->finalUrl('https://example.com/hop/2'));
 
         $this->assertNull($fetcher->get('https://example.com/hop/4', ['text/html'], 1024));
-        $this->assertNull($fetcher->finalUrl('https://example.com/hop/4'));
     }
 
     public function test_a_long_answer_is_cut_when_truncating_and_refused_otherwise(): void

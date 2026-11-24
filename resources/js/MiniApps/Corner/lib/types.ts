@@ -38,11 +38,6 @@ export type CornerItem = {
     image_url: string | null;
     /* What a page draws: served by Corner, or null. */
     picture_url: string | null;
-    location_label: string | null;
-    location_url: string | null;
-    lat: number | null;
-    lng: number | null;
-    address: string | null;
     is_done: boolean;
     can: ItemPermissions;
     addedBy: Person;

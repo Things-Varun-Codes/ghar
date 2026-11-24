@@ -18,7 +18,7 @@ class LinkPreviewController
         ]);
 
         $found = $preview->lookup($validated['url']);
-        $found['title'] = MapLink::fromPreview($validated['url'], $found)['name'] ?? $found['title'];
+        $found['title'] = MapLink::placeName($validated['url'], $found) ?? $found['title'];
 
         return response()->json([
             'ok' => $found['title'] !== null || $found['image_url'] !== null,

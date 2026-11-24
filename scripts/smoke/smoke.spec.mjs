@@ -241,13 +241,13 @@ $kabir = User::where('email', '${DEV_ACCOUNTS.kabir}')->firstOrFail();
 
 echo json_encode([
     'resetToken'        => Password::broker()->createToken($kabir),
-    // An item of each sort, as [list slug, item id]: one with a link, a picture and a place
-    // together, a place with only coordinates, a name and nothing else, and an old id that
-    // History links still use.
+    // An item of each sort, as [list slug, item id]: one with a link, a picture and notes
+    // together, a place (a map link), a name and nothing else, and an old id that History
+    // links still use.
     'corner' => collect([
-        'everything' => Item::query()->whereNotNull('url')->whereNotNull('image_url')->whereNotNull('location_url'),
-        'place' => Item::query()->whereNull('url')->whereNull('location_url')->whereNotNull('lat'),
-        'nameOnly' => Item::query()->whereNull('url')->whereNull('image_url')->whereNull('notes')->whereNull('location_label'),
+        'everything' => Item::query()->whereNotNull('url')->whereNotNull('image_url')->whereNotNull('notes'),
+        'place' => Item::query()->where('url', 'like', '%/maps/%'),
+        'nameOnly' => Item::query()->whereNull('url')->whereNull('image_url')->whereNull('notes'),
     ])->map(fn ($q) => (fn ($i) => ['slug' => $i->list->slug, 'item' => $i->id])($q->with('list')->orderBy('id')->firstOrFail()))
         ->put('legacy', (fn ($i) => ['slug' => $i->list->slug, 'item' => $i->legacy_id])(Item::query()->with('list')->whereNotNull('legacy_id')->orderBy('id')->firstOrFail()))
         ->put('longName', ['slug' => CornerList::query()->orderByRaw('length(name) desc')->value('slug')]),

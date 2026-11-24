@@ -2,14 +2,10 @@
 
 namespace App\MiniApps\Corner\Support;
 
-use App\Shell\Support\Http\SafeFetcher;
-use Illuminate\Support\Facades\Cache;
-
 /**
- * Reads where a pasted location points: a map link, a geo: address, bare coordinates, or just
- * the name of a place. Recognising how map sites write coordinates into their links is
- * unavoidable here, so the shapes live in one table below and nowhere else; no site is named
- * anywhere a person sees.
+ * Tells a link to a place on a map from a link to anything else, and names the place. Recognising
+ * how map sites write places into their links is unavoidable here, so the shapes live in one
+ * table below and nowhere else; no site is named anywhere a person sees.
  */
 final class MapLink
 {
@@ -35,58 +31,7 @@ final class MapLink
     /** How a map page titles a place: its name, then where it is. */
     private const TITLE_SEPARATOR = ' · ';
 
-    private const FOLLOWED_SECONDS = 86400;
-
-    private const UNFOLLOWED_SECONDS = 600;
-
     private const BARE = '/^\s*(-?\d{1,2}(?:\.\d+)?)\s*[,;\s]\s*(-?\d{1,3}(?:\.\d+)?)\s*$/';
-
-    private const GEO = '#^geo:(-?\d{1,2}(?:\.\d+)?),(-?\d{1,3}(?:\.\d+)?)(?:[;,][^?]*)?(?:\?(.*))?$#i';
-
-    /**
-     * @return array{label: ?string, url: ?string, lat: ?float, lng: ?float}
-     */
-    public static function read(string $input, ?SafeFetcher $fetcher = null): array
-    {
-        $input = trim($input);
-        $none = ['label' => null, 'url' => null, 'lat' => null, 'lng' => null];
-
-        if ($input === '') {
-            return $none;
-        }
-
-        if (preg_match(self::BARE, $input, $m) === 1) {
-            return self::point($m[1], $m[2]) + ['label' => null, 'url' => null];
-        }
-
-        if (preg_match(self::GEO, $input, $m) === 1) {
-            parse_str($m[3] ?? '', $query);
-            $label = is_string($query['q'] ?? null) ? preg_replace('/^[-\d.,\s]+\(?|\)$/', '', $query['q']) : null;
-
-            return ['label' => self::text($label), 'url' => $input] + self::point($m[1], $m[2]);
-        }
-
-        if (! ItemRules::isWebUrl($input)) {
-            return ['label' => mb_substr($input, 0, 255)] + $none;
-        }
-
-        $found = self::fromUrl($input);
-
-        // A short link only says where it goes once it is followed.
-        if ($found['lat'] === null && $fetcher !== null) {
-            $final = self::followed($input, $fetcher);
-            if ($final !== null && $final !== $input) {
-                $expanded = self::fromUrl($final);
-                $found = [
-                    'label' => $found['label'] ?? $expanded['label'],
-                    'lat' => $expanded['lat'],
-                    'lng' => $expanded['lng'],
-                ];
-            }
-        }
-
-        return ['url' => mb_substr($input, 0, 2048)] + $found;
-    }
 
     /**
      * The place a pasted link is a map of, or null when it is a link to anything else. A search
@@ -94,7 +39,7 @@ final class MapLink
      *
      * @return array{label: ?string, lat: ?float, lng: ?float}|null
      */
-    public static function place(string $url): ?array
+    private static function place(string $url): ?array
     {
         $found = self::fromUrl($url);
 
@@ -104,14 +49,13 @@ final class MapLink
     }
 
     /**
-     * The place a previewed link is a map of, named by its page. A short link only shows it is a
-     * map once followed, and the preview already followed it. A page title without the
-     * separator is the map site's own name, not the place's.
+     * What a previewed map link's place is called, or null when the link isn't a map. A short
+     * link only shows it is a map once followed, and the preview already followed it. A page
+     * title without the separator is the map site's own name, not the place's.
      *
      * @param  array{title: ?string, url: string}  $read  what LinkPreview found
-     * @return array{label: ?string, lat: ?float, lng: ?float, name: ?string, address: ?string}|null
      */
-    public static function fromPreview(string $url, array $read): ?array
+    public static function placeName(string $url, array $read): ?string
     {
         $place = self::place($url) ?? self::place($read['url']);
         if ($place === null) {
@@ -119,28 +63,8 @@ final class MapLink
         }
 
         $parts = explode(self::TITLE_SEPARATOR, $read['title'] ?? '', 2);
-        $titled = count($parts) === 2;
 
-        return $place + [
-            'name' => ($titled ? self::text($parts[0]) : null) ?? $place['label'],
-            'address' => $titled ? self::text($parts[1]) : null,
-        ];
-    }
-
-    /** Remembered, so saving or editing the same pasted link doesn't walk its redirects again. */
-    private static function followed(string $url, SafeFetcher $fetcher): ?string
-    {
-        $key = 'corner:map-link:'.sha1($url);
-
-        $cached = Cache::get($key);
-        if (is_array($cached)) {
-            return $cached['final'];
-        }
-
-        $final = $fetcher->finalUrl($url);
-        Cache::put($key, ['final' => $final], $final !== null ? self::FOLLOWED_SECONDS : self::UNFOLLOWED_SECONDS);
-
-        return $final;
+        return (count($parts) === 2 ? self::text($parts[0]) : null) ?? $place['label'];
     }
 
     /** @return array{label: ?string, lat: ?float, lng: ?float} */

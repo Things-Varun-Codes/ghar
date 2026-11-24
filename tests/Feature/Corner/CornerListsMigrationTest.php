@@ -45,8 +45,13 @@ class CornerListsMigrationTest extends TestCase
         $migration = require database_path('migrations/our-shelf/2026_11_16_100000_replace_corner_tables_with_lists_and_items.php');
         // Per-person marks hang off corner_items: they come down before it and go up after it.
         $marks = require database_path('migrations/our-shelf/2026_11_20_100000_add_per_person_done_to_corner_lists.php');
+        // The place columns this upgrade fills were dropped later; they come back, empty, first.
+        $places = require database_path('migrations/our-shelf/2026_11_25_100000_fold_item_places_into_links_and_notes.php');
 
         if ($direction === 'down') {
+            if (! Schema::hasColumn('corner_items', 'lat')) {
+                $places->down();
+            }
             $marks->down();
             $migration->down();
 
