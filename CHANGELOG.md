@@ -9,6 +9,21 @@ Minor and patch versions don't.
 Before any upgrade, back up the database and the media volume (DEPLOY.md, "Backups and restore").
 Migrations only run forward.
 
+## [1.5.0] - 2026-11-24
+
+### Fixed
+
+- On the Timeline, a moment with only a video showed no picture on its card, and tapping a card's
+  picture did nothing.
+    - A video now shows on its card with a play mark.
+    - Tapping the picture opens the photo or video full screen, as it does inside the moment.
+
+### Security
+
+- Ghar now runs on the latest security releases of Laravel, Node.js, PostgreSQL and Valkey.
+    - Self-hosted installs pick up the new PostgreSQL and Valkey images on the next `docker compose
+pull`.
+
 ## [1.4.2] - 2026-11-22
 
 ### Fixed
