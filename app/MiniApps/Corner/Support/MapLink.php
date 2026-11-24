@@ -104,18 +104,27 @@ final class MapLink
     }
 
     /**
-     * A map page's title split into the place's name and its address. A title without both is
-     * the map site's own name, not the place's.
+     * The place a previewed link is a map of, named by its page. A short link only shows it is a
+     * map once followed, and the preview already followed it. A page title without the
+     * separator is the map site's own name, not the place's.
      *
-     * @return array{name: ?string, address: ?string}
+     * @param  array{title: ?string, url: string}  $read  what LinkPreview found
+     * @return array{label: ?string, lat: ?float, lng: ?float, name: ?string, address: ?string}|null
      */
-    public static function splitTitle(?string $title): array
+    public static function fromPreview(string $url, array $read): ?array
     {
-        $parts = explode(self::TITLE_SEPARATOR, $title ?? '', 2);
+        $place = self::place($url) ?? self::place($read['url']);
+        if ($place === null) {
+            return null;
+        }
 
-        return count($parts) === 2
-            ? ['name' => self::text($parts[0]), 'address' => self::text($parts[1])]
-            : ['name' => null, 'address' => null];
+        $parts = explode(self::TITLE_SEPARATOR, $read['title'] ?? '', 2);
+        $titled = count($parts) === 2;
+
+        return $place + [
+            'name' => ($titled ? self::text($parts[0]) : null) ?? $place['label'],
+            'address' => $titled ? self::text($parts[1]) : null,
+        ];
     }
 
     /** Remembered, so saving or editing the same pasted link doesn't walk its redirects again. */

@@ -317,4 +317,56 @@ class CornerItemsEditTest extends TestCase
         }
         Http::assertNothingSent();
     }
+
+    public function test_a_new_link_that_is_not_a_map_leaves_a_place_where_it_was(): void
+    {
+        Http::fake(['*' => Http::response('<html><head><title>Blue Door</title></head></html>', 200, ['Content-Type' => 'text/html'])]);
+        $places = $this->places();
+        $cafe = Item::factory()->create([
+            'list_id' => $places->id,
+            'added_by_user_id' => $this->adder->id,
+            'title' => 'Blue Door Cafe',
+            'location_label' => 'Blue Door Cafe',
+            'lat' => 12.97,
+            'lng' => 77.59,
+            'address' => '1 Church St',
+        ]);
+
+        $this->actingAs($this->adder)
+            ->patch("/apps/our-shelf/items/{$cafe->id}", ['url' => 'https://bluedoor.example.com/', 'title' => 'Blue Door Cafe'])
+            ->assertSessionHasNoErrors();
+
+        $this->assertDatabaseHas('corner_items', [
+            'id' => $cafe->id,
+            'url' => 'https://bluedoor.example.com/',
+            'location_label' => 'Blue Door Cafe',
+            'lat' => '12.9700000',
+            'address' => '1 Church St',
+        ]);
+    }
+
+    public function test_a_place_that_came_from_the_old_link_goes_with_it(): void
+    {
+        Http::fake(['*' => Http::response('<html><head><title>Blue Door</title></head></html>', 200, ['Content-Type' => 'text/html'])]);
+        $places = $this->places();
+        $map = 'https://maps.example.com/maps/place/Blue+Door/@12.97,77.59,17z';
+        $cafe = Item::factory()->create([
+            'list_id' => $places->id,
+            'added_by_user_id' => $this->adder->id,
+            'title' => 'Blue Door Cafe',
+            'url' => $map,
+            'url_key' => LinkKey::for($map),
+            'location_label' => 'Blue Door',
+            'location_url' => $map,
+            'lat' => 12.97,
+            'lng' => 77.59,
+            'address' => '1 Church St',
+        ]);
+
+        $this->actingAs($this->adder)
+            ->patch("/apps/our-shelf/items/{$cafe->id}", ['url' => 'https://bluedoor.example.com/', 'title' => 'Blue Door Cafe'])
+            ->assertSessionHasNoErrors();
+
+        $this->assertDatabaseHas('corner_items', ['id' => $cafe->id, 'location_label' => null, 'lat' => null, 'address' => null]);
+    }
 }

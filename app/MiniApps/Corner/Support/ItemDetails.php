@@ -28,8 +28,7 @@ class ItemDetails
         $url = ItemRules::trimmed($data['url'] ?? null);
         $unchanged = $existing !== null && $existing->url === $url;
         $read = $url === null || $unchanged ? null : $this->preview->lookup($url);
-        // A short link only shows it is a map once followed, and the preview already followed it.
-        $place = $read === null ? null : (MapLink::place($url) ?? MapLink::place($read['url']));
+        $place = $url === null || $read === null ? null : MapLink::fromPreview($url, $read);
 
         return $this->link($data, $existing, $url, $read, $place)
             + $this->location($data, $existing, $url, $read, $place)
@@ -39,7 +38,7 @@ class ItemDetails
     /**
      * @param  array<string, mixed>  $data
      * @param  array{title: ?string, image_url: ?string, author: ?string, site_name: ?string, url: string}|null  $read
-     * @param  array{label: ?string, lat: ?float, lng: ?float}|null  $place
+     * @param  array{label: ?string, lat: ?float, lng: ?float, name: ?string, address: ?string}|null  $place
      * @return array<string, mixed>
      */
     private function link(array $data, ?Item $existing, ?string $url, ?array $read, ?array $place): array
@@ -59,7 +58,7 @@ class ItemDetails
         $unchanged = $read === null;
         $read ??= ['title' => null, 'image_url' => $existing?->image_url, 'author' => $existing?->author, 'site_name' => $existing?->site_name];
         if ($place !== null) {
-            $read['title'] = MapLink::splitTitle($read['title'])['name'] ?? $place['label'];
+            $read['title'] = $place['name'];
         }
 
         return [
@@ -78,67 +77,47 @@ class ItemDetails
      *
      * @param  array<string, mixed>  $data
      * @param  array{title: ?string, image_url: ?string, author: ?string, site_name: ?string, url: string}|null  $read
-     * @param  array{label: ?string, lat: ?float, lng: ?float}|null  $place
+     * @param  array{label: ?string, lat: ?float, lng: ?float, name: ?string, address: ?string}|null  $place
      * @return array<string, mixed>
      */
     private function location(array $data, ?Item $existing, ?string $url, ?array $read, ?array $place): array
     {
-        $typedAddress = array_key_exists('address', $data);
         $address = ItemRules::trimmed($data['address'] ?? null);
 
         if (array_key_exists('location', $data)) {
             return $this->typedLocation(ItemRules::trimmed($data['location']), $address, $existing);
         }
 
-        // The same link as before keeps the place it had, however that place was set.
-        if ($existing !== null && $read === null && $existing->url === $url) {
+        if ($place !== null) {
             return [
-                'location_label' => $existing->location_label,
-                'location_url' => $existing->location_url,
-                'lat' => $existing->lat,
-                'lng' => $existing->lng,
-                'address' => $typedAddress ? $address : $existing->address,
+                'location_label' => $place['label'] ?? $place['name'],
+                'location_url' => $url,
+                'lat' => $place['lat'],
+                'lng' => $place['lng'],
+                'address' => $address ?? $place['address'],
             ];
         }
 
-        if ($place === null || $url === null || $read === null) {
-            return [
-                'location_label' => null, 'location_url' => null,
-                'lat' => null, 'lng' => null, 'address' => $address,
-            ];
+        // Only a place that came from the old link goes with it; one set any other way stays.
+        $leftWithOldLink = $existing?->url !== null && $existing->url !== $url && $existing->location_url === $existing->url;
+        if ($existing !== null && ! $leftWithOldLink) {
+            return $this->keptPlace($existing, array_key_exists('address', $data) ? $address : $existing->address);
         }
 
-        $title = MapLink::splitTitle($read['title']);
-
-        return [
-            'location_label' => $place['label'] ?? $title['name'],
-            'location_url' => $url,
-            'lat' => $place['lat'],
-            'lng' => $place['lng'],
-            'address' => $address ?? $title['address'],
-        ];
+        return $this->noPlace($address);
     }
 
     /** @return array<string, mixed> */
     private function typedLocation(?string $input, ?string $address, ?Item $existing): array
     {
         if ($input === null) {
-            return [
-                'location_label' => null, 'location_url' => null,
-                'lat' => null, 'lng' => null, 'address' => $address,
-            ];
+            return $this->noPlace($address);
         }
 
         // Re-saving the same place keeps what was read from it before, coordinates included.
         $current = $existing->location_url ?? $existing?->location_label;
         if ($existing !== null && $input === $current) {
-            return [
-                'location_label' => $existing->location_label,
-                'location_url' => $existing->location_url,
-                'lat' => $existing->lat,
-                'lng' => $existing->lng,
-                'address' => $address,
-            ];
+            return $this->keptPlace($existing, $address);
         }
 
         $read = MapLink::read($input, $this->fetcher);
@@ -150,5 +129,23 @@ class ItemDetails
             'lng' => $read['lng'],
             'address' => $address,
         ];
+    }
+
+    /** @return array<string, mixed> */
+    private function keptPlace(Item $existing, ?string $address): array
+    {
+        return [
+            'location_label' => $existing->location_label,
+            'location_url' => $existing->location_url,
+            'lat' => $existing->lat,
+            'lng' => $existing->lng,
+            'address' => $address,
+        ];
+    }
+
+    /** @return array<string, mixed> */
+    private function noPlace(?string $address): array
+    {
+        return ['location_label' => null, 'location_url' => null, 'lat' => null, 'lng' => null, 'address' => $address];
     }
 }
