@@ -8,7 +8,7 @@ use Tests\TestCase;
 
 class MapLinkTest extends TestCase
 {
-    /** @return array<string, array{0: string, 1: ?string}> link => its place's name when the page says nothing */
+    /** @return array<string, array{0: string, 1: ?string}> link => the name in it, if any */
     public static function links(): array
     {
         return [
@@ -25,7 +25,8 @@ class MapLinkTest extends TestCase
     #[DataProvider('links')]
     public function test_a_map_link_is_a_place(string $url, ?string $name): void
     {
-        $this->assertSame($name, MapLink::placeName($url, ['title' => null, 'url' => $url]));
+        // With no name in the link either, a pin goes by the link itself.
+        $this->assertSame($name ?? $url, MapLink::placeName($url, ['title' => null, 'url' => $url]));
         $this->assertSame('Lalbagh', MapLink::placeName($url, ['title' => 'Lalbagh · Mavalli, Bengaluru', 'url' => $url]));
     }
 
@@ -36,6 +37,7 @@ class MapLinkTest extends TestCase
             'a video' => ['https://www.youtube.com/watch?v=dQw4w9WgXcQ'],
             'a film' => ['https://watch.plex.tv/movie/the-man-from-earth'],
             'a search that is only words' => ['https://search.example.com/find?q=lakes+near+me'],
+            'a page with place in its path' => ['https://blog.example.com/place/best-cafes'],
             'a latitude off the globe' => ['https://maps.example.com/?q=95.1,77.6'],
             'a longitude off the globe' => ['https://maps.example.com/?q=12.9,190.5'],
         ];
@@ -58,7 +60,9 @@ class MapLinkTest extends TestCase
     public function test_a_page_titled_only_with_the_map_sites_name_leaves_the_name_to_the_link(): void
     {
         $url = 'https://maps.example.com/maps/place/Cubbon+Park/@12.97,77.59,15z';
+        $pin = 'https://maps.example.com/maps/search/?api=1&query=12.97,77.59';
 
         $this->assertSame('Cubbon Park', MapLink::placeName($url, ['title' => 'Maps', 'url' => $url]));
+        $this->assertSame($pin, MapLink::placeName($pin, ['title' => 'Maps', 'url' => $pin]));
     }
 }

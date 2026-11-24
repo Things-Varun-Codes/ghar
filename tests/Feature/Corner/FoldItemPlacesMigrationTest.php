@@ -83,6 +83,7 @@ class FoldItemPlacesMigrationTest extends TestCase
 
         $row = $this->after($upgraded);
         $this->assertSame(self::PIN.'9.9658,76.2421', $row->url);
+        $this->assertSame('Google Maps', $row->site_name);
         $this->assertSame('12 Fort Road, Kochi', $row->notes);
 
         $row = $this->after($websiteAndPin);
@@ -119,12 +120,12 @@ class FoldItemPlacesMigrationTest extends TestCase
         $this->assertNull($this->after($second)->url_key);
     }
 
-    public function test_notes_stay_short_enough_to_be_saved_again(): void
+    public function test_a_place_is_never_cut_from_long_notes(): void
     {
         $id = $this->row(['notes' => str_repeat('a', 1990), 'location_label' => 'Somewhere else entirely']);
 
         $this->migration->up();
 
-        $this->assertSame(2000, mb_strlen($this->after($id)->notes));
+        $this->assertStringEndsWith("\n\nSomewhere else entirely", $this->after($id)->notes);
     }
 }

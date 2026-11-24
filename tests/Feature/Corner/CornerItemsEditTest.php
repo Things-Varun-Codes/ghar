@@ -186,4 +186,20 @@ class CornerItemsEditTest extends TestCase
             ->patch('/apps/our-shelf/items/'.(Item::max('id') + 1000), ['title' => 'X'])
             ->assertNotFound();
     }
+
+    public function test_a_link_the_upgrade_left_without_its_key_can_still_be_edited(): void
+    {
+        Http::fake();
+        $places = $this->places();
+        $pin = 'https://www.google.com/maps/search/?api=1&query=12.98,77.62';
+        Item::factory()->create(['list_id' => $places->id, 'added_by_user_id' => $this->adder->id, 'url' => $pin, 'url_key' => LinkKey::for($pin)]);
+        $twin = Item::factory()->create(['list_id' => $places->id, 'added_by_user_id' => $this->adder->id, 'title' => 'Lake two', 'url' => $pin, 'url_key' => null]);
+
+        $this->actingAs($this->adder)
+            ->patch("/apps/our-shelf/items/{$twin->id}", ['url' => $pin, 'title' => 'Lake two', 'notes' => 'Same lake'])
+            ->assertSessionHasNoErrors();
+
+        $this->assertDatabaseHas('corner_items', ['id' => $twin->id, 'notes' => 'Same lake', 'url_key' => null]);
+        Http::assertNothingSent();
+    }
 }

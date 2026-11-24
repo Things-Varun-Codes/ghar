@@ -161,7 +161,7 @@ const routes = [
         path: '/apps/our-shelf/{corner.place.slug}/{corner.place.item}',
         auth: true,
         description:
-            '/apps/our-shelf/{list}/{item} (a place with coordinates only)',
+            '/apps/our-shelf/{list}/{item} (a place: a map link)',
     },
     {
         path: '/apps/our-shelf/{corner.nameOnly.slug}/{corner.nameOnly.item}',

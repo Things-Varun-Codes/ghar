@@ -26,7 +26,7 @@ final class MapLink
         '#[?&](?:q|query|name)=([^&]+)#i',
     ];
 
-    private const PLACE_PATH = '#/place/([^/@?]+)#';
+    private const PLACE_PATH = '#/maps/place/([^/@?]+)#';
 
     /** How a map page titles a place: its name, then where it is. */
     private const TITLE_SEPARATOR = ' · ';
@@ -51,7 +51,8 @@ final class MapLink
     /**
      * What a previewed map link's place is called, or null when the link isn't a map. A short
      * link only shows it is a map once followed, and the preview already followed it. A page
-     * title without the separator is the map site's own name, not the place's.
+     * title without the separator is the map site's own name, not the place's, so a pin with
+     * no name in its link goes by the link itself.
      *
      * @param  array{title: ?string, url: string}  $read  what LinkPreview found
      */
@@ -64,7 +65,7 @@ final class MapLink
 
         $parts = explode(self::TITLE_SEPARATOR, $read['title'] ?? '', 2);
 
-        return (count($parts) === 2 ? self::text($parts[0]) : null) ?? $place['label'];
+        return (count($parts) === 2 ? self::text($parts[0]) : null) ?? $place['label'] ?? $url;
     }
 
     /** @return array{label: ?string, lat: ?float, lng: ?float} */

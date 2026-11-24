@@ -58,6 +58,8 @@ class ItemDetails
 
         return [
             ...LinkKey::columnsFor($url),
+            // An unchanged link keeps its key: a twin the upgrade left keyless must stay editable.
+            ...($unchanged ? ['url_key' => $existing?->url_key] : []),
             'author' => $read['author'],
             'site_name' => $read['site_name'],
             // A link nobody could read is at least itself.

@@ -16,7 +16,7 @@ return new class extends Migration
 {
     private const PLACE_COLUMNS = ['location_label', 'location_url', 'place_id', 'lat', 'lng', 'address'];
 
-    private const NOTES_MAX = 2000;
+    private const MAP_SEARCH = 'https://www.google.com/maps/search/?api=1&query=';
 
     public function up(): void
     {
@@ -37,7 +37,7 @@ return new class extends Migration
                 $extra = [];
                 // The pin: the map link it was read from, else a map link to its coordinates.
                 $pin = $row->location_url ?? ($row->lat !== null && $row->lng !== null
-                    ? 'https://www.google.com/maps/search/?api=1&query='.(float) $row->lat.','.(float) $row->lng
+                    ? self::MAP_SEARCH.(float) $row->lat.','.(float) $row->lng
                     : null);
 
                 // A geo: address isn't a web link, so it can only be kept as text.
@@ -52,7 +52,8 @@ return new class extends Migration
                     $columns = LinkKey::columnsFor($changes['url']);
                     $key = $columns['url_key'];
                     $changes['url_key'] = $key !== null && ! isset($taken[$row->list_id][$key]) ? $key : null;
-                    $changes['site_name'] = $columns['site_name'];
+                    // What the map site calls itself, as a pasted link to it would say.
+                    $changes['site_name'] = str_starts_with($changes['url'], self::MAP_SEARCH) ? 'Google Maps' : $columns['site_name'];
                     if ($changes['url_key'] !== null) {
                         $taken[$row->list_id][$key] = true;
                     }
@@ -69,9 +70,8 @@ return new class extends Migration
                 }
 
                 if ($extra !== []) {
-                    $notes = trim(implode("\n\n", array_filter([trim((string) $row->notes), implode("\n", $extra)])));
-                    // Notes are validated at this length, so a longer one could never be saved again.
-                    $changes['notes'] = mb_substr($notes, 0, self::NOTES_MAX);
+                    // Never cut: notes over the form's limit only ask to be shortened on the next edit.
+                    $changes['notes'] = trim(implode("\n\n", array_filter([trim((string) $row->notes), implode("\n", $extra)])));
                 }
 
                 if ($changes !== []) {
