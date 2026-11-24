@@ -1,4 +1,6 @@
+import type { MediaItem } from '@/MiniApps/History/Components/MediaGrid';
 import type { HistoryEvent } from '@/MiniApps/History/lib/types';
+import type { LightboxItem } from '@/Shell/Components/MediaLightbox';
 
 /* The place to print for a moment: its name, or the address when the name is already in it. */
 export function displayLocation(
@@ -45,4 +47,30 @@ export function storyText(html: string | null): string {
         .replace(/\s+/g, ' ')
         .replace(/^[\s·]+|[\s·]+$/g, '')
         .replace(/(?: ·)+ ·/g, ' ·');
+}
+
+/* A moment's media that can open, as the lightbox shows it: a photo or video still uploading has no original yet. */
+export function lightboxMedia(
+    event: Pick<HistoryEvent, 'media' | 'title' | 'date_label'>,
+): { media: (MediaItem & { original: string })[]; slides: LightboxItem[] } {
+    const media = event.media.filter(
+        (m): m is MediaItem & { original: string } => m.original !== null,
+    );
+    const from = event.title || event.date_label;
+
+    return {
+        media,
+        slides: media.map((m) => ({
+            kind: m.kind,
+            medium: m.medium,
+            large: m.large,
+            original: m.original,
+            poster: m.poster,
+            width: m.width,
+            height: m.height,
+            alt: `${m.kind === 'video' ? 'Video' : 'Photo'} from ${from}`,
+            title: event.title ?? undefined,
+            subtitle: event.date_label,
+        })),
+    };
 }

@@ -1,18 +1,14 @@
 import { MapPin } from 'lucide-react';
 import { useMemo, useRef } from 'react';
-import { displayLocation } from '@/MiniApps/History/lib/moment';
+import { displayLocation, lightboxMedia } from '@/MiniApps/History/lib/moment';
 import type { EventComment, HistoryEvent } from '@/MiniApps/History/lib/types';
 import MediaLightbox from '@/Shell/Components/MediaLightbox';
-import type {
-    LightboxItem,
-    MediaLightboxHandle,
-} from '@/Shell/Components/MediaLightbox';
+import type { MediaLightboxHandle } from '@/Shell/Components/MediaLightbox';
 import ActivityStrip from './ActivityStrip';
 import BirthdayLabel from './BirthdayLabel';
 import BodyHtml from './BodyHtml';
 import CommentsSection from './CommentsSection';
 import MediaGrid from './MediaGrid';
-import type { MediaItem } from './MediaGrid';
 import ReactionsRow from './ReactionsRow';
 
 type Props = {
@@ -30,32 +26,9 @@ export default function EventReadView({
 }: Props) {
     const lightboxRef = useRef<MediaLightboxHandle>(null);
 
-    const renderableMedia = useMemo(
-        () =>
-            event.media.filter(
-                (m): m is MediaItem & { original: string } =>
-                    m.original !== null,
-            ),
-        [event.media],
-    );
-
-    const lightboxMedia: LightboxItem[] = useMemo(
-        () =>
-            renderableMedia.map((m) => ({
-                kind: m.kind,
-                medium: m.medium,
-                large: m.large,
-                original: m.original,
-                poster: m.poster,
-                width: m.width,
-                height: m.height,
-                alt: event.title
-                    ? `${m.kind === 'video' ? 'Video' : 'Photo'} from ${event.title}`
-                    : `${m.kind === 'video' ? 'Video' : 'Photo'} from ${event.date_label}`,
-                title: event.title ?? undefined,
-                subtitle: event.date_label,
-            })),
-        [renderableMedia, event.title, event.date_label],
+    const { media: renderableMedia, slides: lightboxSlides } = useMemo(
+        () => lightboxMedia(event),
+        [event],
     );
 
     const place = displayLocation(event);
@@ -111,8 +84,8 @@ export default function EventReadView({
                 </div>
             )}
 
-            {lightboxMedia.length > 0 && (
-                <MediaLightbox ref={lightboxRef} media={lightboxMedia} />
+            {lightboxSlides.length > 0 && (
+                <MediaLightbox ref={lightboxRef} media={lightboxSlides} />
             )}
 
             <ReactionsRow event={event} />
