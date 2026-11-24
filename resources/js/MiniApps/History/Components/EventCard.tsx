@@ -1,7 +1,13 @@
-import { MapPin, MessageCircle } from 'lucide-react';
-import { useMemo } from 'react';
-import { displayLocation, storyText } from '@/MiniApps/History/lib/moment';
+import { MapPin, MessageCircle, Play } from 'lucide-react';
+import { useMemo, useRef } from 'react';
+import {
+    displayLocation,
+    lightboxMedia,
+    storyText,
+} from '@/MiniApps/History/lib/moment';
 import type { HistoryEvent } from '@/MiniApps/History/lib/types';
+import MediaLightbox from '@/Shell/Components/MediaLightbox';
+import type { MediaLightboxHandle } from '@/Shell/Components/MediaLightbox';
 import PersonAvatar from '@/Shell/Components/PersonAvatar';
 import BirthdayLabel from './BirthdayLabel';
 
@@ -23,8 +29,13 @@ export default function EventCard({ event, onRead }: EventCardProps) {
 
     const name = event.title || event.date_label;
     const place = displayLocation(event);
-    const shown = event.media.find((m) => m.original !== null && m.thumb);
-    const thumb = shown ? (shown.card ?? shown.thumb) : null;
+    const lightboxRef = useRef<MediaLightboxHandle>(null);
+    const { media, slides } = useMemo(() => lightboxMedia(event), [event]);
+    // A photo waits for its thumbnail; a video shows up at once, on its poster or a blank print.
+    const shownIndex = media.findIndex((m) => m.kind === 'video' || m.thumb);
+    const shown = shownIndex >= 0 ? media[shownIndex] : null;
+    const picture =
+        shown?.kind === 'video' ? shown.poster : (shown?.card ?? shown?.thumb);
     const reacted = event.reactions.filter((r) => r.count > 0);
     const reactionTotal = reacted.reduce((sum, r) => sum + r.count, 0);
     const commentCount = event.comments.length;
@@ -135,18 +146,40 @@ export default function EventCard({ event, onRead }: EventCardProps) {
                     )}
                 </div>
 
-                {thumb && (
-                    <img
-                        src={thumb}
-                        alt=""
-                        loading="lazy"
-                        decoding="async"
+                {shown && (
+                    <button
+                        type="button"
+                        aria-label={`Open ${shown.kind === 'video' ? 'the video' : 'the photo'} from ${name}`}
                         className="history-moment-thumb"
                         // Each print leans its own way, the same every visit.
                         style={{ rotate: `${(event.id % 5) - 2}deg` }}
-                    />
+                        onClick={() => lightboxRef.current?.open(shownIndex)}
+                    >
+                        {picture && (
+                            <img
+                                src={picture}
+                                alt=""
+                                loading="lazy"
+                                decoding="async"
+                            />
+                        )}
+                        {shown.kind === 'video' && (
+                            <span
+                                aria-hidden="true"
+                                className="history-play-badge"
+                            >
+                                <Play
+                                    size={16}
+                                    strokeWidth={1.5}
+                                    fill="currentColor"
+                                />
+                            </span>
+                        )}
+                    </button>
                 )}
             </div>
+
+            {shown && <MediaLightbox ref={lightboxRef} media={slides} />}
         </article>
     );
 }
