@@ -14,10 +14,6 @@ import {
     sectionFor,
 } from '../lib/changes.mjs';
 
-const BACK_UP_LINES = [
-    'Back up the database and the media volume before you upgrade (DEPLOY.md, "Backups and restore").',
-    'Migrations only run forward, so the backup is the way back.',
-];
 const file = (front, body) => `---\n${front}\n---\n${body}\n`;
 const change = (name, front, body) => parseChange(name, file(front, body));
 
@@ -112,8 +108,6 @@ test('renders sections in a fixed order, entries by file name', () => {
         [
             '## [1.2.0] - 2026-11-16',
             '',
-            ...BACK_UP_LINES,
-            '',
             '### Upgrading',
             '',
             '- Moved.',
@@ -132,15 +126,10 @@ test('renders sections in a fixed order, entries by file name', () => {
     );
 });
 
-test('every section opens with the backup, and a new major says how to move to it', () => {
+test('a new major says how to move to it', () => {
     const patch = renderSection('2.0.1', '2026-11-26', [
         change('a.md', 'type: fixed', 'A was wrong.'),
     ]);
-    assert.ok(
-        patch.startsWith(
-            `## [2.0.1] - 2026-11-26\n\n${BACK_UP_LINES.join('\n')}\n`,
-        ),
-    );
     assert.ok(!patch.includes('GHAR_VERSION'));
 
     // Even with nothing marked breaking, a new major has an Upgrading section.

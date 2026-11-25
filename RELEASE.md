@@ -36,10 +36,9 @@ You need a clean working tree, `gh` signed in, and a checkout that has had `npm 
 2. **Prepare.** `npm run release` starts from the latest `main`, writes the section into
    `CHANGELOG.md`, deletes the change files, pushes a `release/v1.2.3` branch and opens a pull
    request titled `chore: release 1.2.3`. To choose the version yourself:
-   `npm run release -- --version 2.0.0`. Every section opens with a line telling people to back
-   up first. A new major (`2.0.0`) also gets a first **Upgrading** step to set `GHAR_VERSION=2`,
-   because an install on `1` never receives it otherwise, and the same commit points
-   `.env.selfhost.example` at `2` so new installs start there.
+   `npm run release -- --version 2.0.0`. A new major (`2.0.0`) also gets a first **Upgrading**
+   step to set `GHAR_VERSION=2`, because an install on `1` never receives it otherwise, and the
+   same commit points `.env.selfhost.example` at `2` so new installs start there.
 3. **Merge** that pull request once its checks pass. Read the section in it first; this is the last
    point where the wording can change.
 4. **Publish.** `npm run release:tag` tags the commit that added the section as `v1.2.3` and pushes

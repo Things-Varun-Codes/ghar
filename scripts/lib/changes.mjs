@@ -213,11 +213,6 @@ function renderEntry({ summary, detail }) {
     return lines.join('\n');
 }
 
-// Opens every version's section, which is also its GitHub release notes, so whoever upgrades
-// reads it first.
-export const BACK_UP_FIRST =
-    'Back up the database and the media volume before you upgrade (DEPLOY.md, "Backups and restore"). Migrations only run forward, so the backup is the way back.';
-
 // The major version a release starts (2 for 2.0.0), or null. An install follows one major
 // through GHAR_VERSION, so it only gets a new one when someone changes that.
 export function newMajor(version) {
@@ -228,10 +223,7 @@ export function newMajor(version) {
 
 export function renderSection(version, date, changes) {
     const sorted = [...changes].sort((a, b) => a.name.localeCompare(b.name));
-    const parts = [
-        `## [${version}] - ${date}`,
-        wrap(BACK_UP_FIRST, WIDTH).join('\n'),
-    ];
+    const parts = [`## [${version}] - ${date}`];
     const major = newMajor(version);
     const switchMajor =
         major === null
