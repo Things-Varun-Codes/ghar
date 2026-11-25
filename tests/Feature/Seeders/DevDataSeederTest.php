@@ -12,8 +12,11 @@ use App\MiniApps\History\Models\EventComment;
 use App\MiniApps\History\Models\EventReaction;
 use App\MiniApps\Mailbox\Models\Citation;
 use App\MiniApps\Mailbox\Models\Coupon;
+use App\MiniApps\Mailbox\Models\Expense;
+use App\MiniApps\Mailbox\Models\ExpenseGroup;
 use App\MiniApps\Mailbox\Models\MailboxMessage;
 use App\MiniApps\Mailbox\Models\Postcard;
+use App\MiniApps\Mailbox\Support\ExpenseBalances;
 use App\Shell\Models\Invitation;
 use App\Shell\Models\ShortLink;
 use App\Shell\Models\User;
@@ -229,6 +232,24 @@ class DevDataSeederTest extends TestCase
         $this->assertTrue(Coupon::where('status', Coupon::STATUS_DEPLETED)->exists());
         $this->assertTrue(Citation::where('status', Citation::STATUS_ISSUED)->exists());
         $this->assertTrue(Citation::where('status', Citation::STATUS_PAID)->exists());
+
+        // Coast trip is Ravi's and Meera's alone, and Meera owes Ravi in it.
+        $coast = ExpenseGroup::query()->where('name', 'Coast trip')->sole();
+        $this->assertSame([$ravi->id, $meera->id], $coast->memberIds());
+        $this->assertSame(0, ExpenseGroup::visibleTo($kabir)->whereKey($coast->id)->count());
+        $this->assertSame(0, ExpenseGroup::visibleTo($admin)->whereKey($coast->id)->count());
+        $this->assertEquals([$ravi->id => 340000, $meera->id => -340000], ExpenseBalances::netsIn($coast));
+
+        $general = ExpenseGroup::general();
+        $this->assertSame(0, array_sum(ExpenseBalances::netsIn($general)));
+        $this->assertSame(1, Expense::onlyTrashed()->where('group_id', $general->id)->count());
+        $this->assertTrue(Expense::where('group_id', $general->id)->where('is_settlement', true)->exists());
+        $this->assertTrue(Expense::where('group_id', $general->id)->where('split_mode', Expense::SPLIT_EXACT)->where('is_settlement', false)->exists());
+        // 10000 between three leaves one paisa over.
+        $this->assertSame([3333, 3333, 3334], Expense::where('title', 'Auto to the station')->sole()->shares->pluck('amount')->sort()->values()->all());
+
+        $archived = ExpenseGroup::query()->whereNotNull('archived_at')->sole();
+        $this->assertSame([], array_filter(ExpenseBalances::netsIn($archived)));
 
         $this->assertSame(2, ShortLink::where('enabled', true)->count());
         $this->assertSame(1, ShortLink::where('enabled', false)->count());

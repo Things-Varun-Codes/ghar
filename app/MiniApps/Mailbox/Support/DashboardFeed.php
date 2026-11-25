@@ -4,15 +4,19 @@ namespace App\MiniApps\Mailbox\Support;
 
 use App\MiniApps\Mailbox\Models\Citation;
 use App\MiniApps\Mailbox\Models\Coupon;
+use App\MiniApps\Mailbox\Models\Expense;
 use App\MiniApps\Mailbox\Models\MailboxMessage;
 use App\MiniApps\Mailbox\Models\Postcard;
 use App\Shell\Models\User;
 use App\Shell\Services\Household;
 use App\Shell\Support\Person;
+use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\DB;
 
 /**
  * Home's "Needs you" rows from the Exchange: only things addressed to the viewer or waiting on
- * them, so nothing private reaches anyone else. Notes and postcards say who, never what.
+ * them, so nothing private reaches anyone else. Notes and postcards say who, never what; a debt
+ * says who, never how much or for what.
  */
 final class DashboardFeed
 {
@@ -78,7 +82,48 @@ final class DashboardFeed
             }
         }
 
+        if (EntryTypes::on(EntryTypes::EXPENSES)) {
+            $payments = ExpenseBalances::paymentsOf($user);
+            $owed = array_slice(array_keys(array_filter(ExpenseBalances::overview($user, $payments), fn (int $net): bool => $net < 0)), 0, self::LIMIT);
+            $latest = $owed === [] ? [] : self::latestExpenseIn(array_column($payments, 'group_id'), $user);
+
+            foreach ($owed === [] ? [] : User::query()->whereKey($owed)->orderBy('name')->get() as $person) {
+                // Dated by the newest expense the viewer is on in a group where the two have a debt.
+                $at = max([...array_map(
+                    fn (array $payment): string => in_array($person->id, [$payment['from'], $payment['to']], true) ? ($latest[$payment['group_id']] ?? '') : '',
+                    $payments,
+                ), '']);
+
+                $entries[] = self::needs(
+                    'You owe '.app(Household::class)->shortName($person),
+                    'Shared expenses',
+                    ($at === '' ? now() : Carbon::parse($at, 'UTC'))->toIso8601String(),
+                    route('apps.our-exchange.expenses.index', absolute: false),
+                    'Settle',
+                    $person,
+                );
+            }
+        }
+
         return $entries;
+    }
+
+    /**
+     * @param  array<int, int>  $groupIds
+     * @return array<int, string> group id => when the newest live expense the viewer is on was added
+     */
+    private static function latestExpenseIn(array $groupIds, User $user): array
+    {
+        return Expense::query()
+            ->whereIn('group_id', $groupIds)
+            ->where(fn ($on) => $on
+                ->where('paid_by_id', $user->id)
+                ->orWhereIn('id', DB::table('mailbox_expense_shares')->where('user_id', $user->id)->select('expense_id')))
+            ->groupBy('group_id')
+            ->selectRaw('group_id, max(created_at) as latest')
+            ->toBase()
+            ->pluck('latest', 'group_id')
+            ->all();
     }
 
     /** @return array<string, mixed> */

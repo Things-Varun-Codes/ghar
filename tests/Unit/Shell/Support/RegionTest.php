@@ -53,8 +53,18 @@ class RegionTest extends TestCase
         config(['shell.timezone' => 'Asia/Kolkata', 'shell.locale' => null]);
 
         $this->assertSame(
-            ['timezone' => 'Asia/Kolkata', 'locale' => 'en-IN', 'week_start' => 0],
+            ['timezone' => 'Asia/Kolkata', 'locale' => 'en-IN', 'week_start' => 0, 'currency' => 'INR'],
             Region::forPage(),
         );
+    }
+
+    public function test_the_currency_is_a_three_letter_code(): void
+    {
+        config(['shell.currency' => 'eur']);
+        $this->assertSame('EUR', Region::currency());
+
+        config(['shell.currency' => 'rupees']);
+        $this->expectException(InvalidArgumentException::class);
+        Region::currency();
     }
 }

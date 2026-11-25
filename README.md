@@ -49,7 +49,8 @@ you can write to NFC tags.
 - **Where photos go:** your own disk by default, or any S3-compatible bucket. They are private
   either way, behind signed links that expire within two hours.
 - **Who sees what:** moments and lists are shared by everyone in the household. Notes, postcards,
-  coupons and citations are seen only by the sender and the recipients, not by admins.
+  coupons and citations are seen only by the sender and the recipients, not by admins. A group's
+  shared expenses are seen only by the people in that group.
 - **Who maintains it:** one person, in spare time.
 
 ## What it isn't

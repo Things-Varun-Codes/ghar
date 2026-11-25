@@ -4,6 +4,9 @@ namespace Database\Seeders\DevData;
 
 use App\MiniApps\Mailbox\Models\Citation;
 use App\MiniApps\Mailbox\Models\Coupon;
+use App\MiniApps\Mailbox\Models\Expense;
+use App\MiniApps\Mailbox\Models\ExpenseActivity;
+use App\MiniApps\Mailbox\Models\ExpenseGroup;
 use App\MiniApps\Mailbox\Models\MailboxMessage;
 use App\MiniApps\Mailbox\Models\Postcard;
 use App\MiniApps\Mailbox\Models\SavedPrompt;
@@ -13,7 +16,8 @@ use Illuminate\Contracts\Filesystem\Filesystem;
 
 /**
  * Mailbox rows in every state. Row 1 of each type goes from Ravi to Meera
- * only: the fixture for "a recipient can see it, nobody else can".
+ * only: the fixture for "a recipient can see it, nobody else can". For expenses that fixture is
+ * the "Coast trip" group, which only Ravi and Meera are in.
  */
 final class MailboxData
 {
@@ -29,6 +33,7 @@ final class MailboxData
         $this->postcards($h);
         $this->coupons($h);
         $this->citations($h);
+        $this->expenses($h);
     }
 
     private function notes(Household $h): void
@@ -152,6 +157,81 @@ final class MailboxData
             $citation->ref_no = sprintf('OC/%d/%06d', $issued->year, $citation->id);
             $citation->save();
         }
+    }
+
+    /**
+     * Amounts are paise. General: equal and exact splits, one that leaves a remainder, a
+     * repayment and a deleted duplicate. Coast trip: Meera owes Ravi. Diwali gifts: settled, then
+     * archived.
+     */
+    private function expenses(Household $h): void
+    {
+        $general = ExpenseGroup::general();
+        $coast = ExpenseGroup::factory()->of($h->ravi, $h->meera)->create(['name' => 'Coast trip']);
+        $diwali = ExpenseGroup::factory()->of($h->admin, $h->ravi, $h->kabir)->create(['name' => 'Diwali gifts']);
+
+        foreach ([$coast, $diwali] as $group) {
+            ExpenseActivity::log($group->id, $group->created_by_id === $h->ravi->id ? $h->ravi : $h->admin, 'group.created', data: [
+                'name' => $group->name,
+                'member_ids' => $group->memberIds(),
+            ]);
+        }
+
+        // [group, title, amount, payer, days ago, equal participants | exact shares | receiver, deleted]
+        $rows = [
+            [$general, 'Groceries', 240000, $h->admin, 12, $h->members(), false],
+            [$general, 'Auto to the station', 10000, $h->meera, 9, [$h->admin, $h->ravi, $h->meera], false],
+            [$general, 'School trip fee', 150000, $h->admin, 7, [$h->ravi->id => 90000, $h->meera->id => 60000], false],
+            [$general, 'Payment', 60000, $h->kabir, 5, $h->admin, false],
+            [$general, 'Groceries (entered twice)', 240000, $h->admin, 12, $h->members(), true],
+            [$coast, 'Homestay', 800000, $h->ravi, 20, [$h->ravi, $h->meera], false],
+            [$coast, 'Fish lunch', 120000, $h->meera, 19, [$h->ravi, $h->meera], false],
+            [$diwali, 'Sweets and lamps', 90000, $h->admin, 30, [$h->admin, $h->ravi, $h->kabir], false],
+            [$diwali, 'Payment', 30000, $h->ravi, 28, $h->admin, false],
+            [$diwali, 'Payment', 30000, $h->kabir, 27, $h->admin, false],
+        ];
+
+        foreach ($rows as [$group, $title, $amount, $payer, $days, $split, $deleted]) {
+            $factory = Expense::factory()->state([
+                'group_id' => $group->id,
+                'paid_by_id' => $payer->id,
+                'title' => $title,
+                'amount' => $amount,
+                'spent_on' => $h->today->subDays($days)->toDateString(),
+                'created_at' => $h->daysAgo($days),
+            ]);
+
+            $expense = match (true) {
+                $split instanceof User => $factory->paidTo($split)->create(),
+                array_is_list($split) => $factory->sharedBy(...$split)->create(),
+                default => $factory->owedBy($split)->create(),
+            };
+
+            $summary = [
+                'title' => $title,
+                'amount' => $amount,
+                'spent_on' => $expense->spent_on->toDateString(),
+                'paid_by_id' => $payer->id,
+                'split_mode' => $expense->split_mode,
+                'shares' => $expense->shareMap(),
+            ];
+
+            ExpenseActivity::log($group->id, $payer, $split instanceof User ? 'settlement.recorded' : 'expense.created', $expense->id, $split instanceof User
+                ? ['from_id' => $payer->id, 'to_id' => $split->id, 'amount' => $amount]
+                : $summary);
+
+            if ($deleted) {
+                $expense->deleted_by_id = $payer->id;
+                $expense->save();
+                $expense->delete();
+
+                ExpenseActivity::log($group->id, $payer, 'expense.deleted', $expense->id, $summary);
+            }
+        }
+
+        $diwali->archived_at = $h->daysAgo(26);
+        $diwali->save();
+        ExpenseActivity::log($diwali->id, $h->admin, 'group.archived');
     }
 
     /**

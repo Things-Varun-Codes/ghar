@@ -7,18 +7,25 @@ import { cn } from '@/lib/utils';
 import MailboxLayout, {
     MAILBOX_ROOM,
 } from '@/MiniApps/Mailbox/Layouts/MailboxLayout';
+import { formatMoney } from '@/MiniApps/Mailbox/lib/money';
 import { monogram } from '@/MiniApps/Mailbox/lib/monogram';
 import { index as citationsIndex } from '@/routes/apps/our-exchange/citations';
 import { index as couponsIndex } from '@/routes/apps/our-exchange/coupons';
+import { index as expensesIndex } from '@/routes/apps/our-exchange/expenses';
 import { index as messagesIndex } from '@/routes/apps/our-exchange/messages';
 import { index as postcardsIndex } from '@/routes/apps/our-exchange/postcards';
 import EmptyState from '@/Shell/Components/EmptyState';
 import Page from '@/Shell/Components/Page';
 import RoomDoor from '@/Shell/Components/RoomDoor';
 
-type EntryType = 'messages' | 'postcards' | 'citations' | 'coupons';
+type EntryType =
+    | 'messages'
+    | 'postcards'
+    | 'citations'
+    | 'coupons'
+    | 'expenses';
 
-type Counts = Record<EntryType, number>;
+type Counts = Record<Exclude<EntryType, 'expenses'>, number>;
 
 type MailboxSummary = {
     counts: Counts;
@@ -26,6 +33,9 @@ type MailboxSummary = {
     unread_postcards: number;
     citations_action_needed: number;
     coupons_action_needed: number;
+    /* Minor units, both zero or more: what the viewer is owed and what they owe. */
+    expenses: { owed: number; owing: number };
+    expenses_action_needed: number;
 };
 
 type NotePeek = { body: string; from: string };
@@ -46,12 +56,15 @@ type CouponPeek = {
     issuer: string;
     recipient: string;
 };
+/* `net` is minor units: positive when they owe the viewer, negative when the viewer owes them. */
+type BalancePeek = { name: string; net: number };
 
 type MailboxPeeks = {
     notes: NotePeek | null;
     postcards: PostcardPeek | null;
     citations: CitationPeek | null;
     coupons: CouponPeek | null;
+    expenses: BalancePeek[] | null;
 };
 
 type Props = {
@@ -238,6 +251,34 @@ function CouponStub({ coupon }: { coupon: CouponPeek | null }) {
     );
 }
 
+function LedgerSlip({ balances }: { balances: BalancePeek[] | null }) {
+    return (
+        <div className="mailbox-door-expense">
+            {balances ? (
+                balances.map((balance) => (
+                    <span
+                        key={balance.name}
+                        className="mailbox-door-expense-line"
+                    >
+                        <span>
+                            {balance.net > 0
+                                ? `${balance.name} owes you`
+                                : `You owe ${balance.name}`}
+                        </span>
+                        <span className="tabular-nums">
+                            {formatMoney(Math.abs(balance.net))}
+                        </span>
+                    </span>
+                ))
+            ) : (
+                <span className="mailbox-door-expense-line">
+                    Nobody owes anybody
+                </span>
+            )}
+        </div>
+    );
+}
+
 const DOORS: Record<
     EntryType,
     (summary: MailboxSummary, peeks: MailboxPeeks) => Door
@@ -294,6 +335,24 @@ const DOORS: Record<
             ),
         peek: <CouponStub coupon={peeks.coupons} />,
     }),
+    expenses: (summary, peeks) => ({
+        href: expensesIndex.url(),
+        prefetch: true,
+        live:
+            summary.expenses.owing > 0
+                ? {
+                      text: `You owe ${formatMoney(summary.expenses.owing)}`,
+                      alert: true,
+                  }
+                : {
+                      text:
+                          summary.expenses.owed > 0
+                              ? `You're owed ${formatMoney(summary.expenses.owed)}`
+                              : 'All settled',
+                      alert: false,
+                  },
+        peek: <LedgerSlip balances={peeks.expenses} />,
+    }),
 };
 
 export default function Landing({
@@ -307,7 +366,7 @@ export default function Landing({
                 {types.length === 0 && (
                     <EmptyState
                         title="Nothing is switched on in the Exchange"
-                        body="An admin can turn on notes, postcards, coupons and citations."
+                        body="An admin can turn on notes, postcards, coupons, citations and expenses."
                     />
                 )}
                 <div className="shell-doors-wrap">

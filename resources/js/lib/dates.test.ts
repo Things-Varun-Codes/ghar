@@ -9,8 +9,18 @@ import {
     weekStart,
 } from '@/lib/dates';
 
-const KOLKATA = { timezone: 'Asia/Kolkata', locale: 'en-IN', week_start: 0 };
-const UTC = { timezone: 'UTC', locale: 'en-GB', week_start: 1 };
+const KOLKATA = {
+    timezone: 'Asia/Kolkata',
+    locale: 'en-IN',
+    week_start: 0,
+    currency: 'INR',
+};
+const UTC = {
+    timezone: 'UTC',
+    locale: 'en-GB',
+    week_start: 1,
+    currency: 'INR',
+};
 
 afterEach(() => setRegion(UTC));
 
@@ -47,6 +57,7 @@ describe('formatInstant', () => {
             timezone: 'America/New_York',
             locale: 'en-US',
             week_start: 0,
+            currency: 'INR',
         });
 
         expect(formatInstant('2026-11-15T17:00:00Z')).toBe('Nov 15, 2026');
@@ -65,6 +76,7 @@ describe('formatPlainDate', () => {
             timezone: 'Pacific/Honolulu',
             locale: 'en-US',
             week_start: 0,
+            currency: 'INR',
         });
         expect(formatPlainDate('2026-11-15')).toBe('Nov 15, 2026');
     });
@@ -88,7 +100,12 @@ describe('names', () => {
         expect(weekdayNames('long')[0]).toBe('Sunday');
         expect(weekdayNames('long')[1]).toBe('Monday');
 
-        setRegion({ timezone: 'Europe/Paris', locale: 'fr-FR', week_start: 1 });
+        setRegion({
+            timezone: 'Europe/Paris',
+            locale: 'fr-FR',
+            week_start: 1,
+            currency: 'INR',
+        });
         expect(monthNames('long')[0]).toBe('janvier');
         expect(weekdayNames('long')[0]).toBe('dimanche');
     });
@@ -101,6 +118,7 @@ describe('names', () => {
             timezone: 'America/New_York',
             locale: 'en-US',
             week_start: 0,
+            currency: 'INR',
         });
         expect(formatDayMonth(11, 5)).toBe('November 5');
     });

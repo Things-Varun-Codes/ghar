@@ -23,6 +23,10 @@ return [
     'timezone' => env('GHAR_TIMEZONE') ?: 'UTC',
     'locale' => env('GHAR_LOCALE') ?: null,
 
+    // The one currency money is shown in (ISO 4217). Amounts are stored as bare minor units, so
+    // changing it relabels what is already there. Validated in Region too.
+    'currency' => env('GHAR_CURRENCY') ?: 'INR',
+
     // The scheduler ticks every minute, so three minutes allows for missed ticks. The queue's
     // one worker is shared with photo conversions, so a heartbeat can wait behind a big
     // upload. docker-entrypoint.sh touches boot_marker; heartbeats count as healthy for

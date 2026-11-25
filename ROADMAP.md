@@ -13,9 +13,9 @@ when work lands, delete lines when they stop being true.
 - **Our Shelf** — lists the household makes itself (name, any lucide icon, done word), items
   with a name, notes, link, picture and place, generic link previews behind fetch guards, a picture
   proxy, Open in Maps, deferred-delete Undo.
-- **Our Exchange** — messages, AI postcards (any image model), citations, coupons.
+- **Our Exchange** — messages, AI postcards (any image model), citations, coupons, shared expenses (groups, equal or exact splits, simplified debts, settle up, an activity log).
 - **Rooms the admin chooses** — Admin → Rooms turns History, Shelf and Exchange on or off at runtime
-  (data kept), and Exchange's four entry types individually. A fresh install starts with none on; an
+  (data kept), and Exchange's five entry types individually. A fresh install starts with none on; an
   upgrade keeps what it had.
 - **Quality gates** — Eloquent strict mode, GitHub Actions CI, lefthook hooks, route-drift check,
   Vitest unit tier, headless and fault-injection smoke, restrictive user-FK offboarding.

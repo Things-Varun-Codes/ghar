@@ -8,8 +8,9 @@ use IntlCalendar;
 use InvalidArgumentException;
 
 /**
- * Where the household lives: its timezone, the locale its dates read in, and the day its
- * week starts. One per install, from GHAR_TIMEZONE and GHAR_LOCALE.
+ * Where the household lives: its timezone, the locale its dates read in, the day its week
+ * starts and the currency it counts in. One per install, from GHAR_TIMEZONE, GHAR_LOCALE and
+ * GHAR_CURRENCY.
  */
 final class Region
 {
@@ -50,6 +51,18 @@ final class Region
         return $calendar === null ? 1 : ($calendar->getFirstDayOfWeek() - 1) % 7;
     }
 
+    /** An ISO 4217 code such as INR, for the browser's Intl. */
+    public static function currency(): string
+    {
+        $currency = strtoupper((string) config('shell.currency'));
+
+        if (preg_match('/^[A-Z]{3}$/', $currency) !== 1) {
+            throw new InvalidArgumentException("GHAR_CURRENCY must be a three-letter code such as INR, not '{$currency}'.");
+        }
+
+        return $currency;
+    }
+
     /** Now on the household's clock. */
     public static function now(): CarbonImmutable
     {
@@ -61,13 +74,14 @@ final class Region
         return self::now()->startOfDay();
     }
 
-    /** @return array{timezone: string, locale: string, week_start: int} */
+    /** @return array{timezone: string, locale: string, week_start: int, currency: string} */
     public static function forPage(): array
     {
         return [
             'timezone' => self::timezone(),
             'locale' => self::locale(),
             'week_start' => self::weekStart(),
+            'currency' => self::currency(),
         ];
     }
 }

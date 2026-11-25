@@ -1,7 +1,7 @@
 import { act, renderHook } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
 
-import { useSheetSession } from './useSheetSession';
+import { useSheetSession } from './use-sheet-session';
 
 describe('useSheetSession', () => {
     it('mounts nothing until the first open', () => {
