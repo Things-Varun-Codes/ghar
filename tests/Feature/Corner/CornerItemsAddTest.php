@@ -303,14 +303,14 @@ class CornerItemsAddTest extends TestCase
         ]);
     }
 
-    public function test_a_link_whose_page_times_out_is_kept_as_itself(): void
+    public function test_a_link_whose_page_times_out_and_has_no_words_is_kept_as_itself(): void
     {
         Notification::fake();
         Http::fake(fn () => throw new ConnectionException('Timeout'));
         $adder = User::factory()->create();
         $this->songs();
 
-        $url = 'https://www.example.com/watch?v=timeoutVid1';
+        $url = 'https://www.example.com/v/timeoutVid1';
 
         $this->actingAs($adder)->post('/apps/our-shelf/songs', ['url' => $url])->assertRedirect('/apps/our-shelf/songs');
 
@@ -325,7 +325,7 @@ class CornerItemsAddTest extends TestCase
         ]);
     }
 
-    public function test_a_link_to_a_private_address_is_kept_without_fetching_it(): void
+    public function test_a_link_to_a_private_address_is_named_from_itself_without_fetching_it(): void
     {
         Notification::fake();
         Http::fake();
@@ -338,7 +338,7 @@ class CornerItemsAddTest extends TestCase
             ->post('/apps/our-shelf/songs', ['url' => $url])
             ->assertSessionHasNoErrors();
 
-        $this->assertDatabaseHas('corner_items', ['title' => $url, 'site_name' => 'intranet.example.com', 'image_url' => null]);
+        $this->assertDatabaseHas('corner_items', ['title' => 'admin', 'site_name' => 'intranet.example.com', 'image_url' => null]);
         Http::assertNothingSent();
     }
 
@@ -406,18 +406,20 @@ class CornerItemsAddTest extends TestCase
         $this->assertNull($item->done_at);
     }
 
-    // Places: a map link, named by its place
+    // Names and sites, the same for every page
 
-    private const SHORT_MAP = 'https://maps.example.com/s/park';
+    private const SHORT_LINK = 'https://go.example.com/s/park';
 
-    private const FULL_MAP = 'https://maps.example.com/maps/place/Park%27s+Inn/@33.5708898,-98.1173305,10z/data=!8m2!3d33.5633544!4d-97.8578567';
+    private const LANDED = 'https://maps.example.com/place/park-inn';
 
-    private function fakeMapPage(string $title): void
+    /** A short link that lands on a page whose site name repeats its title, as some sites do. */
+    private function fakeLandingPage(string $title): void
     {
         Http::fake([
-            'maps.example.com/s/*' => Http::response('', 302, ['Location' => self::FULL_MAP]),
-            'maps.example.com/maps/*' => Http::response(
+            'go.example.com/*' => Http::response('', 302, ['Location' => self::LANDED]),
+            'maps.example.com/*' => Http::response(
                 '<html><head><meta property="og:title" content="'.$title.'">'
+                .'<meta property="og:site_name" content="'.$title.'">'
                 .'<meta property="og:image" content="https://photos.example.com/inn.jpg"></head></html>',
                 200,
                 ['Content-Type' => 'text/html'],
@@ -425,43 +427,45 @@ class CornerItemsAddTest extends TestCase
         ]);
     }
 
-    public function test_a_short_map_link_is_named_by_its_place_and_takes_its_picture(): void
+    public function test_a_name_and_details_title_is_named_by_its_first_part_on_the_site_it_landed_on(): void
     {
         Notification::fake();
-        $this->fakeMapPage('Park&#39;s Inn · 708 W Wise St, Bowie, TX 76230');
+        $this->fakeLandingPage('Park&#39;s Inn · 708 W Wise St, Bowie, TX 76230');
         $this->places();
 
         $this->actingAs(User::factory()->create())
-            ->post('/apps/our-shelf/places', ['url' => self::SHORT_MAP, 'title' => ''])
+            ->post('/apps/our-shelf/places', ['url' => self::SHORT_LINK, 'title' => ''])
             ->assertSessionHasNoErrors();
 
         $this->assertDatabaseHas('corner_items', [
-            'url' => self::SHORT_MAP,
+            'url' => self::SHORT_LINK,
             'title' => "Park's Inn",
+            'site_name' => 'maps.example.com',
             'image_url' => 'https://photos.example.com/inn.jpg',
         ]);
     }
 
-    public function test_a_map_page_that_only_names_itself_leaves_the_name_to_the_link(): void
+    public function test_a_page_titled_only_with_its_sites_name_is_named_from_its_link(): void
     {
         Notification::fake();
-        $this->fakeMapPage('Maps');
+        $this->fakeLandingPage('Maps');
         $this->places();
 
         $this->actingAs(User::factory()->create())
-            ->post('/apps/our-shelf/places', ['url' => self::FULL_MAP, 'title' => ''])
+            ->post('/apps/our-shelf/places', ['url' => self::LANDED, 'title' => ''])
             ->assertSessionHasNoErrors();
 
-        $this->assertDatabaseHas('corner_items', ['url' => self::FULL_MAP, 'title' => "Park's Inn"]);
+        $this->assertDatabaseHas('corner_items', ['url' => self::LANDED, 'title' => 'park inn', 'site_name' => 'maps.example.com']);
     }
 
-    public function test_the_preview_names_a_map_link_by_its_place(): void
+    public function test_the_preview_tidies_the_name_and_the_site_the_same_way(): void
     {
-        $this->fakeMapPage('Park&#39;s Inn · 708 W Wise St');
+        $this->fakeLandingPage('Park&#39;s Inn · 708 W Wise St');
 
         $this->actingAs(User::factory()->create())
-            ->getJson('/api/corner/link-preview?url='.urlencode(self::SHORT_MAP))
+            ->getJson('/api/corner/link-preview?url='.urlencode(self::SHORT_LINK))
             ->assertOk()
-            ->assertJsonPath('title', "Park's Inn");
+            ->assertJsonPath('title', "Park's Inn")
+            ->assertJsonPath('site_name', 'maps.example.com');
     }
 }

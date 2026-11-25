@@ -4,7 +4,6 @@ namespace App\MiniApps\Corner\Controllers;
 
 use App\MiniApps\Corner\Services\LinkPreview;
 use App\MiniApps\Corner\Support\ItemRules;
-use App\MiniApps\Corner\Support\MapLink;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -18,7 +17,6 @@ class LinkPreviewController
         ]);
 
         $found = $preview->lookup($validated['url']);
-        $found['title'] = MapLink::placeName($validated['url'], $found) ?? $found['title'];
 
         return response()->json([
             'ok' => $found['title'] !== null || $found['image_url'] !== null,

@@ -26,9 +26,6 @@ class ItemDetails
         $url = ItemRules::trimmed($data['url'] ?? null);
         $unchanged = $existing !== null && $existing->url === $url;
         $read = $url === null || $unchanged ? null : $this->preview->lookup($url);
-        if ($url !== null && $read !== null) {
-            $read['title'] = MapLink::placeName($url, $read) ?? $read['title'];
-        }
 
         return $this->link($data, $existing, $url, $read)
             + ['notes' => ItemRules::trimmed($data['notes'] ?? null)];
@@ -36,7 +33,7 @@ class ItemDetails
 
     /**
      * @param  array<string, mixed>  $data
-     * @param  array{title: ?string, image_url: ?string, author: ?string, site_name: ?string, url: string}|null  $read
+     * @param  array{title: ?string, image_url: ?string, author: ?string, site_name: ?string}|null  $read
      * @return array<string, mixed>
      */
     private function link(array $data, ?Item $existing, ?string $url, ?array $read): array
