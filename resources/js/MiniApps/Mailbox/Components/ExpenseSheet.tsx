@@ -149,7 +149,7 @@ export default function ExpenseSheet({
                 : unreadable
                   ? 'Check what each person owes.'
                   : left !== 0
-                    ? leftText
+                    ? 'Make the amounts add up to the total.'
                     : null;
     const busy = processing || deleting;
     const disabled = busy || hint !== null;
