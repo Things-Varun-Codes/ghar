@@ -9,9 +9,10 @@
 //   check-tag <version> [commit]
 //                  fail unless the commit (HEAD by default) is on main and is the one that
 //                  added that version's section; the release workflow runs it on every tag
-//   prepare        write the section into CHANGELOG.md, delete the change files and open
-//                  the release pull request (--version 2.0.0 overrides the version;
-//                  --no-pr edits the files in place and stops)
+//   prepare        write the section into CHANGELOG.md, delete the change files, on a new
+//                  major point .env.selfhost.example at it, and open the release pull
+//                  request (--version 2.0.0 overrides the version; --no-pr edits the files
+//                  in place and stops)
 //   tag            after that pull request is merged: tag its commit and push the tag,
 //                  which starts .github/workflows/release.yml
 //
@@ -32,6 +33,7 @@ import {
     insertSection,
     isChangeFile,
     latestVersion,
+    newMajor,
     nextVersion,
     parseChange,
     pullRequestProblems,
@@ -43,6 +45,7 @@ import {
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const CHANGES_DIR = path.join(ROOT, '.changes');
 const CHANGELOG = path.join(ROOT, 'CHANGELOG.md');
+const SELFHOST_ENV = path.join(ROOT, '.env.selfhost.example');
 
 const [command, ...flags] = process.argv.slice(2);
 
@@ -194,10 +197,25 @@ function prepare() {
     const { changes, changelog, version, section } = planned;
     const tag = `v${version}`;
 
+    // A new install starts on the newest major; one already running keeps the major it has.
+    const major = newMajor(version);
+    let pinned = null;
+    if (major !== null) {
+        const example = readFileSync(SELFHOST_ENV, 'utf8');
+        if (!/^GHAR_VERSION=/m.test(example)) {
+            throw new Error('.env.selfhost.example has no GHAR_VERSION line.');
+        }
+        pinned = example.replace(/^GHAR_VERSION=.*$/m, `GHAR_VERSION=${major}`);
+    }
+
     writeFileSync(CHANGELOG, insertSection(changelog, section));
 
     for (const change of changes) {
         rmSync(path.join(CHANGES_DIR, change.name));
+    }
+
+    if (pinned !== null) {
+        writeFileSync(SELFHOST_ENV, pinned);
     }
 
     run('npx', 'prettier', '--write', '--log-level', 'warn', 'CHANGELOG.md');
@@ -212,7 +230,7 @@ function prepare() {
     const branch = `release/${tag}`;
     const title = `chore: release ${version}`;
     git('switch', '--quiet', '-c', branch);
-    git('add', '--all', 'CHANGELOG.md', '.changes');
+    git('add', '--all', 'CHANGELOG.md', '.changes', '.env.selfhost.example');
     run('git', 'commit', '--quiet', '-m', title);
     run('git', 'push', '--set-upstream', 'origin', branch);
 

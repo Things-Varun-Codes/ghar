@@ -189,13 +189,15 @@ Building from source with `docker-compose.yml`, the cache defaults to Postgres
 
 ## Upgrading
 
-Ghar's images are tagged by exact version (`1.2.3`), minor (`1.2`) and major (`1`). The default
-`GHAR_VERSION=1` follows every 1.x release, and none of those needs you to change anything. A new
-major version says what to do under **Upgrading** in [`CHANGELOG.md`](./CHANGELOG.md).
+Ghar's images are tagged by exact version (`1.2.3`), minor (`1.2`) and major (`1`). A major in
+`GHAR_VERSION` follows every release in it, and none of those needs you to change anything;
+`.env.selfhost.example` starts a new install on the newest major. A new major only reaches you
+when you change `GHAR_VERSION` to it, and its section in [`CHANGELOG.md`](./CHANGELOG.md) says
+what to do first under **Upgrading**.
 
 1. Read the changelog entries since your version.
-2. [Back up](#backups-and-restore) the database and media.
-3. Change `GHAR_VERSION` if needed, then:
+2. [Back up](#backups-and-restore) the database and media, before every upgrade.
+3. For a new major, do what its **Upgrading** says and set `GHAR_VERSION` to it. Then:
 
     ```sh
     docker compose -f docker-compose.selfhost.yml pull

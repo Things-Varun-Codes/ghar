@@ -213,17 +213,46 @@ function renderEntry({ summary, detail }) {
     return lines.join('\n');
 }
 
+// Opens every version's section, which is also its GitHub release notes, so whoever upgrades
+// reads it first.
+export const BACK_UP_FIRST =
+    'Back up the database and the media volume before you upgrade (DEPLOY.md, "Backups and restore"). Migrations only run forward, so the backup is the way back.';
+
+// The major version a release starts (2 for 2.0.0), or null. An install follows one major
+// through GHAR_VERSION, so it only gets a new one when someone changes that.
+export function newMajor(version) {
+    const match = /^(\d+)\.0\.0$/.exec(version);
+
+    return match ? Number(match[1]) : null;
+}
+
 export function renderSection(version, date, changes) {
     const sorted = [...changes].sort((a, b) => a.name.localeCompare(b.name));
-    const parts = [`## [${version}] - ${date}`];
+    const parts = [
+        `## [${version}] - ${date}`,
+        wrap(BACK_UP_FIRST, WIDTH).join('\n'),
+    ];
+    const major = newMajor(version);
+    const switchMajor =
+        major === null
+            ? []
+            : [
+                  renderEntry({
+                      summary: `To move to ${major}.x, set \`GHAR_VERSION=${major}\` in your \`.env\`, then pull and start Ghar again. An install on \`GHAR_VERSION=${major - 1}\` stays on ${major - 1}.x.`,
+                      detail: '',
+                  }),
+              ];
 
     for (const [key, heading] of SECTIONS) {
-        const entries = sorted
-            .filter(
-                (change) =>
-                    (change.breaking ? 'upgrading' : change.type) === key,
-            )
-            .map(renderEntry);
+        const entries = [
+            ...(key === 'upgrading' ? switchMajor : []),
+            ...sorted
+                .filter(
+                    (change) =>
+                        (change.breaking ? 'upgrading' : change.type) === key,
+                )
+                .map(renderEntry),
+        ];
 
         if (!entries.length) {
             continue;
