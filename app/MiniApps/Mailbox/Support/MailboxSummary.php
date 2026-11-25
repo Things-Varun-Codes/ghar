@@ -18,12 +18,16 @@ class MailboxSummary
      *     unread_postcards: int,
      *     citations_action_needed: int,
      *     coupons_action_needed: int,
+     *     expenses: array{owed: int, owing: int},
+     *     expenses_action_needed: int,
      * }
      */
     public static function forUser(User $user): array
     {
         $postcards = EntryTypes::on(EntryTypes::POSTCARDS);
         $coupons = EntryTypes::on(EntryTypes::COUPONS);
+        $balances = EntryTypes::on(EntryTypes::EXPENSES) ? ExpenseBalances::overview($user) : [];
+        $owing = array_filter($balances, fn (int $net): bool => $net < 0);
 
         return [
             'counts' => [
@@ -40,6 +44,10 @@ class MailboxSummary
             'coupons_action_needed' => $coupons
                 ? Coupon::query()->issuedBy($user)->where('status', Coupon::STATUS_REQUESTED)->count()
                 : 0,
+            // Minor units: what others owe the viewer in all, and what the viewer owes.
+            'expenses' => ['owed' => array_sum($balances) - array_sum($owing), 'owing' => -array_sum($owing)],
+            // How many people the viewer owes.
+            'expenses_action_needed' => count($owing),
         ];
     }
 }

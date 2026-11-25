@@ -5,7 +5,7 @@ namespace App\MiniApps\Mailbox\Support;
 use App\Shell\Services\Rooms;
 
 /**
- * The four kinds of mail. The admin can turn each off while Mailbox stays on; its rows are
+ * The kinds of entry: four of mail, and shared expenses. The admin can turn each off while Mailbox stays on; its rows are
  * kept. Routes are gated by `room:our-exchange,{type}`; anything that reads across types (the
  * landing, Home's door) asks here.
  */
@@ -21,12 +21,15 @@ final class EntryTypes
 
     public const CITATIONS = 'citations';
 
+    public const EXPENSES = 'expenses';
+
     /** Landing order. */
     private const LABELS = [
         self::MESSAGES => ['Notes', 'Short handwritten notes to one or more people.'],
         self::POSTCARDS => ['Postcards', 'A picture made from a prompt, with a line to go with it.'],
         self::CITATIONS => ['Citations', 'Joke tickets for household offences, to be paid in kind.'],
         self::COUPONS => ['Coupons', 'Favours to give and redeem.'],
+        self::EXPENSES => ['Expenses', 'Shared costs, who owes whom, and settling up.'],
     ];
 
     public static function register(Rooms $rooms): void

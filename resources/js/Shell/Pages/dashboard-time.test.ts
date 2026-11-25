@@ -6,7 +6,12 @@ import { dayKey, freshnessWeight, shortAgo } from './dashboard-time';
 
 describe('dashboard time', () => {
     beforeEach(() => {
-        setRegion({ timezone: 'Asia/Kolkata', locale: 'en-GB', week_start: 1 });
+        setRegion({
+            timezone: 'Asia/Kolkata',
+            locale: 'en-GB',
+            week_start: 1,
+            currency: 'INR',
+        });
     });
 
     it('reads an instant on the household clock', () => {

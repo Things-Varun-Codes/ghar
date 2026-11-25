@@ -34,7 +34,7 @@ class EntryTypeSwitchesTest extends TestCase
     /** @return array<string, array{string}> */
     public static function types(): array
     {
-        return ['notes' => ['messages'], 'postcards' => ['postcards'], 'citations' => ['citations'], 'coupons' => ['coupons']];
+        return ['notes' => ['messages'], 'postcards' => ['postcards'], 'citations' => ['citations'], 'coupons' => ['coupons'], 'expenses' => ['expenses']];
     }
 
     #[DataProvider('types')]
@@ -46,7 +46,7 @@ class EntryTypeSwitchesTest extends TestCase
         $this->actingAs($user)->get("/apps/our-exchange/{$type}")->assertNotFound();
 
         $this->get('/apps/our-exchange')->assertOk()->assertInertia(fn ($page) => $page
-            ->where('types', fn ($types) => ! collect($types)->contains('key', $type) && count($types) === 3)
+            ->where('types', fn ($types) => ! collect($types)->contains('key', $type) && count($types) === 4)
         );
 
         foreach (array_diff(array_column(self::types(), 0), [$type]) as $other) {
@@ -62,6 +62,7 @@ class EntryTypeSwitchesTest extends TestCase
                 ['key' => 'postcards', 'label' => 'Postcards'],
                 ['key' => 'citations', 'label' => 'Citations'],
                 ['key' => 'coupons', 'label' => 'Coupons'],
+                ['key' => 'expenses', 'label' => 'Expenses'],
             ]));
     }
 

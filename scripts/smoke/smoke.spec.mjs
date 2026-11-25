@@ -216,6 +216,17 @@ const routes = [
         auth: true,
         description: '/apps/our-exchange/postcards (Postcards index)',
     },
+    {
+        path: '/apps/our-exchange/expenses',
+        auth: true,
+        description: '/apps/our-exchange/expenses (Expenses index)',
+    },
+    {
+        path: '/apps/our-exchange/expenses/groups/{mailboxExpenseGroupId}',
+        auth: true,
+        description:
+            '/apps/our-exchange/expenses/groups/{group} (an expense group)',
+    },
     // JSON, no React app: the heading checks don't apply. The scheduler and a worker
     // run first, so the heartbeats it reads are fresh.
     {
@@ -227,13 +238,14 @@ const routes = [
 ];
 
 // The walk is the admin's, so the citation and coupon must be ones the admin received,
-// or `view` would 403.
+// or `view` would 403. The expense group is General, which everyone is in.
 const FIXTURES_PHP = `
 use App\\Shell\\Models\\User;
 use App\\MiniApps\\Corner\\Models\\CornerList;
 use App\\MiniApps\\Corner\\Models\\Item;
 use App\\MiniApps\\Mailbox\\Models\\Citation;
 use App\\MiniApps\\Mailbox\\Models\\Coupon;
+use App\\MiniApps\\Mailbox\\Models\\ExpenseGroup;
 use Illuminate\\Support\\Facades\\Password;
 
 $admin = User::where('email', '${DEV_ACCOUNTS.admin}')->firstOrFail();
@@ -254,6 +266,7 @@ echo json_encode([
     'cornerEmptyList'   => CornerList::query()->whereDoesntHave('items')->value('slug'),
     'mailboxCitationId'  => Citation::where('recipient_id', $admin->id)->firstOrFail()->id,
     'mailboxCouponId'   => Coupon::where('recipient_id', $admin->id)->firstOrFail()->id,
+    'mailboxExpenseGroupId' => ExpenseGroup::general()->id,
     // A plain member, never the logged-in account, so no self-edit or
     // last-admin guard gets in the way of the edit page.
     'otherUserId'       => $kabir->id,

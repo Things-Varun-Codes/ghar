@@ -40,7 +40,7 @@ return [
         'nav_label' => 'Exchange',
         'slug' => 'our-exchange',
         'route' => '/apps/our-exchange',
-        'description' => 'Notes, postcards, citations and coupons for each other.',
+        'description' => 'Notes, postcards, citations and coupons for each other, and shared expenses.',
         'provider' => MailboxServiceProvider::class,
         'admin_only' => false,
         'component_prefix' => 'MiniApps/Mailbox/',

@@ -4,7 +4,14 @@ import { setRegion } from '@/lib/dates';
 import type { HistoryEvent } from '@/MiniApps/History/lib/types';
 import CalendarMonth from './CalendarMonth';
 
-afterEach(() => setRegion({ timezone: 'UTC', locale: 'en-GB', week_start: 1 }));
+afterEach(() =>
+    setRegion({
+        timezone: 'UTC',
+        locale: 'en-GB',
+        week_start: 1,
+        currency: 'INR',
+    }),
+);
 
 const moment = {
     id: 7,
@@ -61,6 +68,7 @@ describe('CalendarMonth', () => {
             timezone: 'America/New_York',
             locale: 'en-US',
             week_start: 0,
+            currency: 'INR',
         });
         const { container } = october();
 
@@ -70,7 +78,12 @@ describe('CalendarMonth', () => {
     });
 
     it("names the month, weekdays and days in the household's locale", () => {
-        setRegion({ timezone: 'Europe/Paris', locale: 'fr-FR', week_start: 1 });
+        setRegion({
+            timezone: 'Europe/Paris',
+            locale: 'fr-FR',
+            week_start: 1,
+            currency: 'INR',
+        });
         october();
 
         expect(screen.getByRole('heading').textContent).toBe('octobre 2026');

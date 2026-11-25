@@ -2,6 +2,8 @@
 
 use App\MiniApps\Mailbox\Controllers\CitationsController;
 use App\MiniApps\Mailbox\Controllers\CouponsController;
+use App\MiniApps\Mailbox\Controllers\ExpenseGroupsController;
+use App\MiniApps\Mailbox\Controllers\ExpensesController;
 use App\MiniApps\Mailbox\Controllers\MailboxController;
 use App\MiniApps\Mailbox\Controllers\MessagesController;
 use App\MiniApps\Mailbox\Controllers\PostcardsController;
@@ -64,6 +66,27 @@ Route::prefix('apps/our-exchange')->name('apps.our-exchange.')->group(function (
             Route::patch('/coupons/{coupon}/cancel', [CouponsController::class, 'cancel'])->name('coupons.cancel');
             Route::patch('/coupons/{coupon}/fulfill', [CouponsController::class, 'fulfill'])->name('coupons.fulfill');
             Route::delete('/coupons/{coupon}', [CouponsController::class, 'destroy'])->name('coupons.destroy');
+        });
+    });
+
+    Route::middleware($type(EntryTypes::EXPENSES))->prefix('expenses')->name('expenses.')->group(function () {
+        Route::get('/', [ExpensesController::class, 'index'])->name('index');
+        Route::get('/groups/{group}', [ExpensesController::class, 'show'])->name('groups.show');
+
+        Route::middleware('throttle:mailbox-mutations')->group(function () {
+            Route::post('/groups', [ExpenseGroupsController::class, 'store'])->name('groups.store');
+            Route::patch('/groups/{group}', [ExpenseGroupsController::class, 'update'])->name('groups.update');
+            Route::patch('/groups/{group}/archive', [ExpenseGroupsController::class, 'archive'])->name('groups.archive');
+            Route::patch('/groups/{group}/unarchive', [ExpenseGroupsController::class, 'unarchive'])->name('groups.unarchive');
+            Route::delete('/groups/{group}', [ExpenseGroupsController::class, 'destroy'])->name('groups.destroy');
+
+            Route::post('/groups/{group}/expenses', [ExpensesController::class, 'store'])->name('store');
+            Route::post('/groups/{group}/settlements', [ExpensesController::class, 'settle'])->name('settlements.store');
+            Route::post('/settle/{user}', [ExpensesController::class, 'settleWith'])->name('settle');
+
+            Route::patch('/{expense}', [ExpensesController::class, 'update'])->whereNumber('expense')->name('update');
+            Route::delete('/{expense}', [ExpensesController::class, 'destroy'])->whereNumber('expense')->name('destroy');
+            Route::patch('/{expense}/restore', [ExpensesController::class, 'restore'])->whereNumber('expense')->withTrashed()->name('restore');
         });
     });
 });

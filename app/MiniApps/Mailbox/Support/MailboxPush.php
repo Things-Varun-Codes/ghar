@@ -34,6 +34,16 @@ final class MailboxPush
         $this->send($recipients, $type, $body, "/{$type}?focus={$id}");
     }
 
+    /**
+     * Opens the expense's group at the expense.
+     *
+     * @param  iterable<User>  $recipients
+     */
+    public function toExpense(iterable $recipients, int $groupId, int $id, string $body): void
+    {
+        $this->send($recipients, EntryTypes::EXPENSES, $body, "/expenses/groups/{$groupId}?focus={$id}");
+    }
+
     /** @param  iterable<User>  $recipients */
     private function send(iterable $recipients, string $type, string $body, string $path): void
     {

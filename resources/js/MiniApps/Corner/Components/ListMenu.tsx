@@ -9,9 +9,9 @@ import {
     DropdownMenuItem,
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { useSheetSession } from '@/hooks/use-sheet-session';
 import { mutationOptions } from '@/lib/mutation';
 import ListSettingsSheet from '@/MiniApps/Corner/Components/ListSettingsSheet';
-import { useSheetSession } from '@/MiniApps/Corner/Hooks/useSheetSession';
 import type { CornerListInfo } from '@/MiniApps/Corner/lib/types';
 import { destroy, move } from '@/routes/apps/our-shelf/lists';
 import ConfirmDialog from '@/Shell/Components/ConfirmDialog';

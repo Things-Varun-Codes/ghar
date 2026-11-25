@@ -1,5 +1,5 @@
 /*
- * The household's region, from the shared `region` prop (GHAR_TIMEZONE / GHAR_LOCALE): one
+ * The household's region, from the shared `region` prop (GHAR_TIMEZONE / GHAR_LOCALE / GHAR_CURRENCY): one
  * locale and one clock for every device in the house, so a date reads the same everywhere.
  * app.tsx sets it from the first page; until then dates read en-GB in UTC.
  */
@@ -8,9 +8,16 @@ export type Region = {
     locale: string;
     /* 0 for Sunday through 6 for Saturday. */
     week_start: number;
+    /* ISO 4217, for Intl: 'INR'. */
+    currency: string;
 };
 
-let current: Region = { timezone: 'UTC', locale: 'en-GB', week_start: 1 };
+let current: Region = {
+    timezone: 'UTC',
+    locale: 'en-GB',
+    week_start: 1,
+    currency: 'INR',
+};
 
 export function setRegion(region: Region | null | undefined): void {
     if (region) {
