@@ -9,6 +9,7 @@ import {
     parseChange,
     pullRequestProblems,
     releaseCommitProblem,
+    newMajor,
     renderSection,
     sectionFor,
 } from '../lib/changes.mjs';
@@ -123,6 +124,26 @@ test('renders sections in a fixed order, entries by file name', () => {
             '- Z was wrong.',
         ].join('\n'),
     );
+});
+
+test('a new major says how to move to it', () => {
+    const patch = renderSection('2.0.1', '2026-11-26', [
+        change('a.md', 'type: fixed', 'A was wrong.'),
+    ]);
+    assert.ok(!patch.includes('GHAR_VERSION'));
+
+    // Even with nothing marked breaking, a new major has an Upgrading section.
+    const major = renderSection('3.0.0', '2026-11-26', [
+        change('a.md', 'type: fixed', 'A was wrong.'),
+    ]);
+    assert.match(
+        major,
+        /### Upgrading\n\n- To move to 3\.x, set `GHAR_VERSION=3`/,
+    );
+    assert.match(major, /`GHAR_VERSION=2` stays on 2\.x\./);
+    assert.equal(newMajor('3.0.0'), 3);
+    assert.equal(newMajor('3.1.0'), null);
+    assert.equal(newMajor('3.0.1'), null);
 });
 
 test('wraps prose at 100 columns and leaves code alone', () => {
