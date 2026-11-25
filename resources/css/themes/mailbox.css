@@ -403,6 +403,28 @@
     grid-template-columns: repeat(auto-fill, minmax(min(100%, 340px), 1fr));
 }
 
+/* Postcards are pictures first, so they tile like History's gallery: 2, 3, 4, then 5 across. */
+[data-app='our-exchange'] .mailbox-feed:has(> * > .mailbox-postcard) {
+    gap: 12px;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+@media (min-width: 768px) {
+    [data-app='our-exchange'] .mailbox-feed:has(> * > .mailbox-postcard) {
+        gap: 16px;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+}
+@media (min-width: 1280px) {
+    [data-app='our-exchange'] .mailbox-feed:has(> * > .mailbox-postcard) {
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+}
+@media (min-width: 1536px) {
+    [data-app='our-exchange'] .mailbox-feed:has(> * > .mailbox-postcard) {
+        grid-template-columns: repeat(5, minmax(0, 1fr));
+    }
+}
+
 [data-app='our-exchange'] .mailbox-feed > :not(:has(> article)) {
     grid-column: 1 / -1;
 }
@@ -440,8 +462,8 @@
 [data-app='our-exchange'] .mailbox-postcard {
     display: flex;
     flex-direction: column;
-    gap: 12px;
-    padding: 16px;
+    gap: 8px;
+    padding: 8px;
 }
 
 [data-app='our-exchange'] .mailbox-postcard-image-button {
