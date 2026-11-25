@@ -19,11 +19,7 @@ import Page from '@/Shell/Components/Page';
 import RoomDoor from '@/Shell/Components/RoomDoor';
 
 type EntryType =
-    | 'messages'
-    | 'postcards'
-    | 'citations'
-    | 'coupons'
-    | 'expenses';
+    'messages' | 'postcards' | 'citations' | 'coupons' | 'expenses';
 
 type Counts = Record<Exclude<EntryType, 'expenses'>, number>;
 
