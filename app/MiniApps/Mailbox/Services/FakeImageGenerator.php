@@ -2,19 +2,19 @@
 
 namespace App\MiniApps\Mailbox\Services;
 
-use App\MiniApps\Mailbox\Contracts\BouquetImageGenerator;
+use App\MiniApps\Mailbox\Contracts\ImageGenerator;
 use App\MiniApps\Mailbox\DTOs\GeneratedImage;
 
-class FakeBouquetGenerator implements BouquetImageGenerator
+class FakeImageGenerator implements ImageGenerator
 {
     public function generate(string $prompt): GeneratedImage
     {
-        $path = public_path('img/placeholder-bouquet.jpg');
+        $path = public_path('img/placeholder-postcard.jpg');
 
         if (! file_exists($path)) {
             throw new \RuntimeException(
-                "FakeBouquetGenerator: placeholder asset missing at {$path}. ".
-                'Ensure public/img/placeholder-bouquet.jpg is committed and checked out.'
+                "FakeImageGenerator: placeholder asset missing at {$path}. ".
+                'Ensure it is committed and checked out.'
             );
         }
 

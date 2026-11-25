@@ -32,6 +32,7 @@ class RoomsController
         if (isset($validated['option'])) {
             $option = $validated['option'];
             abort_unless($rooms->hasOption($room, $option), 404);
+            abort_if($on && $rooms->optionUnavailable($room, $option) !== null, 422);
 
             $rooms->setOption($room, $option, $on);
             $label = $rooms->optionLabel($room, $option);

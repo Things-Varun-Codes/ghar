@@ -212,9 +212,9 @@ const routes = [
             '/apps/our-exchange/coupons/{coupon} (Coupon voucher artifact/show)',
     },
     {
-        path: '/apps/our-exchange/flowers',
+        path: '/apps/our-exchange/postcards',
         auth: true,
-        description: '/apps/our-exchange/flowers (Flowers index)',
+        description: '/apps/our-exchange/postcards (Postcards index)',
     },
     // JSON, no React app: the heading checks don't apply. The scheduler and a worker
     // run first, so the heartbeats it reads are fresh.

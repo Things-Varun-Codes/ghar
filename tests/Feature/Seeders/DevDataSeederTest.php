@@ -10,10 +10,10 @@ use App\MiniApps\Corner\Support\PictureCache;
 use App\MiniApps\History\Models\Event;
 use App\MiniApps\History\Models\EventComment;
 use App\MiniApps\History\Models\EventReaction;
-use App\MiniApps\Mailbox\Models\Bouquet;
 use App\MiniApps\Mailbox\Models\Citation;
 use App\MiniApps\Mailbox\Models\Coupon;
 use App\MiniApps\Mailbox\Models\MailboxMessage;
+use App\MiniApps\Mailbox\Models\Postcard;
 use App\Shell\Models\Invitation;
 use App\Shell\Models\ShortLink;
 use App\Shell\Models\User;
@@ -47,7 +47,7 @@ class DevDataSeederTest extends TestCase
         File::ensureDirectoryExists($this->storage);
         $this->app->useStoragePath($this->storage);
 
-        config(['shell.media_disk' => 'local', 'services.bouquet.disk' => 'local', 'media-library.disk_name' => 'local']);
+        config(['shell.media_disk' => 'local', 'services.image_ai.disk' => 'local', 'media-library.disk_name' => 'local']);
         Storage::fake('local');
         (new RoleSeeder)->run();
     }
@@ -198,10 +198,10 @@ class DevDataSeederTest extends TestCase
         $media = Media::where('collection_name', 'photos')->firstOrFail();
         $this->assertTrue($media->hasGeneratedConversion('thumb'));
         Storage::disk('local')->assertExists($media->getPathRelativeToRoot());
-        Storage::disk('local')->assertExists(Bouquet::query()->firstOrFail()->image_key);
+        Storage::disk('local')->assertExists(Postcard::query()->firstOrFail()->image_key);
 
         // The first row of each type is Ravi to Meera only: the visibility fixture.
-        foreach ([MailboxMessage::query()->orderBy('id')->firstOrFail(), Bouquet::query()->orderBy('id')->firstOrFail()] as $mail) {
+        foreach ([MailboxMessage::query()->orderBy('id')->firstOrFail(), Postcard::query()->orderBy('id')->firstOrFail()] as $mail) {
             $this->assertSame($ravi->id, $mail->sender_id);
             $this->assertSame([$meera->id], $mail->recipients()->pluck('users.id')->all());
         }
@@ -220,8 +220,8 @@ class DevDataSeederTest extends TestCase
         $this->assertGreaterThan(1, $recipientCounts->max());
         $this->assertTrue(DB::table('mailbox_message_recipients')->whereNull('read_at')->exists());
         $this->assertTrue(DB::table('mailbox_message_recipients')->whereNotNull('read_at')->exists());
-        $this->assertTrue(DB::table('mailbox_bouquet_recipients')->whereNull('read_at')->exists());
-        $this->assertTrue(DB::table('mailbox_bouquet_recipients')->whereNotNull('read_at')->exists());
+        $this->assertTrue(DB::table('mailbox_postcard_recipients')->whereNull('read_at')->exists());
+        $this->assertTrue(DB::table('mailbox_postcard_recipients')->whereNotNull('read_at')->exists());
 
         $this->assertTrue(Coupon::where('status', Coupon::STATUS_ISSUED)->where('redeemed_count', 0)->exists());
         $this->assertTrue(Coupon::where('status', Coupon::STATUS_REQUESTED)->exists());

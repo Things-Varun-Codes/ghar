@@ -97,7 +97,7 @@ LOCAL_VALUES=(
   "MAIL_MAILER=smtp"
   "MAIL_HOST=127.0.0.1"
   "MAIL_PORT=$SMTP_PORT_WANTED"
-  "BOUQUET_IMAGE_PROVIDER=fake"
+  "IMAGE_AI_PROVIDER=fake"
 )
 
 step "Preparing .env"

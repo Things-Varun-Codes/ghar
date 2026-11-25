@@ -5,10 +5,10 @@ namespace Tests\Feature\Shell;
 use App\MiniApps\Corner\Models\CornerList;
 use App\MiniApps\Corner\Models\Item;
 use App\MiniApps\History\Models\Event;
-use App\MiniApps\Mailbox\Models\Bouquet;
 use App\MiniApps\Mailbox\Models\Citation;
 use App\MiniApps\Mailbox\Models\Coupon;
 use App\MiniApps\Mailbox\Models\MailboxMessage;
+use App\MiniApps\Mailbox\Models\Postcard;
 use App\Shell\Models\User;
 use Database\Seeders\RoleSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -52,13 +52,13 @@ class DashboardFeedTest extends TestCase
         $kabir = User::factory()->create(['name' => 'Kabir']);
 
         MailboxMessage::factory()->to($meera)->create(['sender_id' => $ravi->id]);
-        Bouquet::factory()->to($meera)->create(['sender_id' => $ravi->id]);
+        Postcard::factory()->to($meera)->create(['sender_id' => $ravi->id]);
         Citation::factory()->create(['issuer_id' => $ravi->id, 'recipient_id' => $meera->id, 'offence' => 'Wet towels on the bed']);
         Coupon::factory()->requested()->create(['issuer_id' => $ravi->id, 'recipient_id' => $meera->id, 'title' => 'Movie night']);
 
         $meeraTitles = array_column($this->feedFor($meera), 'title');
         $this->assertContains('A note from Ravi', $meeraTitles);
-        $this->assertContains('Flowers from Ravi', $meeraTitles);
+        $this->assertContains('A postcard from Ravi', $meeraTitles);
         $this->assertContains('Citation from Ravi', $meeraTitles);
         $this->assertNotContains('Meera wants to use a coupon', $meeraTitles);
 
@@ -145,19 +145,20 @@ class DashboardFeedTest extends TestCase
         $this->assertContains('Citation from Ravi Rao', array_column($this->feedFor($meera), 'title'));
     }
 
-    public function test_a_bouquet_slip_names_its_flowers_but_not_its_note(): void
+    public function test_a_postcard_slip_gives_away_neither_its_prompt_nor_its_note(): void
     {
         $ravi = User::factory()->create();
         $meera = User::factory()->create();
-        Bouquet::factory()->to($meera)->create([
+        Postcard::factory()->to($meera)->create([
             'sender_id' => $ravi->id,
             'note' => 'Happy anniversary',
-            'flowers' => [['key' => 'tulip', 'name' => 'Tulip', 'meaning' => 'Love']],
+            'prompt' => 'A tulip field',
         ]);
 
         $feed = $this->feedFor($meera);
 
-        $this->assertSame('Tulip', $feed[0]['detail']);
+        $this->assertSame('Not opened yet', $feed[0]['detail']);
+        $this->assertStringNotContainsString('tulip', json_encode($feed));
         $this->assertStringNotContainsString('anniversary', json_encode($feed));
     }
 }

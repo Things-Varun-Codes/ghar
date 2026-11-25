@@ -13,6 +13,8 @@ type RoomOption = {
     label: string;
     description: string;
     enabled: boolean;
+    /* Why it can't be turned on (a setting the server lacks), or null. */
+    unavailable: string | null;
 };
 
 type Room = {
@@ -101,11 +103,28 @@ export default function Rooms({ rooms }: Props) {
                                             <SwitchRow
                                                 id={`room-${room.slug}-${option.key}`}
                                                 label={option.label}
-                                                description={option.description}
+                                                description={
+                                                    option.unavailable ? (
+                                                        <>
+                                                            {option.description}
+                                                            <span className="mt-1 block">
+                                                                {
+                                                                    option.unavailable
+                                                                }
+                                                            </span>
+                                                        </>
+                                                    ) : (
+                                                        option.description
+                                                    )
+                                                }
                                                 checked={option.enabled}
-                                                disabled={pending.has(
-                                                    `${room.slug}:${option.key}`,
-                                                )}
+                                                disabled={
+                                                    option.unavailable !==
+                                                        null ||
+                                                    pending.has(
+                                                        `${room.slug}:${option.key}`,
+                                                    )
+                                                }
                                                 onCheckedChange={(next) =>
                                                     toggle(room, next, option)
                                                 }

@@ -1,10 +1,11 @@
 <?php
 
-use App\MiniApps\Mailbox\Controllers\BouquetsController;
 use App\MiniApps\Mailbox\Controllers\CitationsController;
 use App\MiniApps\Mailbox\Controllers\CouponsController;
 use App\MiniApps\Mailbox\Controllers\MailboxController;
 use App\MiniApps\Mailbox\Controllers\MessagesController;
+use App\MiniApps\Mailbox\Controllers\PostcardsController;
+use App\MiniApps\Mailbox\Controllers\SavedPromptsController;
 use App\MiniApps\Mailbox\Support\EntryTypes;
 use Illuminate\Support\Facades\Route;
 
@@ -23,16 +24,22 @@ Route::prefix('apps/our-exchange')->name('apps.our-exchange.')->group(function (
         });
     });
 
-    Route::middleware($type(EntryTypes::FLOWERS))->group(function () {
-        Route::post('/bouquets/generate', [BouquetsController::class, 'generate'])
-            ->middleware('throttle:bouquet-generate')
-            ->name('bouquets.generate');
+    Route::middleware($type(EntryTypes::POSTCARDS))->group(function () {
+        Route::post('/postcards/generate', [PostcardsController::class, 'generate'])
+            ->middleware('throttle:postcard-generate')
+            ->name('postcards.generate');
 
-        Route::get('/flowers', [BouquetsController::class, 'index'])->name('flowers.index');
+        Route::get('/postcards', [PostcardsController::class, 'index'])->name('postcards.index');
+        // Pushes and bookmarks from when postcards were flowers.
+        Route::get('/flowers', [PostcardsController::class, 'fromFlowers']);
 
         Route::middleware('throttle:mailbox-mutations')->group(function () {
-            Route::post('/bouquets', [BouquetsController::class, 'store'])->name('bouquets.store');
-            Route::delete('/flowers/{bouquet}', [BouquetsController::class, 'destroy'])->name('flowers.destroy');
+            Route::post('/postcards', [PostcardsController::class, 'store'])->name('postcards.store');
+            Route::delete('/postcards/{postcard}', [PostcardsController::class, 'destroy'])->name('postcards.destroy');
+            Route::post('/postcards/prompts', [SavedPromptsController::class, 'store'])->name('postcards.prompts.store');
+            Route::delete('/postcards/prompts/{prompt}', [SavedPromptsController::class, 'destroy'])
+                ->whereNumber('prompt')
+                ->name('postcards.prompts.destroy');
         });
     });
 

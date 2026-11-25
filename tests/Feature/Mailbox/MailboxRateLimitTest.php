@@ -12,7 +12,7 @@ class MailboxRateLimitTest extends TestCase
     public function test_mailbox_limiters_are_defined(): void
     {
         $this->assertNotNull(RateLimiter::limiter('mailbox-mutations'));
-        $this->assertNotNull(RateLimiter::limiter('bouquet-generate'));
+        $this->assertNotNull(RateLimiter::limiter('postcard-generate'));
     }
 
     public function test_every_mailbox_write_has_its_own_limiter_not_corners(): void
@@ -26,8 +26,8 @@ class MailboxRateLimitTest extends TestCase
 
         foreach ($writes as $route) {
             $middleware = $route->gatherMiddleware();
-            $expected = $route->getName() === 'apps.our-exchange.bouquets.generate'
-                ? 'throttle:bouquet-generate'
+            $expected = $route->getName() === 'apps.our-exchange.postcards.generate'
+                ? 'throttle:postcard-generate'
                 : 'throttle:mailbox-mutations';
 
             $this->assertContains($expected, $middleware, $route->uri());

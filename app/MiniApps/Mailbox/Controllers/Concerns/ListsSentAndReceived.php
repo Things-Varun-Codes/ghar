@@ -2,8 +2,8 @@
 
 namespace App\MiniApps\Mailbox\Controllers\Concerns;
 
-use App\MiniApps\Mailbox\Models\Bouquet;
 use App\MiniApps\Mailbox\Models\MailboxMessage;
+use App\MiniApps\Mailbox\Models\Postcard;
 use App\Shell\Services\Household;
 use App\Shell\Support\ListPage;
 use Illuminate\Http\Request;
@@ -15,8 +15,8 @@ trait ListsSentAndReceived
     /**
      * Opening Received marks it all read.
      *
-     * @param  class-string<MailboxMessage|Bouquet>  $model
-     * @param  callable(MailboxMessage|Bouquet): array<string, mixed>  $present
+     * @param  class-string<MailboxMessage|Postcard>  $model
+     * @param  callable(MailboxMessage|Postcard): array<string, mixed>  $present
      */
     private function sentAndReceived(
         Request $request,

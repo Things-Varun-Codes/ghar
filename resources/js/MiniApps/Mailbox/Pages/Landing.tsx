@@ -1,4 +1,4 @@
-import { Flower2 } from 'lucide-react';
+import { Image } from 'lucide-react';
 import type { ReactNode } from 'react';
 import { Settle } from '@/components/motion';
 import { count } from '@/lib/plural';
@@ -10,26 +10,26 @@ import MailboxLayout, {
 import { monogram } from '@/MiniApps/Mailbox/lib/monogram';
 import { index as citationsIndex } from '@/routes/apps/our-exchange/citations';
 import { index as couponsIndex } from '@/routes/apps/our-exchange/coupons';
-import { index as flowersIndex } from '@/routes/apps/our-exchange/flowers';
 import { index as messagesIndex } from '@/routes/apps/our-exchange/messages';
+import { index as postcardsIndex } from '@/routes/apps/our-exchange/postcards';
 import EmptyState from '@/Shell/Components/EmptyState';
 import Page from '@/Shell/Components/Page';
 import RoomDoor from '@/Shell/Components/RoomDoor';
 
-type EntryType = 'messages' | 'flowers' | 'citations' | 'coupons';
+type EntryType = 'messages' | 'postcards' | 'citations' | 'coupons';
 
 type Counts = Record<EntryType, number>;
 
 type MailboxSummary = {
     counts: Counts;
     unread_messages: number;
-    unread_flowers: number;
+    unread_postcards: number;
     citations_action_needed: number;
     coupons_action_needed: number;
 };
 
 type NotePeek = { body: string; from: string };
-type BouquetPeek = { image_url: string; from: string };
+type PostcardPeek = { image_url: string; from: string };
 type CitationPeek = {
     ref_no: string | null;
     status: 'issued' | 'paid';
@@ -49,7 +49,7 @@ type CouponPeek = {
 
 type MailboxPeeks = {
     notes: NotePeek | null;
-    flowers: BouquetPeek | null;
+    postcards: PostcardPeek | null;
     citations: CitationPeek | null;
     coupons: CouponPeek | null;
 };
@@ -91,7 +91,7 @@ function MailboxDoor({
     return (
         <RoomDoor
             href={href}
-            // Notes and flowers mark themselves read when fetched: never prefetched.
+            // Notes and postcards mark themselves read when fetched: never prefetched.
             prefetch={prefetch ? 'hover' : false}
             name={title}
             settleIndex={index}
@@ -118,22 +118,22 @@ function NoteScrap({ note }: { note: NotePeek | null }) {
     );
 }
 
-function BouquetGlimpse({ bouquet }: { bouquet: BouquetPeek | null }) {
-    if (!bouquet) {
+function PostcardGlimpse({ postcard }: { postcard: PostcardPeek | null }) {
+    if (!postcard) {
         return (
             <span className="mailbox-door-empty">
-                <Flower2 size={28} strokeWidth={1.5} />
+                <Image size={28} strokeWidth={1.5} />
             </span>
         );
     }
 
     return (
         <img
-            src={bouquet.image_url}
+            src={postcard.image_url}
             alt=""
             loading="lazy"
             decoding="async"
-            className="mailbox-door-bouquet"
+            className="mailbox-door-postcard"
         />
     );
 }
@@ -255,18 +255,18 @@ const DOORS: Record<
             ),
         peek: <NoteScrap note={peeks.notes} />,
     }),
-    flowers: (summary, peeks) => ({
-        href: flowersIndex.url(),
+    postcards: (summary, peeks) => ({
+        href: postcardsIndex.url(),
         prefetch: false,
         live:
-            waiting(summary.unread_flowers, 'unseen') ??
+            waiting(summary.unread_postcards, 'unseen') ??
             tally(
-                summary.counts.flowers,
-                'bouquet received',
-                'bouquets received',
-                'No bouquets yet',
+                summary.counts.postcards,
+                'postcard received',
+                'postcards received',
+                'No postcards yet',
             ),
-        peek: <BouquetGlimpse bouquet={peeks.flowers} />,
+        peek: <PostcardGlimpse postcard={peeks.postcards} />,
     }),
     citations: (summary, peeks) => ({
         href: citationsIndex.url(),
@@ -307,7 +307,7 @@ export default function Landing({
                 {types.length === 0 && (
                     <EmptyState
                         title="Nothing is switched on in the Exchange"
-                        body="An admin can turn on notes, flowers, coupons and citations."
+                        body="An admin can turn on notes, postcards, coupons and citations."
                     />
                 )}
                 <div className="shell-doors-wrap">

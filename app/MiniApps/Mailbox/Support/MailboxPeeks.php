@@ -2,10 +2,10 @@
 
 namespace App\MiniApps\Mailbox\Support;
 
-use App\MiniApps\Mailbox\Models\Bouquet;
 use App\MiniApps\Mailbox\Models\Citation;
 use App\MiniApps\Mailbox\Models\Coupon;
 use App\MiniApps\Mailbox\Models\MailboxMessage;
+use App\MiniApps\Mailbox\Models\Postcard;
 use App\Shell\Models\User;
 use App\Shell\Services\Household;
 use App\Shell\Support\SignedUrls;
@@ -13,9 +13,9 @@ use Illuminate\Support\Str;
 use Throwable;
 
 /**
- * One object per door on the Mailbox landing. Notes and flowers come only from what the viewer
+ * One object per door on the Mailbox landing. Notes and postcards come only from what the viewer
  * received; citations and coupons only from what they issued or received, preferring the one
- * waiting on them. Showing a note or bouquet here doesn't mark it read. An entry type that is off
+ * waiting on them. Showing a note or postcard here doesn't mark it read. An entry type that is off
  * has no peek.
  */
 final class MailboxPeeks
@@ -27,7 +27,7 @@ final class MailboxPeeks
     /**
      * @return array{
      *     notes: array{body: string, from: string}|null,
-     *     flowers: array{image_url: string, from: string}|null,
+     *     postcards: array{image_url: string, from: string}|null,
      *     citations: array{ref_no: ?string, status: string, offence: string, issuer: string, recipient: string}|null,
      *     coupons: array{title: string, remaining: int, quantity: int, status: string, is_expired: bool, issuer: string, recipient: string}|null,
      * }
@@ -36,7 +36,7 @@ final class MailboxPeeks
     {
         return [
             'notes' => self::latestNote($user),
-            'flowers' => EntryTypes::on(EntryTypes::FLOWERS) ? $this->bouquet($user) : null,
+            'postcards' => EntryTypes::on(EntryTypes::POSTCARDS) ? $this->postcard($user) : null,
             'citations' => EntryTypes::on(EntryTypes::CITATIONS) ? $this->citation($user) : null,
             'coupons' => EntryTypes::on(EntryTypes::COUPONS) ? $this->coupon($user) : null,
         ];
@@ -71,22 +71,22 @@ final class MailboxPeeks
     }
 
     /** @return array{image_url: string, from: string}|null */
-    private function bouquet(User $user): ?array
+    private function postcard(User $user): ?array
     {
-        $bouquet = Bouquet::query()
+        $postcard = Postcard::query()
             ->receivedBy($user)
             ->with('sender')
             ->orderByDesc('posted_at')
             ->orderByDesc('id')
             ->first();
 
-        if ($bouquet === null) {
+        if ($postcard === null) {
             return null;
         }
 
         // A storage misconfiguration costs the peek, not the whole landing.
         try {
-            $url = $this->signedUrls->forDiskObject(config('services.bouquet.disk'), $bouquet->image_key);
+            $url = $this->signedUrls->forDiskObject(config('services.image_ai.disk'), $postcard->image_key);
         } catch (Throwable $e) {
             report($e);
 
@@ -95,7 +95,7 @@ final class MailboxPeeks
 
         return [
             'image_url' => $url,
-            'from' => app(Household::class)->shortName($bouquet->sender),
+            'from' => app(Household::class)->shortName($postcard->sender),
         ];
     }
 

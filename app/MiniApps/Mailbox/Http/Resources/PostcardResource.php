@@ -3,11 +3,11 @@
 namespace App\MiniApps\Mailbox\Http\Resources;
 
 use App\MiniApps\Mailbox\Http\Resources\Concerns\DescribesSentToMany;
-use App\MiniApps\Mailbox\Models\Bouquet;
+use App\MiniApps\Mailbox\Models\Postcard;
 use App\Shell\Models\User;
 use App\Shell\Support\SignedUrls;
 
-class BouquetResource
+class PostcardResource
 {
     use DescribesSentToMany;
 
@@ -20,7 +20,7 @@ class BouquetResource
      *     id: int,
      *     note: string|null,
      *     image_url: string,
-     *     flowers: array<int, array{key: string, name: string, meaning: string}>,
+     *     prompt: string|null,
      *     posted_at: string,
      *     posted_at_human: string,
      *     read_at: string|null,
@@ -30,17 +30,17 @@ class BouquetResource
      *     recipients: list<array{id: int, name: string, avatar_url: string|null}>,
      * }
      */
-    public function __invoke(Bouquet $bouquet, ?User $viewer = null): array
+    public function __invoke(Postcard $postcard, ?User $viewer = null): array
     {
         $viewer ??= auth()->user();
-        $imageUrl = $this->signedUrls->forDiskObject(config('services.bouquet.disk'), $bouquet->image_key);
+        $imageUrl = $this->signedUrls->forDiskObject(config('services.image_ai.disk'), $postcard->image_key);
 
         return [
-            'id' => $bouquet->id,
-            'note' => $bouquet->note,
+            'id' => $postcard->id,
+            'note' => $postcard->note,
             'image_url' => $imageUrl,
-            'flowers' => $bouquet->flowers,
-            ...$this->delivery($bouquet, $viewer),
+            'prompt' => $postcard->prompt,
+            ...$this->delivery($postcard, $viewer),
         ];
     }
 }

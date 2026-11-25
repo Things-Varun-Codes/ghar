@@ -25,7 +25,7 @@ final class MailboxPush
     }
 
     /**
-     * Opens the type's list at the entry (notes, flowers).
+     * Opens the type's list at the entry (notes, postcards).
      *
      * @param  iterable<User>  $recipients
      */

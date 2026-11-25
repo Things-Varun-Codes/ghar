@@ -2,13 +2,13 @@
 
 namespace Tests\Feature\Mailbox;
 
-use App\MiniApps\Mailbox\Contracts\BouquetImageGenerator;
+use App\MiniApps\Mailbox\Contracts\ImageGenerator;
 use App\Shell\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
 
-class BouquetFailureTest extends TestCase
+class PostcardFailureTest extends TestCase
 {
     use RefreshDatabase;
 
@@ -17,7 +17,7 @@ class BouquetFailureTest extends TestCase
         Storage::fake('s3');
 
         $this->app->bind(
-            BouquetImageGenerator::class,
+            ImageGenerator::class,
             function () {
                 return new class
                 {
@@ -35,8 +35,8 @@ class BouquetFailureTest extends TestCase
         $user = User::factory()->create();
 
         $response = $this->actingAs($user)
-            ->postJson('/apps/our-exchange/bouquets/generate', [
-                'flowers' => ['red_rose'],
+            ->postJson('/apps/our-exchange/postcards/generate', [
+                'prompt' => 'A fox in the snow',
             ]);
 
         // The controller catches the failure: 422 for a safety refusal, 500 otherwise.
@@ -64,7 +64,7 @@ class BouquetFailureTest extends TestCase
         // Stub: returns an object with empty bytes.  The controller must detect empty bytes
         // and return an error.
         $this->app->bind(
-            BouquetImageGenerator::class,
+            ImageGenerator::class,
             function () {
                 return new class
                 {
@@ -80,8 +80,8 @@ class BouquetFailureTest extends TestCase
         $user = User::factory()->create();
 
         $response = $this->actingAs($user)
-            ->postJson('/apps/our-exchange/bouquets/generate', [
-                'flowers' => ['red_rose'],
+            ->postJson('/apps/our-exchange/postcards/generate', [
+                'prompt' => 'A fox in the snow',
             ]);
 
         $this->assertTrue(

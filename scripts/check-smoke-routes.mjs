@@ -14,6 +14,8 @@ const SMOKE_FILE = path.join(REPO_ROOT, 'scripts', 'smoke', 'smoke.spec.mjs');
 const PLACEHOLDER = ':param';
 
 const SKIP = {
+    'apps/our-exchange/flowers':
+        'Redirects to /apps/our-exchange/postcards, which smoke visits — no page of its own.',
     'api/corner/link-preview':
         'JSON endpoint, no rendered page — smoke asserts a visible h1/h2, which does not apply.',
     'api/corner/picture-preview':

@@ -2,10 +2,10 @@
 
 namespace Tests\Feature\Mailbox;
 
-use App\MiniApps\Mailbox\Models\Bouquet;
 use App\MiniApps\Mailbox\Models\Citation;
 use App\MiniApps\Mailbox\Models\Coupon;
 use App\MiniApps\Mailbox\Models\MailboxMessage;
+use App\MiniApps\Mailbox\Models\Postcard;
 use App\Shell\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Carbon;
@@ -29,20 +29,20 @@ class MailboxSearchSortTest extends TestCase
     {
         return [
             'messages' => ['/apps/our-exchange/messages?tab=received', 'messages'],
-            'flowers' => ['/apps/our-exchange/flowers?tab=received', 'bouquets'],
+            'postcards' => ['/apps/our-exchange/postcards?tab=received', 'postcards'],
             'citations' => ['/apps/our-exchange/citations?tab=received', 'citations'],
             'coupons' => ['/apps/our-exchange/coupons?tab=received', 'coupons'],
         ];
     }
 
     /** One row from $from to $to, with $text in the surface's first search column. */
-    private function row(User $from, User $to, string $text, ?Carbon $at = null): MailboxMessage|Bouquet|Citation|Coupon
+    private function row(User $from, User $to, string $text, ?Carbon $at = null): MailboxMessage|Postcard|Citation|Coupon
     {
         $at ??= Carbon::now();
 
         return match ($this->dataName()) {
             'messages' => MailboxMessage::factory()->to($to)->create(['sender_id' => $from->id, 'body' => $text, 'posted_at' => $at]),
-            'flowers' => Bouquet::factory()->to($to)->create(['sender_id' => $from->id, 'note' => $text, 'posted_at' => $at]),
+            'postcards' => Postcard::factory()->to($to)->create(['sender_id' => $from->id, 'note' => $text, 'posted_at' => $at]),
             'citations' => Citation::factory()->create([
                 'issuer_id' => $from->id, 'recipient_id' => $to->id, 'issued_at' => $at,
                 'offence' => $text, 'penalty' => 'none', 'incident_place' => 'none', 'remarks' => 'none',

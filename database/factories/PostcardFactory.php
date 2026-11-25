@@ -2,7 +2,7 @@
 
 namespace Database\Factories;
 
-use App\MiniApps\Mailbox\Models\Bouquet;
+use App\MiniApps\Mailbox\Models\Postcard;
 use App\Shell\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
@@ -10,21 +10,19 @@ use Illuminate\Database\Eloquent\Factories\Factory;
  * Recipients live in a pivot, so they are attached after creation: use ->to($user) (or
  * several users), optionally already read.
  *
- * @extends Factory<Bouquet>
+ * @extends Factory<Postcard>
  */
-class BouquetFactory extends Factory
+class PostcardFactory extends Factory
 {
-    protected $model = Bouquet::class;
+    protected $model = Postcard::class;
 
     public function definition(): array
     {
         return [
             'sender_id' => User::factory(),
             'note' => fake()->optional()->sentence(),
-            'image_key' => 'bouquets/'.fake()->uuid().'.png',
-            'flowers' => [
-                ['key' => 'red_rose', 'name' => 'Red Rose', 'meaning' => 'Love, the loud kind.'],
-            ],
+            'image_key' => 'postcards/'.fake()->uuid().'.png',
+            'prompt' => 'A lighthouse at dusk.',
             'posted_at' => now(),
         ];
     }
@@ -34,9 +32,9 @@ class BouquetFactory extends Factory
     {
         $recipients = $recipients instanceof User ? [$recipients] : $recipients;
 
-        return $this->afterCreating(function (Bouquet $bouquet) use ($recipients, $read): void {
+        return $this->afterCreating(function (Postcard $postcard) use ($recipients, $read): void {
             foreach ($recipients as $recipient) {
-                $bouquet->recipients()->attach($recipient->id, ['read_at' => $read ? now() : null]);
+                $postcard->recipients()->attach($recipient->id, ['read_at' => $read ? now() : null]);
             }
         });
     }

@@ -17,13 +17,13 @@ return [
         'url' => env('MAP_TILES_URL') ?: 'https://tiles.openfreemap.org',
     ],
 
-    // No 'fake' default on purpose: MailboxServiceProvider throws in production when this is
-    // unset, rather than silently no-opping.
-    'bouquet' => [
-        'provider' => env('BOUQUET_IMAGE_PROVIDER'),
-        'cf_account_id' => env('CLOUDFLARE_ACCOUNT_ID'),
-        'cf_token' => env('CLOUDFLARE_WORKERS_AI_TOKEN'),
-        'cf_model' => env('CLOUDFLARE_AI_IMAGE_MODEL', '@cf/black-forest-labs/flux-1-schnell'),
+    // No 'fake' default on purpose: unset in production, the feature that needs it stays off.
+    'image_ai' => [
+        'provider' => env('IMAGE_AI_PROVIDER'),
+        'url' => env('IMAGE_AI_URL'),
+        'key' => env('IMAGE_AI_KEY'),
+        'model' => env('IMAGE_AI_MODEL'),
+        'size' => env('IMAGE_AI_SIZE'),
         'disk' => (require __DIR__.'/shell.php')['media_disk'],
     ],
 

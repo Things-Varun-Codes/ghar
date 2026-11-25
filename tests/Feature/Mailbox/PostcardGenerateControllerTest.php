@@ -2,22 +2,22 @@
 
 namespace Tests\Feature\Mailbox;
 
-use App\MiniApps\Mailbox\Contracts\BouquetImageGenerator;
-use App\MiniApps\Mailbox\Services\FakeBouquetGenerator;
+use App\MiniApps\Mailbox\Contracts\ImageGenerator;
+use App\MiniApps\Mailbox\Services\FakeImageGenerator;
 use App\Shell\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
 
-class BouquetGenerateControllerTest extends TestCase
+class PostcardGenerateControllerTest extends TestCase
 {
     use RefreshDatabase;
 
     private function bindFake(): void
     {
         $this->app->bind(
-            BouquetImageGenerator::class,
-            FakeBouquetGenerator::class,
+            ImageGenerator::class,
+            FakeImageGenerator::class,
         );
     }
 
@@ -27,15 +27,14 @@ class BouquetGenerateControllerTest extends TestCase
         $this->bindFake();
 
         // Sentinel: non-empty token ensures the credential-leak check is non-vacuous.
-        config(['services.bouquet.cf_token' => 'SENTINEL-CF-TOKEN-XYZ']);
+        config(['services.image_ai.key' => 'SENTINEL-KEY-XYZ']);
 
         /** @var User $user */
         $user = User::factory()->create();
 
         $response = $this->actingAs($user)
-            ->postJson('/apps/our-exchange/bouquets/generate', [
-                'flowers' => ['red_rose'],
-                'refine' => 'soft light',
+            ->postJson('/apps/our-exchange/postcards/generate', [
+                'prompt' => 'A fox in the snow',
             ]);
 
         $response->assertStatus(200);
@@ -44,15 +43,15 @@ class BouquetGenerateControllerTest extends TestCase
         $response->assertJsonStructure(['image', 'mime']);
         $this->assertIsString($response->json('image'), 'image must be a base64 string');
 
-        // Cloudflare token must never appear in the response body.
+        // The key must never appear in the response body.
         $this->assertStringNotContainsString(
-            'SENTINEL-CF-TOKEN-XYZ',
+            'SENTINEL-KEY-XYZ',
             $response->getContent(),
-            'CLOUDFLARE_WORKERS_AI_TOKEN must not appear in the generate endpoint response'
+            'IMAGE_AI_KEY must not appear in the generate endpoint response'
         );
 
         // Zero persistence: no DB rows, no stored objects.
-        $this->assertDatabaseCount('mailbox_bouquets', 0);
+        $this->assertDatabaseCount('mailbox_postcards', 0);
         $this->assertCount(
             0,
             Storage::disk('s3')->allFiles(),
@@ -62,8 +61,8 @@ class BouquetGenerateControllerTest extends TestCase
 
     public function test_generate_requires_authentication(): void
     {
-        $response = $this->postJson('/apps/our-exchange/bouquets/generate', [
-            'flowers' => ['red_rose'],
+        $response = $this->postJson('/apps/our-exchange/postcards/generate', [
+            'prompt' => 'A fox in the snow',
         ]);
 
         $response->assertStatus(401);

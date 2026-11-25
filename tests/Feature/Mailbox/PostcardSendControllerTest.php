@@ -2,9 +2,9 @@
 
 namespace Tests\Feature\Mailbox;
 
-use App\MiniApps\Mailbox\Contracts\BouquetImageGenerator;
-use App\MiniApps\Mailbox\Models\Bouquet;
-use App\MiniApps\Mailbox\Services\FakeBouquetGenerator;
+use App\MiniApps\Mailbox\Contracts\ImageGenerator;
+use App\MiniApps\Mailbox\Models\Postcard;
+use App\MiniApps\Mailbox\Services\FakeImageGenerator;
 use App\Shell\Models\User;
 use App\Shell\Notifications\GenericPushNotification;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -14,15 +14,15 @@ use Illuminate\Support\Facades\Storage;
 use PHPUnit\Framework\Attributes\DataProvider;
 use Tests\TestCase;
 
-class BouquetSendControllerTest extends TestCase
+class PostcardSendControllerTest extends TestCase
 {
     use RefreshDatabase;
 
     private function bindFake(): void
     {
         $this->app->bind(
-            BouquetImageGenerator::class,
-            FakeBouquetGenerator::class,
+            ImageGenerator::class,
+            FakeImageGenerator::class,
         );
     }
 
@@ -37,36 +37,36 @@ class BouquetSendControllerTest extends TestCase
         /** @var User $recipient */
         $recipient = User::factory()->create();
 
-        $fakeBase64 = base64_encode(file_get_contents(public_path('img/placeholder-bouquet.jpg')));
+        $fakeBase64 = base64_encode(file_get_contents(public_path('img/placeholder-postcard.jpg')));
 
-        $response = $this->actingAs($sender)->post('/apps/our-exchange/bouquets', [
+        $response = $this->actingAs($sender)->post('/apps/our-exchange/postcards', [
             'recipient_ids' => [$recipient->id],
-            'flowers' => ['red_rose', 'peony'],
+            'prompt' => 'A fox in the snow',
             'note' => 'for you',
             'image' => $fakeBase64,
             'mime' => 'image/jpeg',
         ]);
 
-        // store() lands the sender on their Sent flowers, with a toast.
-        $response->assertRedirect('/apps/our-exchange/flowers?tab=sent');
-        $this->assertSuccessToast($response, 'Flowers sent.');
+        // store() lands the sender on their Sent postcards, with a toast.
+        $response->assertRedirect('/apps/our-exchange/postcards?tab=sent');
+        $this->assertSuccessToast($response, 'Postcard sent.');
 
-        // Exactly 1 bouquet row, and it lives in mailbox_bouquets (not mailbox_messages).
-        $this->assertDatabaseCount('mailbox_bouquets', 1);
+        // Exactly 1 postcard row, and it lives in mailbox_postcards (not mailbox_messages).
+        $this->assertDatabaseCount('mailbox_postcards', 1);
         $this->assertDatabaseCount('mailbox_messages', 0);
-        $this->assertDatabaseHas('mailbox_bouquets', [
+        $this->assertDatabaseHas('mailbox_postcards', [
             'sender_id' => $sender->id,
         ]);
 
-        $bouquet = Bouquet::firstOrFail();
-        $this->assertNotNull($bouquet->image_key, 'image_key must be set after send');
+        $postcard = Postcard::firstOrFail();
+        $this->assertNotNull($postcard->image_key, 'image_key must be set after send');
         $this->assertStringStartsWith(
-            'bouquets/',
-            $bouquet->image_key,
-            'image_key must be stored under the bouquets/ prefix'
+            'postcards/',
+            $postcard->image_key,
+            'image_key must be stored under the postcards/ prefix'
         );
 
-        $this->assertSame([$recipient->id], $bouquet->recipients()->pluck('users.id')->all());
+        $this->assertSame([$recipient->id], $postcard->recipients()->pluck('users.id')->all());
 
         // Exactly 1 stored object written (raw bytes, no GD re-encode).
         $this->assertCount(
@@ -83,9 +83,9 @@ class BouquetSendControllerTest extends TestCase
                 $webPushMessage = $notification->toWebPush($recipient, $notification);
                 $messageArray = $webPushMessage->toArray();
 
-                return ($messageArray['tag'] ?? null) === 'our-exchange:flowers'
-                    && str_contains($messageArray['body'] ?? '', 'You got a bouquet from')
-                    && str_starts_with($messageArray['data']['url'] ?? '', '/apps/our-exchange/flowers?focus=');
+                return ($messageArray['tag'] ?? null) === 'our-exchange:postcards'
+                    && str_contains($messageArray['body'] ?? '', 'You got a postcard from')
+                    && str_starts_with($messageArray['data']['url'] ?? '', '/apps/our-exchange/postcards?focus=');
             }
         );
 
@@ -102,8 +102,8 @@ class BouquetSendControllerTest extends TestCase
 
     public function test_send_requires_authentication(): void
     {
-        $response = $this->postJson('/apps/our-exchange/bouquets', [
-            'flowers' => ['red_rose'],
+        $response = $this->postJson('/apps/our-exchange/postcards', [
+            'prompt' => 'A fox in the snow',
             'image' => base64_encode('test'),
             'mime' => 'image/jpeg',
         ]);
@@ -129,14 +129,14 @@ class BouquetSendControllerTest extends TestCase
         $sender = User::factory()->create();
         $recipient = User::factory()->create();
 
-        $this->actingAs($sender)->post('/apps/our-exchange/bouquets', [
+        $this->actingAs($sender)->post('/apps/our-exchange/postcards', [
             'recipient_ids' => [$recipient->id],
-            'flowers' => ['red_rose'],
+            'prompt' => 'A fox in the snow',
             'image' => $image,
             'mime' => 'image/jpeg',
         ])->assertSessionHasErrors('image');
 
-        $this->assertDatabaseCount('mailbox_bouquets', 0);
+        $this->assertDatabaseCount('mailbox_postcards', 0);
         $this->assertSame([], Storage::disk('s3')->allFiles());
     }
 
@@ -145,12 +145,12 @@ class BouquetSendControllerTest extends TestCase
         $sender = User::factory()->create();
         $recipient = User::factory()->create();
 
-        $this->actingAs($sender)->post('/apps/our-exchange/bouquets', [
+        $this->actingAs($sender)->post('/apps/our-exchange/postcards', [
             'recipient_ids' => [$recipient->id],
-            'flowers' => ['red_rose'],
+            'prompt' => 'A fox in the snow',
             'image' => str_repeat('A', 14 * 1024 * 1024),
             'mime' => 'image/jpeg',
-        ])->assertSessionHasErrors(['image' => 'The bouquet image is too large (max 10 MB).']);
+        ])->assertSessionHasErrors(['image' => 'The postcard image is too large (max 10 MB).']);
     }
 
     public function test_the_stored_extension_comes_from_the_real_image_type(): void
@@ -161,13 +161,13 @@ class BouquetSendControllerTest extends TestCase
         $recipient = User::factory()->create();
         $png = base64_decode('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==');
 
-        $this->actingAs($sender)->post('/apps/our-exchange/bouquets', [
+        $this->actingAs($sender)->post('/apps/our-exchange/postcards', [
             'recipient_ids' => [$recipient->id],
-            'flowers' => ['red_rose'],
+            'prompt' => 'A fox in the snow',
             'image' => base64_encode($png),
             'mime' => 'image/jpeg',
         ])->assertSessionHasNoErrors();
 
-        $this->assertStringEndsWith('.png', Bouquet::firstOrFail()->image_key);
+        $this->assertStringEndsWith('.png', Postcard::firstOrFail()->image_key);
     }
 }

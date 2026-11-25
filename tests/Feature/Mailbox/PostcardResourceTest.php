@@ -2,19 +2,19 @@
 
 namespace Tests\Feature\Mailbox;
 
-use App\MiniApps\Mailbox\Http\Resources\BouquetResource;
-use App\MiniApps\Mailbox\Models\Bouquet;
+use App\MiniApps\Mailbox\Http\Resources\PostcardResource;
+use App\MiniApps\Mailbox\Models\Postcard;
 use App\Shell\Models\User;
 use App\Shell\Support\Person;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
 
-class BouquetResourceTest extends TestCase
+class PostcardResourceTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_bouquet_resource_payload_has_note_image_url_flowers_and_no_type(): void
+    public function test_postcard_resource_payload_has_note_image_url_prompt_and_no_type(): void
     {
         Storage::fake('s3');
 
@@ -23,26 +23,22 @@ class BouquetResourceTest extends TestCase
         /** @var User $recipient */
         $recipient = User::factory()->create();
 
-        $bouquet = Bouquet::factory()->to($recipient)->create([
+        $postcard = Postcard::factory()->to($recipient)->create([
             'sender_id' => $sender->id,
             'note' => 'Thinking of you',
-            'image_key' => 'bouquets/test-uuid.png',
-            'flowers' => [
-                ['key' => 'red_rose', 'name' => 'Red Rose', 'meaning' => 'Love'],
-            ],
+            'image_key' => 'postcards/test-uuid.png',
+            'prompt' => 'A fox in the snow',
             'posted_at' => now(),
         ]);
 
         $this->actingAs($recipient);
 
-        $payload = $this->app->make(BouquetResource::class)($bouquet->fresh());
+        $payload = $this->app->make(PostcardResource::class)($postcard->fresh());
 
-        $this->assertSame($bouquet->id, $payload['id']);
+        $this->assertSame($postcard->id, $payload['id']);
         $this->assertSame('Thinking of you', $payload['note']);
-        $this->assertStringContainsString('bouquets/test-uuid.png', $payload['image_url']);
-        $this->assertSame([
-            ['key' => 'red_rose', 'name' => 'Red Rose', 'meaning' => 'Love'],
-        ], $payload['flowers']);
+        $this->assertStringContainsString('postcards/test-uuid.png', $payload['image_url']);
+        $this->assertSame('A fox in the snow', $payload['prompt']);
         $this->assertArrayNotHasKey('type', $payload);
         $this->assertTrue($payload['is_unread']);
         $this->assertFalse($payload['is_mine']);
@@ -50,7 +46,7 @@ class BouquetResourceTest extends TestCase
         $this->assertSame([Person::short($recipient)], $payload['recipients']);
     }
 
-    public function test_bouquet_resource_is_mine_true_for_sender(): void
+    public function test_postcard_resource_is_mine_true_for_sender(): void
     {
         Storage::fake('s3');
 
@@ -59,13 +55,13 @@ class BouquetResourceTest extends TestCase
         /** @var User $recipient */
         $recipient = User::factory()->create();
 
-        $bouquet = Bouquet::factory()->to($recipient)->create([
+        $postcard = Postcard::factory()->to($recipient)->create([
             'sender_id' => $sender->id,
         ]);
 
         $this->actingAs($sender);
 
-        $payload = $this->app->make(BouquetResource::class)($bouquet->fresh());
+        $payload = $this->app->make(PostcardResource::class)($postcard->fresh());
 
         $this->assertTrue($payload['is_mine']);
         $this->assertFalse($payload['is_unread']);

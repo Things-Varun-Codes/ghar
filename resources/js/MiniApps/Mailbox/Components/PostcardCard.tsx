@@ -3,17 +3,16 @@ import { useRef, useState } from 'react';
 import { cn } from '@/lib/utils';
 import MailDeleteMenu from '@/MiniApps/Mailbox/Components/MailDeleteMenu';
 import MailMeta from '@/MiniApps/Mailbox/Components/MailMeta';
-import type { FlowerEntry } from '@/MiniApps/Mailbox/Components/NoteCard';
 import AppCard from '@/Shell/Components/AppCard';
 import MediaLightbox from '@/Shell/Components/MediaLightbox';
 import type { MediaLightboxHandle } from '@/Shell/Components/MediaLightbox';
 import type { Person } from '@/types/person';
 
-export type BouquetItem = {
+export type PostcardItem = {
     id: number;
     note: string | null;
     image_url: string | null;
-    flowers: FlowerEntry[] | null;
+    prompt: string | null;
     posted_at: string;
     posted_at_human: string;
     read_at: string | null;
@@ -24,26 +23,27 @@ export type BouquetItem = {
 };
 
 type Props = {
-    message: BouquetItem;
+    message: PostcardItem;
     onDelete?: () => void;
     isFocused?: boolean;
 };
 
-export default function BouquetCard({ message, onDelete, isFocused }: Props) {
+export default function PostcardCard({ message, onDelete, isFocused }: Props) {
     const lightboxRef = useRef<MediaLightboxHandle>(null);
     // The generator's size isn't fixed, so the lightbox takes it from the loaded picture.
     const [size, setSize] = useState<{ width: number; height: number }>();
     const recipientNames = message.recipients.map((r) => r.name).join(', ');
+    const alt = message.prompt ?? 'A postcard';
     const from = message.is_mine
-        ? 'your bouquet'
-        : `bouquet from ${message.sender.name}`;
+        ? 'your postcard'
+        : `postcard from ${message.sender.name}`;
 
     return (
         <>
             <AppCard
                 variant="list"
                 base="mailbox-card"
-                className={cn('mailbox-bouquet', isFocused && 'focused')}
+                className={cn('mailbox-postcard', isFocused && 'focused')}
                 // Focusable only when a link pointed here, so the list scroll can land on it.
                 tabIndex={isFocused ? -1 : undefined}
                 id={`mailbox-note-${message.id}`}
@@ -55,11 +55,11 @@ export default function BouquetCard({ message, onDelete, isFocused }: Props) {
                             type="button"
                             aria-label={`View ${from}, ${message.posted_at_human}, fullscreen`}
                             onClick={() => lightboxRef.current?.open(0)}
-                            className="mailbox-bouquet-image-button"
+                            className="mailbox-postcard-image-button"
                         >
                             <img
                                 src={message.image_url}
-                                alt="Flower bouquet"
+                                alt={alt}
                                 className="block h-full w-full object-cover"
                                 onLoad={(e) =>
                                     setSize({
@@ -70,7 +70,7 @@ export default function BouquetCard({ message, onDelete, isFocused }: Props) {
                             />
                             <span
                                 aria-hidden="true"
-                                className="mailbox-bouquet-expand"
+                                className="mailbox-postcard-expand"
                             >
                                 <Maximize2 size={16} strokeWidth={1.5} />
                             </span>
@@ -79,16 +79,8 @@ export default function BouquetCard({ message, onDelete, isFocused }: Props) {
 
                     <div className="min-w-0 flex-[1_1_auto]">
                         {message.note && (
-                            <p className="mailbox-hand mailbox-bouquet-note">
+                            <p className="mailbox-hand mailbox-postcard-note">
                                 {message.note}
-                            </p>
-                        )}
-
-                        {message.flowers && message.flowers.length > 0 && (
-                            <p className="mailbox-hand-meta mailbox-bouquet-flowers">
-                                {message.flowers
-                                    .map((f) => `${f.name}: ${f.meaning}`)
-                                    .join(' · ')}
                             </p>
                         )}
                     </div>
@@ -97,13 +89,13 @@ export default function BouquetCard({ message, onDelete, isFocused }: Props) {
                 <div className="flex items-end justify-between gap-2">
                     <MailMeta
                         mail={message}
-                        className="mailbox-hand-meta mailbox-bouquet-meta"
+                        className="mailbox-hand-meta mailbox-postcard-meta"
                     />
 
                     {message.is_mine && onDelete && (
                         <MailDeleteMenu
-                            noun="bouquet"
-                            label={`Actions for your bouquet to ${recipientNames}, ${message.posted_at_human}`}
+                            noun="postcard"
+                            label={`Actions for your postcard to ${recipientNames}, ${message.posted_at_human}`}
                             triggerClassName="mailbox-card-menu-square"
                             onDelete={onDelete}
                         />
@@ -119,9 +111,9 @@ export default function BouquetCard({ message, onDelete, isFocused }: Props) {
                             kind: 'photo',
                             original: message.image_url,
                             ...size,
-                            alt: 'Flower bouquet',
+                            alt,
                             title: message.is_mine
-                                ? 'Your bouquet'
+                                ? 'Your postcard'
                                 : `From ${message.sender.name}`,
                             subtitle: message.posted_at_human,
                         },
