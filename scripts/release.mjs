@@ -200,11 +200,14 @@ function prepare() {
     // A new install starts on the newest major; one already running keeps the major it has.
     const major = newMajor(version);
     let pinned = null;
+
     if (major !== null) {
         const example = readFileSync(SELFHOST_ENV, 'utf8');
+
         if (!/^GHAR_VERSION=/m.test(example)) {
             throw new Error('.env.selfhost.example has no GHAR_VERSION line.');
         }
+
         pinned = example.replace(/^GHAR_VERSION=.*$/m, `GHAR_VERSION=${major}`);
     }
 
