@@ -2,10 +2,11 @@
 
 namespace Database\Seeders\DevData;
 
-use App\MiniApps\Mailbox\Models\Bouquet;
 use App\MiniApps\Mailbox\Models\Citation;
 use App\MiniApps\Mailbox\Models\Coupon;
 use App\MiniApps\Mailbox\Models\MailboxMessage;
+use App\MiniApps\Mailbox\Models\Postcard;
+use App\MiniApps\Mailbox\Models\SavedPrompt;
 use App\Shell\Models\User;
 use Carbon\CarbonImmutable;
 use Illuminate\Contracts\Filesystem\Filesystem;
@@ -16,16 +17,16 @@ use Illuminate\Contracts\Filesystem\Filesystem;
  */
 final class MailboxData
 {
-    /** Bouquets generated against the previous seed land here, outside the media library. */
+    /** Postcards generated against the previous seed land here, outside the media library. */
     public static function clearFiles(Filesystem $disk): void
     {
-        $disk->deleteDirectory('bouquets');
+        $disk->deleteDirectory('postcards');
     }
 
     public function seed(Household $h): void
     {
         $this->notes($h);
-        $this->flowers($h);
+        $this->postcards($h);
         $this->coupons($h);
         $this->citations($h);
     }
@@ -57,30 +58,29 @@ final class MailboxData
         }
     }
 
-    private function flowers(Household $h): void
+    private function postcards(Household $h): void
     {
-        $catalog = collect(config('mailbox-bouquets'))->keyBy('key');
-        $pick = fn (array $keys): array => array_values($catalog->only($keys)->all());
-
-        // [note, sender, days ago, flowers, [recipient, read days ago or null]...]
-        $bouquets = [
-            ['For the bad week. It is nearly over.', $h->ravi, 2, ['lavender', 'chamomile'], [[$h->meera, null]]],
-            ['For getting us all through the move.', $h->admin, 6, ['sunflower', 'daisy'], [[$h->ravi, 5], [$h->meera, null], [$h->kabir, null]]],
-            [null, $h->kabir, 9, ['tulip'], [[$h->admin, 8]]],
-            ['Good luck tomorrow!', $h->meera, 14, ['jasmine', 'sweet_pea'], [[$h->kabir, 13]]],
+        // [note, sender, days ago, prompt, [recipient, read days ago or null]...]
+        $postcards = [
+            ['For the bad week. It is nearly over.', $h->ravi, 2, 'A field of lavender under a soft grey sky, in watercolour.', [[$h->meera, null]]],
+            ['For getting us all through the move.', $h->admin, 6, 'Cardboard boxes stacked by an open door, sunlight coming in.', [[$h->ravi, 5], [$h->meera, null], [$h->kabir, null]]],
+            [null, $h->kabir, 9, 'A single red tulip in a jam jar.', [[$h->admin, 8]]],
+            ['Good luck tomorrow!', $h->meera, 14, 'A paper boat setting off across a pond.', [[$h->kabir, 13]]],
         ];
 
-        foreach ($bouquets as $i => [$note, $sender, $days, $flowers, $recipients]) {
-            $bouquet = Bouquet::factory()->create([
+        foreach ($postcards as $i => [$note, $sender, $days, $prompt, $recipients]) {
+            $postcard = Postcard::factory()->create([
                 'sender_id' => $sender->id,
                 'note' => $note,
-                'image_key' => $h->storeImage("bouquet-{$i}.jpg", PlaceholderImage::jpeg('A bouquet', $i + 1, 768, 768)),
-                'flowers' => $pick($flowers),
+                'image_key' => $h->storeImage("postcard-{$i}.jpg", PlaceholderImage::jpeg('A postcard', $i + 1, 768, 768)),
+                'prompt' => $prompt,
                 'posted_at' => $h->daysAgo($days),
             ]);
 
-            $this->attach($h, $bouquet->recipients(), $recipients);
+            $this->attach($h, $postcard->recipients(), $recipients);
         }
+
+        SavedPrompt::create(['user_id' => $h->ravi->id, 'name' => 'Our street', 'prompt' => 'Our street after rain, in ink and wash.']);
     }
 
     private function coupons(Household $h): void

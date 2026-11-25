@@ -40,7 +40,7 @@ class MediaDiskConfigTest extends TestCase
         $this->setMediaDisk($value);
 
         $this->assertSame($expected, (require base_path('config/shell.php'))['media_disk']);
-        $this->assertSame($expected, (require base_path('config/services.php'))['bouquet']['disk']);
+        $this->assertSame($expected, (require base_path('config/services.php'))['image_ai']['disk']);
         $this->assertSame($expected, (require base_path('config/media-library.php'))['disk_name']);
     }
 

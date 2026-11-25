@@ -3,7 +3,7 @@
 **Ghar** is a private, auth-gated, self-hosted web platform for a family or household. A secure
 shell (dashboard + OS chrome) hosts self-contained mini apps.
 Installed today: **Our History** (timeline, gallery, calendar), **Our Shelf** (lists the household
-defines: songs, films, places, books…) and **Our Exchange** (messages, flowers, citations, coupons). **The admin
+defines: songs, films, places, books…) and **Our Exchange** (messages, postcards, citations, coupons). **The admin
 chooses which rooms a home has** at Admin → Rooms (`/admin/rooms`); a fresh install starts with none on.
 
 **Core value:** new mini apps can be added — and existing ones updated — without touching the
@@ -17,9 +17,10 @@ What's shipped, what's next and what's still open: **`ROADMAP.md`**. Deploy and 
 
 Design: **`DESIGN.md`**. Everything else below guards against a real bug; the code shows the rest.
 
-- **Privacy.** Notes, flowers, coupons and citations are seen only by sender and recipients, not
+- **Privacy.** Notes, postcards, coupons and citations are seen only by sender and recipients, not
   admins: viewer queries start with `visibleTo`, `receivedBy` or `issuedBy`. A push or Home row
-  never carries a note's text, a comment's text or a citation's details (lock screens show them).
+  never carries a note's text, a comment's text, a postcard's prompt or a citation's details (lock
+  screens show them). A saved postcard prompt is its owner's alone.
 - **Permissions are server-side** (policies, `Gate::authorize`, `can:admin` on the `/admin`
   group); payload `can` flags only pick buttons. "Maker or admin" is `User::makerOrAdmin()`. Who may
   enter a room is `Rooms::canEnter()` alone.
@@ -71,13 +72,13 @@ composer dev          # or: server + queue + logs + Vite, also on 127.0.0.1:8000
 
 Password for every account: `ghar-local-dev`. Mail lands in Mailpit at `http://127.0.0.1:8025`.
 
-| Account              | Who                          | Use it to check                                                                                                                                                                  |
-| -------------------- | ---------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `admin@example.test` | Asha, the only admin         | Admin pages; editing anyone's moment or Corner item; last-admin guards. Has no special access to other people's mail.                                                            |
-| `ravi@example.test`  | Ravi, adult, has a picture   | **Non-admin creator**: can edit "Monsoon drive to the coast" (his), can't edit "Meera's first pottery class". Sender of the fixtures; can't delete Kabir's comment 2 on Monsoon. |
-| `meera@example.test` | Meera, adult, has a picture  | **Recipient**: note 1, bouquet 1, coupon 1 and citation 1 are Ravi's to her alone. Can request the coupon and pay the citation.                                                  |
-| `kabir@example.test` | Kabir, younger, no push, 2FA | **Non-recipient**: `/apps/our-exchange/citations/1` and `coupons/1` must 403; note 1 and bouquet 1 must not be listed. Signing in asks for a code.                               |
-| `leela@example.test` | Leela, adult, 2FA on         | **Two-step sign-in**: the password leads to the code page; recovery code `ghar-recovery-one` works once (`npm run dev-reset` restores it).                                       |
+| Account              | Who                          | Use it to check                                                                                                                                                                                                                |
+| -------------------- | ---------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `admin@example.test` | Asha, the only admin         | Admin pages; editing anyone's moment or Corner item; last-admin guards. Has no special access to other people's mail.                                                                                                          |
+| `ravi@example.test`  | Ravi, adult, has a picture   | **Non-admin creator**: can edit "Monsoon drive to the coast" (his), can't edit "Meera's first pottery class". Sender of the fixtures; has one saved postcard prompt ("Our street"); can't delete Kabir's comment 2 on Monsoon. |
+| `meera@example.test` | Meera, adult, has a picture  | **Recipient**: note 1, postcard 1, coupon 1 and citation 1 are Ravi's to her alone. Can request the coupon and pay the citation.                                                                                               |
+| `kabir@example.test` | Kabir, younger, no push, 2FA | **Non-recipient**: `/apps/our-exchange/citations/1` and `coupons/1` must 403; note 1 and postcard 1 must not be listed. Signing in asks for a code.                                                                            |
+| `leela@example.test` | Leela, adult, 2FA on         | **Two-step sign-in**: the password leads to the code page; recovery code `ghar-recovery-one` works once (`npm run dev-reset` restores it).                                                                                     |
 
 Kabir's and Leela's code: `php artisan tinker --execute="echo app(PragmaRX\Google2FA\Google2FA::class)->getCurrentOtp('GHARLOCALDEVCODE');"`.
 

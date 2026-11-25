@@ -15,7 +15,7 @@ final class EntryTypes
 
     public const MESSAGES = 'messages';
 
-    public const FLOWERS = 'flowers';
+    public const POSTCARDS = 'postcards';
 
     public const COUPONS = 'coupons';
 
@@ -24,7 +24,7 @@ final class EntryTypes
     /** Landing order. */
     private const LABELS = [
         self::MESSAGES => ['Notes', 'Short handwritten notes to one or more people.'],
-        self::FLOWERS => ['Flowers', 'A painted bouquet with a line to go with it.'],
+        self::POSTCARDS => ['Postcards', 'A picture made from a prompt, with a line to go with it.'],
         self::CITATIONS => ['Citations', 'Joke tickets for household offences, to be paid in kind.'],
         self::COUPONS => ['Coupons', 'Favours to give and redeem.'],
     ];
@@ -32,7 +32,10 @@ final class EntryTypes
     public static function register(Rooms $rooms): void
     {
         foreach (self::LABELS as $type => [$label, $description]) {
-            $rooms->registerOption(self::ROOM, $type, $label, $description);
+            $rooms->registerOption(
+                self::ROOM, $type, $label, $description,
+                $type === self::POSTCARDS ? ImageAi::missing(...) : null,
+            );
         }
     }
 

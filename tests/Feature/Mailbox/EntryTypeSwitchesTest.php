@@ -34,7 +34,7 @@ class EntryTypeSwitchesTest extends TestCase
     /** @return array<string, array{string}> */
     public static function types(): array
     {
-        return ['notes' => ['messages'], 'flowers' => ['flowers'], 'citations' => ['citations'], 'coupons' => ['coupons']];
+        return ['notes' => ['messages'], 'postcards' => ['postcards'], 'citations' => ['citations'], 'coupons' => ['coupons']];
     }
 
     #[DataProvider('types')]
@@ -59,7 +59,7 @@ class EntryTypeSwitchesTest extends TestCase
         $this->actingAs(User::factory()->create())->get('/apps/our-exchange')->assertInertia(fn ($page) => $page
             ->where('types', [
                 ['key' => 'messages', 'label' => 'Notes'],
-                ['key' => 'flowers', 'label' => 'Flowers'],
+                ['key' => 'postcards', 'label' => 'Postcards'],
                 ['key' => 'citations', 'label' => 'Citations'],
                 ['key' => 'coupons', 'label' => 'Coupons'],
             ]));
@@ -89,7 +89,7 @@ class EntryTypeSwitchesTest extends TestCase
     public function test_the_other_types_still_push_while_one_is_off(): void
     {
         Notification::fake();
-        $this->turnOff('flowers');
+        $this->turnOff('postcards');
         $issuer = User::factory()->create();
         $recipient = User::factory()->create();
 
@@ -133,5 +133,55 @@ class EntryTypeSwitchesTest extends TestCase
 
         $migration->up();
         $this->assertSame('OC/2025/000007', Citation::findOrFail($citation->id)->ref_no);
+    }
+
+    public function test_postcards_stay_off_and_say_why_until_the_server_has_an_image_model(): void
+    {
+        config(['services.image_ai' => ['provider' => 'openai', 'url' => null, 'key' => null, 'model' => 'a-model']]);
+        $admin = User::factory()->create()->assignRole('admin');
+
+        $this->actingAs($admin)->get('/apps/our-exchange/postcards')->assertNotFound();
+
+        $this->get('/admin/rooms')->assertInertia(function ($page) {
+            $option = collect(collect($page->toArray()['props']['rooms'])->firstWhere('slug', 'our-exchange')['options'])
+                ->firstWhere('key', 'postcards');
+
+            $this->assertFalse($option['enabled']);
+            $this->assertSame('Needs an image model. Still to set on the server: IMAGE_AI_URL.', $option['unavailable']);
+        });
+
+        $this->patch('/admin/rooms/our-exchange', ['enabled' => true, 'option' => 'postcards'])->assertStatus(422);
+
+        config(['services.image_ai.url' => 'https://images.test/v1']);
+        app()->forgetScopedInstances();
+
+        $this->get('/apps/our-exchange/postcards')->assertOk();
+    }
+
+    public function test_sent_bouquets_and_their_switch_survive_becoming_postcards(): void
+    {
+        $migration = require base_path('database/migrations/our-exchange/2026_11_24_100000_turn_bouquets_into_postcards.php');
+        $migration->down();
+
+        $sender = User::factory()->create();
+        $id = DB::table('mailbox_bouquets')->insertGetId([
+            'sender_id' => $sender->id,
+            'note' => 'For you',
+            'image_key' => 'bouquets/one.jpg',
+            'flowers' => json_encode([['key' => 'tulip', 'name' => 'Tulip', 'meaning' => 'Love'], ['key' => 'daisy', 'name' => 'Daisy', 'meaning' => 'Joy']]),
+            'posted_at' => now(),
+        ]);
+        DB::table('mailbox_bouquet_recipients')->insert(['bouquet_id' => $id, 'user_id' => User::factory()->create()->id]);
+        DB::table('room_settings')->upsert([['key' => 'our-exchange:flowers', 'enabled' => false]], ['key'], ['enabled']);
+
+        $migration->up();
+
+        $this->assertSame(
+            ['note' => 'For you', 'image_key' => 'bouquets/one.jpg', 'prompt' => 'A bouquet of Tulip, Daisy'],
+            (array) DB::table('mailbox_postcards')->where('id', $id)->first(['note', 'image_key', 'prompt']),
+        );
+        $this->assertSame(1, DB::table('mailbox_postcard_recipients')->where('postcard_id', $id)->count());
+        $this->assertFalse((bool) DB::table('room_settings')->where('key', 'our-exchange:postcards')->value('enabled'));
+        $this->assertDatabaseMissing('room_settings', ['key' => 'our-exchange:flowers']);
     }
 }

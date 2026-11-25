@@ -140,7 +140,7 @@ For real use, set `MAIL_FROM_ADDRESS` to an address your provider will send from
 
 ## Media storage
 
-`MEDIA_DISK` decides where photos, videos and flower pictures go. Choose before anyone uploads,
+`MEDIA_DISK` decides where photos, videos and postcard pictures go. Choose before anyone uploads,
 because switching later means moving every file yourself.
 
 **`local` (default).** Files live in the `media` volume, mounted at
@@ -289,10 +289,22 @@ than 90 days are pruned weekly.
   OpenFreeMap (`tiles.openfreemap.org`), fetched by the server, so the tile host sees which areas
   were viewed but never who viewed them. `MAP_TILES_URL` points it at another host laid out like
   OpenFreeMap, such as your own copy.
-- **AI flower pictures** in Our Exchange use Cloudflare Workers AI:
-  `BOUQUET_IMAGE_PROVIDER=cloudflare` with `CLOUDFLARE_ACCOUNT_ID` and a token scoped to Workers AI
-  in `CLOUDFLARE_WORKERS_AI_TOKEN`. `fake` draws a placeholder instead. The setting has no default,
-  so an unset provider fails loudly rather than quietly serving placeholders.
+- **Postcards** in Our Exchange are pictures made from a prompt by an image model you choose,
+  set with `IMAGE_AI_PROVIDER`:
+    - `openai`: any server that answers OpenAI's `POST /images/generations` with a base64 image
+      (OpenAI itself, LocalAI, LiteLLM and others). Set `IMAGE_AI_URL` to the base address
+      (`https://api.openai.com/v1`), `IMAGE_AI_MODEL` to the model, and `IMAGE_AI_KEY` unless your
+      own server takes no key.
+    - `cloudflare`: Workers AI. `IMAGE_AI_URL` is
+      `https://api.cloudflare.com/client/v4/accounts/<account id>/ai/run`, `IMAGE_AI_KEY` a token
+      scoped to Workers AI, and `IMAGE_AI_MODEL` a model such as
+      `@cf/black-forest-labs/flux-1-schnell`.
+    - `fake` draws a placeholder instead.
+
+    `IMAGE_AI_SIZE` (`1024x1536`) is optional and only used by `openai`. Every prompt a member
+    writes is sent to that server. The provider has no default: until it and what it needs are set,
+    Postcards is switched off in Admin → Rooms, which says what is missing.
+
 - **Short links for NFC tags** (`/go/{code}`, managed in Admin) sit behind login. iOS opens NFC
   taps in Safari, not in the installed app, so log in once in Safari with "Remember me" ticked.
 
@@ -385,10 +397,9 @@ Start with `docker compose -f docker-compose.selfhost.yml logs app`.
   variables in your host's environment.
 - **`TRUSTED_PROXIES: '...' is not an IP, a CIDR range, 'private', 'cloudflare' or '*'.`**: a typo
   in `TRUSTED_PROXIES`. See [Reverse proxy and client IPs](#reverse-proxy-and-client-ips).
-- **`BOUQUET_IMAGE_PROVIDER must be set (cloudflare|fake) in production`**: set it to `fake`, or to
-  `cloudflare` with both Cloudflare values.
-- **`CLOUDFLARE_ACCOUNT_ID and CLOUDFLARE_WORKERS_AI_TOKEN are required when
-BOUQUET_IMAGE_PROVIDER=cloudflare`**: fill in both, or switch back to `fake`.
+- **Postcards can't be turned on in Admin → Rooms**: the line under the switch names the
+  `IMAGE_AI_*` settings still missing. Set them and restart. See
+  [Optional features](#optional-features).
 - **`grep "Admin account created"` prints nothing**: the password is printed only on the start that
   creates the admin. If `GHAR_ADMIN_EMAIL` was empty, set it and run `up -d` again. If you lost the
   password, use "Forgot password" on the login page; with `MAIL_MAILER=log` the reset link is in
@@ -439,8 +450,8 @@ below. A self-host install only needs the few in `.env.selfhost.example`, becaus
 - `TELESCOPE_ENABLED`: `false`. Telescope only loads when `APP_ENV=local`.
 - `VAPID_PUBLIC_KEY` / `VAPID_PRIVATE_KEY` / `VAPID_SUBJECT`: generated on first start when empty.
   Changing them signs every device out of notifications.
-- `PHOTON_URL`, `MAP_TILES_URL`, `BOUQUET_IMAGE_PROVIDER`, `CLOUDFLARE_ACCOUNT_ID`,
-  `CLOUDFLARE_WORKERS_AI_TOKEN`, `CLOUDFLARE_AI_IMAGE_MODEL`: see
+- `PHOTON_URL`, `MAP_TILES_URL`, `IMAGE_AI_PROVIDER`, `IMAGE_AI_URL`, `IMAGE_AI_KEY`,
+  `IMAGE_AI_MODEL`, `IMAGE_AI_SIZE`: see
   [Optional features](#optional-features).
 
 ```env
@@ -505,10 +516,11 @@ VAPID_PRIVATE_KEY=
 VAPID_SUBJECT=
 PHOTON_URL=
 MAP_TILES_URL=
-BOUQUET_IMAGE_PROVIDER=
-CLOUDFLARE_ACCOUNT_ID=
-CLOUDFLARE_WORKERS_AI_TOKEN=
-CLOUDFLARE_AI_IMAGE_MODEL=
+IMAGE_AI_PROVIDER=
+IMAGE_AI_URL=
+IMAGE_AI_KEY=
+IMAGE_AI_MODEL=
+IMAGE_AI_SIZE=
 ```
 
 ---

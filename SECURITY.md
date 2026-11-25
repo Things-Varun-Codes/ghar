@@ -36,7 +36,7 @@ what other people made.
 - **Strangers.** Everything except the login, two-step code, password-reset, invite-acceptance and health pages
   and the app manifest (which carries only the app's name) needs an account. There is no registration. Invite tokens are single-use, expire after 7 days and
   are stored only as hashes. Login, the two-step code and invite acceptance are rate-limited, and reset emails are throttled per address.
-- **Members from each other.** Notes, flowers, coupons and citations are visible only to the sender
+- **Members from each other.** Notes, postcards, coupons and citations are visible only to the sender
   and recipients; admins can't read them either. Editing or deleting a moment or list item takes its creator or
   an admin. All of it is enforced on the server.
 - **Media.** Photos and videos are stored privately, on your own disk by default or in an

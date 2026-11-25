@@ -29,7 +29,7 @@ it are a few small apps for the things families keep track of together:
 - **Our Shelf**: shared lists the household makes for itself (songs, films, places, books,
   recipes, anything), each with its own icon and its own word for done: loved, watched, visited,
   read.
-- **Our Exchange**: notes and bouquets of flowers to one or more people, coupons someone can redeem,
+- **Our Exchange**: notes and postcards (pictures made from a prompt) to one or more people, coupons someone can redeem,
   and citations. A citation is a joke traffic ticket, a mock
   official form for an offence such as leaving wet towels on the bed, with a penalty the recipient
   can mark as paid.
@@ -48,7 +48,7 @@ you can write to NFC tags.
   and `GHAR_ADMIN_EMAIL`.
 - **Where photos go:** your own disk by default, or any S3-compatible bucket. They are private
   either way, behind signed links that expire within two hours.
-- **Who sees what:** moments and lists are shared by everyone in the household. Notes, flowers,
+- **Who sees what:** moments and lists are shared by everyone in the household. Notes, postcards,
   coupons and citations are seen only by the sender and the recipients, not by admins.
 - **Who maintains it:** one person, in spare time.
 
@@ -90,8 +90,8 @@ Log in at <http://localhost:8080> with the password from the log and invite your
 Admin, Invites. [`DEPLOY.md`](./DEPLOY.md) covers HTTPS with Caddy, mail, S3-compatible storage,
 backups, upgrades and running behind Cloudflare.
 
-Ghar works without any outside accounts. Optional extras: Cloudflare Workers AI for the flower
-pictures, and any Sentry-compatible error tracker.
+Ghar works without any outside accounts. Optional extras: an image model of your choice for
+postcard pictures, and any Sentry-compatible error tracker.
 
 ## What leaves your server
 

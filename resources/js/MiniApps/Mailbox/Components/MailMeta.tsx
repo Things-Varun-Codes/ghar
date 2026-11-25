@@ -18,7 +18,7 @@ type Props = {
     className: string;
 };
 
-/* Under a note or bouquet: who it's from, or for what you sent, who it went to. */
+/* Under a note or postcard: who it's from, or for what you sent, who it went to. */
 export default function MailMeta({ mail, className }: Props) {
     const recipientNames = mail.recipients.map((r) => r.name).join(', ');
 

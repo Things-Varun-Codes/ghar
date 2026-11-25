@@ -2,15 +2,13 @@
 
 namespace App\MiniApps\Mailbox\Http\Requests;
 
-use App\MiniApps\Mailbox\Http\Requests\Concerns\ValidatesFlowers;
 use App\MiniApps\Mailbox\Http\Requests\Concerns\ValidatesRecipients;
 use Closure;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
-class StoreBouquetRequest extends FormRequest
+class StorePostcardRequest extends FormRequest
 {
-    use ValidatesFlowers;
     use ValidatesRecipients;
 
     public const MIME_EXTENSION_MAP = [
@@ -48,7 +46,7 @@ class StoreBouquetRequest extends FormRequest
 
         return [
             ...$this->recipientRules(),
-            ...$this->flowerRules(),
+            'prompt' => GeneratePostcardRequest::PROMPT_RULES,
             'note' => ['nullable', 'string', 'max:600'],
             'image' => [
                 'required',
@@ -56,7 +54,7 @@ class StoreBouquetRequest extends FormRequest
                 'max:'.(int) ceil(self::MAX_BYTES / 3) * 4,
                 function (string $attribute, mixed $value, Closure $fail): void {
                     if (! is_string($value) || self::decodeImage($value) === null) {
-                        $fail('The bouquet image could not be read. Arrange it again.');
+                        $fail('The postcard image could not be read. Make it again.');
                     }
                 },
             ],
@@ -69,9 +67,9 @@ class StoreBouquetRequest extends FormRequest
     {
         return [
             ...$this->recipientMessages(),
-            ...$this->flowerMessages(),
-            'image.required' => 'Arrange the bouquet before you send it.',
-            'image.max' => 'The bouquet image is too large (max 10 MB).',
+            ...GeneratePostcardRequest::PROMPT_MESSAGES,
+            'image.required' => 'Make the picture before you send it.',
+            'image.max' => 'The postcard image is too large (max 10 MB).',
             'mime.required' => 'Image type is required.',
             'mime.in' => 'Unsupported image type.',
         ];

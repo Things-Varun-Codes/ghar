@@ -62,7 +62,7 @@ export function defineSmokeConfig({ name, port, database, overrides = {} }) {
                 ...smokeDatabaseEnv(database),
                 SESSION_DRIVER: 'file',
                 MAIL_MAILER: 'array',
-                // Seeded photos and bouquets live on the local disk: same-origin signed
+                // Seeded photos and postcards live on the local disk: same-origin signed
                 // URLs, no bucket. The prefix keeps them apart from the developer's files.
                 MEDIA_DISK: 'local',
                 MEDIA_PREFIX: name === 'smoke' ? 'smoke' : `smoke-${name}`,

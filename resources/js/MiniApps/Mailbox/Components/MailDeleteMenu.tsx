@@ -10,7 +10,7 @@ import {
 import ConfirmDialog from '@/Shell/Components/ConfirmDialog';
 
 type Props = {
-    noun: 'note' | 'bouquet';
+    noun: 'note' | 'postcard';
     label: string;
     triggerClassName: string;
     onDelete: () => void;

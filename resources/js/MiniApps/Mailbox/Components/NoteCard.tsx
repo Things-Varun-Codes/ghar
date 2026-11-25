@@ -4,8 +4,6 @@ import MailMeta from '@/MiniApps/Mailbox/Components/MailMeta';
 import AppCard from '@/Shell/Components/AppCard';
 import type { Person } from '@/types/person';
 
-export type FlowerEntry = { key: string; name: string; meaning: string };
-
 export type MessageItem = {
     id: number;
     body: string | null;

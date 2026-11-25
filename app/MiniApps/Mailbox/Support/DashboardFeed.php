@@ -2,17 +2,17 @@
 
 namespace App\MiniApps\Mailbox\Support;
 
-use App\MiniApps\Mailbox\Models\Bouquet;
 use App\MiniApps\Mailbox\Models\Citation;
 use App\MiniApps\Mailbox\Models\Coupon;
 use App\MiniApps\Mailbox\Models\MailboxMessage;
+use App\MiniApps\Mailbox\Models\Postcard;
 use App\Shell\Models\User;
 use App\Shell\Services\Household;
 use App\Shell\Support\Person;
 
 /**
  * Home's "Needs you" rows from the Exchange: only things addressed to the viewer or waiting on
- * them, so nothing private reaches anyone else. Notes and flowers say who, never what.
+ * them, so nothing private reaches anyone else. Notes and postcards say who, never what.
  */
 final class DashboardFeed
 {
@@ -65,31 +65,20 @@ final class DashboardFeed
             }
         }
 
-        if (EntryTypes::on(EntryTypes::FLOWERS)) {
-            foreach (Bouquet::query()->unreadBy($user)->with('sender')->latest('id')->limit(self::LIMIT)->get() as $bouquet) {
+        if (EntryTypes::on(EntryTypes::POSTCARDS)) {
+            foreach (Postcard::query()->unreadBy($user)->with('sender')->latest('id')->limit(self::LIMIT)->get() as $postcard) {
                 $entries[] = self::needs(
-                    'Flowers from '.app(Household::class)->shortName($bouquet->sender),
-                    self::flowerNames($bouquet),
-                    $bouquet->created_at->toIso8601String(),
-                    route('apps.our-exchange.flowers.index', absolute: false),
+                    'A postcard from '.app(Household::class)->shortName($postcard->sender),
+                    'Not opened yet',
+                    $postcard->created_at->toIso8601String(),
+                    route('apps.our-exchange.postcards.index', absolute: false),
                     'Open',
-                    $bouquet->sender,
+                    $postcard->sender,
                 );
             }
         }
 
         return $entries;
-    }
-
-    /** What's in the bouquet, never its note: the note is read on its own page. */
-    private static function flowerNames(Bouquet $bouquet): ?string
-    {
-        $names = array_values(array_filter(array_map(
-            fn (mixed $flower): ?string => is_array($flower) && is_string($flower['name'] ?? null) ? $flower['name'] : null,
-            $bouquet->flowers,
-        )));
-
-        return $names === [] ? null : implode(', ', $names);
     }
 
     /** @return array<string, mixed> */

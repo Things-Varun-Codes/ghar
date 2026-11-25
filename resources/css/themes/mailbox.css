@@ -137,7 +137,7 @@
     line-height: 1.5;
 }
 
-/* Under a note or bouquet: a New badge, the faces, then who and when. */
+/* Under a note or postcard: a New badge, the faces, then who and when. */
 [data-app='our-exchange'] .mailbox-mail-meta {
     display: flex;
     flex-wrap: wrap;
@@ -178,8 +178,8 @@
     box-shadow: var(--mailbox-paper-shadow);
 }
 
-/* A note or bouquet a notification pointed at: ringed, so the eye lands on it. */
-[data-app='our-exchange'] .mailbox-bouquet.focused {
+/* A note or postcard a notification pointed at: ringed, so the eye lands on it. */
+[data-app='our-exchange'] .mailbox-postcard.focused {
     box-shadow: 0 0 0 2px var(--mailbox-accent-text);
 }
 [data-app='our-exchange'] .mailbox-card.mailbox-note.focused {
@@ -274,8 +274,8 @@
     color: var(--mailbox-ink-soft);
 }
 
-/* Flowers: the latest bouquet itself. */
-[data-app='our-exchange'] .mailbox-door-bouquet {
+/* Flowers: the latest postcard itself. */
+[data-app='our-exchange'] .mailbox-door-postcard {
     width: 100%;
     height: 100%;
     object-fit: cover;
@@ -284,7 +284,7 @@
 }
 
 @media (hover: hover) and (pointer: fine) {
-    [data-app='our-exchange'] .mailbox-door:hover .mailbox-door-bouquet {
+    [data-app='our-exchange'] .mailbox-door:hover .mailbox-door-postcard {
         transform: scale(1.03);
     }
 }
@@ -396,7 +396,7 @@
 
 /* Each card sits in its settle-in wrapper, so match it a level down. */
 [data-app='our-exchange'] .mailbox-feed:has(> * > .mailbox-note),
-[data-app='our-exchange'] .mailbox-feed:has(> * > .mailbox-bouquet) {
+[data-app='our-exchange'] .mailbox-feed:has(> * > .mailbox-postcard) {
     display: grid;
     gap: 24px;
     align-items: start;
@@ -435,16 +435,16 @@
     background-position: 0 12px;
 }
 
-/* ── Bouquets ────────────────────────────────────────────────────────── */
+/* ── Postcards ────────────────────────────────────────────────────────── */
 
-[data-app='our-exchange'] .mailbox-bouquet {
+[data-app='our-exchange'] .mailbox-postcard {
     display: flex;
     flex-direction: column;
     gap: 12px;
     padding: 16px;
 }
 
-[data-app='our-exchange'] .mailbox-bouquet-image-button {
+[data-app='our-exchange'] .mailbox-postcard-image-button {
     position: relative;
     display: block;
     width: 100%;
@@ -456,16 +456,16 @@
     background: transparent;
     cursor: pointer;
 }
-[data-app='our-exchange'] .mailbox-bouquet-image-button img {
+[data-app='our-exchange'] .mailbox-postcard-image-button img {
     transition: transform var(--dur-media) var(--ease-ui);
 }
 @media (hover: hover) and (pointer: fine) {
-    [data-app='our-exchange'] .mailbox-bouquet-image-button:hover img {
+    [data-app='our-exchange'] .mailbox-postcard-image-button:hover img {
         transform: scale(1.03);
     }
 }
 
-[data-app='our-exchange'] .mailbox-bouquet-expand {
+[data-app='our-exchange'] .mailbox-postcard-expand {
     position: absolute;
     right: 8px;
     bottom: 8px;
@@ -479,8 +479,8 @@
     color: var(--shell-paper-fixed);
 }
 
-/* The few words sent with a bouquet are a note body. */
-[data-app='our-exchange'] .mailbox-bouquet-note {
+/* The few words sent with a postcard are a note body. */
+[data-app='our-exchange'] .mailbox-postcard-note {
     font-family: var(--mailbox-font-hand);
     font-style: normal;
     font-weight: 400;
@@ -492,15 +492,7 @@
     word-break: break-word;
 }
 
-[data-app='our-exchange'] .mailbox-bouquet-flowers {
-    font-family: var(--mailbox-font-sans);
-    font-size: var(--text-small);
-    margin: 0;
-    color: var(--mailbox-ink-soft);
-    line-height: 1.5;
-}
-
-[data-app='our-exchange'] .mailbox-bouquet-meta {
+[data-app='our-exchange'] .mailbox-postcard-meta {
     font-family: var(--mailbox-font-sans);
     font-size: var(--text-meta);
     margin: 0;
@@ -1156,7 +1148,7 @@
 }
 
 [data-app='our-exchange'] .mailbox-recipient-chip,
-[data-app='our-exchange'] .mailbox-flower-chip {
+[data-app='our-exchange'] .mailbox-prompt-chip {
     display: inline-flex;
     align-items: center;
     gap: 8px;
@@ -1172,20 +1164,37 @@
     padding: 0 16px 0 10px;
     font-size: var(--text-body);
 }
-[data-app='our-exchange'] .mailbox-flower-chip {
+[data-app='our-exchange'] .mailbox-prompt-chip {
     min-height: 44px;
     padding: 0 16px;
     font-size: var(--text-small);
 }
+/* A saved prompt and its remove button share one pill. */
+[data-app='our-exchange'] .mailbox-prompt-chip-saved {
+    padding: 0;
+    gap: 0;
+    cursor: default;
+}
+[data-app='our-exchange'] .mailbox-prompt-chip-saved > button {
+    min-height: 42px;
+    padding: 0 4px 0 16px;
+    border-radius: var(--radius-pill);
+    cursor: pointer;
+}
+[data-app='our-exchange'] .mailbox-prompt-chip-saved > button:last-child {
+    min-width: 44px;
+    padding: 0;
+    display: inline-grid;
+    place-items: center;
+    color: var(--mailbox-ink-soft);
+}
 
 /* Selected is a wash, a darker edge and a tick, so it never rests on colour alone. */
-[data-app='our-exchange'] .mailbox-recipient-chip:has(input:checked),
-[data-app='our-exchange'] .mailbox-flower-chip[data-pressed] {
+[data-app='our-exchange'] .mailbox-recipient-chip:has(input:checked) {
     border-color: var(--mailbox-accent-text);
     background-color: var(--mailbox-selected-wash);
 }
-[data-app='our-exchange'] .mailbox-recipient-chip:has(input:checked)::before,
-[data-app='our-exchange'] .mailbox-flower-chip[data-pressed]::before {
+[data-app='our-exchange'] .mailbox-recipient-chip:has(input:checked)::before {
     content: '';
     width: 5px;
     height: 10px;
@@ -1213,8 +1222,8 @@
 }
 
 [data-app='our-exchange'] .mailbox-field,
-[data-app='our-exchange'] .mailbox-bouquet-mood-input,
-[data-app='our-exchange'] .mailbox-bouquet-note-input,
+[data-app='our-exchange'] .mailbox-postcard-prompt-input,
+[data-app='our-exchange'] .mailbox-postcard-note-input,
 [data-app='our-exchange'] .mailbox-note-input {
     display: block;
     width: 100%;
@@ -1231,8 +1240,8 @@
     padding: 8px 16px;
 }
 [data-app='our-exchange'] .mailbox-field::placeholder,
-[data-app='our-exchange'] .mailbox-bouquet-mood-input::placeholder,
-[data-app='our-exchange'] .mailbox-bouquet-note-input::placeholder,
+[data-app='our-exchange'] .mailbox-postcard-prompt-input::placeholder,
+[data-app='our-exchange'] .mailbox-postcard-note-input::placeholder,
 [data-app='our-exchange'] .mailbox-note-input::placeholder {
     color: var(--mailbox-ink-soft);
 }
@@ -1241,7 +1250,7 @@
 [data-app='our-exchange']
     :is(
         textarea.mailbox-field,
-        .mailbox-bouquet-note-input,
+        .mailbox-postcard-note-input,
         .mailbox-note-input
     ) {
     field-sizing: content;
@@ -1253,7 +1262,7 @@
     min-height: 96px;
 }
 
-[data-app='our-exchange'] .mailbox-bouquet-note-input {
+[data-app='our-exchange'] .mailbox-postcard-note-input {
     font-family: var(--mailbox-font-hand);
     font-style: normal;
     font-size: var(--mailbox-hand-size);
@@ -1310,7 +1319,7 @@
     color: var(--mailbox-ink);
 }
 
-[data-app='our-exchange'] .mailbox-bouquet-stage {
+[data-app='our-exchange'] .mailbox-postcard-stage {
     border-radius: var(--radius-field);
     overflow: hidden;
     border: 1px solid var(--mailbox-border);
@@ -1321,11 +1330,11 @@
     place-items: center;
 }
 /* Stacked, so a preview fading out and the skeleton arriving share the frame. */
-[data-app='our-exchange'] .mailbox-bouquet-stage > * {
+[data-app='our-exchange'] .mailbox-postcard-stage > * {
     grid-area: 1 / 1;
 }
 
-[data-app='our-exchange'] .mailbox-bouquet-stage .shell-skeleton {
+[data-app='our-exchange'] .mailbox-postcard-stage .shell-skeleton {
     border-radius: 0;
 }
 
@@ -1415,7 +1424,7 @@
     ):hover,
 [data-app='our-exchange']
     .mailbox-recipient-chip:not(:has(input:checked)):hover,
-[data-app='our-exchange'] .mailbox-flower-chip:not([data-pressed]):hover {
+[data-app='our-exchange'] .mailbox-prompt-chip:hover {
     background-color: var(--mailbox-hover-wash);
     border-color: color-mix(in oklab, var(--mailbox-ink) 32%, transparent);
 }
@@ -1437,7 +1446,7 @@
         .mailbox-btn-primary-row,
         .mailbox-btn-send-another,
         .mailbox-coupon-step,
-        .mailbox-flower-chip
+        .mailbox-prompt-chip
     ):disabled {
     cursor: not-allowed;
 }
@@ -1445,7 +1454,7 @@
 [data-app='our-exchange'] .mailbox-coupon-step:disabled {
     opacity: 0.5;
 }
-[data-app='our-exchange'] .mailbox-flower-chip:is(:disabled, [data-disabled]) {
+[data-app='our-exchange'] .mailbox-prompt-chip:is(:disabled, [data-disabled]) {
     opacity: 0.45;
 }
 
@@ -1456,7 +1465,7 @@
         .mailbox-link-retry,
         .mailbox-card-menu,
         .mailbox-card-menu-square,
-        .mailbox-bouquet-image-button
+        .mailbox-postcard-image-button
     ):focus-visible,
 [data-app='our-exchange'] .mailbox-recipient-chip:has(input:focus-visible) {
     outline: 2px solid var(--mailbox-action);
@@ -1465,8 +1474,8 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-    [data-app='our-exchange'] .mailbox-bouquet-image-button img,
-    [data-app='our-exchange'] .mailbox-door-bouquet {
+    [data-app='our-exchange'] .mailbox-postcard-image-button img,
+    [data-app='our-exchange'] .mailbox-door-postcard {
         transform: none !important;
         transition: none;
     }

@@ -2,8 +2,8 @@
 
 namespace App\MiniApps\Mailbox\Http\Resources\Concerns;
 
-use App\MiniApps\Mailbox\Models\Bouquet;
 use App\MiniApps\Mailbox\Models\MailboxMessage;
+use App\MiniApps\Mailbox\Models\Postcard;
 use App\Shell\Models\User;
 use App\Shell\Support\Person;
 use Illuminate\Support\Carbon;
@@ -21,7 +21,7 @@ trait DescribesSentToMany
      *     recipients: list<array{id: int, name: string, avatar_url: string|null}>,
      * }
      */
-    private function delivery(MailboxMessage|Bouquet $entry, ?User $viewer): array
+    private function delivery(MailboxMessage|Postcard $entry, ?User $viewer): array
     {
         $authId = $viewer?->id;
         $entry->loadMissing(['sender', 'recipients']);

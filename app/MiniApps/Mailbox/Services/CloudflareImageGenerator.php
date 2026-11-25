@@ -2,18 +2,18 @@
 
 namespace App\MiniApps\Mailbox\Services;
 
-use App\MiniApps\Mailbox\Contracts\BouquetImageGenerator;
+use App\MiniApps\Mailbox\Contracts\ImageGenerator;
 use App\MiniApps\Mailbox\DTOs\GeneratedImage;
-use App\MiniApps\Mailbox\Exceptions\BouquetGenerationException;
+use App\MiniApps\Mailbox\Exceptions\ImageGenerationException;
 use Illuminate\Support\Facades\Http;
 use Throwable;
 
-class CloudflareBouquetGenerator implements BouquetImageGenerator
+class CloudflareImageGenerator implements ImageGenerator
 {
     public function __construct(
-        private readonly string $accountId,
+        private readonly string $url,
         private readonly string $apiToken,
-        private readonly string $model = '@cf/black-forest-labs/flux-1-schnell',
+        private readonly string $model,
     ) {}
 
     /**
@@ -22,10 +22,7 @@ class CloudflareBouquetGenerator implements BouquetImageGenerator
      */
     public function generate(string $prompt): GeneratedImage
     {
-        $endpoint = 'https://api.cloudflare.com/client/v4/accounts/'
-            .$this->accountId
-            .'/ai/run/'
-            .$this->model;
+        $endpoint = rtrim($this->url, '/').'/'.$this->model;
 
         try {
             $response = Http::timeout(60)
@@ -36,7 +33,7 @@ class CloudflareBouquetGenerator implements BouquetImageGenerator
                 ]);
         } catch (Throwable $e) {
             report($e);
-            throw new BouquetGenerationException(
+            throw new ImageGenerationException(
                 'Cloudflare API call failed: '.$e->getMessage(),
                 0,
                 $e,
@@ -44,7 +41,7 @@ class CloudflareBouquetGenerator implements BouquetImageGenerator
         }
 
         if (! $response->successful()) {
-            $e = new BouquetGenerationException(
+            $e = new ImageGenerationException(
                 "Cloudflare returned HTTP {$response->status()}: ".$response->body()
             );
             report($e);
@@ -54,7 +51,7 @@ class CloudflareBouquetGenerator implements BouquetImageGenerator
         $imageBase64 = $response->json('result.image');
 
         if ($response->json('success') !== true || empty($imageBase64)) {
-            $e = new BouquetGenerationException('No image in Cloudflare response');
+            $e = new ImageGenerationException('No image in Cloudflare response');
             report($e);
             throw $e;
         }

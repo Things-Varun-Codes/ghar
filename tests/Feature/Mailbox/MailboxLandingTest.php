@@ -2,10 +2,10 @@
 
 namespace Tests\Feature\Mailbox;
 
-use App\MiniApps\Mailbox\Models\Bouquet;
 use App\MiniApps\Mailbox\Models\Citation;
 use App\MiniApps\Mailbox\Models\Coupon;
 use App\MiniApps\Mailbox\Models\MailboxMessage;
+use App\MiniApps\Mailbox\Models\Postcard;
 use App\Shell\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Storage;
@@ -37,11 +37,11 @@ class MailboxLandingTest extends TestCase
                 ->component('MiniApps/Mailbox/Pages/Landing')
                 ->has('mailboxSummary.counts.messages')
                 ->has('mailboxSummary.counts.citations')
-                ->has('mailboxSummary.counts.flowers')
+                ->has('mailboxSummary.counts.postcards')
                 ->where('mailboxSummary.unread_messages', 0)
                 ->where('mailboxSummary.citations_action_needed', 0)
-                ->where('mailboxSummary.unread_flowers', 0)
-                ->where('mailboxSummary.counts.flowers', 0),
+                ->where('mailboxSummary.unread_postcards', 0)
+                ->where('mailboxSummary.counts.postcards', 0),
         );
     }
 
@@ -64,13 +64,13 @@ class MailboxLandingTest extends TestCase
             fn ($page) => $page
                 ->where('mailboxSummary.unread_messages', 3)
                 ->where('mailboxSummary.counts.messages', 3)
-                ->where('mailboxSummary.counts.flowers', 0)
-                ->where('mailboxSummary.unread_flowers', 0)
+                ->where('mailboxSummary.counts.postcards', 0)
+                ->where('mailboxSummary.unread_postcards', 0)
                 ->has('mailboxPeeks.notes'),
         );
     }
 
-    public function test_flowers_counts_are_independent_of_message_counts(): void
+    public function test_postcard_counts_are_independent_of_message_counts(): void
     {
         /** @var User $sender */
         $sender = User::factory()->create();
@@ -86,11 +86,11 @@ class MailboxLandingTest extends TestCase
             'posted_at' => now(),
         ]);
 
-        Bouquet::factory()->count(5)->to($recipient)->create([
+        Postcard::factory()->count(5)->to($recipient)->create([
             'sender_id' => $sender->id,
             'posted_at' => now(),
         ]);
-        Bouquet::factory()->count(2)->to($recipient, read: true)->create([
+        Postcard::factory()->count(2)->to($recipient, read: true)->create([
             'sender_id' => $sender->id,
             'posted_at' => now(),
         ]);
@@ -100,8 +100,8 @@ class MailboxLandingTest extends TestCase
         $response->assertOk();
         $response->assertInertia(
             fn ($page) => $page
-                ->where('mailboxSummary.counts.flowers', 7)
-                ->where('mailboxSummary.unread_flowers', 5)
+                ->where('mailboxSummary.counts.postcards', 7)
+                ->where('mailboxSummary.unread_postcards', 5)
                 ->where('mailboxSummary.counts.messages', 6)
                 ->where('mailboxSummary.unread_messages', 2),
         );
@@ -162,7 +162,7 @@ class MailboxLandingTest extends TestCase
             );
     }
 
-    public function test_peeks_show_the_latest_received_note_and_bouquet(): void
+    public function test_peeks_show_the_latest_received_note_and_postcard(): void
     {
         $sender = User::factory()->create(['name' => 'Ravi']);
         $recipient = User::factory()->create();
@@ -183,15 +183,15 @@ class MailboxLandingTest extends TestCase
             'body' => 'my own note',
             'posted_at' => now()->addMinute(),
         ]);
-        Bouquet::factory()->to($recipient)->create(['sender_id' => $sender->id, 'posted_at' => now()]);
+        Postcard::factory()->to($recipient)->create(['sender_id' => $sender->id, 'posted_at' => now()]);
 
         $this->actingAs($recipient)
             ->get('/apps/our-exchange')
             ->assertInertia(fn (Assert $page) => $page
                 ->where('mailboxPeeks.notes.body', 'newest note')
                 ->where('mailboxPeeks.notes.from', 'Ravi')
-                ->where('mailboxPeeks.flowers.from', 'Ravi')
-                ->has('mailboxPeeks.flowers.image_url')
+                ->where('mailboxPeeks.postcards.from', 'Ravi')
+                ->has('mailboxPeeks.postcards.image_url')
             );
 
         // Reading the landing must not mark the note read.
@@ -250,7 +250,7 @@ class MailboxLandingTest extends TestCase
         $bystander = User::factory()->create();
 
         MailboxMessage::factory()->to($recipient)->create(['sender_id' => $sender->id, 'body' => 'private']);
-        Bouquet::factory()->to($recipient)->create(['sender_id' => $sender->id]);
+        Postcard::factory()->to($recipient)->create(['sender_id' => $sender->id]);
         Citation::factory()->create(['issuer_id' => $sender->id, 'recipient_id' => $recipient->id]);
         Coupon::factory()->create(['issuer_id' => $sender->id, 'recipient_id' => $recipient->id, 'expires_at' => null]);
 
@@ -258,7 +258,7 @@ class MailboxLandingTest extends TestCase
             ->get('/apps/our-exchange')
             ->assertInertia(fn (Assert $page) => $page
                 ->where('mailboxPeeks.notes', null)
-                ->where('mailboxPeeks.flowers', null)
+                ->where('mailboxPeeks.postcards', null)
                 ->where('mailboxPeeks.citations', null)
                 ->where('mailboxPeeks.coupons', null)
             );

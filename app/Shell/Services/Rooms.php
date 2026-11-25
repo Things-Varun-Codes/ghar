@@ -11,10 +11,11 @@ use App\Shell\Support\RoomSwitches;
  *
  * A room can also offer options of its own (Mailbox's entry types), registered from its
  * provider's boot(). An option is on unless the admin turned it off, and only while its room is.
+ * One that says why it is unavailable (a setting the server lacks) is off whatever the switch says.
  */
 class Rooms
 {
-    /** @var array<string, array<string, array{label: string, description: string}>> */
+    /** @var array<string, array<string, array{label: string, description: string, unavailable: (\Closure(): (string|null))|null}>> */
     private array $options = [];
 
     /** @return list<array<string, mixed>> */
@@ -76,9 +77,10 @@ class Rooms
         }
     }
 
-    public function registerOption(string $slug, string $key, string $label, string $description = ''): void
+    /** @param  (\Closure(): (string|null))|null  $unavailable  asked each time, so it follows the settings as they are now */
+    public function registerOption(string $slug, string $key, string $label, string $description = '', ?\Closure $unavailable = null): void
     {
-        $this->options[$slug][$key] = ['label' => $label, 'description' => $description];
+        $this->options[$slug][$key] = ['label' => $label, 'description' => $description, 'unavailable' => $unavailable];
     }
 
     public function hasOption(string $slug, string $key): bool
@@ -89,8 +91,20 @@ class Rooms
     public function optionOn(string $slug, string $key): bool
     {
         return $this->isOn($slug)
-            && $this->hasOption($slug, $key)
+            && $this->optionUnavailable($slug, $key) === null
             && $this->switches()->get(self::optionKey($slug, $key)) !== false;
+    }
+
+    /** Why the option can't be turned on, or null. An unknown option is unavailable too. */
+    public function optionUnavailable(string $slug, string $key): ?string
+    {
+        if (! $this->hasOption($slug, $key)) {
+            return 'Not installed.';
+        }
+
+        $unavailable = $this->options[$slug][$key]['unavailable'];
+
+        return $unavailable === null ? null : $unavailable();
     }
 
     public function optionLabel(string $slug, string $key): ?string
@@ -103,7 +117,7 @@ class Rooms
         $this->switches()->put(self::optionKey($slug, $key), $on);
     }
 
-    /** @return list<array{slug: string, name: string, description: string, enabled: bool, options: list<array{key: string, label: string, description: string, enabled: bool}>}> */
+    /** @return list<array{slug: string, name: string, description: string, enabled: bool, options: list<array{key: string, label: string, description: string, enabled: bool, unavailable: string|null}>}> */
     public function forAdmin(): array
     {
         return array_map(fn (array $app): array => [
@@ -116,7 +130,9 @@ class Rooms
                     'key' => $key,
                     'label' => $option['label'],
                     'description' => $option['description'],
-                    'enabled' => $this->switches()->get(self::optionKey($app['slug'], $key)) !== false,
+                    'enabled' => $this->optionUnavailable($app['slug'], $key) === null
+                        && $this->switches()->get(self::optionKey($app['slug'], $key)) !== false,
+                    'unavailable' => $this->optionUnavailable($app['slug'], $key),
                 ])
                 ->values()
                 ->all(),

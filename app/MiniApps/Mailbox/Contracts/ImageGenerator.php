@@ -4,7 +4,7 @@ namespace App\MiniApps\Mailbox\Contracts;
 
 use App\MiniApps\Mailbox\DTOs\GeneratedImage;
 
-interface BouquetImageGenerator
+interface ImageGenerator
 {
     public function generate(string $prompt): GeneratedImage;
 }
