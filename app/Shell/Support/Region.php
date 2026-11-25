@@ -6,6 +6,7 @@ use Carbon\CarbonImmutable;
 use DateTimeZone;
 use IntlCalendar;
 use InvalidArgumentException;
+use NumberFormatter;
 
 /**
  * Where the household lives: its timezone, the locale its dates read in, the day its week
@@ -51,10 +52,20 @@ final class Region
         return $calendar === null ? 1 : ($calendar->getFirstDayOfWeek() - 1) % 7;
     }
 
-    /** An ISO 4217 code such as INR, for the browser's Intl. */
+    /** An ISO 4217 code such as INR, for the browser's Intl. Unset follows the timezone's country, as the locale does. */
     public static function currency(): string
     {
-        $currency = strtoupper((string) config('shell.currency'));
+        $configured = config('shell.currency');
+
+        if (! is_string($configured) || $configured === '') {
+            // The timezone's country, not the locale: a home in India that reads dates as en-GB still counts in rupees.
+            $country = (new DateTimeZone(self::timezone()))->getLocation()['country_code'] ?? '??';
+            $locale = preg_match('/^[A-Z]{2}$/', $country) === 1 ? "en_{$country}" : str_replace('-', '_', self::FALLBACK_LOCALE);
+
+            return (new NumberFormatter($locale, NumberFormatter::CURRENCY))->getSymbol(NumberFormatter::INTL_CURRENCY_SYMBOL);
+        }
+
+        $currency = strtoupper($configured);
 
         if (preg_match('/^[A-Z]{3}$/', $currency) !== 1) {
             throw new InvalidArgumentException("GHAR_CURRENCY must be a three-letter code such as INR, not '{$currency}'.");

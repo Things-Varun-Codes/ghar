@@ -23,9 +23,10 @@ return [
     'timezone' => env('GHAR_TIMEZONE') ?: 'UTC',
     'locale' => env('GHAR_LOCALE') ?: null,
 
-    // The one currency money is shown in (ISO 4217). Amounts are stored as bare minor units, so
-    // changing it relabels what is already there. Validated in Region too.
-    'currency' => env('GHAR_CURRENCY') ?: 'INR',
+    // The one currency money is shown in (ISO 4217); unset follows the timezone's country, as the
+    // locale does (Asia/Kolkata counts in INR, UTC in GBP). Amounts are stored as bare minor units,
+    // so changing it relabels what is already there. Validated in Region too.
+    'currency' => env('GHAR_CURRENCY') ?: null,
 
     // The scheduler ticks every minute, so three minutes allows for missed ticks. The queue's
     // one worker is shared with photo conversions, so a heartbeat can wait behind a big

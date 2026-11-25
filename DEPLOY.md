@@ -436,7 +436,8 @@ below. A self-host install only needs the few in `.env.selfhost.example`, becaus
   of months and weekdays, and the day a calendar week starts. Empty follows the timezone's country
   (`Asia/Kolkata` reads `en-IN`; `UTC` reads `en-GB`). Read at runtime.
 - `GHAR_CURRENCY`: the currency Exchange's shared expenses are counted in, as a three-letter code
-  such as `INR` (the default) or `EUR`. Set it before anyone adds an expense: amounts are stored as
+  such as `INR` or `EUR`. Empty follows the timezone's country (`Asia/Kolkata` counts in `INR`;
+  `UTC` in `GBP`). Settle it, and the timezone, before anyone adds an expense: amounts are stored as
   whole paise or cents with no currency beside them, so changing it later relabels them, and
   moving to a currency with a different number of decimals (`JPY`, `KWD`) also rescales them.
 - `LOG_CHANNEL` / `LOG_STACK` / `LOG_DEPRECATIONS_CHANNEL` / `LOG_LEVEL`: `stderr` / `single` /

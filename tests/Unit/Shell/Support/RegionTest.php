@@ -10,7 +10,7 @@ class RegionTest extends TestCase
 {
     public function test_the_locale_follows_the_timezones_country(): void
     {
-        config(['shell.timezone' => 'Asia/Kolkata', 'shell.locale' => null]);
+        config(['shell.timezone' => 'Asia/Kolkata', 'shell.locale' => null, 'shell.currency' => null]);
 
         $this->assertSame('en-IN', Region::locale());
         $this->assertSame(0, Region::weekStart());
@@ -50,12 +50,24 @@ class RegionTest extends TestCase
 
     public function test_the_page_gets_the_region(): void
     {
-        config(['shell.timezone' => 'Asia/Kolkata', 'shell.locale' => null]);
+        config(['shell.timezone' => 'Asia/Kolkata', 'shell.locale' => null, 'shell.currency' => null]);
 
         $this->assertSame(
             ['timezone' => 'Asia/Kolkata', 'locale' => 'en-IN', 'week_start' => 0, 'currency' => 'INR'],
             Region::forPage(),
         );
+    }
+
+    public function test_an_unset_currency_follows_the_timezones_country_not_the_locale(): void
+    {
+        config(['shell.currency' => null, 'shell.timezone' => 'Asia/Kolkata', 'shell.locale' => 'en-GB']);
+        $this->assertSame('INR', Region::currency());
+
+        config(['shell.timezone' => 'Asia/Tokyo']);
+        $this->assertSame('JPY', Region::currency());
+
+        config(['shell.timezone' => 'UTC']);
+        $this->assertSame('GBP', Region::currency());
     }
 
     public function test_the_currency_is_a_three_letter_code(): void
