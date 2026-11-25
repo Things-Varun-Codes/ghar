@@ -77,14 +77,7 @@ export default function Item({ list, item, mentioned_in }: Props) {
                 }
                 externalCta={
                     item.url && (
-                        <ExternalCta
-                            href={item.url}
-                            label={
-                                item.site_name
-                                    ? `Open on ${item.site_name}`
-                                    : 'Open the link'
-                            }
-                        />
+                        <ExternalCta href={item.url} label="Open link" />
                     )
                 }
             />

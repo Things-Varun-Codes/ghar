@@ -8,6 +8,7 @@ use App\Shell\Support\Http\SafeFetcher;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Support\Facades\Http;
+use PHPUnit\Framework\Attributes\DataProvider;
 use Tests\Feature\Corner\Concerns\MakesCornerLists;
 use Tests\TestCase;
 
@@ -55,7 +56,6 @@ class LinkPreviewTest extends TestCase
             'image_url' => 'https://img.video.example.com/1/hq.jpg',
             'author' => 'The Monsoon Club',
             'site_name' => 'VideoSite',
-            'url' => 'https://video.example.com/watch?v=1',
         ], $this->preview()->lookup('https://video.example.com/watch?v=1'));
 
         Http::assertSent(fn ($request) => $request->url() === 'https://video.example.com/oembed?url=https%3A%2F%2Fvideo.example.com%2Fwatch%3Fv%3D1&format=json');
@@ -85,7 +85,6 @@ class LinkPreviewTest extends TestCase
             'image_url' => 'https://shop.example.com/img/cover.jpg',
             'author' => 'A. Writer',
             'site_name' => 'Example Books',
-            'url' => 'https://shop.example.com/og',
         ], $this->preview()->lookup('https://shop.example.com/og'));
 
         $tw = $this->preview()->lookup('https://shop.example.com/tw');
@@ -123,26 +122,25 @@ class LinkPreviewTest extends TestCase
         Http::fake(['photos.example.com/*' => Http::response('png-bytes', 200, ['Content-Type' => 'image/png'])]);
 
         $this->assertEquals([
-            'title' => null,
+            'title' => 'kite',
             'image_url' => 'https://photos.example.com/kite.png',
             'author' => null,
             'site_name' => 'photos.example.com',
-            'url' => 'https://photos.example.com/kite.png',
         ], $this->preview()->lookup('https://photos.example.com/kite.png'));
     }
 
     public function test_an_unreachable_or_odd_page_gives_nothing_but_its_host(): void
     {
-        $empty = fn (string $site, string $url): array => ['title' => null, 'image_url' => null, 'author' => null, 'site_name' => $site, 'url' => $url];
+        $empty = fn (string $site): array => ['title' => null, 'image_url' => null, 'author' => null, 'site_name' => $site];
 
         Http::fake(fn () => throw new ConnectionException('timed out'));
-        $this->assertSame($empty('down.example.com', 'https://www.down.example.com/x'), $this->preview()->lookup('https://www.down.example.com/x'));
+        $this->assertSame($empty('down.example.com'), $this->preview()->lookup('https://www.down.example.com/x'));
 
         Http::fake(['*' => Http::response('nope', 500, ['Content-Type' => 'text/html'])]);
-        $this->assertSame($empty('error.example.com', 'https://error.example.com/x'), $this->preview()->lookup('https://error.example.com/x'));
+        $this->assertSame($empty('error.example.com'), $this->preview()->lookup('https://error.example.com/x'));
 
         Http::fake(['*' => Http::response('%PDF-1.7', 200, ['Content-Type' => 'application/pdf'])]);
-        $this->assertSame($empty('files.example.com', 'https://files.example.com/x.pdf'), $this->preview()->lookup('https://files.example.com/x.pdf'));
+        $this->assertSame($empty('files.example.com'), $this->preview()->lookup('https://files.example.com/x.pdf'));
     }
 
     public function test_a_link_to_a_private_address_is_never_fetched(): void
@@ -151,11 +149,11 @@ class LinkPreviewTest extends TestCase
         $this->app->instance(SafeFetcher::class, new SafeFetcher(fn (): array => ['192.168.1.10']));
 
         $this->assertSame(
-            ['title' => null, 'image_url' => null, 'author' => null, 'site_name' => 'router.example.com', 'url' => 'http://router.example.com/'],
+            ['title' => null, 'image_url' => null, 'author' => null, 'site_name' => 'router.example.com'],
             $this->preview()->lookup('http://router.example.com/'),
         );
         $this->assertSame(
-            ['title' => null, 'image_url' => null, 'author' => null, 'site_name' => '169.254.169.254', 'url' => 'http://169.254.169.254/latest/meta-data/'],
+            ['title' => 'meta data', 'image_url' => null, 'author' => null, 'site_name' => '169.254.169.254'],
             $this->preview()->lookup('http://169.254.169.254/latest/meta-data/'),
         );
         Http::assertNothingSent();
@@ -189,6 +187,64 @@ class LinkPreviewTest extends TestCase
         Http::assertSentCount(1);
     }
 
+    /** @return array<string, array{0: string, 1: string, 2: ?string, 3: string}> */
+    public static function titles(): array
+    {
+        return [
+            'a plain title' => ['https://films.example.com/dune', 'Dune (2021)', null, 'Dune (2021)'],
+            'the site after a dash' => ['https://en.wiki.test/Cubbon_Park', 'Cubbon Park - Wiki', null, 'Cubbon Park'],
+            'the site after a bar' => ['https://www.stream.test/title/1', 'Watch Dune | Stream Official Site', null, 'Watch Dune'],
+            'the site named before a dash' => ['https://code.example.com/a/b', 'CodeHub - laravel/framework', 'CodeHub', 'laravel/framework'],
+            'a leading part only like the site' => ['https://shop.example.com/p/1', 'Shop Echo Dot - Smart speaker', null, 'Shop Echo Dot - Smart speaker'],
+            'a name and its details' => ['https://maps.example.com/p/1', 'Park Inn · 708 W Wise St', null, 'Park Inn'],
+            'the site after its details' => ['https://maps.example.com/p/1', 'Park Inn · 708 W Wise St - Maps', null, 'Park Inn'],
+            'a dash that is part of the name' => ['https://music.example.com/t/1', 'Rick Astley - Never Gonna Give You Up', 'Music', 'Rick Astley - Never Gonna Give You Up'],
+        ];
+    }
+
+    #[DataProvider('titles')]
+    public function test_a_title_is_tidied_to_the_name(string $url, string $title, ?string $site, string $name): void
+    {
+        Http::fake(['*' => Http::response(
+            '<html><head><title>'.$title.'</title>'.($site ? '<meta property="og:site_name" content="'.$site.'">' : '').'</head></html>',
+            200,
+            ['Content-Type' => 'text/html'],
+        )]);
+
+        $this->assertSame($name, $this->preview()->lookup($url)['title']);
+    }
+
+    /** @return array<string, array{0: string, 1: ?string}> */
+    public static function links(): array
+    {
+        return [
+            'a place in a map link' => ['https://maps.example.com/maps/place/Lalbagh+Botanical+Garden/@12.95,77.58,17z/data=!3m1', 'Lalbagh Botanical Garden'],
+            'a slug' => ['https://food.example.com/bangalore/truffles-koramangala-5th-block', 'truffles koramangala 5th block'],
+            'a slug with an id' => ['https://blog.example.com/@ev/welcome-to-blogs-9e53ca408c48', 'welcome to blogs'],
+            'a search' => ['https://maps.example.com/?q=Cubbon+Park&ll=12.97,77.59', 'Cubbon Park'],
+            'a file' => ['https://files.example.com/docs/annual_report.pdf', 'annual report'],
+            'a word at the end' => ['https://social.example.com/natgeo/', 'natgeo'],
+            'a section mid-path and an id' => ['https://stay.example.com/rooms/12345678', null],
+            'a video id' => ['https://video.example.com/watch/dQw4w9WgXcQ', null],
+            'a short code' => ['https://short.example.com/3B0kQXa', null],
+        ];
+    }
+
+    #[DataProvider('links')]
+    public function test_a_page_that_names_nothing_is_named_from_its_link(string $url, ?string $name): void
+    {
+        Http::fake(fn () => throw new ConnectionException('timed out'));
+
+        $this->assertSame($name, $this->preview()->lookup($url)['title']);
+    }
+
+    public function test_a_page_titled_only_with_its_sites_name_is_named_from_its_link(): void
+    {
+        Http::fake(['*' => Http::response('<html><head><title>Maps</title><meta property="og:site_name" content="Maps"></head></html>', 200, ['Content-Type' => 'text/html'])]);
+
+        $this->assertSame('Cubbon Park', $this->preview()->lookup('https://maps.example.com/place/Cubbon_Park')['title']);
+    }
+
     public function test_the_preview_endpoint_answers_json(): void
     {
         Http::fake([
@@ -206,7 +262,6 @@ class LinkPreviewTest extends TestCase
                 'image_url' => 'https://example.com/p.jpg',
                 'author' => null,
                 'site_name' => 'example.com',
-                'url' => 'https://example.com/thing',
             ]);
 
         $this->actingAs($user)
