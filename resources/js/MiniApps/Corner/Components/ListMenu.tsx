@@ -22,8 +22,7 @@ type Props = {
     list: CornerListInfo;
     /* How many things are in it, for the delete warning. */
     count: number;
-    /* On the landing, where the order of the shelf shows. */
-    reorder?: { first: boolean; last: boolean };
+    reorder: { first: boolean; last: boolean };
 };
 
 /* Change, move or delete one list. The server decides who may; this only hides what they can't. */
@@ -58,7 +57,7 @@ export default function ListMenu({ list, count, reorder }: Props) {
         });
     };
 
-    const canMove = reorder !== undefined && !(reorder.first && reorder.last);
+    const canMove = !(reorder.first && reorder.last);
     const hasItems =
         list.can.update ||
         list.can.delete ||

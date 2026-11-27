@@ -44,6 +44,39 @@ them. The shipped CSS and components are the source of truth.
   week", birthdays coming up. Rooms are in the bottom bar (phone) and sidebar (from 1024px), never
   on Home.
 
+## Colors
+
+Every colour is a `--shell-*` token in `app.css`, an OKLCH `light-dark(day, night)` pair with a
+warm hue (60–75 for neutrals, 38–40 for coral). Use the token by its role; never copy its value.
+
+| Role                          | Token                                                       |
+| ----------------------------- | ----------------------------------------------------------- |
+| Page ground                   | `--shell-bg`                                                |
+| Top bar, sidebar, bottom bar  | `--shell-chrome` (Tailwind `--sidebar`)                     |
+| Card, sheet, field            | `--shell-surface`                                           |
+| Hairline, field edge          | `--shell-border`, `--shell-border-input`                    |
+| Reading text, quiet text      | `--shell-text`, `--shell-text-muted`                        |
+| What you press, where you are | `--shell-action` on `--shell-action-fg`                     |
+| Selected (never a button)     | `--shell-accent` wash with `--shell-accent-fg`              |
+| Destructive                   | `--shell-destructive`, outlined until the final confirm     |
+| Over a photo (never flips)    | `--shell-ink-fixed`, `--shell-paper-fixed`                  |
+| People on Home only           | `--magnet-1` … `--magnet-5` (coral, sage, sand, sky, lilac) |
+
+## Typography
+
+Sizes are the `--text-*` scale; weights stop at 600 (`--weight-display`); titles take
+`--tracking-display` (-0.015em).
+
+| Use                              | Face     | Token                    |
+| -------------------------------- | -------- | ------------------------ |
+| Page title (`.page-h1`)          | Fraunces | `--text-page` (30–36px)  |
+| Section, dialog and sheet titles | Fraunces | `--text-title` (24–26px) |
+| Card titles, the top bar's title | Fraunces | `--text-subhead` (20px)  |
+| Reading text and input values    | Atkinson | `--text-body` (16px)     |
+| Helper, caption, error           | Atkinson | `--text-small` (14px)    |
+| Label, meta (the floor)          | Atkinson | `--text-meta` (13px)     |
+| A note body, a coupon title      | Kalam    | `--text-hand` (19px)     |
+
 ## Theme layers
 
 1. `--shell-*`: the one palette, defined only on `:root` in `app.css`. Rooms never define them.
@@ -59,12 +92,18 @@ them. The shipped CSS and components are the source of truth.
 A room wraps its pages in `RoomScope`. Shared components take a room's look through variables it
 sets in its scope (`--list-nav-*`, `--form-sheet-*`) or classes the caller passes, never by forking.
 
-## Controls and overlays
+## Components
 
-- Controls are shadcn on Base UI in `components/ui`. Don't hand-roll a tab, radio, toggle, tooltip,
+- **Page chrome** is `Page` (title, actions, tabs, FAB). Below `lg` the shell's top bar carries the
+  page title and the way back, so the page's own `h1` is read only by screen readers there; a page
+  whose title may not fit the top bar keeps it visible. Desktop shows the `h1`.
+- **Adding** the page's main thing is a `Fab` (round coral +, bottom corner), not a header button.
+- **States:** a slow, empty or failing surface uses `LoadingState`, `EmptyState`, `ErrorState`.
+- **Lists** follow one order: `SegmentedTabs`, then `ListNavBand` (count, search, sort), then rows.
+- Controls are shadcn on Base UI in `resources/js/components/ui`. Don't hand-roll a tab, radio, toggle, tooltip,
   menu, switch, field or skeleton; restyle the primitive. Compose with `render`, never `asChild`. A
   link that looks like a button is a `Link` with `buttonVariants()`, not a `Button`.
-- Use the `components/ui` overlays, not raw Base UI parts: they carry the room's `data-app` into the
+- Use the `resources/js/components/ui` overlays, not raw Base UI parts: they carry the room's `data-app` into the
   portal. A tooltip is never the only place something is said.
 - One or two fields: a dialog. Composing: `FormSheet` (bottom on a phone, right from `md`). A yes/no
   question: `ConfirmDialog`.
@@ -73,7 +112,7 @@ sets in its scope (`--list-nav-*`, `--form-sheet-*`) or classes the caller passe
 
 Soft and with a reason. One easing (`--ease-ui`) and the `--dur-*` durations; leaving is quicker
 than arriving; nothing bounces, overshoots or loops, and there are no page transitions. Overlays
-use Base UI's own CSS animations. Everything else uses the presets in `components/motion`, on a
+use Base UI's own CSS animations. Everything else uses the presets in `resources/js/components/motion`, on a
 wrapper, never on an element with `.shell-press` or `.shell-lift`, or above a `Fab`. A page's first
 rows settle in once; later rows appear in place. Small things that change (a tick, a stamp) scale
 in. Reduced motion is already handled; don't add a media query for it.
