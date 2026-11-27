@@ -5,7 +5,9 @@ import { useId } from 'react';
 import { Input } from '@/components/ui/input';
 import { formSubmitOptions } from '@/lib/mutation';
 import CharCount from '@/MiniApps/Mailbox/Components/CharCount';
-import RecipientPicker from '@/MiniApps/Mailbox/Components/RecipientPicker';
+import RecipientPicker, {
+    defaultRecipientIds,
+} from '@/MiniApps/Mailbox/Components/RecipientPicker';
 import { store, update } from '@/routes/apps/our-exchange/expenses/groups';
 import FormField from '@/Shell/Components/FormField';
 import FormSheet from '@/Shell/Components/FormSheet';
@@ -48,7 +50,7 @@ export default function ExpenseGroupSheet({
             ? others
                   .filter((person) => group.member_ids.includes(person.id))
                   .map((person) => person.id)
-            : [],
+            : defaultRecipientIds(others),
     });
     const { data, setData, processing, errors } = form;
 

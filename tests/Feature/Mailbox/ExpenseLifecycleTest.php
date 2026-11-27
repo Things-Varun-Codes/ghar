@@ -6,6 +6,7 @@ use App\MiniApps\Mailbox\Models\Expense;
 use App\MiniApps\Mailbox\Models\ExpenseActivity;
 use App\MiniApps\Mailbox\Models\ExpenseGroup;
 use App\MiniApps\Mailbox\Support\ExpenseMath;
+use App\Shell\Models\User;
 use App\Shell\Support\Region;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\Concerns\SplitsExpenses;
@@ -234,6 +235,17 @@ class ExpenseLifecycleTest extends TestCase
 
         $this->assertSame('General', $general->refresh()->name);
         $this->assertDatabaseMissing('mailbox_expense_group_members', ['group_id' => $general->id]);
+    }
+
+    public function test_someone_new_joins_general_but_no_other_group(): void
+    {
+        $leela = User::factory()->create(['name' => 'Leela Rao']);
+
+        $this->assertContains($leela->id, ExpenseGroup::general()->memberIds());
+        $this->assertSame([$this->ravi->id, $this->meera->id, $this->kabir->id], $this->trip->refresh()->memberIds());
+
+        $this->actingAs($leela)->get(self::BASE.'/groups/'.ExpenseGroup::general()->id)->assertOk();
+        $this->get(self::BASE."/groups/{$this->trip->id}")->assertForbidden();
     }
 
     public function test_a_group_starts_with_its_maker_and_goes_only_if_it_never_had_an_expense(): void
