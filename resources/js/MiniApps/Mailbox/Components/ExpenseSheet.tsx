@@ -22,6 +22,7 @@ import {
 import { store, update } from '@/routes/apps/our-exchange/expenses';
 import FormField from '@/Shell/Components/FormField';
 import FormSheet from '@/Shell/Components/FormSheet';
+import IconPicker from '@/Shell/Components/IconPicker';
 import SubmitButton from '@/Shell/Components/SubmitButton';
 import type { Person } from '@/types/person';
 
@@ -34,6 +35,8 @@ export type ExpensePayload = {
     amount: number;
     spent_on: string;
     split_mode: SplitMode;
+    /* A lucide icon name; null reads as the receipt. */
+    icon: string | null;
     is_settlement: boolean;
     paid_by_id: number;
     shares: { user_id: number; amount: number }[];
@@ -58,14 +61,37 @@ type FormShape = {
     spent_on: string;
     paid_by_id: number;
     split_mode: SplitMode;
+    /* Null until someone picks one: the receipt. */
+    icon: string | null;
     participant_ids: number[];
     /* What each person owes in an exact split, as typed, by user id. */
     shares: Record<string, string>;
 };
 
 const TITLE_MAX = 120;
+const DEFAULT_ICON = 'receipt-text';
+/* The picker shows these first, before a search: what a household splits. */
+const EXPENSE_ICONS = [
+    'utensils-crossed',
+    'shopping-basket',
+    'bed-double',
+    'plane',
+    'train-front',
+    'bus',
+    'car-taxi-front',
+    'fuel',
+    'house',
+    'plug-zap',
+    'sofa',
+    'shopping-bag',
+    'ticket',
+    'pill',
+    'gift',
+    DEFAULT_ICON,
+];
 const SHOWN_FIELDS = [
     'title',
+    'icon',
     'amount',
     'spent_on',
     'paid_by_id',
@@ -114,6 +140,7 @@ export default function ExpenseSheet({
                 ? viewerId
                 : members[0].id),
         split_mode: expense?.split_mode ?? 'equal',
+        icon: expense?.icon ?? null,
         participant_ids:
             expense?.shares.map((share) => share.user_id) ??
             members.map((member) => member.id),
@@ -126,6 +153,7 @@ export default function ExpenseSheet({
     });
     const { data, setData, processing, errors } = form;
 
+    const icon = data.icon ?? DEFAULT_ICON;
     const total = parseMoney(data.amount);
     const exact = data.split_mode === 'exact';
     const typed = members.map((member) => data.shares[member.id] ?? '');
@@ -174,6 +202,8 @@ export default function ExpenseSheet({
             spent_on: values.spent_on,
             paid_by_id: values.paid_by_id,
             split_mode: values.split_mode,
+            // Null keeps the receipt without storing it.
+            icon: values.icon,
             ...(exact
                 ? {
                       shares: members.flatMap((member, index) =>
@@ -266,6 +296,21 @@ export default function ExpenseSheet({
                 </FormField>
                 <CharCount length={data.title.length} max={TITLE_MAX} />
             </div>
+
+            <FormField
+                label="Icon"
+                name="expense-icon"
+                error={errors.icon}
+                className="mailbox-form-field"
+            >
+                <IconPicker
+                    id="expense-icon"
+                    value={icon}
+                    onChange={(picked) => setData('icon', picked)}
+                    suggested={EXPENSE_ICONS}
+                    recentKey="ghar.exchange.recent-expense-icons"
+                />
+            </FormField>
 
             <div className="grid grid-cols-[minmax(0,1fr)_minmax(0,1fr)] gap-3">
                 <FormField

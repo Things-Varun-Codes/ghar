@@ -40,7 +40,9 @@ describe('ExpenseBalanceRow', () => {
     it('says who owes whom in words and asks before settling', () => {
         const dialog = confirmSettle(-50000);
 
-        expect(screen.getByText('You owe Ravi ₹500.00')).toBeTruthy();
+        expect(screen.getByText('₹500.00').parentElement?.textContent).toBe(
+            'You owe Ravi ₹500.00',
+        );
         expect(dialog.textContent).toContain('you paid Ravi ₹500.00');
         expect(dialog.textContent).toContain('each group you share');
         expect(routerPost).not.toHaveBeenCalled();

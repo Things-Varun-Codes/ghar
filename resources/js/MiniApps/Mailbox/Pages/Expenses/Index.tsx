@@ -31,25 +31,41 @@ type Props = {
     members: Person[];
 };
 
-function GroupCard({ group }: { group: GroupRow }) {
+/* The viewer's net as a short label over the figure, the way a ledger column reads. */
+function NetFigure({ net }: { net: number }) {
+    if (net === 0) {
+        return <span className="mailbox-expense-figure">settled up</span>;
+    }
+
     return (
-        <li className="mailbox-card mailbox-expense-group shell-card-stretch shell-lift">
-            <Link
-                href={show.url(group.id)}
-                prefetch="hover"
-                className="shell-card-link mailbox-expense-group-name"
+        <span className="mailbox-expense-figure">
+            {net > 0 ? 'you are owed' : 'you owe'}{' '}
+            <strong
+                className="mailbox-expense-amount"
+                data-direction={net > 0 ? 'in' : 'out'}
             >
-                {group.name}
-            </Link>
-            <span className="mailbox-expense-meta">
-                {count(group.member_ids.length, 'person', 'people')}
-                {' · '}
-                {group.net === 0
-                    ? 'Settled'
-                    : group.net > 0
-                      ? `You are owed ${formatMoney(group.net)}`
-                      : `You owe ${formatMoney(-group.net)}`}
+                {formatMoney(Math.abs(net))}
+            </strong>
+        </span>
+    );
+}
+
+function GroupRow({ group }: { group: GroupRow }) {
+    return (
+        <li className="mailbox-expense-row mailbox-expense-group shell-card-stretch">
+            <span className="mailbox-expense-row-main">
+                <Link
+                    href={show.url(group.id)}
+                    prefetch="hover"
+                    className="shell-card-link mailbox-expense-group-name"
+                >
+                    {group.name}
+                </Link>
+                <span className="mailbox-expense-meta">
+                    {count(group.member_ids.length, 'person', 'people')}
+                </span>
             </span>
+            <NetFigure net={group.net} />
         </li>
     );
 }
@@ -59,10 +75,12 @@ export default function ExpensesIndex({ groups, overview, members }: Props) {
     const adding = useSheetSession<true>();
     const open = groups.filter((group) => !group.archived);
     const archived = groups.filter((group) => group.archived);
+    const overall = overview.reduce((sum, balance) => sum + balance.net, 0);
 
     return (
         <MailboxLayout>
             <Page
+                tier="prose"
                 title="Expenses"
                 room={MAILBOX_ROOM}
                 backChevron
@@ -87,6 +105,25 @@ export default function ExpensesIndex({ groups, overview, members }: Props) {
                     />
                 ) : (
                     <div className="mailbox-expense-page">
+                        <p className="mailbox-expense-summary">
+                            {overall === 0 ? (
+                                'Overall, you are settled up.'
+                            ) : (
+                                <>
+                                    Overall,{' '}
+                                    {overall > 0 ? 'you are owed' : 'you owe'}{' '}
+                                    <strong
+                                        className="mailbox-expense-amount"
+                                        data-direction={
+                                            overall > 0 ? 'in' : 'out'
+                                        }
+                                    >
+                                        {formatMoney(Math.abs(overall))}
+                                    </strong>
+                                </>
+                            )}
+                        </p>
+
                         <section aria-labelledby="expenses-balances">
                             <h2
                                 id="expenses-balances"
@@ -118,9 +155,9 @@ export default function ExpensesIndex({ groups, overview, members }: Props) {
                             >
                                 Groups
                             </h2>
-                            <ul className="mailbox-expense-groups">
+                            <ul className="mailbox-card mailbox-expense-rows">
                                 {open.map((group) => (
-                                    <GroupCard key={group.id} group={group} />
+                                    <GroupRow key={group.id} group={group} />
                                 ))}
                             </ul>
                         </section>
@@ -140,9 +177,9 @@ export default function ExpensesIndex({ groups, overview, members }: Props) {
                                     />
                                 </CollapsibleTrigger>
                                 <CollapsibleContent>
-                                    <ul className="mailbox-expense-groups">
+                                    <ul className="mailbox-card mailbox-expense-rows">
                                         {archived.map((group) => (
-                                            <GroupCard
+                                            <GroupRow
                                                 key={group.id}
                                                 group={group}
                                             />

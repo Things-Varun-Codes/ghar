@@ -3,7 +3,7 @@
 namespace App\MiniApps\Corner\Http\Requests;
 
 use App\MiniApps\Corner\Models\CornerList;
-use App\MiniApps\Corner\Support\ListIcon;
+use App\Shell\Support\LucideIcon;
 use Closure;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Str;
@@ -36,7 +36,7 @@ class SaveListRequest extends FormRequest
         return [
             'name' => ['required', 'string', 'max:60'],
             'icon' => ['required', 'string', 'max:64', function (string $attribute, mixed $value, Closure $fail): void {
-                if (! is_string($value) || ! ListIcon::isValid($value)) {
+                if (! is_string($value) || ! LucideIcon::isValid($value)) {
                     $fail('Choose one of the icons.');
                 }
             }],

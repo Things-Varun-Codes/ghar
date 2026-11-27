@@ -61,6 +61,7 @@ warm hue (60–75 for neutrals, 38–40 for coral). Use the token by its role; n
 | Destructive                   | `--shell-destructive`, outlined until the final confirm     |
 | Over a photo (never flips)    | `--shell-ink-fixed`, `--shell-paper-fixed`                  |
 | People on Home only           | `--magnet-1` … `--magnet-5` (coral, sage, sand, sky, lilac) |
+| Money in / money out          | `--shell-money-in` (sage), `--shell-money-out` (amber)      |
 
 ## Typography
 
@@ -127,4 +128,6 @@ in. Reduced motion is already handled; don't add a media query for it.
   with no picture, the list's icon sits on the accent wash.
 - **Our Exchange:** paper. Ruled notes with a red margin, the citation as an official form, the
   coupon as a voucher, all in the house ink. The stamp is the only thing in capitals. Coral only
-  for what you press.
+  for what you press. Expenses read as a ledger: a date, the expense's icon in ink, and on the
+  right what it means for you, in words over the amount. Only amounts and their words take the
+  money colours, and never without the words.

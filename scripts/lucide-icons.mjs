@@ -3,7 +3,7 @@
 //
 // - resources/js/Shell/linkables/lucide-paths.json  every icon's drawing, and its aliases
 // - resources/js/Shell/linkables/lucide-index.json  categories and search tags, for the picker
-// - app/MiniApps/Corner/Support/icon-names.json      every name a list may use (the server checks)
+// - app/Shell/Support/lucide-icon-names.json        every name a person may pick (the server checks)
 //
 // Drawings come from lucide-react itself. Tags and categories are not in that package, so they
 // are read from the lucide repository at the same version (a one-off download). Re-run after
@@ -162,7 +162,7 @@ try {
         perLine({ version, categories, tags }),
     );
     writeFileSync(
-        path.join(root, 'app/MiniApps/Corner/Support/icon-names.json'),
+        path.join(root, 'app/Shell/Support/lucide-icon-names.json'),
         JSON.stringify(names, null, 4) + '\n',
     );
 

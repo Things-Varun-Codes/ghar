@@ -5,7 +5,6 @@ namespace Tests\Feature\Seeders;
 use App\MiniApps\Corner\Models\CornerList;
 use App\MiniApps\Corner\Models\Item;
 use App\MiniApps\Corner\Policies\CornerListPolicy;
-use App\MiniApps\Corner\Support\ListIcon;
 use App\MiniApps\Corner\Support\PictureCache;
 use App\MiniApps\History\Models\Event;
 use App\MiniApps\History\Models\EventComment;
@@ -21,6 +20,7 @@ use App\Shell\Models\Invitation;
 use App\Shell\Models\ShortLink;
 use App\Shell\Models\User;
 use App\Shell\Services\LinkableEntities;
+use App\Shell\Support\LucideIcon;
 use App\Shell\Support\Region;
 use Database\Seeders\DatabaseSeeder;
 use Database\Seeders\DevDataSeeder;
@@ -146,7 +146,7 @@ class DevDataSeederTest extends TestCase
 
         // Every icon is one the page can draw, and the ids the docs name stay put.
         foreach (CornerList::all() as $list) {
-            $this->assertTrue(ListIcon::isValid($list->icon), "{$list->slug} icon {$list->icon}");
+            $this->assertTrue(LucideIcon::isValid($list->icon), "{$list->slug} icon {$list->icon}");
         }
         $this->assertSame(range(100, 161), $songs->items()->orderBy('id')->pluck('id')->all());
         $this->assertSame([185, 186, 192], $shared->items()->orderBy('id')->pluck('id')->all());

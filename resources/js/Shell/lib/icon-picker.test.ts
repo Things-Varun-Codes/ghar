@@ -2,13 +2,12 @@ import dynamicIconImports from 'lucide-react/dynamicIconImports';
 import { describe, expect, it } from 'vitest';
 
 import type { IconIndex } from '@/Shell/linkables/lucide';
-import names from '../../../../../app/MiniApps/Corner/Support/icon-names.json';
-import index from '../../../Shell/linkables/lucide-index.json';
-import paths from '../../../Shell/linkables/lucide-paths.json';
+import names from '../../../../app/Shell/Support/lucide-icon-names.json';
+import index from '../linkables/lucide-index.json';
+import paths from '../linkables/lucide-paths.json';
 import {
     HEADING_HEIGHT,
     ROW_HEIGHT,
-    SUGGESTED,
     columnsFor,
     layoutRows,
     moveActive,
@@ -25,12 +24,6 @@ describe('the icon data', () => {
 
         expect(drawable).toEqual([...names].sort());
         expect(drawable).toEqual(Object.keys(dynamicIconImports).sort());
-    });
-
-    it('suggests only icons that exist', () => {
-        const known = (n: string) => n in paths.paths || n in paths.aliases;
-
-        expect(SUGGESTED.filter((n) => !known(n))).toEqual([]);
     });
 });
 

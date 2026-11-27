@@ -5,11 +5,11 @@ import type { FormEvent, ReactNode } from 'react';
 import { Input } from '@/components/ui/input';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { formSubmitOptions } from '@/lib/mutation';
-import IconPicker from '@/MiniApps/Corner/Components/IconPicker';
 import type { ListSettings } from '@/MiniApps/Corner/lib/presets';
 import {
     BLANK_LIST,
     DONE_WORDS,
+    LIST_ICONS,
     TODO_FOR_DONE,
 } from '@/MiniApps/Corner/lib/presets';
 import type { CornerListInfo, DoneIcon } from '@/MiniApps/Corner/lib/types';
@@ -17,6 +17,7 @@ import { store, update } from '@/routes/apps/our-shelf/lists';
 import FormField from '@/Shell/Components/FormField';
 import FormSheet from '@/Shell/Components/FormSheet';
 import HeartMark from '@/Shell/Components/HeartMark';
+import IconPicker from '@/Shell/Components/IconPicker';
 import SubmitButton from '@/Shell/Components/SubmitButton';
 import SwitchRow from '@/Shell/Components/SwitchRow';
 
@@ -136,6 +137,8 @@ export default function ListSettingsSheet({ open, onOpenChange, list }: Props) {
                     id="icon"
                     value={data.icon}
                     onChange={(icon) => setData('icon', icon)}
+                    suggested={LIST_ICONS}
+                    recentKey="ghar.corner.recent-icons"
                 />
             </FormField>
 
