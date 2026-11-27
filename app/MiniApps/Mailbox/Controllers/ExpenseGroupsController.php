@@ -10,6 +10,7 @@ use App\MiniApps\Mailbox\Support\ExpenseBalances;
 use App\Shell\Models\User;
 use App\Shell\Services\Household;
 use App\Shell\Support\FlashToast;
+use App\Shell\Support\PersonalOrder;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -42,6 +43,25 @@ class ExpenseGroupsController
     }
 
     /** A rename, a change of members, or both; each is its own line in the activity. */
+    /** The viewer's own order of their open groups. */
+    public function order(Request $request): RedirectResponse
+    {
+        $viewer = $request->user();
+        $validated = $request->validate([
+            'ids' => ['required', 'array', 'max:1000'],
+            'ids.*' => ['required', 'integer', 'distinct'],
+        ]);
+
+        PersonalOrder::save(
+            ExpenseGroup::query()->visibleTo($viewer)->whereNull('archived_at'),
+            $viewer,
+            ExpenseGroup::ORDER_SCOPE,
+            array_map(intval(...), $validated['ids']),
+        );
+
+        return redirect()->back();
+    }
+
     public function update(Request $request, ExpenseGroup $group, ExpenseLedger $ledger, Household $household): RedirectResponse
     {
         Gate::authorize('manage', $group);

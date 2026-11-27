@@ -59,7 +59,7 @@ final class CornerData
      */
     private function songs(Household $h): array
     {
-        $list = CornerList::factory()->songs()->create(['position' => 0]);
+        $list = CornerList::factory()->songs()->create(['created_at' => $h->daysAgo(365)]);
 
         // [title, author, adder, days ago added, loved by, loved days ago]
         $named = [
@@ -151,7 +151,7 @@ final class CornerData
      */
     private function movies(Household $h): array
     {
-        $list = CornerList::factory()->movies()->create(['position' => 1]);
+        $list = CornerList::factory()->movies()->create(['created_at' => $h->daysAgo(364)]);
 
         // [title, adder, days ago added, watched by, watched days ago, has poster]
         $movies = [
@@ -192,7 +192,7 @@ final class CornerData
      */
     private function places(Household $h): array
     {
-        $list = CornerList::factory()->places()->create(['position' => 2]);
+        $list = CornerList::factory()->places()->create(['created_at' => $h->daysAgo(363)]);
 
         // [title, address, lat, lng, adder, days ago added, visited by, visited days ago]
         $places = [
@@ -231,7 +231,7 @@ final class CornerData
      */
     private function activities(Household $h): array
     {
-        $list = CornerList::factory()->activities()->create(['position' => 3]);
+        $list = CornerList::factory()->activities()->create(['created_at' => $h->daysAgo(362)]);
 
         // [title, notes, adder, days ago added, done by, done days ago]
         $activities = [
@@ -271,7 +271,7 @@ final class CornerData
         $list = CornerList::factory()->create([
             'name' => 'Books', 'slug' => 'books', 'icon' => 'book-open',
             'done_label' => 'Read', 'todo_label' => 'To read', 'done_icon' => 'heart',
-            'position' => 4, 'created_by_user_id' => $h->ravi->id, 'created_at' => $h->daysAgo(16),
+            'created_by_user_id' => $h->ravi->id, 'created_at' => $h->daysAgo(16),
         ]);
 
         // [title, notes, days ago added, read days ago]
@@ -310,7 +310,7 @@ final class CornerData
             'name' => 'Restaurants we keep meaning to try on a slow Sunday',
             'slug' => 'restaurants-we-keep-meaning-to-try-on-a-slow-sunday',
             'icon' => 'utensils', 'done_label' => 'Eaten at', 'todo_label' => 'To try', 'done_icon' => 'check',
-            'position' => 5, 'created_by_user_id' => $h->meera->id, 'created_at' => $h->daysAgo(10),
+            'created_by_user_id' => $h->meera->id, 'created_at' => $h->daysAgo(10),
         ]);
 
         $malabar = Item::factory()->create([
@@ -349,7 +349,7 @@ final class CornerData
             'name' => 'Board games', 'slug' => 'board-games', 'icon' => 'dices',
             'done_label' => 'Played', 'todo_label' => 'To play', 'done_icon' => 'check',
             'notify_on_add' => false,
-            'position' => 6, 'created_by_user_id' => $h->kabir->id, 'created_at' => $h->daysAgo(1),
+            'created_by_user_id' => $h->kabir->id, 'created_at' => $h->daysAgo(1),
         ]);
 
         return [];
@@ -368,7 +368,7 @@ final class CornerData
         $list = CornerList::factory()->create([
             'name' => 'Weekend ideas', 'slug' => 'weekend-ideas', 'icon' => 'sailboat',
             'done_label' => 'Tried', 'todo_label' => 'Some day', 'done_icon' => 'heart',
-            'position' => 7, 'created_by_user_id' => $h->meera->id, 'created_at' => $h->daysAgo(6),
+            'created_by_user_id' => $h->meera->id, 'created_at' => $h->daysAgo(6),
         ]);
 
         $items = [

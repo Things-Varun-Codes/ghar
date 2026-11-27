@@ -17,7 +17,7 @@ Route::prefix('apps/our-shelf')->name('apps.our-shelf.')->group(function () {
 
     Route::middleware('throttle:corner-mutations')->group(function () {
         Route::post('/lists', [ListsController::class, 'store'])->name('lists.store');
-        Route::patch('/lists/{list}/move', [ListsController::class, 'move'])->name('lists.move');
+        Route::put('/lists/order', [ListsController::class, 'order'])->name('lists.order');
         Route::patch('/lists/{list}', [ListsController::class, 'update'])->name('lists.update');
         Route::delete('/lists/{list}', [ListsController::class, 'destroy'])->name('lists.destroy');
 

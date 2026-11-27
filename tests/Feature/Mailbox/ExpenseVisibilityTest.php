@@ -81,15 +81,15 @@ class ExpenseVisibilityTest extends TestCase
     public function test_nobody_outside_a_group_gets_into_it_and_an_admin_is_no_exception(): void
     {
         $routes = $this->everyRoute();
-        $this->assertCount(13, $routes);
+        $this->assertCount(14, $routes);
         $before = [Expense::withTrashed()->count(), ExpenseActivity::query()->count(), ExpenseGroup::query()->count()];
 
         $this->actingAs($this->asha);
         $onAGroup = 0;
 
         foreach ($routes as [$method, $url, $payload, $name]) {
-            // These three aren't about one group: anyone may list, start a group or try to settle.
-            if (in_array($name, ['index', 'groups.store', 'settle'], true)) {
+            // These aren't about one group: anyone may list, start a group, order theirs or try to settle.
+            if (in_array($name, ['index', 'groups.store', 'groups.order', 'settle'], true)) {
                 continue;
             }
 
@@ -99,6 +99,8 @@ class ExpenseVisibilityTest extends TestCase
 
         $this->assertSame(10, $onAGroup);
         $this->hit('POST', "/apps/our-exchange/expenses/settle/{$this->ravi->id}", ['expected_net' => 3000])->assertStatus(422);
+        // Naming a group you aren't in is refused like any other wrong set.
+        $this->hit('PUT', '/apps/our-exchange/expenses/groups/order', ['ids' => [$this->trip->id, ExpenseGroup::general()->id]])->assertStatus(422);
         $this->assertSame($before, [Expense::withTrashed()->count(), ExpenseActivity::query()->count(), ExpenseGroup::query()->count()]);
         $this->assertSame('Trip', $this->trip->refresh()->name);
         $this->assertSame('Dinner', $this->dinner->refresh()->title);

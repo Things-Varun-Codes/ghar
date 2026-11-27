@@ -1,6 +1,7 @@
 import { Link, usePage } from '@inertiajs/react';
 import { ChevronDown, Plus } from 'lucide-react';
 
+import { Button } from '@/components/ui/button';
 import {
     Collapsible,
     CollapsibleContent,
@@ -18,10 +19,11 @@ import MailboxLayout, {
     MAILBOX_ROOM,
 } from '@/MiniApps/Mailbox/Layouts/MailboxLayout';
 import { formatMoney } from '@/MiniApps/Mailbox/lib/money';
-import { show } from '@/routes/apps/our-exchange/expenses/groups';
+import { order, show } from '@/routes/apps/our-exchange/expenses/groups';
 import EmptyState from '@/Shell/Components/EmptyState';
 import Fab from '@/Shell/Components/Fab';
 import Page from '@/Shell/Components/Page';
+import ReorderSheet from '@/Shell/Components/ReorderSheet';
 import type { Person } from '@/types/person';
 
 /* `net` is the viewer's own balance in the group: positive when they are owed. */
@@ -88,6 +90,7 @@ function GroupRow({
 export default function ExpensesIndex({ groups, overview, members }: Props) {
     const viewerId = usePage().props.auth.user?.id ?? 0;
     const adding = useSheetSession<true>();
+    const reordering = useSheetSession<true>();
     const open = groups.filter((group) => !group.archived);
     const archived = groups.filter((group) => group.archived);
     const overall = overview.reduce((sum, balance) => sum + balance.net, 0);
@@ -140,10 +143,8 @@ export default function ExpensesIndex({ groups, overview, members }: Props) {
                         </p>
 
                         <section aria-labelledby="expenses-balances">
-                            <h2
-                                id="expenses-balances"
-                                className="mailbox-expense-heading"
-                            >
+                            {/* The summary above already heads it. */}
+                            <h2 id="expenses-balances" className="sr-only">
                                 Balances
                             </h2>
                             {overview.length === 0 ? (
@@ -164,12 +165,25 @@ export default function ExpensesIndex({ groups, overview, members }: Props) {
                         </section>
 
                         <section aria-labelledby="expenses-groups">
-                            <h2
-                                id="expenses-groups"
-                                className="mailbox-expense-heading"
-                            >
-                                Groups
-                            </h2>
+                            <div className="mailbox-expense-heading-row">
+                                <h2
+                                    id="expenses-groups"
+                                    className="mailbox-expense-heading"
+                                >
+                                    Groups
+                                </h2>
+                                {open.length > 1 && (
+                                    <Button
+                                        type="button"
+                                        variant="ghost"
+                                        size="sm"
+                                        className="mailbox-btn-quiet"
+                                        onClick={() => reordering.show(true)}
+                                    >
+                                        Change order
+                                    </Button>
+                                )}
+                            </div>
                             <ul className="mailbox-card mailbox-expense-rows">
                                 {open.map((group) => (
                                     <GroupRow
@@ -213,6 +227,22 @@ export default function ExpensesIndex({ groups, overview, members }: Props) {
                     </div>
                 )}
             </Page>
+
+            {reordering.value && (
+                <ReorderSheet
+                    key={reordering.key}
+                    open={reordering.open}
+                    onOpenChange={reordering.onOpenChange}
+                    title="Order of your groups"
+                    description="Drag your groups, or use the arrows, into the order you want them listed."
+                    items={open.map((group) => ({
+                        id: group.id,
+                        label: group.name,
+                    }))}
+                    url={order.url()}
+                    component="Mailbox/ExpensesIndex"
+                />
+            )}
 
             {adding.value && (
                 <ExpenseGroupSheet

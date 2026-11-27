@@ -39,34 +39,32 @@ export default function ExpenseBalanceRow({ person, net }: ExpenseBalance) {
     };
 
     return (
-        <li className="mailbox-expense-row">
-            <PersonAvatar person={person} size={32} />
+        <li className="mailbox-expense-row mailbox-expense-balance">
+            <PersonAvatar person={person} size={24} />
             <span className="mailbox-expense-row-main">
-                {net === 0 ? (
-                    `You and ${person.name} are even overall, with balances open in your groups`
-                ) : (
-                    <>
-                        {owed
-                            ? `${person.name} owes you`
-                            : `You owe ${person.name}`}{' '}
-                        <strong
-                            className="mailbox-expense-amount"
-                            data-direction={owed ? 'in' : 'out'}
-                        >
-                            {amount}
-                        </strong>
-                    </>
-                )}
+                {net === 0
+                    ? `Even with ${person.name} overall`
+                    : owed
+                      ? `${person.name} owes you`
+                      : `You owe ${person.name}`}
             </span>
+            {net !== 0 && (
+                <strong
+                    className="mailbox-expense-amount"
+                    data-direction={owed ? 'in' : 'out'}
+                >
+                    {amount}
+                </strong>
+            )}
             <SubmitButton
                 type="button"
-                variant="outline"
+                variant="ghost"
                 size="sm"
                 processing={pending}
                 busyText="Settling…"
                 onClick={() => setConfirming(true)}
                 aria-label={`Settle up with ${person.name}`}
-                className="mailbox-btn-neutral"
+                className="mailbox-btn-quiet"
             >
                 Settle up
             </SubmitButton>

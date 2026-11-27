@@ -109,16 +109,21 @@
 /* The count and sort scroll away, as in every room; the year stays as the one sticky layer. */
 .history-year-banner {
     position: sticky;
-    top: var(--shell-topbar-h); /* below lg: clear the phone top bar */
+    /* below lg: clear the phone top bar and the tabs docked under it */
+    top: calc(var(--shell-topbar-h) + var(--shell-tabbar-h));
     z-index: 11; /* content band, below the floating FAB (--z-floating: 20) */
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    column-gap: 12px;
     margin-left: -46px; /* covers the wrapper's 46px left padding, where the faces sit */
-    padding: 16px 36px 16px 46px;
+    padding: 12px 36px 12px 46px;
 }
 
 @variant md {
     .history-year-banner {
         margin-left: -80px; /* wider wrapper padding-left is 80px */
-        padding: 32px 80px 16px 80px; /* padding-top 32 absorbs the visual breathing room */
+        padding: 24px 80px 12px 80px;
     }
 }
 
@@ -672,7 +677,6 @@
 
 [data-app='our-history'] .history-year-banner-spacing {
     background: var(--history-bg);
-    padding-bottom: 16px;
     margin-bottom: 8px;
 }
 
@@ -719,12 +723,11 @@
 }
 
 [data-app='our-history'] .history-year-count {
-    display: block;
     font-family: var(--history-font-sans);
     font-size: var(--text-body);
     font-weight: 400;
+    font-variant-numeric: tabular-nums;
     color: var(--history-ink-soft);
-    margin-top: 4px;
 }
 
 [data-app='our-history'] .history-rail-line {

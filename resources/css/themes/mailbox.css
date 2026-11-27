@@ -1584,6 +1584,19 @@
     color: var(--mailbox-ink);
 }
 
+[data-app='our-exchange'] .mailbox-expense-heading-row {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 12px;
+}
+[data-app='our-exchange']
+    .mailbox-expense-heading-row
+    .mailbox-expense-heading {
+    margin: 0;
+}
+
 [data-app='our-exchange'] .mailbox-expense-quiet {
     margin: 0;
     font-size: var(--text-body);
@@ -1677,6 +1690,31 @@
     flex: 1 1 12ch;
     min-width: 0;
     overflow-wrap: anywhere;
+}
+
+/* A balance is one line: who, the amount, and a quiet settle. */
+[data-app='our-exchange'] .mailbox-expense-row.mailbox-expense-balance {
+    flex-wrap: nowrap;
+    padding: 8px 0;
+}
+[data-app='our-exchange'] .mailbox-expense-balance .mailbox-expense-amount {
+    font-weight: 600;
+}
+[data-app='our-exchange'] .mailbox-btn-quiet {
+    margin-inline-end: -8px;
+    padding-inline: 8px;
+    font-size: var(--text-small);
+    color: var(--mailbox-ink-soft);
+}
+@media (hover: hover) {
+    [data-app='our-exchange'] .mailbox-btn-quiet:hover {
+        color: var(--mailbox-ink);
+    }
+}
+@media (pointer: coarse) {
+    [data-app='our-exchange'] .mailbox-btn-quiet {
+        min-height: 44px;
+    }
 }
 
 [data-app='our-exchange'] .mailbox-expense-row.mailbox-expense-group {

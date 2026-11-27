@@ -76,7 +76,8 @@ class CornerListsTest extends TestCase
         $this->assertSame('heart', $list->done_icon);
         $this->assertFalse($list->notify_on_add);
         $this->assertSame($this->member->id, $list->created_by_user_id);
-        $this->assertSame(2, $list->position);
+        $this->actingAs($this->member)->get('/apps/our-shelf')->assertInertia(fn (AssertableInertia $page) => $page
+            ->where('lists.2.slug', 'board-games'));
 
         $this->actingAs($this->member)
             ->get('/apps/our-shelf/board-games')
@@ -84,13 +85,6 @@ class CornerListsTest extends TestCase
                 ->component('MiniApps/Corner/Pages/List')
                 ->where('list.slug', 'board-games')
                 ->has('items.data', 0));
-    }
-
-    public function test_the_first_list_on_an_empty_shelf_takes_the_first_place(): void
-    {
-        $this->actingAs($this->member)->post('/apps/our-shelf/lists', $this->payload())->assertSessionHasNoErrors();
-
-        $this->assertSame(0, CornerList::query()->sole()->position);
     }
 
     /** @return array<string, array{0: string, 1: string}> */
@@ -189,18 +183,16 @@ class CornerListsTest extends TestCase
         $this->assertSame(0, CornerList::count());
     }
 
-    public function test_created_by_and_position_cannot_be_sent(): void
+    public function test_created_by_cannot_be_sent(): void
     {
         $this->actingAs($this->member)->post('/apps/our-shelf/lists', $this->payload([
             'slug' => 'chosen',
             'created_by_user_id' => $this->admin->id,
-            'position' => 99,
         ]))->assertSessionHasNoErrors();
 
         $list = CornerList::query()->sole();
         $this->assertSame('board-games', $list->slug);
         $this->assertSame($this->member->id, $list->created_by_user_id);
-        $this->assertSame(0, $list->position);
     }
 
     // Changing
@@ -315,69 +307,59 @@ class CornerListsTest extends TestCase
 
     // Reordering
 
-    public function test_anyone_moves_a_list_earlier_or_later(): void
+    /** @return list<string> */
+    private function shelfFor(User $viewer): array
     {
-        $a = $this->listBy($this->creator, ['position' => 0]);
-        $b = $this->listBy($this->creator, ['position' => 1]);
-        $c = $this->listBy($this->creator, ['position' => 2]);
-        $order = fn (): array => CornerList::query()->orderBy('position')->orderBy('id')->pluck('id')->all();
+        $slugs = [];
+        $this->actingAs($viewer)->get('/apps/our-shelf')->assertInertia(function (AssertableInertia $page) use (&$slugs) {
+            $slugs = array_column($page->toArray()['props']['lists'], 'slug');
+        });
+
+        return $slugs;
+    }
+
+    public function test_the_shelf_is_oldest_first_until_someone_orders_it(): void
+    {
+        $this->listBy($this->creator, ['slug' => 'newer', 'created_at' => now()->subDay()]);
+        $this->listBy($this->creator, ['slug' => 'older', 'created_at' => now()->subDays(3)]);
+        $this->listBy($this->creator, ['slug' => 'newest', 'created_at' => now()]);
+
+        $this->assertSame(['older', 'newer', 'newest'], $this->shelfFor($this->member));
+    }
+
+    public function test_each_person_orders_the_shelf_for_themselves(): void
+    {
+        $a = $this->listBy($this->creator, ['slug' => 'a', 'created_at' => now()->subDays(3)]);
+        $b = $this->listBy($this->creator, ['slug' => 'b', 'created_at' => now()->subDays(2)]);
+        $c = $this->listBy($this->creator, ['slug' => 'c', 'created_at' => now()->subDay()]);
 
         $this->actingAs($this->member)
             ->from('/apps/our-shelf')
-            ->patch("/apps/our-shelf/lists/{$c->id}/move", ['direction' => 'up'])
-            ->assertRedirect('/apps/our-shelf');
-        $this->assertSame([$a->id, $c->id, $b->id], $order());
+            ->put('/apps/our-shelf/lists/order', ['ids' => [$c->id, $a->id, $b->id]])
+            ->assertRedirect('/apps/our-shelf')
+            ->assertSessionHasNoErrors();
 
-        $this->actingAs($this->member)->patch("/apps/our-shelf/lists/{$a->id}/move", ['direction' => 'down']);
-        $this->assertSame([$c->id, $a->id, $b->id], $order());
+        $this->assertSame(['c', 'a', 'b'], $this->shelfFor($this->member));
+        $this->assertSame(['a', 'b', 'c'], $this->shelfFor($this->creator));
 
-        // Past either end is a no-op.
-        $this->actingAs($this->member)->patch("/apps/our-shelf/lists/{$c->id}/move", ['direction' => 'up'])->assertSessionHasNoErrors();
-        $this->actingAs($this->member)->patch("/apps/our-shelf/lists/{$b->id}/move", ['direction' => 'down'])->assertSessionHasNoErrors();
-        $this->assertSame([$c->id, $a->id, $b->id], $order());
-        $this->assertSame([0, 1, 2], CornerList::query()->orderBy('position')->pluck('position')->all());
+        // A list made since goes at the bottom of their order.
+        $this->listBy($this->creator, ['slug' => 'd']);
+        $this->assertSame(['c', 'a', 'b', 'd'], $this->shelfFor($this->member));
     }
 
-    public function test_moving_renumbers_a_shelf_with_ties_and_gaps(): void
+    public function test_an_order_must_name_every_list_once(): void
     {
-        $a = $this->listBy($this->creator, ['position' => 5]);
-        $b = $this->listBy($this->creator, ['position' => 5]);
-        $c = $this->listBy($this->creator, ['position' => 40]);
+        $a = $this->listBy($this->creator);
+        $b = $this->listBy($this->creator);
 
-        $this->actingAs($this->member)->patch("/apps/our-shelf/lists/{$b->id}/move", ['direction' => 'up']);
-
-        $this->assertSame(
-            [$b->id => 0, $a->id => 1, $c->id => 2],
-            CornerList::query()->orderBy('position')->pluck('position', 'id')->all(),
-        );
-    }
-
-    public function test_the_landing_shows_lists_in_shelf_order(): void
-    {
-        $a = $this->listBy($this->creator, ['position' => 1]);
-        $b = $this->listBy($this->creator, ['position' => 0]);
-
-        $this->actingAs($this->member)->patch("/apps/our-shelf/lists/{$a->id}/move", ['direction' => 'up']);
-
-        $this->actingAs($this->member)
-            ->get('/apps/our-shelf')
-            ->assertInertia(fn (AssertableInertia $page) => $page
-                ->where('lists.0.id', $a->id)
-                ->where('lists.1.id', $b->id));
-    }
-
-    public function test_a_move_needs_a_direction(): void
-    {
-        $list = $this->listBy($this->creator);
-
-        foreach ([[], ['direction' => 'sideways']] as $payload) {
+        foreach ([[], ['ids' => [$b->id]], ['ids' => [$b->id, $a->id, 999999999]], ['ids' => [$b->id, $b->id]], ['ids' => ['x', $a->id]]] as $payload) {
             $this->actingAs($this->member)
                 ->from('/apps/our-shelf')
-                ->patch("/apps/our-shelf/lists/{$list->id}/move", $payload)
-                ->assertSessionHasErrors(['direction']);
+                ->put('/apps/our-shelf/lists/order', $payload)
+                ->assertSessionHasErrors();
         }
 
-        $this->actingAs($this->member)->patch('/apps/our-shelf/lists/999999999/move', ['direction' => 'up'])->assertNotFound();
+        $this->assertDatabaseCount('personal_orders', 0);
     }
 
     // Deleting

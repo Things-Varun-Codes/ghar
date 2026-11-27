@@ -6,6 +6,7 @@ use App\MiniApps\Corner\Http\Resources\ListResource;
 use App\MiniApps\Corner\Models\CornerList;
 use App\MiniApps\Corner\Models\Item;
 use App\Shell\Models\User;
+use App\Shell\Support\PersonalOrder;
 use Illuminate\Support\Facades\DB;
 
 /**
@@ -23,7 +24,7 @@ class CornerSummary
      */
     public static function build(User $viewer): array
     {
-        $lists = CornerList::query()->orderBy('position')->orderBy('id')->get();
+        $lists = PersonalOrder::apply(CornerList::query(), $viewer, CornerList::ORDER_SCOPE)->get();
 
         if ($lists->isEmpty()) {
             return [];
