@@ -13,6 +13,10 @@
 set -euo pipefail
 
 cd "$(dirname "${BASH_SOURCE[0]}")/.."
+
+# A machine without Docker can provide its own setup (one database per worktree); use it.
+if command -v ghar-setup >/dev/null; then exec ghar-setup "$@"; fi
+
 source scripts/lib/services.sh
 
 main="$(main_checkout)"

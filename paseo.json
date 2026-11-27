@@ -1,6 +1,5 @@
 {
     "worktree": {
-        "setup": "bash scripts/worktree-setup.sh",
         "teardown": "bash scripts/worktree-teardown.sh"
     },
     "metadataGeneration": {
