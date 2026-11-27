@@ -8,6 +8,7 @@ use App\Shell\Models\Invitation;
 use App\Shell\Models\User;
 use App\Shell\Support\FlashToast;
 use App\Shell\Support\Person;
+use Closure;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -41,7 +42,13 @@ class InvitesController
     public function store(Request $request, InviteUser $inviteUser): RedirectResponse
     {
         $validated = $request->validate([
-            'email' => ['required', 'email', 'max:255', 'unique:users,email'],
+            'email' => ['bail', 'required', 'email', 'max:255', function (string $attribute, string $email, Closure $fail): void {
+                $former = User::query()->where('email', $email)->whereNotNull('removed_at')->first();
+
+                if ($former !== null) {
+                    $fail("{$former->name} is a former member. Restore them from Users instead.");
+                }
+            }, 'unique:users,email'],
             'role' => ['required', 'string', Rule::in(array_column(UserRole::cases(), 'value'))],
         ]);
 

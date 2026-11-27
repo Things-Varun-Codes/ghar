@@ -20,6 +20,7 @@ class UserResource extends JsonResource
      *     last_login_at: string|null,
      *     two_factor: bool,
      *     roles: array<int, array{name: string}>,
+     *     removed_at: string|null,
      * }
      */
     public function toArray(Request $request): array
@@ -33,6 +34,7 @@ class UserResource extends JsonResource
             'last_login_at' => $user->last_login_at?->toIso8601String(),
             'two_factor' => $user->two_factor_confirmed_at !== null,
             'roles' => $user->roles->map(fn (Role $role): array => ['name' => $role->name])->all(),
+            'removed_at' => $user->removed_at?->toIso8601String(),
         ];
     }
 }

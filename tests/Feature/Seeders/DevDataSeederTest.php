@@ -78,7 +78,9 @@ class DevDataSeederTest extends TestCase
         $kabir = $this->user(DevDataSeeder::KABIR);
         $leela = $this->user(DevDataSeeder::LEELA);
 
-        $this->assertSame(5, User::count());
+        $nisha = $this->user(DevDataSeeder::NISHA);
+
+        $this->assertSame(6, User::count());
         $this->assertTrue($admin->hasRole('admin'));
 
         foreach ([$ravi, $meera, $kabir, $leela] as $member) {
@@ -147,7 +149,7 @@ class DevDataSeederTest extends TestCase
             $this->assertTrue(ListIcon::isValid($list->icon), "{$list->slug} icon {$list->icon}");
         }
         $this->assertSame(range(100, 161), $songs->items()->orderBy('id')->pluck('id')->all());
-        $this->assertSame([185, 186], $shared->items()->orderBy('id')->pluck('id')->all());
+        $this->assertSame([185, 186, 192], $shared->items()->orderBy('id')->pluck('id')->all());
         $weekend = CornerList::query()->where('slug', 'weekend-ideas')->firstOrFail();
         $this->assertSame('sailboat', $weekend->icon);
         $this->assertSame($meera->id, $weekend->created_by_user_id);
@@ -185,11 +187,12 @@ class DevDataSeederTest extends TestCase
         $this->assertCount(2, $onThisDay);
         $this->assertSame([$meera->id], $onThisDay->pluck('birthday_user_id')->filter()->values()->all());
 
-        // Ravi's monsoon drive holds the thread: Meera, Kabir, then Ravi; Meera and Asha react.
+        // Ravi's monsoon drive holds the thread: Meera, Kabir, Ravi, then Nisha before she left;
+        // Meera and Asha react.
         $monsoon = Event::query()->where('title', 'Monsoon drive to the coast')->firstOrFail();
         $this->assertSame($ravi->id, $monsoon->creator_id);
         $this->assertSame(
-            [$meera->id, $kabir->id, $ravi->id],
+            [$meera->id, $kabir->id, $ravi->id, $nisha->id],
             EventComment::query()->where('event_id', $monsoon->id)->orderBy('id')->pluck('author_id')->all(),
         );
         $this->assertEqualsCanonicalizing(
@@ -248,6 +251,12 @@ class DevDataSeederTest extends TestCase
         // 10000 between three leaves one paisa over.
         $this->assertSame([3333, 3333, 3334], Expense::where('title', 'Auto to the station')->sole()->shares->pluck('amount')->sort()->values()->all());
 
+        // Nisha is a former member: no role, and Ravi still owes her for the farewell dinner.
+        $this->assertTrue($nisha->isFormer());
+        $this->assertSame([], $nisha->getRoleNames()->all());
+        $this->assertSame(90000, ExpenseBalances::netsIn($general)[$nisha->id]);
+        $this->assertTrue(MailboxMessage::visibleTo($meera)->where('sender_id', $nisha->id)->exists());
+
         $archived = ExpenseGroup::query()->whereNotNull('archived_at')->sole();
         $this->assertSame([], array_filter(ExpenseBalances::netsIn($archived)));
 
@@ -258,7 +267,9 @@ class DevDataSeederTest extends TestCase
 
         // A second run changes nothing.
         (new DevDataSeeder)->run();
-        $this->assertSame(5, User::count());
+        $nisha = $this->user(DevDataSeeder::NISHA);
+
+        $this->assertSame(6, User::count());
     }
 
     public function test_it_refuses_production(): void
@@ -299,6 +310,7 @@ class DevDataSeederTest extends TestCase
             DevDataSeeder::MEERA,
             DevDataSeeder::KABIR,
             DevDataSeeder::LEELA,
+            DevDataSeeder::NISHA,
             DevDataSeeder::INVITE_TOKEN,
         ] as $value) {
             $this->assertStringContainsString($value, $harness);

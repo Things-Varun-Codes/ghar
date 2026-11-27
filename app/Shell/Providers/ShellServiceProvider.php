@@ -16,7 +16,9 @@ use App\Shell\Services\Notify;
 use App\Shell\Services\Rooms;
 use App\Shell\Services\UserOwnedContent;
 use App\Shell\Support\RoomSwitches;
+use Illuminate\Auth\EloquentUserProvider;
 use Illuminate\Auth\Events\Login;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Route;
@@ -50,6 +52,11 @@ class ShellServiceProvider extends ServiceProvider
         $this->loadMigrationsFrom(database_path('migrations/shell'));
 
         Route::aliasMiddleware('room', EnsureRoomIsOn::class);
+
+        // Login, the session, remember-me and password reset all find people through the user
+        // provider, so a former member is turned away at each of them.
+        Auth::provider('household', fn ($app, array $config) => (new EloquentUserProvider($app['hash'], $config['model']))
+            ->withQuery(fn ($query) => $query->whereNull('removed_at')));
 
         Gate::define('admin', fn (User $user) => $user->hasRole('admin'));
 

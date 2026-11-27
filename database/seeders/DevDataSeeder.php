@@ -9,6 +9,7 @@ use App\Shell\Services\Rooms;
 use App\Shell\Support\Region;
 use Carbon\CarbonImmutable;
 use Database\Seeders\DevData\CornerData;
+use Database\Seeders\DevData\FormerMemberData;
 use Database\Seeders\DevData\HistoryData;
 use Database\Seeders\DevData\Household;
 use Database\Seeders\DevData\MailboxData;
@@ -43,6 +44,8 @@ class DevDataSeeder extends Seeder
     public const KABIR = 'kabir@example.test';
 
     public const LEELA = 'leela@example.test';
+
+    public const NISHA = 'nisha@example.test';
 
     // Kabir and Leela have two-step sign-in on with this authenticator secret; CLAUDE.md has
     // the line that prints its current code.
@@ -84,6 +87,8 @@ class DevDataSeeder extends Seeder
         $this->clearSeededFiles();
 
         $household = $this->seedHousehold();
+        // Created here so the user ids stay in order; what she left behind is seeded last.
+        $nisha = User::factory()->create(['email' => self::NISHA, 'name' => 'Nisha Rao', 'password' => Hash::make(self::PASSWORD), 'remember_token' => null]);
         $this->seedShortLinks($household);
         $this->seedInvitation($household);
 
@@ -93,6 +98,7 @@ class DevDataSeeder extends Seeder
         $links = (new CornerData)->seed($household);
         (new HistoryData)->seed($household, $links);
         (new MailboxData)->seed($household);
+        (new FormerMemberData)->seed($household, $nisha);
     }
 
     /**

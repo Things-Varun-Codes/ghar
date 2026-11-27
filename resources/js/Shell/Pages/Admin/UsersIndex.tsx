@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Button, buttonVariants } from '@/components/ui/button';
 import { formatInstant } from '@/lib/dates';
+import { mutationOptions } from '@/lib/mutation';
 import { roleLabel } from '@/lib/roles';
 import { cn } from '@/lib/utils';
 import * as invites from '@/routes/admin/invites';
@@ -26,7 +27,10 @@ interface User extends Person {
     last_login_at: string | null;
     two_factor: boolean;
     roles: Role[];
+    removed_at: string | null;
 }
+
+type Confirming = { user: User; action: 'remove' | 'delete' };
 
 interface PaginatedUsers {
     data: User[];
@@ -46,21 +50,49 @@ export default function UsersIndex({ users }: Props) {
     const currentUserId = usePage<{ auth: Auth }>().props.auth.user?.id;
 
     // Kept after the dialog closes, so its title doesn't empty while it fades out.
-    const [deleting, setDeleting] = useState<User | null>(null);
+    const [confirming, setConfirming] = useState<Confirming | null>(null);
     const [confirmOpen, setConfirmOpen] = useState(false);
 
-    const handleDelete = (user: User) => {
-        setDeleting(user);
+    const ask = (user: User, action: Confirming['action']) => {
+        setConfirming({ user, action });
         setConfirmOpen(true);
     };
 
-    const confirmDelete = () => {
-        if (!deleting) {
+    const confirm = () => {
+        if (!confirming) {
             return;
         }
 
-        router.delete(usersRoutes.destroy.url({ user: deleting.id }));
+        const { user, action } = confirming;
+        // A refusal (the last admin, something still saved) comes back as a toast.
+        const options = {
+            preserveScroll: true,
+            ...mutationOptions({ component: 'Admin/UsersIndex', action }),
+        };
+
+        if (action === 'remove') {
+            router.post(usersRoutes.remove.url({ user: user.id }), {}, options);
+        } else {
+            router.delete(usersRoutes.destroy.url({ user: user.id }), options);
+        }
     };
+
+    const restore = (user: User) => {
+        router.post(
+            usersRoutes.restore.url({ user: user.id }),
+            {},
+            {
+                preserveScroll: true,
+                ...mutationOptions({
+                    component: 'Admin/UsersIndex',
+                    action: 'restore',
+                }),
+            },
+        );
+    };
+
+    const removing = confirming?.action !== 'delete';
+    const confirmName = confirming?.user.name ?? 'this person';
 
     const renderRoleBadges = (user: User) => (
         <div className="flex flex-wrap items-center gap-1">
@@ -72,38 +104,63 @@ export default function UsersIndex({ users }: Props) {
                     {roleLabel(role.name)}
                 </Badge>
             ))}
+            {user.removed_at !== null && (
+                <Badge variant="outline">Former member</Badge>
+            )}
             {user.two_factor && <Badge variant="outline">Two-step</Badge>}
         </div>
     );
 
-    const renderActions = (user: User) => (
-        <div className="flex items-center gap-2">
-            <Link
-                href={usersRoutes.edit.url({ user: user.id })}
-                className={cn(
-                    buttonVariants({ variant: 'outline' }),
-                    'os-admin-row-action os-admin-fill-accent shell-press',
-                )}
-                aria-label={`Edit ${user.name}`}
-            >
-                Edit
-            </Link>
-            <Button
-                type="button"
-                variant="outline"
-                onClick={() => handleDelete(user)}
-                disabled={user.id === currentUserId}
-                aria-label={
-                    user.id === currentUserId
-                        ? `Delete ${user.name} (you can't delete yourself)`
-                        : `Delete ${user.name}`
-                }
-                className="os-admin-row-action os-admin-outline-destructive shell-press disabled:cursor-not-allowed disabled:opacity-40"
-            >
-                Delete
-            </Button>
-        </div>
-    );
+    const renderActions = (user: User) =>
+        user.removed_at !== null ? (
+            <div className="flex items-center gap-2">
+                <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => restore(user)}
+                    aria-label={`Restore ${user.name}`}
+                    className="os-admin-row-action os-admin-fill-accent shell-press"
+                >
+                    Restore
+                </Button>
+                <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => ask(user, 'delete')}
+                    aria-label={`Delete ${user.name} for good`}
+                    className="os-admin-row-action os-admin-outline-destructive shell-press"
+                >
+                    Delete
+                </Button>
+            </div>
+        ) : (
+            <div className="flex items-center gap-2">
+                <Link
+                    href={usersRoutes.edit.url({ user: user.id })}
+                    className={cn(
+                        buttonVariants({ variant: 'outline' }),
+                        'os-admin-row-action os-admin-fill-accent shell-press',
+                    )}
+                    aria-label={`Edit ${user.name}`}
+                >
+                    Edit
+                </Link>
+                <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => ask(user, 'remove')}
+                    disabled={user.id === currentUserId}
+                    aria-label={
+                        user.id === currentUserId
+                            ? `Remove ${user.name} (you can't remove yourself)`
+                            : `Remove ${user.name}`
+                    }
+                    className="os-admin-row-action os-admin-outline-destructive shell-press disabled:cursor-not-allowed disabled:opacity-40"
+                >
+                    Remove
+                </Button>
+            </div>
+        );
 
     const columns: AdminColumn<User>[] = [
         {
@@ -170,11 +227,19 @@ export default function UsersIndex({ users }: Props) {
                 <ConfirmDialog
                     open={confirmOpen}
                     onOpenChange={setConfirmOpen}
-                    title={`Delete ${deleting?.name ?? 'this person'}?`}
-                    description="There's no undo. They'll lose access right away."
-                    confirmLabel="Delete"
+                    title={
+                        removing
+                            ? `Remove ${confirmName} from the household?`
+                            : `Delete ${confirmName} for good?`
+                    }
+                    description={
+                        removing
+                            ? "They're signed out and can't sign in. What they made stays, shown as theirs, and any balance with them can still be settled. You can restore them later."
+                            : "There's no undo. This only works for someone who left nothing behind."
+                    }
+                    confirmLabel={removing ? 'Remove' : 'Delete'}
                     variant="destructive"
-                    onConfirm={confirmDelete}
+                    onConfirm={confirm}
                 />
 
                 <Pagination links={users.meta.links} />

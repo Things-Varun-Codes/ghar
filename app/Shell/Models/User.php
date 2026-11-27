@@ -4,6 +4,7 @@ namespace App\Shell\Models;
 
 use App\Enums\Theme;
 use App\Shell\Notifications\ResetPasswordNotification;
+use Carbon\CarbonImmutable;
 use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
@@ -32,6 +33,7 @@ use Spatie\Permission\Traits\HasRoles;
  * @property ?string $two_factor_secret
  * @property ?string $two_factor_recovery_codes
  * @property ?Carbon $two_factor_confirmed_at
+ * @property ?CarbonImmutable $removed_at
  */
 // avatar_key isn't fillable either: it names an object on the media disk, and a key from
 // request input could point a signed URL at someone else's file. Set it with forceFill.
@@ -57,6 +59,14 @@ class User extends Authenticatable
         return explode(' ', $this->name)[0];
     }
 
+    /** Removed from the household: can't sign in, but what they made stays under their name. */
+    public function isFormer(): bool
+    {
+        // Read raw: a user created in this request has no removed_at loaded, and strict mode
+        // would throw on the cast attribute. Unset means still a member.
+        return ($this->getAttributes()['removed_at'] ?? null) !== null;
+    }
+
     /** Whoever made a thing may change it, and so may an admin. */
     public function makerOrAdmin(?int $makerId): bool
     {
@@ -74,6 +84,7 @@ class User extends Authenticatable
             'morning_memories' => 'boolean',
             'theme' => Theme::class,
             'two_factor_confirmed_at' => 'datetime',
+            'removed_at' => 'immutable_datetime',
         ];
     }
 }

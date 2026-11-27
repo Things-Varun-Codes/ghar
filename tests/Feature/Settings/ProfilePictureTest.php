@@ -174,11 +174,11 @@ class ProfilePictureTest extends TestCase
             );
     }
 
-    public function test_deleting_a_person_deletes_their_picture(): void
+    public function test_deleting_a_former_member_for_good_deletes_their_picture(): void
     {
         $this->disk->put('avatars/gone.webp', 'gone');
         $admin = User::factory()->admin()->create();
-        $user = User::factory()->withAvatar('avatars/gone.webp')->create();
+        $user = User::factory()->former()->withAvatar('avatars/gone.webp')->create();
 
         $this->actingAs($admin)
             ->delete(route('admin.users.destroy', ['user' => $user->id]))

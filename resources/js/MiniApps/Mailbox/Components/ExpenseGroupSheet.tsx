@@ -43,7 +43,9 @@ export default function ExpenseGroupSheet({
     group,
 }: Props) {
     const hintId = useId();
-    const others = household.filter((person) => person.id !== viewerId);
+    const others = household.filter(
+        (person) => person.id !== viewerId && !person.former,
+    );
     const form = useForm<{ name: string; member_ids: number[] }>({
         name: group?.name ?? '',
         member_ids: group
@@ -69,9 +71,10 @@ export default function ExpenseGroupSheet({
             return;
         }
 
-        // Someone in the group who is no longer in the household list stays in it.
+        // Someone in the group who can't be picked any more (a former member) stays in it.
         const unlisted = (group?.member_ids ?? []).filter(
-            (id) => !household.some((person) => person.id === id),
+            (id) =>
+                id !== viewerId && !others.some((person) => person.id === id),
         );
 
         form.transform((values) => ({

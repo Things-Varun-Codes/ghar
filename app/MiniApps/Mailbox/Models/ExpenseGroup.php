@@ -8,7 +8,6 @@ use Carbon\CarbonImmutable;
 use Database\Factories\ExpenseGroupFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
@@ -71,11 +70,16 @@ class ExpenseGroup extends Model
         });
     }
 
-    /** @return list<int> in id order */
+    /**
+     * Everyone on the group's books, former members included, so a balance with someone who
+     * left can still be settled.
+     *
+     * @return list<int> in id order
+     */
     public function memberIds(): array
     {
         if ($this->is_general) {
-            return self::ids(app(Household::class)->query()->pluck('id')->all());
+            return self::ids(app(Household::class)->everyone()->pluck('id')->all());
         }
 
         return self::ids($this->relationLoaded('memberRows')
@@ -83,10 +87,14 @@ class ExpenseGroup extends Model
             : $this->memberRows()->pluck('users.id')->all());
     }
 
-    /** @return Collection<int, User> */
-    public function members(): Collection
+    /**
+     * Who can be put on something new here: the members still in the household.
+     *
+     * @return list<int> in id order
+     */
+    public function activeMemberIds(): array
     {
-        return app(Household::class)->members()->whereIn('id', $this->memberIds())->values();
+        return array_values(array_intersect($this->memberIds(), app(Household::class)->query()->pluck('id')->all()));
     }
 
     public function hasMember(User $user): bool

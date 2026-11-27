@@ -4,6 +4,7 @@ namespace App\Shell\Controllers\Admin;
 
 use App\Enums\UserRole;
 use App\Shell\Actions\ProfilePicture;
+use App\Shell\Actions\RemoveMember;
 use App\Shell\Http\Resources\UserResource;
 use App\Shell\Models\User;
 use App\Shell\Services\UserOwnedContent;
@@ -11,6 +12,7 @@ use App\Shell\Support\Birthday;
 use App\Shell\Support\FlashToast;
 use App\Shell\Support\Person;
 use Illuminate\Auth\Access\AuthorizationException;
+use Illuminate\Database\QueryException;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -23,6 +25,7 @@ class UsersController
     public function index(): Response
     {
         $users = User::with('roles')
+            ->orderByRaw('removed_at is not null')
             ->orderBy('name')
             ->paginate(25);
 
@@ -94,21 +97,56 @@ class UsersController
         return redirect()->route('admin.users.edit', ['user' => $user->id]);
     }
 
-    public function destroy(User $user, UserOwnedContent $ownedContent): RedirectResponse
+    /**
+     * Makes them a former member: they can't sign in and drop out of every picker, but what they
+     * made stays under their name, and money owed to or by them can still be settled.
+     */
+    public function remove(User $user, RemoveMember $removeMember): RedirectResponse
     {
         /** @var User $actor */
         $actor = auth()->user();
 
         if ($actor->id === $user->id) {
             return redirect()->route('admin.users.index')
-                ->withErrors(['delete' => 'You cannot delete your own account.']);
+                ->withErrors(['remove' => 'You cannot remove yourself.']);
         }
 
-        // Before delete(): Spatie's deleting hook detaches the roles first, so hasRole() would
-        // be false by the time the observer runs.
-        if ($user->hasRole('admin') && User::role('admin')->count() <= 1) {
+        if ($user->isFormer()) {
+            return redirect()->route('admin.users.index');
+        }
+
+        try {
+            $removeMember($user);
+        } catch (AuthorizationException $e) {
             return redirect()->route('admin.users.index')
-                ->withErrors(['delete' => "This is the only admin account, so it can't be deleted."]);
+                ->withErrors(['remove' => $e->getMessage()]);
+        }
+
+        FlashToast::success($user->name.' was removed from the household.');
+
+        return redirect()->route('admin.users.index');
+    }
+
+    public function restore(User $user): RedirectResponse
+    {
+        if ($user->isFormer()) {
+            DB::transaction(function () use ($user) {
+                $user->forceFill(['removed_at' => null])->save();
+                $user->syncRoles([UserRole::User->value]);
+            });
+
+            FlashToast::success($user->name.' is back in the household.');
+        }
+
+        return redirect()->route('admin.users.index');
+    }
+
+    /** Only for a former member who never left anything behind, such as an invite accepted by mistake. */
+    public function destroy(User $user, UserOwnedContent $ownedContent): RedirectResponse
+    {
+        if (! $user->isFormer()) {
+            return redirect()->route('admin.users.index')
+                ->withErrors(['delete' => "Remove {$user->name} from the household first."]);
         }
 
         // Checks both sides of every relationship: someone who only ever received mail still
@@ -121,16 +159,15 @@ class UsersController
             }
 
             return redirect()->route('admin.users.index')
-                ->withErrors(['delete' => "{$user->name} can't be deleted yet. They still have ".implode(', ', $parts).'.']);
+                ->withErrors(['delete' => "{$user->name} can't be deleted for good. They still have ".implode(', ', $parts).'. They stay a former member.']);
         }
 
         try {
-            DB::transaction(function () use ($user) {
-                $user->delete();
-            });
-        } catch (AuthorizationException $e) {
+            DB::transaction(fn () => $user->delete());
+        } catch (QueryException) {
+            // Something of theirs was saved between the check and the delete; a foreign key refused it.
             return redirect()->route('admin.users.index')
-                ->withErrors(['delete' => $e->getMessage()]);
+                ->withErrors(['delete' => "{$user->name} can't be deleted for good: something of theirs is still saved. They stay a former member."]);
         }
 
         FlashToast::success('User deleted.');
