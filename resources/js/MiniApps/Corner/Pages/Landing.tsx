@@ -17,6 +17,7 @@ import { SUGGESTED_LISTS } from '@/MiniApps/Corner/lib/presets';
 import type { CornerListInfo } from '@/MiniApps/Corner/lib/types';
 import { show } from '@/routes/apps/our-shelf/lists';
 import { store } from '@/routes/apps/our-shelf/lists';
+import Fab from '@/Shell/Components/Fab';
 import Page from '@/Shell/Components/Page';
 import RoomDoor from '@/Shell/Components/RoomDoor';
 import LinkableIcon from '@/Shell/linkables/LinkableIcon';
@@ -232,18 +233,20 @@ export default function Landing({ lists, can }: Props) {
                 title="Our Shelf"
                 documentTitle="Our Shelf"
                 backChevron
-                actions={
-                    can.create &&
-                    lists.length > 0 && (
-                        <Button
-                            type="button"
-                            className="shell-press"
+                fab={
+                    can.create && lists.length > 0 ? (
+                        <Fab
                             onClick={() => creating.show(true)}
-                        >
-                            <Plus aria-hidden="true" size={16} />
-                            New list
-                        </Button>
-                    )
+                            ariaLabel="New list"
+                            icon={
+                                <Plus
+                                    aria-hidden="true"
+                                    size={24}
+                                    strokeWidth={2.5}
+                                />
+                            }
+                        />
+                    ) : undefined
                 }
             >
                 {lists.length === 0 ? (

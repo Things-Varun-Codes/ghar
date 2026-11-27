@@ -31,8 +31,6 @@ type ListPageProps = {
     onAdd: () => void;
     renderItem: (item: CornerItem) => ReactNode;
     emptyState: Record<FilterMode, ReactNode>;
-    /* Beside the title: the list's own menu. */
-    actions: ReactNode;
 };
 
 export default function ListPage({
@@ -47,7 +45,6 @@ export default function ListPage({
     onAdd,
     renderItem,
     emptyState,
-    actions,
 }: ListPageProps) {
     const navigation = useListNavigation();
     const { navigate } = navigation;
@@ -71,7 +68,6 @@ export default function ListPage({
             title={list.name}
             room={CORNER_ROOM}
             backChevron
-            actions={actions}
             fab={
                 <Fab
                     onClick={onAdd}

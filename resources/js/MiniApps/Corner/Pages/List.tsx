@@ -2,7 +2,6 @@ import { Button } from '@/components/ui/button';
 import { useSheetSession } from '@/hooks/use-sheet-session';
 import ItemCard from '@/MiniApps/Corner/Components/ItemCard';
 import ItemSheet from '@/MiniApps/Corner/Components/ItemSheet';
-import ListMenu from '@/MiniApps/Corner/Components/ListMenu';
 import ListPage from '@/MiniApps/Corner/Components/ListPage';
 import CornerLayout from '@/MiniApps/Corner/Layouts/CornerLayout';
 import type { CornerItem, CornerListInfo } from '@/MiniApps/Corner/lib/types';
@@ -50,7 +49,6 @@ export default function List({ list, items, filter, sort, sorts, q }: Props) {
                 sortItems={sortItems}
                 addLabel={addLabel}
                 onAdd={() => adding.show(true)}
-                actions={<ListMenu list={list} count={items.counts.all} />}
                 renderItem={(item) => {
                     const onEdit = item.can.update
                         ? () => editing.show(item)
