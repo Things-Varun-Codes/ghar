@@ -13,7 +13,7 @@ import { useSheetSession } from '@/hooks/use-sheet-session';
 import { mutationOptions } from '@/lib/mutation';
 import ListSettingsSheet from '@/MiniApps/Corner/Components/ListSettingsSheet';
 import type { CornerListInfo } from '@/MiniApps/Corner/lib/types';
-import { destroy, move } from '@/routes/apps/our-shelf/lists';
+import { destroy } from '@/routes/apps/our-shelf/lists';
 import ConfirmDialog from '@/Shell/Components/ConfirmDialog';
 
 const COMPONENT = 'Corner/ListMenu';
@@ -22,29 +22,15 @@ type Props = {
     list: CornerListInfo;
     /* How many things are in it, for the delete warning. */
     count: number;
-    reorder: { first: boolean; last: boolean };
+    /* Opens the shelf's order; absent while there is only one list. */
+    onReorder?: () => void;
 };
 
-/* Change, move or delete one list. The server decides who may; this only hides what they can't. */
-export default function ListMenu({ list, count, reorder }: Props) {
+/* Change or delete one list, or open the shelf's order. The server decides who may; this only hides what they can't. */
+export default function ListMenu({ list, count, onReorder }: Props) {
     const settings = useSheetSession<true>();
     const [confirmOpen, setConfirmOpen] = useState(false);
     const [pending, setPending] = useState(false);
-
-    const moveTo = (direction: 'up' | 'down') => {
-        router.patch(
-            move.url(list.id),
-            { direction },
-            {
-                preserveScroll: true,
-                ...mutationOptions({
-                    component: COMPONENT,
-                    action: 'move',
-                    onPendingChange: setPending,
-                }),
-            },
-        );
-    };
 
     const deleteList = () => {
         router.delete(destroy.url(list.id), {
@@ -57,12 +43,11 @@ export default function ListMenu({ list, count, reorder }: Props) {
         });
     };
 
-    const canMove = !(reorder.first && reorder.last);
     const hasItems =
         list.can.update ||
         list.can.delete ||
         list.delete_needs_admin ||
-        canMove;
+        onReorder !== undefined;
 
     if (!hasItems) {
         return null;
@@ -90,14 +75,9 @@ export default function ListMenu({ list, count, reorder }: Props) {
                             List settings
                         </DropdownMenuItem>
                     )}
-                    {canMove && !reorder.first && (
-                        <DropdownMenuItem onClick={() => moveTo('up')}>
-                            Move earlier
-                        </DropdownMenuItem>
-                    )}
-                    {canMove && !reorder.last && (
-                        <DropdownMenuItem onClick={() => moveTo('down')}>
-                            Move later
+                    {onReorder && (
+                        <DropdownMenuItem onClick={onReorder}>
+                            Change order
                         </DropdownMenuItem>
                     )}
                     {list.can.delete && (

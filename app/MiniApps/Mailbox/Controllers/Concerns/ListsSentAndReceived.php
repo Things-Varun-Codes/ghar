@@ -29,20 +29,22 @@ trait ListsSentAndReceived
     ): Response {
         $viewer = $request->user();
         $tab = $request->query('tab') === 'sent' ? 'sent' : 'received';
-        $base = $model::query()->with(['sender', 'recipients']);
+        $tabs = [
+            'received' => $model::query()->receivedBy($viewer),
+            'sent' => $model::query()->where('sender_id', $viewer->id),
+        ];
 
         if ($tab === 'received') {
             $model::markAllReadFor($viewer);
-            $base->receivedBy($viewer);
-        } else {
-            $base->where('sender_id', $viewer->id);
         }
 
+        $list = ListPage::make($request, (clone $tabs[$tab])->with(['sender', 'recipients']), ListPage::chronological('posted_at'))
+            ->searchable([$searchColumn]);
+
         return Inertia::render($page, [
-            ...ListPage::make($request, $base, ListPage::chronological('posted_at'))
-                ->searchable([$searchColumn])
-                ->props($prop, 50, $present),
+            ...$list->props($prop, 50, $present),
             'tab' => $tab,
+            'tabCounts' => array_map(fn ($query): int => $list->countOf($query), $tabs),
             'members' => $household->optionsFor($viewer),
         ]);
     }

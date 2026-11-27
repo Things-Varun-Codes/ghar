@@ -22,7 +22,6 @@ class CornerListFactory extends Factory
             'todo_label' => 'To do',
             'done_icon' => 'check',
             'notify_on_add' => true,
-            'position' => 0,
             'created_by_user_id' => null,
         ];
     }

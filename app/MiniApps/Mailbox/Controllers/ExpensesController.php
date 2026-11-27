@@ -16,6 +16,7 @@ use App\Shell\Services\Household;
 use App\Shell\Support\FlashToast;
 use App\Shell\Support\ListPage;
 use App\Shell\Support\Person;
+use App\Shell\Support\PersonalOrder;
 use App\Shell\Support\Region;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -32,15 +33,15 @@ class ExpensesController
     {
         $viewer = $request->user();
 
-        $groups = ExpenseGroup::query()
-            ->visibleTo($viewer)
-            ->with('memberRows')
-            ->withExists(['expenses as has_expenses' => fn ($query) => $query->withTrashed()])
-            ->orderByDesc('is_general')
-            ->orderByRaw('archived_at is not null')
-            ->orderBy('name')
-            ->orderBy('id')
-            ->get();
+        $groups = PersonalOrder::apply(
+            ExpenseGroup::query()
+                ->visibleTo($viewer)
+                ->with('memberRows')
+                ->withExists(['expenses as has_expenses' => fn ($query) => $query->withTrashed()])
+                ->orderByRaw('archived_at is not null'),
+            $viewer,
+            ExpenseGroup::ORDER_SCOPE,
+        )->get();
 
         $nets = ExpenseBalances::nets($groups->modelKeys());
         $overview = ExpenseBalances::overview($viewer);

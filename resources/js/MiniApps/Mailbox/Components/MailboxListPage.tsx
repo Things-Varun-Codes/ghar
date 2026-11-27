@@ -4,7 +4,6 @@ import type { ComponentProps, ReactNode } from 'react';
 import { useEffect, useMemo } from 'react';
 
 import { scrollBehavior } from '@/lib/motion';
-import { count } from '@/lib/plural';
 import { MAILBOX_ROOM } from '@/MiniApps/Mailbox/Layouts/MailboxLayout';
 import CursorListBody from '@/Shell/Components/CursorListBody';
 import EmptyState from '@/Shell/Components/EmptyState';
@@ -31,8 +30,10 @@ type MailboxListPageProps<TItem extends ItemConstraint, TTab extends string> = {
     tabsAriaLabel: string;
     tabItems: Array<{ key: TTab; label: string }>;
     tabHrefFor: (key: TTab) => string;
-    countAll: number;
-    countNoun: { one: string; other: string };
+    /* Each tab's count, narrowed by the search; the tabs show them, so the band shows none. */
+    tabCounts: Record<TTab, number>;
+    /* Plural, for "No notes match". */
+    noun: string;
     sort: string;
     sortItems?: SortItem[];
     query?: string | null;
@@ -57,8 +58,8 @@ export default function MailboxListPage<
     tabsAriaLabel,
     tabItems,
     tabHrefFor,
-    countAll,
-    countNoun,
+    tabCounts,
+    noun,
     sort,
     sortItems = DEFAULT_SORT_ITEMS,
     query,
@@ -110,8 +111,6 @@ export default function MailboxListPage<
         return () => window.clearTimeout(id);
     }, [focusedId]);
 
-    const searching = Boolean(query && query.trim() !== '');
-
     return (
         <>
             <Page
@@ -134,13 +133,6 @@ export default function MailboxListPage<
             >
                 <ListNavBand
                     navigating={navigation.navigating}
-                    count={
-                        <span className="text-(length:--text-body) text-(--mailbox-ink-soft)">
-                            {count(countAll, countNoun.one, countNoun.other)}
-                            {searching &&
-                                (countAll === 1 ? ' matches' : ' match')}
-                        </span>
-                    }
                     sort={sort}
                     sortItems={sortItems}
                     onSortSelect={(k) => navigate({ sort: k })}
@@ -153,7 +145,10 @@ export default function MailboxListPage<
                             keepScroll
                             ariaLabel={tabsAriaLabel}
                             active={tab}
-                            items={tabItems}
+                            items={tabItems.map((item) => ({
+                                ...item,
+                                count: tabCounts[item.key],
+                            }))}
                             hrefFor={tabHrefFor}
                         />
                     }
@@ -164,7 +159,7 @@ export default function MailboxListPage<
                     items={paginator.data}
                     navigation={navigation}
                     query={query ?? ''}
-                    noMatchesNoun={countNoun.other}
+                    noMatchesNoun={noun}
                     noMatchesBody="Try another word, or clear the search to see everything."
                     empty={
                         <EmptyState

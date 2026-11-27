@@ -213,6 +213,8 @@
 
         /* The phone top bar, grown by the notch in an installed PWA. */
         --shell-topbar-h: calc(56px + env(safe-area-inset-top));
+        /* The top tabs docked under it below lg: a 48px tab and its 1px rule. */
+        --shell-tabbar-h: 49px;
 
         /*
          * Below lg the phone chrome is on: a top bar and a bottom bar. Everything that floats
@@ -2122,6 +2124,85 @@ a:hover .os-feed-action {
 }
 
 /* Always in view: the submit never sits below the fold or under the keyboard. */
+/* ReorderSheet: one row per thing, a grip to drag by and arrows for the keyboard. */
+.shell-reorder-hint {
+    margin: 0;
+    font-size: var(--text-small);
+    color: var(--shell-text-muted);
+}
+
+.shell-reorder-list {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 8px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.shell-reorder-row {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-height: 56px;
+    padding: 4px 4px 4px 0;
+    border: 1px solid var(--shell-border);
+    border-radius: var(--radius-md);
+    background-color: var(--shell-surface);
+    user-select: none;
+}
+
+/* The lift says the row is in hand. */
+.shell-reorder-row[data-dragging] {
+    z-index: 1;
+    box-shadow:
+        0 2px 4px color-mix(in oklab, var(--shell-shadow-ink) 10%, transparent),
+        0 12px 24px
+            color-mix(in oklab, var(--shell-shadow-ink) 14%, transparent);
+}
+
+.shell-reorder-grip {
+    flex: none;
+    display: grid;
+    place-items: center;
+    align-self: stretch;
+    width: 40px;
+    color: var(--shell-text-muted);
+    cursor: grab;
+    touch-action: none;
+}
+
+.shell-reorder-grip:active {
+    cursor: grabbing;
+}
+
+.shell-reorder-icon {
+    flex: none;
+    display: inline-flex;
+    color: var(--shell-text-muted);
+}
+
+.shell-reorder-label {
+    flex: 1 1 auto;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: var(--text-body);
+    color: var(--shell-text);
+}
+
+.shell-reorder-arrow {
+    flex: none;
+    color: var(--shell-text-muted);
+}
+
+.shell-reorder-arrow[aria-disabled='true'] {
+    opacity: 0.35;
+    cursor: default;
+}
+
 .shell-form-sheet-footer {
     flex: none;
     display: flex;
@@ -2494,7 +2575,7 @@ nav.shell-segmented .shell-segmented-item {
     align-items: center;
     justify-content: center;
     gap: 6px;
-    min-height: 48px;
+    min-height: calc(var(--shell-tabbar-h) - 1px);
     padding: 0 12px;
     font-family: var(--font-sans);
     font-size: var(--text-small);
@@ -2554,7 +2635,9 @@ nav.shell-segmented .shell-segmented-item {
 
 @variant lg {
     .shell-tabbar {
-        position: static;
+        /* Not static: the client tabs' indicator is placed against the bar. */
+        position: relative;
+        top: auto; /* the phone's sticky offset would shift it down */
         gap: 8px;
         margin: 0 0 24px;
         padding: 0;

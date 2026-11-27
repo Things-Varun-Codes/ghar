@@ -15,6 +15,7 @@ type Tab = 'received' | 'issued';
 type Props = {
     coupons: Paginated<CouponPayload>;
     tab: Tab;
+    tabCounts: Record<Tab, number>;
     sort: 'recent' | 'oldest';
     q: string | null;
     members: HouseholdMember[];
@@ -23,6 +24,7 @@ type Props = {
 export default function CouponsIndex({
     coupons,
     tab,
+    tabCounts,
     sort,
     q,
     members,
@@ -45,8 +47,8 @@ export default function CouponsIndex({
             <MailboxListPage
                 pageTitle="Coupons"
                 paginator={coupons}
-                countAll={coupons.counts?.all ?? coupons.data.length}
-                countNoun={{ one: 'coupon', other: 'coupons' }}
+                tabCounts={tabCounts}
+                noun="coupons"
                 propName="coupons"
                 tab={tab}
                 tabsAriaLabel="Coupon tabs"

@@ -112,14 +112,10 @@ class DevDataSeederTest extends TestCase
         $this->assertSame(0, $songs->items()->whereNotNull('done_at')->count());
         $this->assertGreaterThan(0, DB::table('entity_references')->where('from_type', 'history.event')->count());
 
-        // The four lists an upgrade leaves, then the household's own.
+        // Oldest first: the four lists an upgrade leaves, then the household's own.
         $this->assertSame(
-            ['songs', 'movies', 'places', 'activities'],
-            CornerList::query()->whereNull('created_by_user_id')->orderBy('position')->pluck('slug')->all(),
-        );
-        $this->assertSame(
-            CornerList::query()->count(),
-            CornerList::query()->distinct()->count('position'),
+            ['songs', 'movies', 'places', 'activities', 'books', 'restaurants-we-keep-meaning-to-try-on-a-slow-sunday', 'weekend-ideas', 'board-games'],
+            CornerList::query()->orderBy('created_at')->orderBy('id')->pluck('slug')->all(),
         );
         $this->assertSame(0, DB::table('corner_items')
             ->join('corner_lists', 'corner_lists.id', '=', 'corner_items.list_id')

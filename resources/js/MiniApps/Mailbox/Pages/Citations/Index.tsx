@@ -15,6 +15,7 @@ type Tab = 'received' | 'issued';
 type Props = {
     citations: Paginated<CitationPayload>;
     tab: Tab;
+    tabCounts: Record<Tab, number>;
     sort: 'recent' | 'oldest';
     q: string | null;
     members: HouseholdMember[];
@@ -23,6 +24,7 @@ type Props = {
 export default function CitationsIndex({
     citations,
     tab,
+    tabCounts,
     sort,
     q,
     members,
@@ -45,8 +47,8 @@ export default function CitationsIndex({
             <MailboxListPage
                 pageTitle="Citations"
                 paginator={citations}
-                countAll={citations.counts?.all ?? citations.data.length}
-                countNoun={{ one: 'citation', other: 'citations' }}
+                tabCounts={tabCounts}
+                noun="citations"
                 propName="citations"
                 tab={tab}
                 tabsAriaLabel="Citation tabs"

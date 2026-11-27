@@ -22,7 +22,6 @@ use Illuminate\Support\Carbon;
  * @property string $done_icon
  * @property bool $notify_on_add
  * @property bool $done_per_person each person marks a thing done for themselves
- * @property int $position
  * @property int|null $created_by_user_id
  * @property Carbon $created_at
  * @property-read User|null $createdBy
@@ -37,11 +36,13 @@ use Illuminate\Support\Carbon;
     'done_icon',
     'notify_on_add',
     'done_per_person',
-    'position',
     'created_by_user_id',
 ])]
 class CornerList extends Model
 {
+    /** Whose order is whose: see PersonalOrder. */
+    public const ORDER_SCOPE = 'our-shelf.lists';
+
     /** @use HasFactory<CornerListFactory> */
     use HasFactory;
 
@@ -76,7 +77,6 @@ class CornerList extends Model
         return [
             'notify_on_add' => 'boolean',
             'done_per_person' => 'boolean',
-            'position' => 'integer',
         ];
     }
 }

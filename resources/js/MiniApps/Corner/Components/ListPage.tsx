@@ -1,7 +1,6 @@
 import { Plus } from 'lucide-react';
 import type { ReactNode } from 'react';
 
-import { count } from '@/lib/plural';
 import { CORNER_ROOM } from '@/MiniApps/Corner/Layouts/CornerLayout';
 import type { CornerItem, CornerListInfo } from '@/MiniApps/Corner/lib/types';
 import CursorListBody from '@/Shell/Components/CursorListBody';
@@ -48,7 +47,6 @@ export default function ListPage({
 }: ListPageProps) {
     const navigation = useListNavigation();
     const { navigate } = navigation;
-    const searching = query.trim() !== '';
 
     const tabs: Array<{ key: FilterMode; label: string; count: number }> = [
         { key: 'all', label: 'All', count: counts.all },
@@ -80,14 +78,6 @@ export default function ListPage({
         >
             <ListNavBand
                 navigating={navigation.navigating}
-                count={
-                    // Search narrows the counts too, so while searching they read as matches.
-                    <span className="text-(length:--text-body) text-(--corner-ink-soft) tabular-nums">
-                        {searching
-                            ? count(counts.all, 'match', 'matches')
-                            : count(counts.all, 'thing')}
-                    </span>
-                }
                 sort={sort}
                 sortItems={sortItems}
                 onSortSelect={(k) => navigate({ sort: k })}

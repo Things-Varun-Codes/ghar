@@ -75,6 +75,7 @@ Route::prefix('apps/our-exchange')->name('apps.our-exchange.')->group(function (
 
         Route::middleware('throttle:mailbox-mutations')->group(function () {
             Route::post('/groups', [ExpenseGroupsController::class, 'store'])->name('groups.store');
+            Route::put('/groups/order', [ExpenseGroupsController::class, 'order'])->name('groups.order');
             Route::patch('/groups/{group}', [ExpenseGroupsController::class, 'update'])->name('groups.update');
             Route::patch('/groups/{group}/archive', [ExpenseGroupsController::class, 'archive'])->name('groups.archive');
             Route::patch('/groups/{group}/unarchive', [ExpenseGroupsController::class, 'unarchive'])->name('groups.unarchive');

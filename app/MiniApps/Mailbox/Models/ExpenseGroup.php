@@ -31,6 +31,9 @@ class ExpenseGroup extends Model
 
     protected $table = 'mailbox_expense_groups';
 
+    /** Whose order is whose: see PersonalOrder. */
+    public const ORDER_SCOPE = 'our-exchange.expense-groups';
+
     protected static function newFactory(): ExpenseGroupFactory
     {
         return ExpenseGroupFactory::new();

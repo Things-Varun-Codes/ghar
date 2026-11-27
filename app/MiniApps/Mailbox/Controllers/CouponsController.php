@@ -25,20 +25,18 @@ class CouponsController
         $viewer = $request->user();
 
         $tab = $request->query('tab') === 'issued' ? 'issued' : 'received';
+        $tabs = [
+            'received' => Coupon::query()->receivedBy($viewer),
+            'issued' => Coupon::query()->issuedBy($viewer),
+        ];
 
-        $base = Coupon::query()->with(['issuer', 'recipient']);
-
-        if ($tab === 'issued') {
-            $base->issuedBy($viewer);
-        } else {
-            $base->receivedBy($viewer);
-        }
+        $list = ListPage::make($request, (clone $tabs[$tab])->with(['issuer', 'recipient']), ListPage::chronological('issued_at'))
+            ->searchable(['title', 'description']);
 
         return Inertia::render('MiniApps/Mailbox/Pages/Coupons/Index', [
-            ...ListPage::make($request, $base, ListPage::chronological('issued_at'))
-                ->searchable(['title', 'description'])
-                ->props('coupons', 50, fn (Coupon $c) => app(CouponResource::class)($c)),
+            ...$list->props('coupons', 50, fn (Coupon $c) => app(CouponResource::class)($c)),
             'tab' => $tab,
+            'tabCounts' => array_map(fn ($query): int => $list->countOf($query), $tabs),
             'members' => $household->optionsFor($viewer),
         ]);
     }

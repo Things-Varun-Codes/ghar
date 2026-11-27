@@ -3,6 +3,7 @@
 namespace App\Shell\Support;
 
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Request;
 use Inertia\Support\Header;
 
@@ -96,6 +97,23 @@ final class ListPage
         $filter = $this->request->query('filter');
 
         return in_array($filter, ['all', 'active', 'done'], true) ? $filter : null;
+    }
+
+    /**
+     * How many rows of $query this page's search leaves, as the tabs' counts: they narrow with
+     * the search, the way a status list's counts do.
+     *
+     * @template TModel of Model
+     *
+     * @param  Builder<TModel>  $query
+     */
+    public function countOf(Builder $query): int
+    {
+        $query = clone $query;
+        // Narrows $query in place.
+        CursorList::make($query)->searchable($this->searchColumns, $this->q());
+
+        return $query->count();
     }
 
     /**

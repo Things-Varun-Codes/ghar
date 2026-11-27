@@ -15,22 +15,22 @@ trait MakesCornerLists
     /** The four lists an upgraded install has. */
     protected function songs(): CornerList
     {
-        return CornerList::factory()->songs()->create(['position' => 0]);
+        return CornerList::factory()->songs()->create(['created_at' => now()->subMinutes(10)]);
     }
 
     protected function movies(): CornerList
     {
-        return CornerList::factory()->movies()->create(['position' => 1]);
+        return CornerList::factory()->movies()->create(['created_at' => now()->subMinutes(9)]);
     }
 
     protected function activities(): CornerList
     {
-        return CornerList::factory()->activities()->create(['position' => 2]);
+        return CornerList::factory()->activities()->create(['created_at' => now()->subMinutes(8)]);
     }
 
     protected function places(): CornerList
     {
-        return CornerList::factory()->places()->create(['position' => 3]);
+        return CornerList::factory()->places()->create(['created_at' => now()->subMinutes(7)]);
     }
 
     protected function listCalled(string $slug): CornerList

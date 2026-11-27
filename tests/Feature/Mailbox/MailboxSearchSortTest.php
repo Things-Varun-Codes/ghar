@@ -98,6 +98,28 @@ class MailboxSearchSortTest extends TestCase
     }
 
     #[DataProvider('surfaces')]
+    public function test_each_tab_counts_only_its_own_rows_and_narrows_with_the_search(string $url, string $prop): void
+    {
+        $viewer = User::factory()->create();
+        $partner = User::factory()->create();
+        $stranger = User::factory()->create();
+        $other = $this->dataName() === 'messages' || $this->dataName() === 'postcards' ? 'sent' : 'issued';
+
+        $this->row($partner, $viewer, 'Picnic plans');
+        $this->row($partner, $viewer, 'Just saying hi');
+        $this->row($viewer, $partner, 'Picnic reply');
+        $this->row($stranger, $partner, 'Picnic between others');
+
+        $this->actingAs($viewer)->get($url)->assertInertia(fn ($page) => $page
+            ->where('tabCounts', ['received' => 2, $other => 1]));
+
+        // The other tab reads the same counts.
+        $this->actingAs($viewer)->get(str_replace('tab=received', "tab={$other}", $url).'&q=picnic')->assertInertia(fn ($page) => $page
+            ->has("{$prop}.data", 1)
+            ->where('tabCounts', ['received' => 1, $other => 1]));
+    }
+
+    #[DataProvider('surfaces')]
     public function test_sort_is_recent_by_default_reversible_and_whitelisted(string $url, string $prop): void
     {
         $viewer = User::factory()->create();

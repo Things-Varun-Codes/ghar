@@ -15,10 +15,10 @@ import CornerLayout from '@/MiniApps/Corner/Layouts/CornerLayout';
 import type { ListSettings } from '@/MiniApps/Corner/lib/presets';
 import { SUGGESTED_LISTS } from '@/MiniApps/Corner/lib/presets';
 import type { CornerListInfo } from '@/MiniApps/Corner/lib/types';
-import { show } from '@/routes/apps/our-shelf/lists';
-import { store } from '@/routes/apps/our-shelf/lists';
+import { order, show, store } from '@/routes/apps/our-shelf/lists';
 import Fab from '@/Shell/Components/Fab';
 import Page from '@/Shell/Components/Page';
+import ReorderSheet from '@/Shell/Components/ReorderSheet';
 import RoomDoor from '@/Shell/Components/RoomDoor';
 import LinkableIcon from '@/Shell/linkables/LinkableIcon';
 
@@ -106,15 +106,13 @@ function DoorPeek({ door }: { door: Door }) {
 function CornerDoor({
     door,
     index,
-    first,
-    last,
     prefetchOnMount,
+    onReorder,
 }: {
     door: Door;
     index: number;
-    first: boolean;
-    last: boolean;
     prefetchOnMount: boolean;
+    onReorder?: () => void;
 }) {
     return (
         <RoomDoor
@@ -139,7 +137,7 @@ function CornerDoor({
                 <ListMenu
                     list={door}
                     count={door.count}
-                    reorder={{ first, last }}
+                    onReorder={onReorder}
                 />
             }
         />
@@ -226,6 +224,7 @@ function Suggestions({ onCustom }: { onCustom: () => void }) {
 
 export default function Landing({ lists, can }: Props) {
     const creating = useSheetSession<true>();
+    const reordering = useSheetSession<true>();
 
     return (
         <CornerLayout>
@@ -258,7 +257,7 @@ export default function Landing({ lists, can }: Props) {
                         <Settle>
                             <div className="shell-doors">
                                 {lists.map((door, i) => (
-                                    // Moving a list earlier or later glides the doors to their places.
+                                    // A new order glides the doors to their places.
                                     <Slide
                                         key={door.id}
                                         className="corner-door-slot"
@@ -266,9 +265,13 @@ export default function Landing({ lists, can }: Props) {
                                         <CornerDoor
                                             door={door}
                                             index={i}
-                                            first={i === 0}
                                             prefetchOnMount={i < PREFETCH_DOORS}
-                                            last={i === lists.length - 1}
+                                            onReorder={
+                                                lists.length > 1
+                                                    ? () =>
+                                                          reordering.show(true)
+                                                    : undefined
+                                            }
                                         />
                                     </Slide>
                                 ))}
@@ -283,6 +286,29 @@ export default function Landing({ lists, can }: Props) {
                     key={creating.key}
                     open={creating.open}
                     onOpenChange={creating.onOpenChange}
+                />
+            )}
+
+            {reordering.value && (
+                <ReorderSheet
+                    key={reordering.key}
+                    open={reordering.open}
+                    onOpenChange={reordering.onOpenChange}
+                    title="Order of your lists"
+                    description="Drag the lists, or use the arrows, into the order you want them. Only you see this order."
+                    items={lists.map((list) => ({
+                        id: list.id,
+                        label: list.name,
+                        icon: (
+                            <LinkableIcon
+                                name={list.icon}
+                                size={18}
+                                strokeWidth={1.5}
+                            />
+                        ),
+                    }))}
+                    url={order.url()}
+                    component="Corner/Landing"
                 />
             )}
         </CornerLayout>

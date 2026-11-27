@@ -6,3 +6,4 @@ export { default as Rise } from './Rise';
 export { default as ScrollFill } from './ScrollFill';
 export { Settle, SettleItem } from './Settle';
 export { default as Slide } from './Slide';
+export { ReorderList, ReorderRow } from './Reorder';

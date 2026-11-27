@@ -3,15 +3,14 @@
 namespace App\MiniApps\Corner\Controllers;
 
 use App\MiniApps\Corner\Actions\CreateList;
-use App\MiniApps\Corner\Actions\MoveList;
 use App\MiniApps\Corner\Actions\SwitchDoneMode;
 use App\MiniApps\Corner\Http\Requests\SaveListRequest;
 use App\MiniApps\Corner\Models\CornerList;
 use App\Shell\Support\FlashToast;
+use App\Shell\Support\PersonalOrder;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
-use Illuminate\Validation\Rule;
 
 class ListsController
 {
@@ -40,13 +39,16 @@ class ListsController
         return redirect()->back();
     }
 
-    public function move(Request $request, CornerList $list, MoveList $action): RedirectResponse
+    public function order(Request $request): RedirectResponse
     {
         Gate::authorize('reorder', CornerList::class);
 
-        $validated = $request->validate(['direction' => ['required', Rule::in(['up', 'down'])]]);
+        $validated = $request->validate([
+            'ids' => ['required', 'array', 'max:1000'],
+            'ids.*' => ['required', 'integer', 'distinct'],
+        ]);
 
-        $action($list, $validated['direction']);
+        PersonalOrder::save(CornerList::query(), $request->user(), CornerList::ORDER_SCOPE, array_map(intval(...), $validated['ids']));
 
         return redirect()->back();
     }
