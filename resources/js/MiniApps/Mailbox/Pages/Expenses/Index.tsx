@@ -10,6 +10,8 @@ import { useSheetSession } from '@/hooks/use-sheet-session';
 import { count } from '@/lib/plural';
 import ExpenseBalanceRow from '@/MiniApps/Mailbox/Components/ExpenseBalanceRow';
 import type { ExpenseBalance } from '@/MiniApps/Mailbox/Components/ExpenseBalanceRow';
+import ExpenseGroupMenu from '@/MiniApps/Mailbox/Components/ExpenseGroupMenu';
+import type { ExpenseGroupAbilities } from '@/MiniApps/Mailbox/Components/ExpenseGroupMenu';
 import ExpenseGroupSheet from '@/MiniApps/Mailbox/Components/ExpenseGroupSheet';
 import type { ExpenseGroup } from '@/MiniApps/Mailbox/Components/ExpenseGroupSheet';
 import MailboxLayout, {
@@ -23,7 +25,7 @@ import Page from '@/Shell/Components/Page';
 import type { Person } from '@/types/person';
 
 /* `net` is the viewer's own balance in the group: positive when they are owed. */
-type GroupRow = ExpenseGroup & { net: number };
+type GroupRow = ExpenseGroup & { net: number; can: ExpenseGroupAbilities };
 
 type Props = {
     groups: GroupRow[];
@@ -50,7 +52,15 @@ function NetFigure({ net }: { net: number }) {
     );
 }
 
-function GroupRow({ group }: { group: GroupRow }) {
+function GroupRow({
+    group,
+    household,
+    viewerId,
+}: {
+    group: GroupRow;
+    household: Person[];
+    viewerId: number;
+}) {
     return (
         <li className="mailbox-expense-row mailbox-expense-group shell-card-stretch">
             <span className="mailbox-expense-row-main">
@@ -66,6 +76,11 @@ function GroupRow({ group }: { group: GroupRow }) {
                 </span>
             </span>
             <NetFigure net={group.net} />
+            <ExpenseGroupMenu
+                group={group}
+                household={household}
+                viewerId={viewerId}
+            />
         </li>
     );
 }
@@ -157,7 +172,12 @@ export default function ExpensesIndex({ groups, overview, members }: Props) {
                             </h2>
                             <ul className="mailbox-card mailbox-expense-rows">
                                 {open.map((group) => (
-                                    <GroupRow key={group.id} group={group} />
+                                    <GroupRow
+                                        key={group.id}
+                                        group={group}
+                                        household={members}
+                                        viewerId={viewerId}
+                                    />
                                 ))}
                             </ul>
                         </section>
@@ -182,6 +202,8 @@ export default function ExpensesIndex({ groups, overview, members }: Props) {
                                             <GroupRow
                                                 key={group.id}
                                                 group={group}
+                                                household={members}
+                                                viewerId={viewerId}
                                             />
                                         ))}
                                     </ul>

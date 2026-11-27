@@ -28,6 +28,9 @@ export default function PageHeader({
 
     return (
         <header
+            data-phone-flush={
+                hideTitle && !subtitle && !actions ? '' : undefined
+            }
             className={cn(
                 'relative z-[1] pb-6',
                 hideTitle &&

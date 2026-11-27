@@ -9,7 +9,6 @@ import { mutationOptions } from '@/lib/mutation';
 import { count } from '@/lib/plural';
 import { cn } from '@/lib/utils';
 import ExpenseDeleteDialog from '@/MiniApps/Mailbox/Components/ExpenseDeleteDialog';
-import ExpenseGroupMenu from '@/MiniApps/Mailbox/Components/ExpenseGroupMenu';
 import type { ExpenseGroupAbilities } from '@/MiniApps/Mailbox/Components/ExpenseGroupMenu';
 import type { ExpenseGroup } from '@/MiniApps/Mailbox/Components/ExpenseGroupSheet';
 import ExpenseSettleSheet from '@/MiniApps/Mailbox/Components/ExpenseSettleSheet';
@@ -349,13 +348,7 @@ export default function ExpensesGroup({
                 title={group.name}
                 room={MAILBOX_ROOM}
                 back={{ href: index.url(), label: 'Expenses' }}
-                actions={
-                    <ExpenseGroupMenu
-                        group={group}
-                        household={household}
-                        viewerId={viewerId}
-                    />
-                }
+                tabs={tabs}
                 fab={
                     canWrite ? (
                         <Fab
@@ -517,11 +510,8 @@ export default function ExpensesGroup({
                                 category: key === ALL ? undefined : key,
                             })
                         }
-                        tabs={tabs}
                     />
-                ) : (
-                    <div className="list-nav-band-tabs">{tabs}</div>
-                )}
+                ) : null}
 
                 {tab === 'expenses' ? (
                     <CursorListBody

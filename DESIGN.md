@@ -101,6 +101,9 @@ sets in its scope (`--list-nav-*`, `--form-sheet-*`) or classes the caller passe
 - **Adding** the page's main thing is a `Fab` (round coral +, bottom corner), not a header button.
 - **States:** a slow, empty or failing surface uses `LoadingState`, `EmptyState`, `ErrorState`.
 - **Lists** follow one order: `SegmentedTabs`, then `ListNavBand` (count, search, sort), then rows.
+- **Tabs** (`SegmentedTabs`) are the page's top tabs: below `lg` a bar under the top bar that sticks
+  there, ink with a coral line for the current one. They come first in the page so they meet the
+  top bar. A filter inside a tab is `look="pill"`, so the two levels never look alike.
 - Controls are shadcn on Base UI in `resources/js/components/ui`. Don't hand-roll a tab, radio, toggle, tooltip,
   menu, switch, field or skeleton; restyle the primitive. Compose with `render`, never `asChild`. A
   link that looks like a button is a `Link` with `buttonVariants()`, not a `Button`.
