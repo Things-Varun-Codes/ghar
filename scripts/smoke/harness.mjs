@@ -1,6 +1,6 @@
 /**
  * What the two browser smoke runs share: the PHP environment, the Playwright config
- * (one `artisan serve` on a fixed port, seeded first, then an admin sign-in saved as
+ * (one `artisan serve` on this checkout's port, seeded first, then an admin sign-in saved as
  * storage state) and a `test` that fails on any page error or console error.
  */
 
@@ -10,6 +10,7 @@ import { fileURLToPath } from 'node:url';
 
 import { defineConfig, expect, test as base } from '@playwright/test';
 
+import { portOffset } from '../lib/checkout-port.mjs';
 import { smokeDatabaseEnv } from '../lib/smoke-database.mjs';
 
 export const REPO_ROOT = path.resolve(
@@ -20,7 +21,16 @@ export const REPO_ROOT = path.resolve(
 /**
  * @param {{ name: string, port: number, database: string, overrides?: Record<string, string> }} run
  */
-export function defineSmokeConfig({ name, port, database, overrides = {} }) {
+export function defineSmokeConfig({
+    name,
+    port: basePort,
+    database: baseDatabase,
+    overrides = {},
+}) {
+    // A worktree runs on its own port and database, so worktrees can smoke at once.
+    const offset = portOffset(REPO_ROOT);
+    const port = basePort + offset;
+    const database = offset ? `${baseDatabase}_${offset}` : baseDatabase;
     const baseURL = `http://127.0.0.1:${port}`;
     const outputDir = path.join(REPO_ROOT, 'test-results', name);
 

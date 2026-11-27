@@ -6,6 +6,44 @@ step() { printf '\n==> %s\n' "$1"; }
 # The last value .env gives a key; empty when the key or the file is missing.
 get_env() { sed -n "s/^$1=//p" .env 2>/dev/null | tail -n 1 || true; }
 
+# set_env KEY VALUE replaces a `KEY=` line, or appends one. No `sed -i`, whose
+# flags differ between macOS and Linux.
+set_env() {
+  local tmp
+  tmp="$(mktemp)"
+  if grep -q "^$1=" .env; then
+    while IFS= read -r line || [ -n "$line" ]; do
+      case "$line" in
+        "$1="*) printf '%s\n' "$1=$2" ;;
+        *) printf '%s\n' "$line" ;;
+      esac
+    done < .env > "$tmp"
+    mv "$tmp" .env
+  else
+    rm -f "$tmp"
+    printf '%s=%s\n' "$1" "$2" >> .env
+  fi
+}
+
+# Gives a worktree its own `artisan serve` port, 8001-8099, kept across re-runs and
+# never one another worktree holds. The smoke runs and smoke-mcp offset from it
+# (scripts/lib/checkout-port.mjs), so worktrees can serve and smoke side by side.
+assign_port() {
+  local port here taken n
+  port="$(get_env SERVER_PORT)"
+  here="$(pwd -P)"
+  taken=" $(git worktree list --porcelain | sed -n 's/^worktree //p' | while IFS= read -r wt; do
+    [ "$wt" = "$here" ] || sed -n 's/^SERVER_PORT=//p' "$wt/.env" 2>/dev/null || true
+  done | tr '\n' ' ') "
+  if [[ ! "$port" =~ ^80(0[1-9]|[1-9][0-9])$ ]] || [[ "$taken" == *" $port "* ]]; then
+    port=""
+    for n in $(seq 8001 8099); do [[ "$taken" == *" $n "* ]] || { port="$n"; break; }; done
+    [ -n "$port" ] || { echo "error: every port from 8001 to 8099 belongs to another worktree." >&2; return 1; }
+  fi
+  set_env SERVER_PORT "$port"
+  set_env APP_URL "http://127.0.0.1:$port"
+}
+
 # Rebuild the database with the sample household, and stamp the migrations it ran.
 seed_household() {
   php artisan migrate:fresh --seed --force

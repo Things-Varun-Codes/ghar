@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # The whole set CI requires before merge, run locally in one go: `npm run verify`.
 # Stops at the first failure and prints how long each step took. Starts the dev
-# Postgres; the smoke steps use fixed ports, so one run at a time per machine.
+# Postgres; the smoke steps use this checkout's ports, so one run at a time per checkout.
 set -euo pipefail
 cd "$(dirname "$0")/.."
 

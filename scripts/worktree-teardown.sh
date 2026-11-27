@@ -1,25 +1,35 @@
 #!/usr/bin/env bash
-# Run inside a worktree before removing it: drops the PHPUnit database that
-# tests/bootstrap.php created for it, and deletes the branch once it is merged.
-set -euo pipefail
+# Run inside a worktree before removing it: drops the databases made for it
+# (tests/bootstrap.php, ghar-setup, the smoke runs), and deletes the branch once it is merged.
+# No `set -e`: a tool that runs this on archive would report any hiccup as a failed cleanup.
+set -uo pipefail
 cd "$(dirname "${BASH_SOURCE[0]}")/.."
 source scripts/lib/services.sh
 
 [ -n "$(main_checkout)" ] || { echo "error: this is the main checkout, not a worktree." >&2; exit 1; }
 
-# The same name tests/bootstrap.php derives.
+# The same names tests/bootstrap.php and a machine's own `ghar-setup` derive.
 slug="$(basename "$PWD" | tr '[:upper:]' '[:lower:]' | sed -E 's/[^a-z0-9]+/_/g' | cut -c1-40)"
+wt_slug="$(printf '%s' "$(basename "$PWD")" | tr '[:upper:]' '[:lower:]' | tr -c 'a-z0-9' '_')"
+dbs="ghar_test_$slug ghar_wt_$wt_slug ghar_test_wt_$wt_slug"
+# The smoke runs name theirs after the port offset (scripts/lib/checkout-port.mjs).
+server_port="$(get_env SERVER_PORT)"
+if [[ "$server_port" =~ ^80(0[1-9]|[1-9][0-9])$ ]]; then
+  dbs="$dbs ghar_smoke_$((10#${server_port#80})) ghar_smoke_loadmore_$((10#${server_port#80}))"
+fi
 host="$(get_env DB_HOST)"
 port="$(get_env DB_PORT)"
 
-GHAR_PG_DSN="pgsql:host=${host:-127.0.0.1};port=${port:-5432};dbname=postgres" GHAR_DB="ghar_test_$slug" php -r '
+GHAR_PG_DSN="pgsql:host=${host:-127.0.0.1};port=${port:-5432};dbname=postgres" GHAR_DBS="$dbs" php -r '
   try {
       $pdo = new PDO(getenv("GHAR_PG_DSN"), "ghar", "ghar", [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION, PDO::ATTR_TIMEOUT => 3]);
   } catch (PDOException) {
       exit(0); // Postgres is down: nothing to drop now.
   }
-  $pdo->exec("drop database if exists \"".getenv("GHAR_DB")."\"");
-  echo "Dropped ".getenv("GHAR_DB").".\n";
+  foreach (explode(" ", getenv("GHAR_DBS")) as $db) {
+      $pdo->exec("drop database if exists \"$db\" with (force)");
+  }
+  echo "Dropped this worktree\x27s databases.\n";
 '
 
 # Merged into main here or on origin, plainly or squashed: the branch goes with its worktree.
@@ -39,3 +49,4 @@ if [ -n "$branch" ] && [ "$branch" != main ]; then
     break
   done
 fi
+exit 0
