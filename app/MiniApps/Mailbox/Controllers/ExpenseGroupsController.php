@@ -18,9 +18,9 @@ use Illuminate\Validation\Rule;
 
 class ExpenseGroupsController
 {
-    public function store(Request $request): RedirectResponse
+    public function store(Request $request, Household $household): RedirectResponse
     {
-        $data = $request->validate(['name' => ['required', 'string', 'max:60'], ...self::memberRules('required')]);
+        $data = $request->validate(['name' => ['required', 'string', 'max:60'], ...self::memberRules('required', $household)]);
         $viewer = $request->user();
 
         $group = DB::transaction(function () use ($data, $viewer): ExpenseGroup {
@@ -46,7 +46,7 @@ class ExpenseGroupsController
     {
         Gate::authorize('manage', $group);
 
-        $data = $request->validate(['name' => ['sometimes', 'required', 'string', 'max:60'], ...self::memberRules('sometimes')]);
+        $data = $request->validate(['name' => ['sometimes', 'required', 'string', 'max:60'], ...self::memberRules('sometimes', $household, $group)]);
         $viewer = $request->user();
 
         $stillIn = $ledger->locked($group->id, function (ExpenseGroup $group) use ($data, $viewer, $household): bool {
@@ -150,12 +150,17 @@ class ExpenseGroupsController
         return redirect()->route('apps.our-exchange.expenses.index');
     }
 
-    /** @return array<string, array<int, mixed>> */
-    private static function memberRules(string $presence): array
+    /**
+     * Anyone in the household, plus whoever is already in the group: a former member stays in
+     * it until they're taken out, but can't be put back.
+     *
+     * @return array<string, array<int, mixed>>
+     */
+    private static function memberRules(string $presence, Household $household, ?ExpenseGroup $group = null): array
     {
         return [
             'member_ids' => [$presence, 'array', 'min:1'],
-            'member_ids.*' => ['integer', 'distinct', Rule::exists('users', 'id')],
+            'member_ids.*' => ['integer', 'distinct', Rule::in([...$household->query()->pluck('id')->all(), ...($group?->memberIds() ?? [])])],
         ];
     }
 

@@ -82,7 +82,7 @@ class ExpenseLedger
                 self::refuse('expense', 'A payment can\'t be edited. Delete it and record it again.');
             }
 
-            self::assertMembers($group, $input);
+            self::assertMembers($group, $input, $expense);
 
             $before = self::snapshot($expense, $expense->shareMap());
             $shares = self::split($input, $expense->id);
@@ -260,13 +260,21 @@ class ExpenseLedger
     }
 
     /**
-     * Checked under the lock: the members may have changed since the form was opened.
+     * Checked under the lock: the members may have changed since the form was opened. A former
+     * member can't be put on anything new, but an expense they were already on stays editable.
      *
      * @param  array{paid_by_id: int, split_mode: string, participant_ids: list<int>, shares: array<int, int>}  $input
      */
-    private static function assertMembers(ExpenseGroup $group, array $input): void
+    private static function assertMembers(ExpenseGroup $group, array $input, ?Expense $existing = null): void
     {
-        $members = $group->memberIds();
+        $members = $group->activeMemberIds();
+
+        if ($existing !== null) {
+            $members = array_values(array_intersect(
+                $group->memberIds(),
+                [...$members, $existing->paid_by_id, ...array_keys($existing->shareMap())],
+            ));
+        }
 
         if (! in_array($input['paid_by_id'], $members, true)) {
             self::refuse('paid_by_id', 'Whoever paid must be in this group.');

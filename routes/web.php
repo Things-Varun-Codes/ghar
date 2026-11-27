@@ -142,6 +142,12 @@ Route::middleware(['auth', 'can:admin'])->prefix('admin')->name('admin.')->group
     Route::delete('/users/{user}/picture', [UsersController::class, 'destroyPicture'])
         ->middleware('throttle:admin-mutations')
         ->name('users.picture.destroy');
+    Route::post('/users/{user}/remove', [UsersController::class, 'remove'])
+        ->middleware('throttle:admin-mutations')
+        ->name('users.remove');
+    Route::post('/users/{user}/restore', [UsersController::class, 'restore'])
+        ->middleware('throttle:admin-mutations')
+        ->name('users.restore');
     Route::delete('/users/{user}', [UsersController::class, 'destroy'])
         ->middleware('throttle:admin-mutations')
         ->name('users.destroy');

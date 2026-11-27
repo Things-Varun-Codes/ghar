@@ -6,14 +6,17 @@ use App\MiniApps\History\Models\Event;
 use App\MiniApps\History\Support\OnThisDay;
 use App\Shell\Models\User;
 use Carbon\CarbonImmutable;
+use Illuminate\Validation\Rule;
 use Illuminate\Validation\Validator;
 use Throwable;
 
 trait EventRequestRules
 {
-    /** @return array<string, array<int, string>> */
+    /** @return array<string, array<int, mixed>> */
     public function rules(): array
     {
+        $event = $this->route('event');
+
         return [
             'occurred_on' => $this->isUpdate()
                 ? ['sometimes', 'required', 'date']
@@ -26,7 +29,9 @@ trait EventRequestRules
             'location_lat' => ['nullable', 'numeric', 'between:-90,90'],
             'location_lng' => ['nullable', 'numeric', 'between:-180,180'],
             'body_html' => ['nullable', 'string', 'max:50000'],
-            'birthday_user_id' => ['nullable', 'integer', 'exists:users,id'],
+            // Someone in the household, or a former member the moment already names.
+            'birthday_user_id' => ['nullable', 'integer', Rule::exists('users', 'id')->where(fn ($query) => $query->whereNull('removed_at')
+                ->when($event instanceof Event && $event->birthday_user_id !== null, fn ($query) => $query->orWhere('id', $event->birthday_user_id)))],
         ];
     }
 

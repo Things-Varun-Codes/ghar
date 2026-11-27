@@ -87,11 +87,18 @@ export default function ExpenseSheet({
     open,
     onOpenChange,
     groupId,
-    members,
+    members: onTheBooks,
     viewerId,
     expense,
 }: Props) {
     const { today } = usePage().props;
+    // A former member can't go on anything new, but stays on an expense they were already on.
+    const members = onTheBooks.filter(
+        (member) =>
+            !member.former ||
+            member.id === expense?.paid_by_id ||
+            expense?.shares.some((share) => share.user_id === member.id),
+    );
     const hintId = useId();
     const splitLabelId = useId();
     const [confirmingDelete, setConfirmingDelete] = useState(false);

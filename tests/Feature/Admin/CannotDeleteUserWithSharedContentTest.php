@@ -22,7 +22,7 @@ class CannotDeleteUserWithSharedContentTest extends TestCase
     public function test_admin_cannot_delete_a_user_who_owns_corner_and_mailbox_content(): void
     {
         $admin = User::factory()->admin()->create();
-        $target = User::factory()->create();
+        $target = User::factory()->former()->create();
         $other = User::factory()->create();
 
         $item = Item::factory()->create(['added_by_user_id' => $target->id]);
@@ -47,7 +47,7 @@ class CannotDeleteUserWithSharedContentTest extends TestCase
     public function test_recipient_side_content_also_blocks_the_delete(): void
     {
         $admin = User::factory()->admin()->create();
-        $target = User::factory()->create();
+        $target = User::factory()->former()->create();
         $sender = User::factory()->create();
 
         // target only ever RECEIVED a message — a sender-only guard would miss this.
@@ -65,7 +65,7 @@ class CannotDeleteUserWithSharedContentTest extends TestCase
 
     public function test_database_refuses_the_delete_even_when_the_controller_is_bypassed(): void
     {
-        $target = User::factory()->create();
+        $target = User::factory()->former()->create();
         Item::factory()->create(['added_by_user_id' => $target->id]);
 
         $this->expectException(\Illuminate\Database\QueryException::class);

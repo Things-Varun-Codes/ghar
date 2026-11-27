@@ -83,6 +83,7 @@ Password for every account: `ghar-local-dev`. Mail lands in Mailpit at `http://1
 | `meera@example.test` | Meera, adult, has a picture  | **Recipient**: note 1, postcard 1, coupon 1 and citation 1 are Ravi's to her alone. Can request the coupon and pay the citation. Owes Ravi in "Coast trip": settle up from Expenses.                                                                                           |
 | `kabir@example.test` | Kabir, younger, no push, 2FA | **Non-recipient**: `/apps/our-exchange/citations/1` and `coupons/1` must 403; note 1 and postcard 1 must not be listed. Signing in asks for a code. "Coast trip" must 403 and not be listed; settled in the archived "Diwali gifts".                                           |
 | `leela@example.test` | Leela, adult, 2FA on         | **Two-step sign-in**: the password leads to the code page; recovery code `ghar-recovery-one` works once (`npm run dev-reset` restores it).                                                                                                                                     |
+| `nisha@example.test` | Nisha, a **former member**   | **Removed from the household**: signing in fails. Everywhere else she reads "Nisha (deleted)": Meera keeps her note and can't pay her citation; Ravi owes her in General and can settle up, but can't put her on a new expense. Admin → Users can restore her.                 |
 
 Kabir's and Leela's code: `php artisan tinker --execute="echo app(PragmaRX\Google2FA\Google2FA::class)->getCurrentOtp('GHARLOCALDEVCODE');"`.
 

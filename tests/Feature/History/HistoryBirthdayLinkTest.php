@@ -59,6 +59,23 @@ class HistoryBirthdayLinkTest extends TestCase
         ])->assertSessionHasErrors('birthday_user_id');
     }
 
+    public function test_a_former_member_can_stay_on_a_moment_but_not_be_put_on_a_new_one(): void
+    {
+        $event = Event::factory()->create(['occurred_on' => '2023-06-14', 'creator_id' => $this->ravi->id, 'birthday_user_id' => $this->meera->id]);
+        $this->meera->forceFill(['removed_at' => now()])->save();
+
+        $this->actingAs($this->ravi)->patch(route('apps.our-history.events.update', $event), [
+            'title' => 'Picnic by the lake',
+            'birthday_user_id' => $this->meera->id,
+        ])->assertSessionHasNoErrors();
+        $this->assertSame($this->meera->id, $event->refresh()->birthday_user_id);
+
+        $this->post(route('apps.our-history.events.store'), [
+            'occurred_on' => '2024-06-14',
+            'birthday_user_id' => $this->meera->id,
+        ])->assertSessionHasErrors('birthday_user_id');
+    }
+
     public function test_a_leap_day_birthday_links_to_feb_28_of_a_non_leap_year_only(): void
     {
         $tara = User::factory()->create(['name' => 'Tara Rao', 'birthday' => '2000-02-29']);

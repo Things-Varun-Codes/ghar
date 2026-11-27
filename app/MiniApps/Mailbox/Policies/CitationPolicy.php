@@ -14,7 +14,10 @@ class CitationPolicy
 
     public function pay(User $user, Citation $citation): bool
     {
-        return $user->id === $citation->recipient_id && $citation->status === Citation::STATUS_ISSUED;
+        // Nobody is left to pay once the issuer is a former member.
+        return $user->id === $citation->recipient_id
+            && ! $citation->issuer->isFormer()
+            && $citation->status === Citation::STATUS_ISSUED;
     }
 
     public function delete(User $user, Citation $citation): bool

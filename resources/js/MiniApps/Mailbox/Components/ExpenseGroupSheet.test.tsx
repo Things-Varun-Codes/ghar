@@ -28,6 +28,12 @@ beforeAll(() => {
 
 const me = { id: 1, name: 'Asha', avatar_url: null };
 const juhie = { id: 2, name: 'Juhie', avatar_url: null };
+const nisha = {
+    id: 3,
+    name: 'Nisha (deleted)',
+    avatar_url: null,
+    former: true as const,
+};
 
 describe('ExpenseGroupSheet', () => {
     it('lets a household of two create a group once it has a name', () => {
@@ -48,5 +54,19 @@ describe('ExpenseGroupSheet', () => {
         expect(
             screen.getByRole('button', { name: 'Create group' }),
         ).toHaveProperty('disabled', false);
+    });
+
+    it('never offers a former member', () => {
+        render(
+            <ExpenseGroupSheet
+                open
+                onOpenChange={() => {}}
+                household={[me, juhie, nisha]}
+                viewerId={me.id}
+            />,
+        );
+
+        expect(screen.getByText('Juhie')).toBeTruthy();
+        expect(screen.queryByText('Nisha (deleted)')).toBeNull();
     });
 });

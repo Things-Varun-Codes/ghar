@@ -42,14 +42,15 @@ class ExpensesController
         $nets = ExpenseBalances::nets($groups->modelKeys());
         $overview = ExpenseBalances::overview($viewer);
         $everyone = $household->members();
+        // Former members too: what is owed between them and the viewer can still be settled.
+        $owing = $household->everyone()->whereKey(array_keys($overview))->orderBy('name')->orderBy('id')->get();
 
         return Inertia::render('MiniApps/Mailbox/Pages/Expenses/Index', [
             'groups' => $groups->map(fn (ExpenseGroup $group): array => [
                 ...self::group($group),
                 'net' => $nets[$group->id][$viewer->id] ?? 0,
             ])->all(),
-            'overview' => $everyone
-                ->filter(fn (User $member): bool => isset($overview[$member->id]))
+            'overview' => $owing
                 ->map(fn (User $member): array => ['person' => Person::short($member), 'net' => $overview[$member->id]])
                 ->values()
                 ->all(),
@@ -65,7 +66,11 @@ class ExpensesController
         $focus = $request->query('focus');
         $memberIds = $group->memberIds();
         $nets = ExpenseBalances::netsIn($group);
-        $everyone = $household->members();
+        $onTheBooks = [...$memberIds, ...array_keys($nets)];
+        // Current members, and any former member this group's books still name.
+        $everyone = $household->everyone()->orderBy('name')->orderBy('id')->get()
+            ->filter(fn (User $person): bool => ! $person->isFormer() || in_array($person->id, $onTheBooks, true))
+            ->values();
         $manage = ! $group->is_general;
 
         return Inertia::render('MiniApps/Mailbox/Pages/Expenses/Group', [
@@ -177,7 +182,9 @@ class ExpensesController
             'name' => $group->name,
             'is_general' => $group->is_general,
             'archived' => $group->archived_at !== null,
-            'member_ids' => $group->memberIds(),
+            // General is everyone in the household now; a custom group still lists a former member
+            // in it, so the group sheet keeps them when the group is edited.
+            'member_ids' => $group->is_general ? $group->activeMemberIds() : $group->memberIds(),
         ];
     }
 

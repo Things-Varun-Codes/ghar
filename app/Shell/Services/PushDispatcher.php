@@ -27,6 +27,10 @@ class PushDispatcher
         }
 
         foreach ($recipients as $recipient) {
+            if ($recipient->isFormer()) {
+                continue;
+            }
+
             if ($isRoom && ! $this->rooms->canEnter($recipient, $app)) {
                 continue;
             }

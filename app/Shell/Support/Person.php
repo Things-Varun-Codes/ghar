@@ -25,13 +25,15 @@ final class Person
 
     /**
      * The same, named the way the household says it: by first name, unless two members share it
-     * (Household::shortName).
+     * (Household::shortName). A former member also carries `former`, so a picker can leave them out.
      *
-     * @return array{id: int, name: string, avatar_url: string|null}
+     * @return array{id: int, name: string, avatar_url: string|null, former?: true}
      */
     public static function short(User $user): array
     {
-        return [...self::of($user), 'name' => app(Household::class)->shortName($user)];
+        $person = [...self::of($user), 'name' => app(Household::class)->shortName($user)];
+
+        return $user->isFormer() ? [...$person, 'former' => true] : $person;
     }
 
     /** @return array{id: int, name: string, avatar_url: string|null} */

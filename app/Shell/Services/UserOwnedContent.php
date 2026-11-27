@@ -6,9 +6,9 @@ use App\Shell\Models\User;
 use Illuminate\Support\Facades\DB;
 
 /**
- * Registry of the mini-app tables whose user foreign keys RESTRICT. Lets the admin delete
- * refuse with a message naming what blocks it, instead of the FK surfacing as a 500. Mini
- * apps register from their provider's boot(), so a disabled app's tables are never queried.
+ * Registry of the mini-app tables whose user foreign keys RESTRICT. Lets deleting a former
+ * member for good refuse with a message naming what blocks it, instead of the FK surfacing as
+ * a 500. Mini apps register from their provider's boot().
  */
 class UserOwnedContent
 {

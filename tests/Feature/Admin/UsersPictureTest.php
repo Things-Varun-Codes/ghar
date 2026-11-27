@@ -124,7 +124,7 @@ class UsersPictureTest extends TestCase
                 ->where('users.data.1.name', 'Meera')
                 ->where('users.data.1.avatar_url', fn (?string $url) => $url !== null && str_contains($url, 'avatars/meera.webp'))
                 ->has('users.data.1', fn (AssertableInertia $row) => $row
-                    ->hasAll(['id', 'name', 'avatar_url', 'email', 'last_login_at', 'two_factor', 'roles'])
+                    ->hasAll(['id', 'name', 'avatar_url', 'email', 'last_login_at', 'two_factor', 'roles', 'removed_at'])
                 )
             );
     }

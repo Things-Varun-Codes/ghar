@@ -16,7 +16,7 @@ class NotificationsController
     public function show(): Response
     {
         return Inertia::render('Shell/Pages/Admin/NotificationsSend', [
-            'users' => User::orderBy('name')
+            'users' => User::query()->whereNull('removed_at')->orderBy('name')
                 ->get(['id', 'name', 'email', 'avatar_key'])
                 ->map(fn (User $user): array => [...Person::of($user), 'email' => $user->email]),
         ]);
@@ -25,7 +25,7 @@ class NotificationsController
     public function send(Request $request): RedirectResponse
     {
         $validated = $request->validate([
-            'user_id' => ['required', 'integer', 'exists:users,id'],
+            'user_id' => ['required', 'integer', Rule::exists('users', 'id')->whereNull('removed_at')],
             'title' => ['required', 'string', 'max:200'],
             'body' => ['required', 'string', 'max:500'],
             'url' => ['nullable', 'string', 'max:500'],

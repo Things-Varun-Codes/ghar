@@ -6,4 +6,6 @@ export type Person = {
     id: number;
     name: string;
     avatar_url: string | null;
+    /* Removed from the household: still named on what they made, never offered in a picker. */
+    former?: true;
 };

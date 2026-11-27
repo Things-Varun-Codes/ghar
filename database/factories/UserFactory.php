@@ -58,6 +58,13 @@ class UserFactory extends Factory
         ]);
     }
 
+    public function former(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'removed_at' => now(),
+        ]);
+    }
+
     public function unverified(): static
     {
         return $this->state(fn (array $attributes) => [
