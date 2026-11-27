@@ -17,7 +17,7 @@ class ExpenseResource
             'amount' => $expense->amount,
             'spent_on' => $expense->spent_on->toDateString(),
             'split_mode' => $expense->split_mode,
-            'icon' => $expense->icon,
+            'category' => $expense->category?->value,
             'is_settlement' => $expense->is_settlement,
             'paid_by_id' => $expense->paid_by_id,
             'shares' => $expense->shares

@@ -130,6 +130,6 @@ in. Reduced motion is already handled; don't add a media query for it.
   with no picture, the list's icon sits on the accent wash.
 - **Our Exchange:** paper. Ruled notes with a red margin, the citation as an official form, the
   coupon as a voucher, all in the house ink. The stamp is the only thing in capitals. Coral only
-  for what you press. Expenses read as a ledger: a date, the expense's icon in ink, and on the
+  for what you press. Expenses read as a ledger: a date, its category's icon in ink, and on the
   right what it means for you, in words over the amount. Only amounts and their words take the
   money colours, and never without the words.

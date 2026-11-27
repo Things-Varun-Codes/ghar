@@ -5,6 +5,7 @@ namespace Tests\Feature\Mailbox;
 use App\MiniApps\Mailbox\Models\Expense;
 use App\MiniApps\Mailbox\Models\ExpenseActivity;
 use App\MiniApps\Mailbox\Models\ExpenseGroup;
+use App\MiniApps\Mailbox\Support\ExpenseCategory;
 use App\MiniApps\Mailbox\Support\ExpenseMath;
 use App\Shell\Models\User;
 use App\Shell\Support\Region;
@@ -320,21 +321,49 @@ class ExpenseLifecycleTest extends TestCase
             ]));
     }
 
-    public function test_an_icon_is_kept_checked_and_a_change_to_it_is_logged(): void
+    public function test_a_category_is_kept_checked_and_a_change_to_it_is_logged(): void
     {
-        $expense = $this->addDinner(['icon' => 'utensils-crossed']);
-        $this->assertSame('utensils-crossed', $expense->icon);
+        $expense = $this->addDinner(['category' => 'eating-out']);
+        $this->assertSame(ExpenseCategory::EatingOut, $expense->category);
 
         $this->get(self::BASE."/groups/{$this->trip->id}")
-            ->assertInertia(fn ($page) => $page->where('expenses.data.0.icon', 'utensils-crossed'));
+            ->assertInertia(fn ($page) => $page
+                ->where('expenses.data.0.category', 'eating-out')
+                ->where('categories.0', ['key' => 'eating-out', 'label' => 'Eating out', 'icon' => 'utensils-crossed', 'emoji' => '🍴', 'words' => ['Restaurant', 'Cafe']]));
 
-        $this->post(self::BASE."/groups/{$this->trip->id}/expenses", $this->dinner(['icon' => 'spaceship']))
-            ->assertSessionHasErrors('icon');
+        $this->post(self::BASE."/groups/{$this->trip->id}/expenses", $this->dinner(['category' => 'utensils-crossed']))
+            ->assertSessionHasErrors('category');
 
-        $this->patch(self::BASE."/{$expense->id}", $this->dinner(['icon' => 'ticket']))->assertSessionHasNoErrors();
-        $this->assertSame('ticket', $expense->fresh()?->icon);
+        $this->patch(self::BASE."/{$expense->id}", $this->dinner(['category' => 'cinema']))->assertSessionHasNoErrors();
+        $this->assertSame(ExpenseCategory::Cinema, $expense->fresh()?->category);
         $logged = ExpenseActivity::query()->where('action', 'expense.updated')->latest('id')->firstOrFail();
-        $this->assertSame(['icon' => 'ticket'], $logged->data['after']);
+        $this->assertSame(['category' => 'eating-out'], $logged->data['before']);
+        $this->assertSame(['category' => 'cinema'], $logged->data['after']);
+    }
+
+    public function test_the_list_filters_by_category_and_offers_only_the_ones_in_use(): void
+    {
+        $this->addDinner(['title' => 'Thali', 'category' => 'eating-out']);
+        $this->addDinner(['title' => 'Vegetables', 'category' => 'groceries']);
+        $this->addDinner(['title' => 'Odds and ends']);
+        $this->actingAs($this->meera)->post(self::BASE."/groups/{$this->trip->id}/settlements", [
+            'from_id' => $this->meera->id, 'to_id' => $this->ravi->id, 'amount' => 3000,
+        ])->assertSessionHasNoErrors();
+        $titles = fn (string $query) => $this->actingAs($this->kabir)->get(self::BASE."/groups/{$this->trip->id}{$query}");
+
+        $titles('?category=groceries')->assertInertia(fn ($page) => $page
+            ->where('category', 'groceries')
+            ->where('used_categories', fn ($used) => collect($used)->sort()->values()->all() === ['eating-out', 'groceries'])
+            ->where('expenses.data', fn ($rows) => collect($rows)->pluck('title')->all() === ['Vegetables']));
+
+        // "none" is the expenses with no category: a repayment isn't one.
+        $titles('?category=none')->assertInertia(fn ($page) => $page
+            ->where('expenses.data', fn ($rows) => collect($rows)->pluck('title')->all() === ['Odds and ends']));
+
+        // A category nobody here has used, or no such category, shows everything.
+        foreach (['?category=cinema', '?category=spaceship'] as $query) {
+            $titles($query)->assertInertia(fn ($page) => $page->where('category', null)->has('expenses.data', 4));
+        }
     }
 
     public function test_the_group_totals_leave_out_repayments_and_deleted_expenses(): void

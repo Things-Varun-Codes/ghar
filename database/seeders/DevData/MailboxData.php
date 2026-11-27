@@ -10,6 +10,7 @@ use App\MiniApps\Mailbox\Models\ExpenseGroup;
 use App\MiniApps\Mailbox\Models\MailboxMessage;
 use App\MiniApps\Mailbox\Models\Postcard;
 use App\MiniApps\Mailbox\Models\SavedPrompt;
+use App\MiniApps\Mailbox\Support\ExpenseCategory;
 use App\Shell\Models\User;
 use Carbon\CarbonImmutable;
 use Illuminate\Contracts\Filesystem\Filesystem;
@@ -162,7 +163,7 @@ final class MailboxData
     /**
      * Amounts are paise. General: equal and exact splits, one that leaves a remainder, a
      * repayment and a deleted duplicate. Coast trip: Meera owes Ravi. Diwali gifts: settled, then
-     * archived. "School trip fee" has no icon of its own, so it reads as the receipt.
+     * archived. "School trip fee" has no category, so it reads as the receipt.
      */
     private function expenses(Household $h): void
     {
@@ -191,13 +192,13 @@ final class MailboxData
             [$diwali, 'Payment', 30000, $h->kabir, 27, $h->admin, false],
         ];
 
-        $icons = [
-            'Groceries' => 'shopping-basket',
-            'Auto to the station' => 'car-taxi-front',
-            'Groceries (entered twice)' => 'shopping-basket',
-            'Homestay' => 'bed-double',
-            'Fish lunch' => 'utensils-crossed',
-            'Sweets and lamps' => 'gift',
+        $categories = [
+            'Groceries' => ExpenseCategory::Groceries,
+            'Auto to the station' => ExpenseCategory::Taxis,
+            'Groceries (entered twice)' => ExpenseCategory::Groceries,
+            'Homestay' => ExpenseCategory::Stays,
+            'Fish lunch' => ExpenseCategory::EatingOut,
+            'Sweets and lamps' => ExpenseCategory::Gifts,
         ];
 
         foreach ($rows as [$group, $title, $amount, $payer, $days, $split, $deleted]) {
@@ -205,7 +206,7 @@ final class MailboxData
                 'group_id' => $group->id,
                 'paid_by_id' => $payer->id,
                 'title' => $title,
-                'icon' => $icons[$title] ?? null,
+                'category' => $categories[$title] ?? null,
                 'amount' => $amount,
                 'spent_on' => $h->today->subDays($days)->toDateString(),
                 'created_at' => $h->daysAgo($days),
@@ -223,7 +224,7 @@ final class MailboxData
                 'spent_on' => $expense->spent_on->toDateString(),
                 'paid_by_id' => $payer->id,
                 'split_mode' => $expense->split_mode,
-                'icon' => $expense->icon,
+                'category' => $expense->category?->value,
                 'shares' => $expense->shareMap(),
             ];
 

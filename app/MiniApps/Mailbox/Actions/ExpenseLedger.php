@@ -44,7 +44,7 @@ class ExpenseLedger
         });
     }
 
-    /** @param  array{title: string, amount: int, spent_on: string, paid_by_id: int, split_mode: string, icon: string|null, participant_ids: list<int>, shares: array<int, int>}  $input */
+    /** @param  array{title: string, amount: int, spent_on: string, paid_by_id: int, split_mode: string, category: string|null, participant_ids: list<int>, shares: array<int, int>}  $input */
     public function create(ExpenseGroup $group, User $actor, array $input): Expense
     {
         [$expense, $shares] = $this->locked($group->id, function (ExpenseGroup $group) use ($actor, $input): array {
@@ -70,7 +70,7 @@ class ExpenseLedger
         return $expense;
     }
 
-    /** @param  array{title: string, amount: int, spent_on: string, paid_by_id: int, split_mode: string, icon: string|null, participant_ids: list<int>, shares: array<int, int>}  $input */
+    /** @param  array{title: string, amount: int, spent_on: string, paid_by_id: int, split_mode: string, category: string|null, participant_ids: list<int>, shares: array<int, int>}  $input */
     public function update(Expense $expense, User $actor, array $input): void
     {
         $this->locked($expense->group_id, function (ExpenseGroup $group) use ($expense, $actor, $input): void {
@@ -240,11 +240,11 @@ class ExpenseLedger
      */
     private static function fields(array $input): array
     {
-        return array_intersect_key($input, array_flip(['title', 'amount', 'spent_on', 'split_mode', 'paid_by_id', 'icon']));
+        return array_intersect_key($input, array_flip(['title', 'amount', 'spent_on', 'split_mode', 'paid_by_id', 'category']));
     }
 
     /**
-     * @param  array{amount: int, split_mode: string, icon: string|null, participant_ids: list<int>, shares: array<int, int>}  $input
+     * @param  array{amount: int, split_mode: string, category: string|null, participant_ids: list<int>, shares: array<int, int>}  $input
      * @return array<int, int>
      */
     private static function split(array $input, int $expenseId): array
@@ -263,7 +263,7 @@ class ExpenseLedger
      * Checked under the lock: the members may have changed since the form was opened. A former
      * member can't be put on anything new, but an expense they were already on stays editable.
      *
-     * @param  array{paid_by_id: int, split_mode: string, icon: string|null, participant_ids: list<int>, shares: array<int, int>}  $input
+     * @param  array{paid_by_id: int, split_mode: string, category: string|null, participant_ids: list<int>, shares: array<int, int>}  $input
      */
     private static function assertMembers(ExpenseGroup $group, array $input, ?Expense $existing = null): void
     {
@@ -289,7 +289,7 @@ class ExpenseLedger
 
     /**
      * @param  array<int, int>  $shares
-     * @return array{title: string, amount: int, spent_on: string, paid_by_id: int, split_mode: string, icon: string|null, shares: array<int, int>}
+     * @return array{title: string, amount: int, spent_on: string, paid_by_id: int, split_mode: string, category: string|null, shares: array<int, int>}
      */
     private static function snapshot(Expense $expense, array $shares): array
     {
@@ -299,7 +299,7 @@ class ExpenseLedger
             'spent_on' => $expense->spent_on->toDateString(),
             'paid_by_id' => $expense->paid_by_id,
             'split_mode' => $expense->split_mode,
-            'icon' => $expense->icon,
+            'category' => $expense->category?->value,
             'shares' => $shares,
         ];
     }

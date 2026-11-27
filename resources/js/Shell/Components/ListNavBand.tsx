@@ -1,4 +1,4 @@
-import { ArrowDownUp, Search, X } from 'lucide-react';
+import { ArrowDownUp, ListFilter, Search, X } from 'lucide-react';
 import type { ReactNode } from 'react';
 import { useEffect, useRef, useState } from 'react';
 
@@ -31,6 +31,11 @@ export type ListNavBandProps = {
     searchPlaceholder?: string;
     onSearch: (value: string | undefined) => void;
     tabs?: ReactNode;
+    /* Narrows the list to one kind of row; the first item is everything. */
+    filter?: string;
+    filterLabel?: string;
+    filterItems?: ChoiceItem[];
+    onFilterSelect?: (key: string) => void;
 };
 
 export default function ListNavBand({
@@ -43,6 +48,10 @@ export default function ListNavBand({
     searchPlaceholder,
     onSearch,
     tabs,
+    filter,
+    filterLabel = 'Filter',
+    filterItems,
+    onFilterSelect,
 }: ListNavBandProps) {
     const [searchValue, setSearchValue] = useState(query ?? '');
     const searchInput = useRef<HTMLInputElement>(null);
@@ -129,6 +138,17 @@ export default function ListNavBand({
         />
     ) : null;
 
+    const filterNode =
+        filterItems && onFilterSelect ? (
+            <ChoiceMenu
+                label={filterLabel}
+                icon={ListFilter}
+                value={filter ?? filterItems[0]?.key ?? ''}
+                items={filterItems}
+                onSelect={onFilterSelect}
+            />
+        ) : null;
+
     return (
         <>
             {tabs !== undefined && (
@@ -151,9 +171,10 @@ export default function ListNavBand({
                     </span>
                 }
                 controls={
-                    searchNode || sortNode ? (
+                    searchNode || filterNode || sortNode ? (
                         <div className="list-nav-band-controls">
                             {searchNode}
+                            {filterNode}
                             {sortNode}
                         </div>
                     ) : null
