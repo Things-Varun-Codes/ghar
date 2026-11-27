@@ -131,9 +131,8 @@ export default function ListNavBand({
 
     return (
         <>
-            {tabs !== undefined && (
-                <div className="list-nav-band-tabs">{tabs}</div>
-            )}
+            {/* Not wrapped: the tabs stick to the page's tall box, and a wrapper would end that. */}
+            {tabs}
 
             <Toolbar
                 sticky={false}

@@ -36,6 +36,7 @@ class ExpensesController
         $groups = ExpenseGroup::query()
             ->visibleTo($viewer)
             ->with('memberRows')
+            ->withExists(['expenses as has_expenses' => fn ($query) => $query->withTrashed()])
             ->orderByDesc('is_general')
             ->orderByRaw('archived_at is not null')
             ->orderBy('name')
@@ -51,6 +52,7 @@ class ExpensesController
         return Inertia::render('MiniApps/Mailbox/Pages/Expenses/Index', [
             'groups' => $groups->map(fn (ExpenseGroup $group): array => [
                 ...self::group($group),
+                'can' => self::abilities($group, $nets[$group->id], (bool) $group->getAttribute('has_expenses')),
                 'net' => $nets[$group->id][$viewer->id] ?? 0,
             ])->all(),
             'overview' => $owing
@@ -74,7 +76,6 @@ class ExpensesController
         $everyone = $household->everyone()->orderBy('name')->orderBy('id')->get()
             ->filter(fn (User $person): bool => ! $person->isFormer() || in_array($person->id, $onTheBooks, true))
             ->values();
-        $manage = ! $group->is_general;
 
         return Inertia::render('MiniApps/Mailbox/Pages/Expenses/Group', [
             ...ListPage::make($request, Expense::query()->where('group_id', $group->id)->with('shares'), ListPage::chronological('spent_on'))
@@ -82,12 +83,7 @@ class ExpensesController
                 ->props('expenses', 50, fn (Expense $expense): array => app(ExpenseResource::class)($expense)),
             'group' => [
                 ...self::group($group),
-                'can' => [
-                    'write' => $group->archived_at === null,
-                    'manage' => $manage,
-                    'archive' => $manage && $group->archived_at === null && array_filter($nets) === [],
-                    'delete' => $manage && ! $group->expenses()->withTrashed()->exists(),
-                ],
+                'can' => self::abilities($group, $nets, $group->expenses()->withTrashed()->exists()),
             ],
             'members' => $everyone->whereIn('id', $memberIds)->map(fn (User $member): array => Person::short($member))->values()->all(),
             'household' => $everyone->map(fn (User $member): array => Person::short($member))->all(),
@@ -176,6 +172,22 @@ class ExpensesController
         FlashToast::success('Settled up.');
 
         return redirect()->back();
+    }
+
+    /**
+     * @param  array<int, int>  $nets
+     * @return array{write: bool, manage: bool, archive: bool, delete: bool}
+     */
+    private static function abilities(ExpenseGroup $group, array $nets, bool $hasExpenses): array
+    {
+        $manage = ! $group->is_general;
+
+        return [
+            'write' => $group->archived_at === null,
+            'manage' => $manage,
+            'archive' => $manage && $group->archived_at === null && array_filter($nets) === [],
+            'delete' => $manage && ! $hasExpenses,
+        ];
     }
 
     /** @return array{id: int, name: string, is_general: bool, archived: bool, member_ids: list<int>} */

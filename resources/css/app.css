@@ -422,13 +422,6 @@
         pointer-events: none;
     }
 
-    .list-nav-band-tabs {
-        margin-bottom: 12px;
-        max-width: 100%;
-        overflow-x: auto;
-        scrollbar-width: none;
-    }
-
     .list-nav-band-controls {
         display: flex;
         align-items: center;
@@ -2468,4 +2461,108 @@ nav.shell-segmented .shell-segmented-item {
     position: absolute;
     inset: -1.5px;
     z-index: -1;
+}
+
+/* Top tabs (SegmentedTabs look="tabs"). Below lg they are the bottom edge of the top bar: full
+   bleed, in its colour, and they stay under it as the page scrolls. */
+.shell-tabbar {
+    position: sticky;
+    top: var(--shell-topbar-h);
+    z-index: 12; /* the content band, like .shell-toolbar */
+    display: flex;
+    width: auto;
+    overflow-x: auto;
+    scrollbar-width: none;
+    margin: 0 calc(-1 * var(--shell-main-px)) 16px;
+    padding: 0 8px;
+    background-color: var(--shell-chrome);
+    border-bottom: 1px solid var(--shell-border);
+}
+
+/* With nothing of the page header showing above them, they meet the top bar. Client tabs sit
+   in a display: contents root, hence the second selector. */
+[data-phone-flush] + div > .shell-tabbar:first-child,
+[data-phone-flush] + div > :first-child > .shell-tabbar:only-child {
+    margin-top: calc(var(--shell-topbar-h) - var(--shell-main-pt) - 0.5rem);
+}
+
+.shell-tab {
+    position: relative;
+    flex: 1 0 0;
+    min-width: max-content;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    min-height: 48px;
+    padding: 0 12px;
+    font-family: var(--font-sans);
+    font-size: var(--text-small);
+    font-weight: 400;
+    white-space: nowrap;
+    text-decoration: none;
+    color: var(--shell-text-muted);
+    background: none;
+    border: 0;
+    cursor: pointer;
+    transition: color var(--dur-out) var(--ease-ui);
+}
+
+/* The bar scrolls sideways, which clips anything drawn outside it. */
+.shell-tab:focus-visible {
+    outline-offset: -4px;
+}
+
+@media (hover: hover) {
+    .shell-tab:hover {
+        color: var(--shell-text);
+    }
+}
+
+.shell-tab[data-active] {
+    font-weight: 600;
+    color: var(--shell-text);
+    cursor: default;
+}
+
+.shell-tab-count {
+    font-weight: 400;
+    color: var(--shell-text-muted);
+    font-variant-numeric: tabular-nums;
+}
+
+.shell-tab-mark,
+.shell-tab-indicator {
+    height: 3px;
+    border-radius: 3px 3px 0 0;
+    background-color: var(--shell-action);
+}
+
+.shell-tab-mark {
+    position: absolute;
+    right: 12px;
+    bottom: 0;
+    left: 12px;
+}
+
+.shell-tab-indicator {
+    top: auto;
+    bottom: 0;
+    left: calc(var(--active-tab-left) + 12px);
+    width: calc(var(--active-tab-width) - 24px);
+}
+
+@variant lg {
+    .shell-tabbar {
+        position: static;
+        gap: 8px;
+        margin: 0 0 24px;
+        padding: 0;
+        background: none;
+    }
+
+    .shell-tab {
+        flex: 0 0 auto;
+        padding: 0 14px;
+    }
 }

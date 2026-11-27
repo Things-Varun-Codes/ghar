@@ -122,9 +122,9 @@ class ExpenseVisibilityTest extends TestCase
 
         $this->actingAs($this->meera)->get('/apps/our-exchange/expenses')->assertInertia(fn ($page) => $page
             ->where('groups', [
-                ['id' => ExpenseGroup::general()->id, 'name' => 'General', 'is_general' => true, 'archived' => false, 'member_ids' => [$this->asha->id, $this->ravi->id, $this->meera->id, $this->kabir->id], 'net' => 0],
-                ['id' => $this->trip->id, 'name' => 'Trip', 'is_general' => false, 'archived' => false, 'member_ids' => [$this->ravi->id, $this->meera->id, $this->kabir->id], 'net' => -3000],
-                ['id' => ExpenseGroup::query()->where('name', 'Old flat')->value('id'), 'name' => 'Old flat', 'is_general' => false, 'archived' => true, 'member_ids' => [$this->asha->id, $this->meera->id], 'net' => 0],
+                ['id' => ExpenseGroup::general()->id, 'name' => 'General', 'is_general' => true, 'archived' => false, 'member_ids' => [$this->asha->id, $this->ravi->id, $this->meera->id, $this->kabir->id], 'can' => ['write' => true, 'manage' => false, 'archive' => false, 'delete' => false], 'net' => 0],
+                ['id' => $this->trip->id, 'name' => 'Trip', 'is_general' => false, 'archived' => false, 'member_ids' => [$this->ravi->id, $this->meera->id, $this->kabir->id], 'can' => ['write' => true, 'manage' => true, 'archive' => false, 'delete' => false], 'net' => -3000],
+                ['id' => ExpenseGroup::query()->where('name', 'Old flat')->value('id'), 'name' => 'Old flat', 'is_general' => false, 'archived' => true, 'member_ids' => [$this->asha->id, $this->meera->id], 'can' => ['write' => false, 'manage' => true, 'archive' => false, 'delete' => true], 'net' => 0],
             ])
             ->has('overview', 1)
             ->where('overview.0.person.name', 'Ravi')

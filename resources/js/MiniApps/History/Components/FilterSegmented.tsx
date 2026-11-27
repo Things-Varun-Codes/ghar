@@ -76,6 +76,7 @@ export default function FilterSegmented({
         <>
             <SegmentedTabs
                 mode="tablist-client"
+                look="pill"
                 ariaLabel="Filter by type"
                 active={filters.type as MediaType}
                 panelId={GALLERY_PANEL_ID}
