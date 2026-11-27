@@ -7,6 +7,8 @@ import type { ExpenseActivity } from './expenseActivity';
 
 const names: Record<number, string> = { 1: 'you', 2: 'Ravi', 3: 'Meera' };
 const who = (id: number) => names[id] ?? 'someone';
+const categoryLabel = (key: string | null) =>
+    key === 'eating-out' ? 'Eating out' : 'none';
 
 function line(
     action: string,
@@ -24,6 +26,7 @@ function line(
             can_restore: false,
         },
         who,
+        categoryLabel,
     );
 }
 
@@ -65,6 +68,14 @@ describe('describeActivity', () => {
                 after: { shares: { 3: 100 } },
             }),
         ).toBe('Ravi changed how “Lunch” is split');
+
+        expect(
+            line('expense.updated', {
+                title: 'Lunch',
+                before: { category: null },
+                after: { category: 'eating-out' },
+            }),
+        ).toBe('Ravi changed the category of “Lunch” from none to Eating out');
     });
 
     it('names people, the viewer as you', () => {

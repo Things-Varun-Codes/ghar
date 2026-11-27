@@ -1,6 +1,6 @@
 import { router, usePage } from '@inertiajs/react';
 import { HandCoins, Plus, ReceiptText } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 
 import { useSheetSession } from '@/hooks/use-sheet-session';
 import { formatInstant, formatPlainDate } from '@/lib/dates';
@@ -20,6 +20,8 @@ import MailboxLayout, {
 } from '@/MiniApps/Mailbox/Layouts/MailboxLayout';
 import { describeActivity } from '@/MiniApps/Mailbox/lib/expenseActivity';
 import type { ExpenseActivity } from '@/MiniApps/Mailbox/lib/expenseActivity';
+import { NO_CATEGORY_ICON } from '@/MiniApps/Mailbox/lib/expenseCategories';
+import type { ExpenseCategory } from '@/MiniApps/Mailbox/lib/expenseCategories';
 import { formatMoney } from '@/MiniApps/Mailbox/lib/money';
 import { index, restore } from '@/routes/apps/our-exchange/expenses';
 import { show } from '@/routes/apps/our-exchange/expenses/groups';
@@ -33,7 +35,6 @@ import SegmentedTabs from '@/Shell/Components/SegmentedTabs';
 import SubmitButton from '@/Shell/Components/SubmitButton';
 import { useListNavigation } from '@/Shell/Hooks/useListNavigation';
 import LinkableIcon from '@/Shell/linkables/LinkableIcon';
-import { iconLabel } from '@/Shell/linkables/lucide';
 import type { Paginated } from '@/types/paginated';
 import type { Person } from '@/types/person';
 
@@ -47,6 +48,11 @@ type Props = {
     expenses: Paginated<ExpensePayload>;
     sort: string;
     q: string | null;
+    categories: ExpenseCategory[];
+    /* The keys this group's expenses have: what the filter offers. */
+    used_categories: string[];
+    /* A key, "none" or null for all. */
+    category: string | null;
     /* Minor units: what the group spent, repayments aside, and the viewer's share of it. */
     totals: { spent: number; yours: number };
     /* The fewest payments that settle the group. */
@@ -55,6 +61,8 @@ type Props = {
     activity: ExpenseActivity[] | null;
     focus: number | null;
 };
+
+const ALL = 'all';
 
 const SORT_ITEMS = [
     { key: 'recent', label: 'Newest first' },
@@ -155,6 +163,9 @@ export default function ExpensesGroup({
     expenses,
     sort,
     q,
+    categories,
+    used_categories: usedCategories,
+    category: categoryFilter,
     totals,
     suggestions,
     tab,
@@ -166,6 +177,21 @@ export default function ExpensesGroup({
     const navigation = useListNavigation();
     const adding = useSheetSession<true>();
     const editing = useSheetSession<ExpensePayload>();
+    const categoryHistory = useMemo(
+        () =>
+            expenses.data.flatMap((expense) =>
+                expense.category
+                    ? [
+                          {
+                              title: expense.title,
+                              categoryId: expense.category,
+                              at: Date.parse(expense.created_at),
+                          },
+                      ]
+                    : [],
+            ),
+        [expenses.data],
+    );
     const settling = useSheetSession<ExpensePayment>();
     const [deleting, setDeleting] = useState<ExpensePayload | null>(null);
     const canWrite = group.can.write;
@@ -176,6 +202,8 @@ export default function ExpensesGroup({
             ? 'you'
             : (household.find((person) => person.id === id)?.name ?? 'someone');
     const Who = (id: number) => (id === viewerId ? 'You' : who(id));
+    const categoryLabel = (key: string | null) =>
+        categories.find((item) => item.key === key)?.label ?? 'none';
 
     useEffect(() => {
         if (focus === null) {
@@ -244,7 +272,9 @@ export default function ExpensesGroup({
             );
         }
 
-        const icon = expense.icon ?? 'receipt-text';
+        const category = categories.find(
+            (item) => item.key === expense.category,
+        );
 
         return (
             <article
@@ -255,12 +285,14 @@ export default function ExpensesGroup({
                 <DateStub date={expense.spent_on} today={today} />
                 <span className="mailbox-expense-icon">
                     <LinkableIcon
-                        name={icon}
+                        name={category?.icon ?? NO_CATEGORY_ICON}
                         size={22}
                         aria-hidden="true"
                         strokeWidth={1.5}
                     />
-                    <span className="sr-only">{iconLabel(icon)}: </span>
+                    {category && (
+                        <span className="sr-only">{category.label}: </span>
+                    )}
                 </span>
                 <div className="mailbox-expense-item-main">
                     {canWrite ? (
@@ -455,6 +487,29 @@ export default function ExpensesGroup({
                         query={q ?? ''}
                         searchPlaceholder="Search expenses"
                         onSearch={(value) => navigation.navigate({ q: value })}
+                        filter={categoryFilter ?? ALL}
+                        filterLabel="Category"
+                        filterItems={
+                            usedCategories.length > 0
+                                ? [
+                                      { key: ALL, label: 'All categories' },
+                                      ...categories
+                                          .filter((item) =>
+                                              usedCategories.includes(item.key),
+                                          )
+                                          .map(({ key, label }) => ({
+                                              key,
+                                              label,
+                                          })),
+                                      { key: 'none', label: 'No category' },
+                                  ]
+                                : undefined
+                        }
+                        onFilterSelect={(key) =>
+                            navigation.navigate({
+                                category: key === ALL ? undefined : key,
+                            })
+                        }
                     />
                 ) : null}
 
@@ -467,15 +522,23 @@ export default function ExpensesGroup({
                         noMatchesNoun="expenses"
                         noMatchesBody="Try another word, or clear the search to see everything."
                         empty={
-                            <EmptyState
-                                icon={ReceiptText}
-                                title="Nothing to split yet."
-                                body={
-                                    canWrite
-                                        ? 'Tap the plus button to add the first expense.'
-                                        : undefined
-                                }
-                            />
+                            categoryFilter !== null ? (
+                                <EmptyState
+                                    icon={ReceiptText}
+                                    title="Nothing here in this category."
+                                    body="Choose All categories to see every expense."
+                                />
+                            ) : (
+                                <EmptyState
+                                    icon={ReceiptText}
+                                    title="Nothing to split yet."
+                                    body={
+                                        canWrite
+                                            ? 'Tap the plus button to add the first expense.'
+                                            : undefined
+                                    }
+                                />
+                            )
                         }
                         renderItem={renderExpense}
                         listClassName="mailbox-feed mailbox-expense-feed"
@@ -487,7 +550,11 @@ export default function ExpensesGroup({
                                 <PersonAvatar person={entry.actor} size={32} />
                                 <div className="mailbox-expense-row-main">
                                     <p className="m-0">
-                                        {describeActivity(entry, who)}
+                                        {describeActivity(
+                                            entry,
+                                            who,
+                                            categoryLabel,
+                                        )}
                                     </p>
                                     <p className="mailbox-expense-meta m-0">
                                         {formatInstant(entry.at, {
@@ -520,6 +587,8 @@ export default function ExpensesGroup({
                     groupId={group.id}
                     members={members}
                     viewerId={viewerId}
+                    categories={categories}
+                    categoryHistory={categoryHistory}
                 />
             )}
 
@@ -531,6 +600,7 @@ export default function ExpensesGroup({
                     groupId={group.id}
                     members={members}
                     viewerId={viewerId}
+                    categories={categories}
                     expense={editing.value}
                 />
             )}

@@ -19,7 +19,7 @@ type Snapshot = {
     spent_on: string;
     paid_by_id: number;
     split_mode: string;
-    icon: string | null;
+    category: string | null;
 };
 
 const list = new Intl.ListFormat('en', { type: 'conjunction' });
@@ -29,6 +29,7 @@ function changes(
     before: Partial<Snapshot>,
     after: Partial<Snapshot> & { shares?: unknown },
     who: (id: number) => string,
+    categoryLabel: (key: string | null) => string,
 ): string {
     const named = `“${title}”`;
     const parts: string[] = [];
@@ -55,8 +56,10 @@ function changes(
         );
     }
 
-    if (after.icon !== undefined) {
-        parts.push(`changed the icon of ${named}`);
+    if (after.category !== undefined) {
+        parts.push(
+            `changed the category of ${named} from ${categoryLabel(before.category ?? null)} to ${categoryLabel(after.category)}`,
+        );
     }
 
     // A new total moves every share with it: only a split changed on its own is news.
@@ -72,11 +75,12 @@ function changes(
 
 /*
  * One line of a group's activity as a sentence. `who` names a person mid-sentence: "you" for
- * the viewer, a first name for anyone else.
+ * the viewer, a first name for anyone else. `categoryLabel` names a category key, or none.
  */
 export function describeActivity(
     activity: ExpenseActivity,
     who: (id: number) => string,
+    categoryLabel: (key: string | null) => string,
 ): string {
     const data = (activity.data ?? {}) as Record<string, never>;
     const expense = `“${data.title}” (${formatMoney(data.amount ?? 0)})`;
@@ -112,7 +116,13 @@ export function describeActivity(
             case 'expense.restored':
                 return `restored ${expense}`;
             case 'expense.updated':
-                return changes(data.title, data.before, data.after, who);
+                return changes(
+                    data.title,
+                    data.before,
+                    data.after,
+                    who,
+                    categoryLabel,
+                );
             case 'settlement.recorded':
                 return activity.actor.id === data.from_id
                     ? `recorded paying ${who(data.to_id)} ${formatMoney(data.amount ?? 0)}`

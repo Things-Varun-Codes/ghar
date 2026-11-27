@@ -251,6 +251,23 @@ class DevDataSeederTest extends TestCase
         // 10000 between three leaves one paisa over.
         $this->assertSame([3333, 3333, 3334], Expense::where('title', 'Auto to the station')->sole()->shares->pluck('amount')->sort()->values()->all());
 
+        // Housewarming is active and settled: Meera recorded part of what she owed from the group,
+        // then settled up with Asha from the Expenses page, which paid the rest there and in General.
+        $house = ExpenseGroup::query()->where('name', 'Housewarming')->sole();
+        $this->assertNull($house->archived_at);
+        $this->assertSame([], array_filter(ExpenseBalances::netsIn($house)));
+        $this->assertArrayNotHasKey($admin->id, ExpenseBalances::overview($meera));
+        $repayments = Expense::query()->where('is_settlement', true)->where('paid_by_id', $meera->id)->orderBy('id')->get();
+        $this->assertSame(
+            [[$house->id, 100000], [$general->id, 23334], [$house->id, 255000]],
+            $repayments->map(fn (Expense $payment): array => [$payment->group_id, $payment->amount])->all(),
+        );
+        $this->assertSame(1, $repayments->skip(1)->pluck('spent_on')->map->toDateString()->unique()->count(), 'one settle-up, one day');
+        $this->assertEqualsCanonicalizing(
+            ['groceries', 'taxis', 'stays', 'eating-out', 'gifts', 'furniture', 'internet', 'gas'],
+            Expense::withTrashed()->whereNotNull('category')->distinct()->pluck('category')->map->value->all(),
+        );
+
         // Nisha is a former member: no role, and Ravi still owes her for the farewell dinner.
         $this->assertTrue($nisha->isFormer());
         $this->assertSame([], $nisha->getRoleNames()->all());

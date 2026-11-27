@@ -2,6 +2,7 @@
 
 namespace App\MiniApps\Mailbox\Models;
 
+use App\MiniApps\Mailbox\Support\ExpenseCategory;
 use App\Shell\Models\User;
 use Carbon\CarbonImmutable;
 use Database\Factories\ExpenseFactory;
@@ -28,7 +29,7 @@ use Illuminate\Support\Facades\DB;
  * @property int $amount
  * @property CarbonImmutable $spent_on
  * @property string $split_mode
- * @property string|null $icon
+ * @property ExpenseCategory|null $category
  * @property bool $is_settlement
  * @property CarbonImmutable|null $deleted_at
  * @property int|null $deleted_by_id
@@ -36,7 +37,7 @@ use Illuminate\Support\Facades\DB;
  * @property-read ExpenseGroup $group
  * @property-read Collection<int, ExpenseShare> $shares
  */
-#[Fillable(['title', 'amount', 'spent_on', 'split_mode', 'paid_by_id', 'icon'])]
+#[Fillable(['title', 'amount', 'spent_on', 'split_mode', 'paid_by_id', 'category'])]
 class Expense extends Model
 {
     use HasFactory;
@@ -63,6 +64,7 @@ class Expense extends Model
             'amount' => 'integer',
             'spent_on' => 'immutable_date',
             'is_settlement' => 'boolean',
+            'category' => ExpenseCategory::class,
             'deleted_at' => 'immutable_datetime',
             'created_at' => 'immutable_datetime',
         ];

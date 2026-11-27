@@ -9,15 +9,14 @@ use App\MiniApps\Mailbox\Models\ExpenseActivity;
 use App\MiniApps\Mailbox\Models\ExpenseGroup;
 use App\MiniApps\Mailbox\Models\ExpenseShare;
 use App\MiniApps\Mailbox\Support\ExpenseBalances;
+use App\MiniApps\Mailbox\Support\ExpenseCategory;
 use App\MiniApps\Mailbox\Support\ExpenseMath;
 use App\Shell\Models\User;
 use App\Shell\Services\Household;
 use App\Shell\Support\FlashToast;
 use App\Shell\Support\ListPage;
-use App\Shell\Support\LucideIcon;
 use App\Shell\Support\Person;
 use App\Shell\Support\Region;
-use Closure;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
@@ -76,11 +75,22 @@ class ExpensesController
         $everyone = $household->everyone()->orderBy('name')->orderBy('id')->get()
             ->filter(fn (User $person): bool => ! $person->isFormer() || in_array($person->id, $onTheBooks, true))
             ->values();
+        $used = Expense::query()->where('group_id', $group->id)->whereNotNull('category')->distinct()->pluck('category')
+            ->map(fn (ExpenseCategory $category): string => $category->value)->all();
+        // A category, or "none" for the expenses with none: either way, repayments drop out.
+        $category = $request->query('category');
+        $category = $category === 'none' || in_array($category, $used, true) ? $category : null;
+        $expenses = Expense::query()->where('group_id', $group->id)->with('shares')
+            ->when($category === 'none', fn ($query) => $query->whereNull('category')->where('is_settlement', false))
+            ->when($category !== null && $category !== 'none', fn ($query) => $query->where('category', $category));
 
         return Inertia::render('MiniApps/Mailbox/Pages/Expenses/Group', [
-            ...ListPage::make($request, Expense::query()->where('group_id', $group->id)->with('shares'), ListPage::chronological('spent_on'))
+            ...ListPage::make($request, $expenses, ListPage::chronological('spent_on'))
                 ->searchable(['title'])
                 ->props('expenses', 50, fn (Expense $expense): array => app(ExpenseResource::class)($expense)),
+            'categories' => ExpenseCategory::forPage(),
+            'used_categories' => $used,
+            'category' => $category,
             'group' => [
                 ...self::group($group),
                 'can' => self::abilities($group, $nets, $group->expenses()->withTrashed()->exists()),
@@ -259,7 +269,7 @@ class ExpensesController
         ];
     }
 
-    /** @return array{title: string, amount: int, spent_on: string, paid_by_id: int, split_mode: string, icon: string|null, participant_ids: list<int>, shares: array<int, int>} */
+    /** @return array{title: string, amount: int, spent_on: string, paid_by_id: int, split_mode: string, category: string|null, participant_ids: list<int>, shares: array<int, int>} */
     private static function input(Request $request): array
     {
         $data = $request->validate([
@@ -268,11 +278,7 @@ class ExpensesController
             'spent_on' => ['required', 'date_format:Y-m-d', 'before_or_equal:'.Region::today()->toDateString()],
             'paid_by_id' => ['required', 'integer'],
             'split_mode' => ['required', Rule::in([Expense::SPLIT_EQUAL, Expense::SPLIT_EXACT])],
-            'icon' => ['nullable', 'string', 'max:64', function (string $attribute, mixed $value, Closure $fail): void {
-                if (! is_string($value) || ! LucideIcon::isValid($value)) {
-                    $fail('Choose one of the icons.');
-                }
-            }],
+            'category' => ['nullable', Rule::enum(ExpenseCategory::class)],
             'participant_ids' => ['required_if:split_mode,'.Expense::SPLIT_EQUAL, 'nullable', 'array', 'min:1'],
             'participant_ids.*' => ['integer', 'distinct'],
             'shares' => ['required_if:split_mode,'.Expense::SPLIT_EXACT, 'nullable', 'array', 'min:1'],
@@ -297,7 +303,7 @@ class ExpensesController
             'spent_on' => $data['spent_on'],
             'paid_by_id' => (int) $data['paid_by_id'],
             'split_mode' => $data['split_mode'],
-            'icon' => $data['icon'] ?? null,
+            'category' => $data['category'] ?? null,
             'participant_ids' => $exact ? [] : array_values(array_map(intval(...), $data['participant_ids'])),
             'shares' => $shares,
         ];

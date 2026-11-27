@@ -10,6 +10,8 @@ use App\MiniApps\Mailbox\Models\ExpenseGroup;
 use App\MiniApps\Mailbox\Models\MailboxMessage;
 use App\MiniApps\Mailbox\Models\Postcard;
 use App\MiniApps\Mailbox\Models\SavedPrompt;
+use App\MiniApps\Mailbox\Support\ExpenseBalances;
+use App\MiniApps\Mailbox\Support\ExpenseCategory;
 use App\Shell\Models\User;
 use Carbon\CarbonImmutable;
 use Illuminate\Contracts\Filesystem\Filesystem;
@@ -162,7 +164,8 @@ final class MailboxData
     /**
      * Amounts are paise. General: equal and exact splits, one that leaves a remainder, a
      * repayment and a deleted duplicate. Coast trip: Meera owes Ravi. Diwali gifts: settled, then
-     * archived. "School trip fee" has no icon of its own, so it reads as the receipt.
+     * archived. "School trip fee" has no category, so it reads as the receipt. Housewarming is
+     * seeded last, by settleUp().
      */
     private function expenses(Household $h): void
     {
@@ -191,13 +194,13 @@ final class MailboxData
             [$diwali, 'Payment', 30000, $h->kabir, 27, $h->admin, false],
         ];
 
-        $icons = [
-            'Groceries' => 'shopping-basket',
-            'Auto to the station' => 'car-taxi-front',
-            'Groceries (entered twice)' => 'shopping-basket',
-            'Homestay' => 'bed-double',
-            'Fish lunch' => 'utensils-crossed',
-            'Sweets and lamps' => 'gift',
+        $categories = [
+            'Groceries' => ExpenseCategory::Groceries,
+            'Auto to the station' => ExpenseCategory::Taxis,
+            'Groceries (entered twice)' => ExpenseCategory::Groceries,
+            'Homestay' => ExpenseCategory::Stays,
+            'Fish lunch' => ExpenseCategory::EatingOut,
+            'Sweets and lamps' => ExpenseCategory::Gifts,
         ];
 
         foreach ($rows as [$group, $title, $amount, $payer, $days, $split, $deleted]) {
@@ -205,7 +208,7 @@ final class MailboxData
                 'group_id' => $group->id,
                 'paid_by_id' => $payer->id,
                 'title' => $title,
-                'icon' => $icons[$title] ?? null,
+                'category' => $categories[$title] ?? null,
                 'amount' => $amount,
                 'spent_on' => $h->today->subDays($days)->toDateString(),
                 'created_at' => $h->daysAgo($days),
@@ -223,7 +226,7 @@ final class MailboxData
                 'spent_on' => $expense->spent_on->toDateString(),
                 'paid_by_id' => $payer->id,
                 'split_mode' => $expense->split_mode,
-                'icon' => $expense->icon,
+                'category' => $expense->category?->value,
                 'shares' => $expense->shareMap(),
             ];
 
@@ -243,6 +246,67 @@ final class MailboxData
         $diwali->archived_at = $h->daysAgo(26);
         $diwali->save();
         ExpenseActivity::log($diwali->id, $h->admin, 'group.archived');
+    }
+
+    /**
+     * Housewarming (Asha and Meera, active): Asha paid for three things, Meera recorded part of
+     * it from the group, then settled up with Asha from the Expenses page. That last step writes
+     * one repayment in every group where one owes the other, here Housewarming and General, so
+     * it runs after everything else in General is seeded and uses the same balances the page does.
+     */
+    public function settleUp(Household $h): void
+    {
+        $house = ExpenseGroup::factory()->of($h->admin, $h->meera)->create(['name' => 'Housewarming', 'created_at' => $h->daysAgo(10)]);
+        ExpenseActivity::log($house->id, $h->admin, 'group.created', data: ['name' => $house->name, 'member_ids' => $house->memberIds()]);
+
+        foreach ([['Sofa covers', 360000, ExpenseCategory::Furniture, 10], ['Wifi router', 240000, ExpenseCategory::Internet, 9], ['Gas cylinder', 110000, ExpenseCategory::Gas, 8]] as [$title, $amount, $category, $days]) {
+            $expense = Expense::factory()->state([
+                'group_id' => $house->id,
+                'paid_by_id' => $h->admin->id,
+                'title' => $title,
+                'category' => $category,
+                'amount' => $amount,
+                'spent_on' => $h->today->subDays($days)->toDateString(),
+                'created_at' => $h->daysAgo($days),
+            ])->sharedBy($h->admin, $h->meera)->create();
+
+            ExpenseActivity::log($house->id, $h->admin, 'expense.created', $expense->id, [
+                'title' => $title,
+                'amount' => $amount,
+                'spent_on' => $expense->spent_on->toDateString(),
+                'paid_by_id' => $h->admin->id,
+                'split_mode' => $expense->split_mode,
+                'category' => $category->value,
+                'shares' => $expense->shareMap(),
+            ]);
+        }
+
+        // Record payment, from the group's page.
+        $this->repayment($house->id, $h->meera, $h->admin, 100000, $h, 6);
+
+        // Settle up with Asha, from the Expenses page: what ExpenseLedger::settleWith writes.
+        $between = array_filter(
+            ExpenseBalances::paymentsOf($h->meera),
+            fn (array $payment): bool => in_array($h->admin->id, [$payment['from'], $payment['to']], true),
+        );
+
+        foreach ($between as $payment) {
+            $this->repayment($payment['group_id'], User::query()->findOrFail($payment['from']), User::query()->findOrFail($payment['to']), $payment['amount'], $h, 3, $h->meera);
+        }
+    }
+
+    private function repayment(int $groupId, User $from, User $to, int $amount, Household $h, int $days, ?User $actor = null): void
+    {
+        $payment = Expense::factory()->state([
+            'group_id' => $groupId,
+            'paid_by_id' => $from->id,
+            'title' => 'Payment',
+            'amount' => $amount,
+            'spent_on' => $h->today->subDays($days)->toDateString(),
+            'created_at' => $h->daysAgo($days),
+        ])->paidTo($to)->create();
+
+        ExpenseActivity::log($groupId, $actor ?? $from, 'settlement.recorded', $payment->id, ['from_id' => $from->id, 'to_id' => $to->id, 'amount' => $amount]);
     }
 
     /**

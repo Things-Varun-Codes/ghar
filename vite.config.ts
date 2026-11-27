@@ -41,6 +41,28 @@ export default defineConfig(({ command }) => ({
         // smokes and the release image all run it.
         command === 'build' && babel({ presets: [reactCompilerPreset()] }),
         tailwindcss(),
+        // whatcategory's ~400 lazy data chunks are plain data: their maps would be ~55 MB of nothing to debug.
+        {
+            name: 'ghar:no-maps-for-data',
+            generateBundle(_options: unknown, bundle: Record<string, unknown>) {
+                for (const [fileName, output] of Object.entries(bundle)) {
+                    const chunk = output as {
+                        type: string;
+                        moduleIds?: string[];
+                    };
+
+                    if (
+                        chunk.type === 'chunk' &&
+                        chunk.moduleIds?.length &&
+                        chunk.moduleIds.every((id) =>
+                            id.includes('/whatcategory/data/'),
+                        )
+                    ) {
+                        delete bundle[`${fileName}.map`];
+                    }
+                }
+            },
+        },
         wayfinder({
             formVariants: true,
         }),

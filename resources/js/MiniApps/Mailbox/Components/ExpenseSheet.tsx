@@ -1,6 +1,7 @@
 import { useForm, usePage } from '@inertiajs/react';
 import type { FormEvent } from 'react';
 import { useId, useState } from 'react';
+import type { HistoryEntry } from 'whatcategory';
 
 import { FieldError } from '@/components/ui/field';
 import { Input } from '@/components/ui/input';
@@ -9,10 +10,21 @@ import {
     NativeSelectOption,
 } from '@/components/ui/native-select';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+} from '@/components/ui/select';
 import { formSubmitOptions } from '@/lib/mutation';
 import CharCount from '@/MiniApps/Mailbox/Components/CharCount';
 import ExpenseDeleteDialog from '@/MiniApps/Mailbox/Components/ExpenseDeleteDialog';
 import RecipientPicker from '@/MiniApps/Mailbox/Components/RecipientPicker';
+import {
+    NO_CATEGORY_ICON,
+    useSuggestedCategory,
+} from '@/MiniApps/Mailbox/lib/expenseCategories';
+import type { ExpenseCategory } from '@/MiniApps/Mailbox/lib/expenseCategories';
 import {
     formatMoney,
     leftToAssign,
@@ -22,8 +34,8 @@ import {
 import { store, update } from '@/routes/apps/our-exchange/expenses';
 import FormField from '@/Shell/Components/FormField';
 import FormSheet from '@/Shell/Components/FormSheet';
-import IconPicker from '@/Shell/Components/IconPicker';
 import SubmitButton from '@/Shell/Components/SubmitButton';
+import LinkableIcon from '@/Shell/linkables/LinkableIcon';
 import type { Person } from '@/types/person';
 
 type SplitMode = 'equal' | 'exact';
@@ -35,8 +47,8 @@ export type ExpensePayload = {
     amount: number;
     spent_on: string;
     split_mode: SplitMode;
-    /* A lucide icon name; null reads as the receipt. */
-    icon: string | null;
+    /* An ExpenseCategory key; null has none and reads as the receipt. */
+    category: string | null;
     is_settlement: boolean;
     paid_by_id: number;
     shares: { user_id: number; amount: number }[];
@@ -53,6 +65,9 @@ type Props = {
     viewerId: number;
     /* Set to change or delete one. */
     expense?: ExpensePayload;
+    categories: ExpenseCategory[];
+    /* The group's earlier titles and categories, so a new one can repeat them. */
+    categoryHistory?: HistoryEntry[];
 };
 
 type FormShape = {
@@ -61,37 +76,33 @@ type FormShape = {
     spent_on: string;
     paid_by_id: number;
     split_mode: SplitMode;
-    /* Null until someone picks one: the receipt. */
-    icon: string | null;
+    category: string | null;
     participant_ids: number[];
     /* What each person owes in an exact split, as typed, by user id. */
     shares: Record<string, string>;
 };
 
 const TITLE_MAX = 120;
-const DEFAULT_ICON = 'receipt-text';
-/* The picker shows these first, before a search: what a household splits. */
-const EXPENSE_ICONS = [
-    'utensils-crossed',
-    'shopping-basket',
-    'bed-double',
-    'plane',
-    'train-front',
-    'bus',
-    'car-taxi-front',
-    'fuel',
-    'house',
-    'plug-zap',
-    'sofa',
-    'shopping-bag',
-    'ticket',
-    'pill',
-    'gift',
-    DEFAULT_ICON,
-];
+const NO_HISTORY: HistoryEntry[] = [];
+/* The Select's value for no category, which it can't hold as null. */
+const NONE = 'none';
+
+function CategoryChoice({ category }: { category?: ExpenseCategory }) {
+    return (
+        <span className="flex min-w-0 items-center gap-2.5">
+            <LinkableIcon
+                name={category?.icon ?? NO_CATEGORY_ICON}
+                size={18}
+                aria-hidden="true"
+                strokeWidth={1.5}
+            />
+            <span className="truncate">{category?.label ?? 'None'}</span>
+        </span>
+    );
+}
 const SHOWN_FIELDS = [
     'title',
-    'icon',
+    'category',
     'amount',
     'spent_on',
     'paid_by_id',
@@ -116,6 +127,8 @@ export default function ExpenseSheet({
     members: onTheBooks,
     viewerId,
     expense,
+    categories,
+    categoryHistory = NO_HISTORY,
 }: Props) {
     const { today } = usePage().props;
     // A former member can't go on anything new, but stays on an expense they were already on.
@@ -140,7 +153,7 @@ export default function ExpenseSheet({
                 ? viewerId
                 : members[0].id),
         split_mode: expense?.split_mode ?? 'equal',
-        icon: expense?.icon ?? null,
+        category: expense?.category ?? null,
         participant_ids:
             expense?.shares.map((share) => share.user_id) ??
             members.map((member) => member.id),
@@ -153,7 +166,16 @@ export default function ExpenseSheet({
     });
     const { data, setData, processing, errors } = form;
 
-    const icon = data.icon ?? DEFAULT_ICON;
+    // Only a new expense follows its title, until someone picks a category, "None" included.
+    const [picked, setPicked] = useState(Boolean(expense));
+    const suggested = useSuggestedCategory(
+        data.title,
+        categories,
+        categoryHistory,
+        !picked,
+    );
+    const categoryKey = picked ? data.category : suggested;
+    const category = categories.find((item) => item.key === categoryKey);
     const total = parseMoney(data.amount);
     const exact = data.split_mode === 'exact';
     const typed = members.map((member) => data.shares[member.id] ?? '');
@@ -202,8 +224,7 @@ export default function ExpenseSheet({
             spent_on: values.spent_on,
             paid_by_id: values.paid_by_id,
             split_mode: values.split_mode,
-            // Null keeps the receipt without storing it.
-            icon: values.icon,
+            category: categoryKey,
             ...(exact
                 ? {
                       shares: members.flatMap((member, index) =>
@@ -298,18 +319,39 @@ export default function ExpenseSheet({
             </div>
 
             <FormField
-                label="Icon"
-                name="expense-icon"
-                error={errors.icon}
+                label="Category"
+                name="expense-category"
+                error={errors.category}
                 className="mailbox-form-field"
             >
-                <IconPicker
-                    id="expense-icon"
-                    value={icon}
-                    onChange={(picked) => setData('icon', picked)}
-                    suggested={EXPENSE_ICONS}
-                    recentKey="ghar.exchange.recent-expense-icons"
-                />
+                <Select
+                    value={category?.key ?? NONE}
+                    onValueChange={(key) => {
+                        setPicked(true);
+                        setData(
+                            'category',
+                            key === NONE || key === null ? null : key,
+                        );
+                    }}
+                >
+                    <SelectTrigger
+                        id="expense-category"
+                        className="mailbox-field w-full"
+                        aria-invalid={errors.category ? true : undefined}
+                    >
+                        <CategoryChoice category={category} />
+                    </SelectTrigger>
+                    <SelectContent>
+                        <SelectItem value={NONE}>
+                            <CategoryChoice />
+                        </SelectItem>
+                        {categories.map((item) => (
+                            <SelectItem key={item.key} value={item.key}>
+                                <CategoryChoice category={item} />
+                            </SelectItem>
+                        ))}
+                    </SelectContent>
+                </Select>
             </FormField>
 
             <div className="grid grid-cols-[minmax(0,1fr)_minmax(0,1fr)] gap-3">
