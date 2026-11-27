@@ -1690,6 +1690,12 @@
 [data-app='our-exchange'] .mailbox-expense-group .mailbox-expense-row-main {
     display: grid;
 }
+/* A group with no menu (General) keeps its figure in the same column as the ones that have one. */
+[data-app='our-exchange']
+    .mailbox-expense-rows:has(.mailbox-card-menu)
+    .mailbox-expense-group:not(:has(.mailbox-card-menu)) {
+    padding-inline-end: calc(12px + 32px + 12px);
+}
 [data-app='our-exchange'] .mailbox-expense-group-name {
     font-family: var(--mailbox-font-display);
     font-weight: var(--weight-display);

@@ -21,7 +21,27 @@ type SegmentedTabsSharedProps<T extends string> = {
     items: Array<SegmentedTabItem<T>>;
     active: T;
     ariaLabel: string;
+    /**
+     * `tabs`: the page's top tabs, docked under the phone's top bar. `pill`: a filter inside a
+     * tab (Gallery's photo and video icons), so the two levels don't look alike.
+     */
+    look?: 'tabs' | 'pill';
 };
+
+const CLASSES = {
+    tabs: {
+        bar: 'shell-tabbar',
+        item: 'shell-tab shell-focus',
+        mark: 'shell-tab-mark',
+        indicator: 'shell-tab-indicator',
+    },
+    pill: {
+        bar: 'shell-segmented',
+        item: 'shell-segmented-item shell-focus',
+        mark: 'shell-segmented-pill',
+        indicator: 'shell-segmented-indicator',
+    },
+} as const;
 
 type SegmentedTabsNavProps<T extends string> = SegmentedTabsSharedProps<T> & {
     /** Each tab is a page visit, so it is a link with aria-current, not a role=tab. */
@@ -52,7 +72,19 @@ function labelText(item: SegmentedTabItem<string>): string {
         : item.label;
 }
 
-function renderLabel(item: SegmentedTabItem<string>): ReactNode {
+function renderLabel(
+    item: SegmentedTabItem<string>,
+    look: 'tabs' | 'pill',
+): ReactNode {
+    if (look === 'tabs' && item.count !== undefined) {
+        return (
+            <>
+                {item.label}
+                <span className="shell-tab-count">{item.count}</span>
+            </>
+        );
+    }
+
     if (!item.icon) {
         return labelText(item);
     }
@@ -70,31 +102,32 @@ function renderLabel(item: SegmentedTabItem<string>): ReactNode {
 export default function SegmentedTabs<T extends string>(
     props: SegmentedTabsProps<T>,
 ) {
-    const { items, active, ariaLabel } = props;
+    const { items, active, ariaLabel, look = 'tabs' } = props;
+    const css = CLASSES[look];
 
     if (props.mode === 'tablist-client') {
         const { onChange, panelId } = props;
 
         // Arrows move focus and Enter or a click chooses: each choice is a server visit, so
-        // arrowing across must not fire one per key. The pill glides to the chosen tab.
+        // arrowing across must not fire one per key. The mark glides to the chosen tab.
         return (
             <Tabs
                 value={active}
                 onValueChange={(value) => onChange(value as T)}
                 className="contents"
             >
-                <TabsList aria-label={ariaLabel} className="shell-segmented">
+                <TabsList aria-label={ariaLabel} className={css.bar}>
                     {items.map((item) => (
                         <TabsTrigger
                             key={item.key}
                             value={item.key}
                             aria-controls={panelId}
-                            className="shell-segmented-item shell-focus"
+                            className={css.item}
                         >
-                            {renderLabel(item)}
+                            {renderLabel(item, look)}
                         </TabsTrigger>
                     ))}
-                    <TabsIndicator className="shell-segmented-indicator" />
+                    <TabsIndicator className={css.indicator} />
                 </TabsList>
             </Tabs>
         );
@@ -103,7 +136,7 @@ export default function SegmentedTabs<T extends string>(
     const { hrefFor, prefetch = false, keepScroll = false } = props;
 
     return (
-        <nav aria-label={ariaLabel} className="shell-segmented">
+        <nav aria-label={ariaLabel} className={css.bar}>
             {items.map((item) => {
                 const isActive = item.key === active;
 
@@ -116,18 +149,18 @@ export default function SegmentedTabs<T extends string>(
                         preserveState={keepScroll ? false : undefined}
                         aria-current={isActive ? 'page' : undefined}
                         data-active={isActive ? '' : undefined}
-                        className="shell-segmented-item shell-focus"
+                        className={css.item}
                     >
-                        {/* Each tab is a page visit: the shared layoutId glides the pill from the last page's tabs. */}
+                        {/* Each tab is a page visit: the shared layoutId glides the mark from the last page's tabs. */}
                         {isActive && (
                             <Slide
                                 as="span"
                                 layoutId={`segmented-pill:${ariaLabel}`}
                                 resize
-                                className="shell-segmented-pill"
+                                className={css.mark}
                             />
                         )}
-                        {renderLabel(item)}
+                        {renderLabel(item, look)}
                     </Link>
                 );
             })}
