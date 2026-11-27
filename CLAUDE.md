@@ -70,8 +70,8 @@ npm run dev-setup     # fresh clone to seeded environment (safe to re-run; rebui
 npm run dev-reset     # re-seed only: every row back to the known state
 npm run dev-sync      # after a pull or branch switch: services, dependencies, routes, migrations
 npm run dev-up        # dev-sync, then composer dev
-npm run smoke-mcp     # build + serve the seeded data on 127.0.0.1:8000, prints the accounts
-composer dev          # or: server + queue + logs + Vite, also on 127.0.0.1:8000
+npm run smoke-mcp     # build + serve the seeded data on 127.0.0.1:8000 (a worktree: its own port), prints the accounts
+composer dev          # or: server + queue + logs + Vite, on the same port
 ```
 
 Password for every account: `ghar-local-dev`. Mail lands in Mailpit at `http://127.0.0.1:8025`.
@@ -104,7 +104,9 @@ and migrates. If a migration that already ran was edited, it rebuilds the databa
 `bash scripts/worktree-teardown.sh` before removing it). It copies `.env` from the main checkout,
 installs dependencies and builds. A worktree shares the main checkout's Postgres and dev database;
 PHPUnit gets its own database there (`tests/bootstrap.php`), so plain `php artisan test` is safe in
-parallel worktrees. The smoke scripts use fixed ports: one run at a time per machine.
+parallel worktrees. It also gives the worktree its own port (`SERVER_PORT`, 8001–8099, and
+`APP_URL` to match); `smoke-mcp`, `composer dev` and both smokes, with their databases, offset from
+it, so worktrees serve and smoke side by side. Open the URL `smoke-mcp` prints, not a fixed 8000.
 
 ### Constraints
 
@@ -191,11 +193,11 @@ Five tiers; none replaces another. Start with [How to test locally](#how-to-test
   and auth route — `scripts/check-smoke-routes.mjs` fails if a GET route is neither listed nor on
   its skip-list.
 - **Fault-injection smoke — `npm run smoke-loadmore`.** Own `ghar_smoke_loadmore` database (same
-  seed) + `artisan serve` on 8877; forces transport failure and 5xx on the Corner Songs cursor
+  seed) + `artisan serve` on 8877 (a worktree offsets both); forces transport failure and 5xx on the Corner Songs cursor
   request and asserts the inline retry recovers. CI runs it on every pull request; run it locally
   when touching cursor pagination, the list footer or the pagination hook.
 - **Interactive — Playwright MCP.** Start with `npm run smoke-mcp` (rebuilds the bundle, serves the
-  seeded data on `127.0.0.1:8000`; plain `artisan serve` serves a stale `public/build/`). **Required
+  seeded data on `127.0.0.1:8000` or the worktree's own port; plain `artisan serve` serves a stale `public/build/`). **Required
   when** a change touches XHR/fetch/upload/drag-drop/`FormData`, any Base UI portal (Dialog, Drawer,
   Sheet, AlertDialog, Popover, Menu, Select, Tooltip), a dirty-gate or multi-step/close-intent flow, or a new mini-app
   interactive surface.

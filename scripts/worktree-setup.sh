@@ -7,26 +7,34 @@
 # It copies `.env` from the main checkout, installs dependencies and generates
 # the Wayfinder routes. The worktree shares the main checkout's Postgres and dev
 # database; PHPUnit gets a database of its own (tests/bootstrap.php), so test
-# runs in two worktrees don't collide. The smoke scripts use fixed ports and
-# databases: one run at a time per machine.
+# runs in two worktrees don't collide. It also gets its own port (SERVER_PORT),
+# which the smoke runs offset from, so those don't collide either.
 
 set -euo pipefail
 
 cd "$(dirname "${BASH_SOURCE[0]}")/.."
-
-# A machine without Docker can provide its own setup (one database per worktree); use it.
-if command -v ghar-setup >/dev/null; then exec ghar-setup "$@"; fi
-
 source scripts/lib/services.sh
 
 main="$(main_checkout)"
 [ -n "$main" ] || { echo "error: this is the main checkout, not a worktree. Use \`npm run dev-setup\`." >&2; exit 1; }
+
+# A machine without Docker can provide its own setup (one database per worktree); use it.
+if command -v ghar-setup >/dev/null; then
+  ghar-setup "$@"
+  assign_port
+  printf '\nServes on %s.\n' "$(get_env APP_URL)"
+  exit 0
+fi
 
 if [ ! -f .env ]; then
   [ -f "$main/.env" ] || { echo "error: $main has no .env. Run \`npm run dev-setup\` there first." >&2; exit 1; }
   step "Copying .env from $main"
   cp "$main/.env" .env
 fi
+
+step "Choosing this worktree's port"
+assign_port
+echo "    $(get_env APP_URL)"
 
 step "Starting Postgres and Mailpit"
 ensure_services
@@ -50,4 +58,4 @@ php artisan wayfinder:generate --with-form --quiet
 step "Building the frontend"
 npm run build
 
-printf '\nReady. Tests: php artisan test. The dev database is shared with %s.\n' "$main"
+printf '\nReady on %s. Tests: php artisan test. The dev database is shared with %s.\n' "$(get_env APP_URL)" "$main"

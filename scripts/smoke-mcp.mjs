@@ -1,5 +1,5 @@
 /**
- * Serves the sample household on 127.0.0.1:8000 from a fresh production
+ * Serves the sample household on this checkout's port (8000, or a worktree's own) from a fresh production
  * bundle, for interactive browser testing. Uses the developer's local database;
  * seeds it only if it has never been seeded, and never wipes existing data
  * (`npm run dev-reset` does that).
@@ -7,7 +7,10 @@
 
 import { spawn, spawnSync } from 'node:child_process';
 
+import { portOffset } from './lib/checkout-port.mjs';
 import { DEV_ACCOUNTS, printDevCredentials } from './lib/dev-data.mjs';
+
+const port = 8000 + portOffset(process.cwd());
 
 function run(cmd, args, options = {}) {
     return spawnSync(cmd, args, { encoding: 'utf8', ...options });
@@ -56,11 +59,11 @@ if (state === 'empty') {
 }
 
 printDevCredentials();
-console.log('  Open http://127.0.0.1:8000  (Ctrl-C to stop)\n');
+console.log(`  Open http://127.0.0.1:${port}  (Ctrl-C to stop)\n`);
 
 const serve = spawn(
     'php',
-    ['artisan', 'serve', '--host=127.0.0.1', '--port=8000'],
+    ['artisan', 'serve', '--host=127.0.0.1', `--port=${port}`],
     { stdio: 'inherit' },
 );
 

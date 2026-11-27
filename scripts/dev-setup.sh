@@ -56,25 +56,6 @@ fi
 echo "    all present"
 
 # ─── .env ───────────────────────────────────────────────────────────────
-# set_env KEY VALUE replaces a `KEY=` line, or appends one. No `sed -i`, whose
-# flags differ between macOS and Linux.
-set_env() {
-  local tmp
-  tmp="$(mktemp)"
-  if grep -q "^$1=" .env; then
-    while IFS= read -r line || [ -n "$line" ]; do
-      case "$line" in
-        "$1="*) printf '%s\n' "$1=$2" ;;
-        *) printf '%s\n' "$line" ;;
-      esac
-    done < .env > "$tmp"
-    mv "$tmp" .env
-  else
-    rm -f "$tmp"
-    printf '%s=%s\n' "$1" "$2" >> .env
-  fi
-}
-
 # An override given once is remembered in .env (below), where Compose reads it.
 DB_PORT_WANTED="${GHAR_DB_PORT:-$(get_env GHAR_DB_PORT)}"
 DB_PORT_WANTED="${DB_PORT_WANTED:-5432}"
