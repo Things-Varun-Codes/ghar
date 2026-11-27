@@ -736,6 +736,54 @@
     border-radius: var(--radius-pill);
 }
 
+/* On opening, the rail draws down half a screen (about what shows below the header) while the
+   first rows settle, then unclips. */
+[data-app='our-history'] .history-rail-line--draw {
+    animation: history-rail-draw calc(var(--dur-card) + 7 * var(--dur-stagger))
+        var(--ease-ui);
+}
+
+@keyframes history-rail-draw {
+    from {
+        clip-path: inset(0 0 100% 0);
+    }
+    to {
+        clip-path: inset(0 0 calc(100% - 50vh) 0);
+    }
+}
+
+/* Over the rail, inside a year's section; left is the rail's offset less the wrapper's padding. */
+[data-app='our-history'] .history-rail-fill {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: -29px;
+    width: 2px;
+    background-color: var(--history-accent-ink);
+    border-radius: var(--radius-pill);
+}
+
+@variant md {
+    [data-app='our-history'] .history-rail-fill {
+        left: -48px;
+    }
+}
+
+/* A marker scales onto the rail a beat after its row starts rising (SettleItem sets both). */
+[data-app='our-history']
+    [data-settle='in']
+    :is(.history-timeline-marker, .history-timeline-face) {
+    animation: history-marker-in var(--dur-card) var(--ease-ui)
+        calc(var(--settle-delay, 0s) + var(--dur-stagger)) both;
+}
+
+@keyframes history-marker-in {
+    from {
+        opacity: 0;
+        scale: 0.4;
+    }
+}
+
 /* Compact: a dateline, the title, one line of the story and quiet counts, so a screen holds many. */
 [data-app='our-history'] .history-event-card {
     position: relative;
@@ -757,7 +805,9 @@
     border: 4px solid var(--history-bg);
     box-shadow: none;
     flex-shrink: 0;
-    transition: transform var(--dur-card) var(--ease-ui);
+    transition:
+        transform var(--dur-card) var(--ease-ui),
+        background-color var(--dur-card) var(--ease-ui);
 }
 
 @variant md {
@@ -782,6 +832,9 @@
     line-height: 0;
     border-radius: 50%;
     box-shadow: 0 0 0 4px var(--history-bg);
+    transition:
+        transform var(--dur-card) var(--ease-ui),
+        box-shadow var(--dur-card) var(--ease-ui);
 }
 
 [data-app='our-history'] .history-moment-head {
@@ -887,12 +940,22 @@
     color: var(--history-ink-soft);
 }
 
-/* A card that opens the moment lifts (.shell-lift); its dot stays on the rail. */
+/* A card that opens the moment lifts (.shell-lift); its marker stays on the rail and answers it. */
 @media (hover: hover) and (pointer: fine) {
     [data-app='our-history']
         .history-event-card.shell-card-stretch:hover
         .history-timeline-marker {
-        transform: translateY(2px);
+        transform: translateY(2px) scale(1.3);
+        background-color: var(--history-accent);
+    }
+
+    [data-app='our-history']
+        .history-event-card.shell-card-stretch:hover
+        .history-timeline-face {
+        transform: translateY(2px) scale(1.08);
+        box-shadow:
+            0 0 0 4px var(--history-bg),
+            0 0 0 6px var(--history-accent);
     }
 }
 
@@ -2416,6 +2479,7 @@
             .tiptap-toolbar-btn,
             .history-cal-cell--event,
             .history-timeline-marker,
+            .history-timeline-face,
             .history-media-remove-dot
         ),
     [data-app='our-history']

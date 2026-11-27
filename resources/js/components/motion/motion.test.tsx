@@ -38,11 +38,11 @@ function visit(href: string, extra: Record<string, unknown> = {}) {
     );
 }
 
-function List({ count }: { count: number }) {
+function List({ count, reveal }: { count: number; reveal?: boolean }) {
     return (
         <Settle>
             {Array.from({ length: count }, (_, i) => (
-                <SettleItem key={i} index={i}>
+                <SettleItem key={i} index={i} reveal={reveal}>
                     <span>row {i}</span>
                 </SettleItem>
             ))}
@@ -104,6 +104,57 @@ describe('Settle', () => {
         render(<List count={2} />);
 
         expect(settling()).toEqual(['-', '-']);
+    });
+});
+
+describe('Settle with reveal', () => {
+    const watched: Element[] = [];
+    let report: IntersectionObserverCallback = () => {};
+
+    beforeEach(() => {
+        visit('/somewhere-else');
+        watched.length = 0;
+        vi.stubGlobal(
+            'IntersectionObserver',
+            class {
+                constructor(callback: IntersectionObserverCallback) {
+                    report = callback;
+                }
+                observe(el: Element) {
+                    watched.push(el);
+                }
+                unobserve() {}
+                disconnect() {}
+            },
+        );
+    });
+
+    const enterView = (i: number) =>
+        act(() =>
+            report(
+                [{ target: watched[i], isIntersecting: true } as never],
+                {} as never,
+            ),
+        );
+
+    it('rises each row in as it enters the view, later rows too', () => {
+        const { rerender } = render(<List count={2} reveal />);
+        rerender(<List count={3} reveal />);
+
+        expect(settling()).toEqual(['-', '-', '-']);
+
+        enterView(0);
+        enterView(2);
+
+        expect(settling()).toEqual(['in', '-', 'in']);
+    });
+
+    it('shows a restored page in place', () => {
+        window.dispatchEvent(new PopStateEvent('popstate'));
+        render(<List count={2} reveal />);
+
+        expect(settling()).toEqual(['-', '-']);
+        expect(watched).toHaveLength(0);
     });
 });
 
