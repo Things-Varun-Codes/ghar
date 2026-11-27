@@ -20,7 +20,8 @@ export type ListNavBandProps = {
     count?: ReactNode;
     /**
      * Already delay-gated (~250ms) pending flag from
-     * `useListNavigation`. Renders the shared spinner beside the count.
+     * `useListNavigation`. Renders the shared spinner beside the count, or in place of the
+     * search icon when there is no count.
      * The band owns no timer — do not introduce a second one.
      */
     navigating?: boolean;
@@ -95,7 +96,15 @@ export default function ListNavBand({
         searchPlaceholder !== undefined ? (
             <InputGroup className="list-nav-band-search shell-list-search-group">
                 <InputGroupAddon className="shell-list-search-icon">
-                    <Search aria-hidden="true" size={16} strokeWidth={1.5} />
+                    {navigating && count === undefined ? (
+                        <Spinner className="size-4 text-(--shell-text-muted)" />
+                    ) : (
+                        <Search
+                            aria-hidden="true"
+                            size={16}
+                            strokeWidth={1.5}
+                        />
+                    )}
                 </InputGroupAddon>
                 <InputGroupInput
                     ref={searchInput}
@@ -162,12 +171,14 @@ export default function ListNavBand({
                     // count's own geometry never shifts as `navigating`
                     // toggles. Toolbar's left slot is already a block-level
                     // div, so this inline-flex span changes no band layout.
-                    <span className="inline-flex items-center gap-1.5">
-                        {count ?? null}
-                        {navigating && (
-                            <Spinner className="size-3.5 text-(--shell-text-muted)" />
-                        )}
-                    </span>
+                    count !== undefined || searchNode === null ? (
+                        <span className="inline-flex items-center gap-1.5">
+                            {count ?? null}
+                            {navigating && (
+                                <Spinner className="size-3.5 text-(--shell-text-muted)" />
+                            )}
+                        </span>
+                    ) : null
                 }
                 controls={
                     searchNode || filterNode || sortNode ? (

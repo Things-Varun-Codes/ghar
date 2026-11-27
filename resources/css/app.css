@@ -2637,6 +2637,7 @@ nav.shell-segmented .shell-segmented-item {
     .shell-tabbar {
         /* Not static: the client tabs' indicator is placed against the bar. */
         position: relative;
+        top: auto; /* the phone's sticky offset would shift it down */
         gap: 8px;
         margin: 0 0 24px;
         padding: 0;

@@ -17,12 +17,20 @@ type Tab = 'received' | 'sent';
 type Props = {
     messages: Paginated<MessageItem>;
     tab: Tab;
+    tabCounts: Record<Tab, number>;
     sort: 'recent' | 'oldest';
     q: string | null;
     members: HouseholdMember[];
 };
 
-export default function Messages({ messages, tab, sort, q, members }: Props) {
+export default function Messages({
+    messages,
+    tab,
+    tabCounts,
+    sort,
+    q,
+    members,
+}: Props) {
     const [composerOpen, setComposerOpen] = useState(false);
 
     const handleDelete = (id: number) => {
@@ -51,8 +59,8 @@ export default function Messages({ messages, tab, sort, q, members }: Props) {
             <MailboxListPage
                 pageTitle="Notes"
                 paginator={messages}
-                countAll={messages.counts?.all ?? messages.data.length}
-                countNoun={{ one: 'note', other: 'notes' }}
+                tabCounts={tabCounts}
+                noun="notes"
                 propName="messages"
                 tab={tab}
                 tabsAriaLabel="Notes tabs"

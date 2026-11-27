@@ -2,7 +2,8 @@ import type { ReactNode } from 'react';
 import { useEffect, useRef } from 'react';
 
 type ToolbarProps = {
-    count: ReactNode;
+    /* Left out, the controls have the band to themselves (no empty row above them on a phone). */
+    count?: ReactNode;
     controls: ReactNode;
     sticky?: boolean;
     heightVar?: string;
@@ -58,7 +59,7 @@ export default function Toolbar({
                 ...(sticky ? {} : { position: 'static' }),
             }}
         >
-            <div>{count}</div>
+            {count != null && <div>{count}</div>}
             <div>{controls}</div>
         </div>
     );

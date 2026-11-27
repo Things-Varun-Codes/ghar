@@ -21,6 +21,7 @@ type Tab = 'received' | 'sent';
 type Props = {
     postcards: Paginated<PostcardItem>;
     tab: Tab;
+    tabCounts: Record<Tab, number>;
     presets: Preset[];
     savedPrompts: SavedPrompt[];
     sort: 'recent' | 'oldest';
@@ -31,6 +32,7 @@ type Props = {
 export default function Postcards({
     postcards,
     tab,
+    tabCounts,
     presets,
     savedPrompts,
     sort,
@@ -65,8 +67,8 @@ export default function Postcards({
             <MailboxListPage
                 pageTitle="Postcards"
                 paginator={postcards}
-                countAll={postcards.counts?.all ?? postcards.data.length}
-                countNoun={{ one: 'postcard', other: 'postcards' }}
+                tabCounts={tabCounts}
+                noun="postcards"
                 propName="postcards"
                 tab={tab}
                 tabsAriaLabel="Postcards tabs"

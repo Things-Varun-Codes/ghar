@@ -23,20 +23,18 @@ class CitationsController
         $viewer = $request->user();
 
         $tab = $request->query('tab') === 'issued' ? 'issued' : 'received';
+        $tabs = [
+            'received' => Citation::query()->receivedBy($viewer),
+            'issued' => Citation::query()->issuedBy($viewer),
+        ];
 
-        $base = Citation::query()->with(['issuer', 'recipient']);
-
-        if ($tab === 'issued') {
-            $base->issuedBy($viewer);
-        } else {
-            $base->receivedBy($viewer);
-        }
+        $list = ListPage::make($request, (clone $tabs[$tab])->with(['issuer', 'recipient']), ListPage::chronological('issued_at'))
+            ->searchable(['offence', 'penalty', 'incident_place', 'remarks']);
 
         return Inertia::render('MiniApps/Mailbox/Pages/Citations/Index', [
-            ...ListPage::make($request, $base, ListPage::chronological('issued_at'))
-                ->searchable(['offence', 'penalty', 'incident_place', 'remarks'])
-                ->props('citations', 50, fn (Citation $c) => app(CitationResource::class)($c)),
+            ...$list->props('citations', 50, fn (Citation $c) => app(CitationResource::class)($c)),
             'tab' => $tab,
+            'tabCounts' => array_map(fn ($query): int => $list->countOf($query), $tabs),
             'members' => $household->optionsFor($viewer),
         ]);
     }
