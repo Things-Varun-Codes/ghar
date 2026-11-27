@@ -20,26 +20,6 @@ export const GAP = 4;
 export const ROW_HEIGHT = CELL + GAP;
 export const HEADING_HEIGHT = 32;
 
-/* Shown first, before anything has been chosen: the household kinds of thing a list holds. */
-export const SUGGESTED = [
-    'bookmark',
-    'music',
-    'film',
-    'book-open',
-    'utensils',
-    'chef-hat',
-    'map-pin',
-    'plane',
-    'tent',
-    'dices',
-    'gamepad-2',
-    'gift',
-    'heart',
-    'star',
-    'shopping-bag',
-    'sprout',
-];
-
 export function columnsFor(width: number): number {
     return Math.max(4, Math.floor((width + GAP) / ROW_HEIGHT));
 }
@@ -216,14 +196,12 @@ export function sectionAt(rows: Row[], scrollTop: number): Section | null {
     return current ?? rows[0]?.section ?? null;
 }
 
-const RECENT_KEY = 'ghar.corner.recent-icons';
 const RECENT_MAX = 8;
 
-export function recentIcons(): string[] {
+/* Each caller keeps its own recent icons under its own storage key. */
+export function recentIcons(key: string): string[] {
     try {
-        const stored = JSON.parse(
-            window.localStorage.getItem(RECENT_KEY) ?? '[]',
-        );
+        const stored = JSON.parse(window.localStorage.getItem(key) ?? '[]');
 
         return Array.isArray(stored)
             ? stored.filter((v) => typeof v === 'string').slice(0, RECENT_MAX)
@@ -234,13 +212,13 @@ export function recentIcons(): string[] {
     }
 }
 
-export function rememberIcon(name: string): void {
+export function rememberIcon(key: string, name: string): void {
     try {
-        const next = [name, ...recentIcons().filter((n) => n !== name)].slice(
-            0,
-            RECENT_MAX,
-        );
-        window.localStorage.setItem(RECENT_KEY, JSON.stringify(next));
+        const next = [
+            name,
+            ...recentIcons(key).filter((n) => n !== name),
+        ].slice(0, RECENT_MAX);
+        window.localStorage.setItem(key, JSON.stringify(next));
         // eslint-disable-next-line local/no-silent-error -- storage can be full or blocked; remembering is a nicety.
     } catch {
         // Nothing to do.

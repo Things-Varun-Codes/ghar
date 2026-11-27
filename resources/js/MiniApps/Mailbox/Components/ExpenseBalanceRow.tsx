@@ -42,11 +42,21 @@ export default function ExpenseBalanceRow({ person, net }: ExpenseBalance) {
         <li className="mailbox-expense-row">
             <PersonAvatar person={person} size={32} />
             <span className="mailbox-expense-row-main">
-                {net === 0
-                    ? `You and ${person.name} are even overall, with balances open in your groups`
-                    : owed
-                      ? `${person.name} owes you ${amount}`
-                      : `You owe ${person.name} ${amount}`}
+                {net === 0 ? (
+                    `You and ${person.name} are even overall, with balances open in your groups`
+                ) : (
+                    <>
+                        {owed
+                            ? `${person.name} owes you`
+                            : `You owe ${person.name}`}{' '}
+                        <strong
+                            className="mailbox-expense-amount"
+                            data-direction={owed ? 'in' : 'out'}
+                        >
+                            {amount}
+                        </strong>
+                    </>
+                )}
             </span>
             <SubmitButton
                 type="button"

@@ -28,6 +28,7 @@ use Illuminate\Support\Facades\DB;
  * @property int $amount
  * @property CarbonImmutable $spent_on
  * @property string $split_mode
+ * @property string|null $icon
  * @property bool $is_settlement
  * @property CarbonImmutable|null $deleted_at
  * @property int|null $deleted_by_id
@@ -35,7 +36,7 @@ use Illuminate\Support\Facades\DB;
  * @property-read ExpenseGroup $group
  * @property-read Collection<int, ExpenseShare> $shares
  */
-#[Fillable(['title', 'amount', 'spent_on', 'split_mode', 'paid_by_id'])]
+#[Fillable(['title', 'amount', 'spent_on', 'split_mode', 'paid_by_id', 'icon'])]
 class Expense extends Model
 {
     use HasFactory;

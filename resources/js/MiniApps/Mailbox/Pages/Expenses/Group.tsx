@@ -1,5 +1,5 @@
 import { router, usePage } from '@inertiajs/react';
-import { Plus, ReceiptText } from 'lucide-react';
+import { HandCoins, Plus, ReceiptText } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
 import { useSheetSession } from '@/hooks/use-sheet-session';
@@ -33,6 +33,8 @@ import PersonAvatar from '@/Shell/Components/PersonAvatar';
 import SegmentedTabs from '@/Shell/Components/SegmentedTabs';
 import SubmitButton from '@/Shell/Components/SubmitButton';
 import { useListNavigation } from '@/Shell/Hooks/useListNavigation';
+import LinkableIcon from '@/Shell/linkables/LinkableIcon';
+import { iconLabel } from '@/Shell/linkables/lucide';
 import type { Paginated } from '@/types/paginated';
 import type { Person } from '@/types/person';
 
@@ -46,6 +48,8 @@ type Props = {
     expenses: Paginated<ExpensePayload>;
     sort: string;
     q: string | null;
+    /* Minor units: what the group spent, repayments aside, and the viewer's share of it. */
+    totals: { spent: number; yours: number };
     /* The fewest payments that settle the group. */
     suggestions: ExpensePayment[];
     tab: Tab;
@@ -59,17 +63,59 @@ const SORT_ITEMS = [
 ];
 
 /* What the expense means for the viewer, in words: a signed figure never rests on colour. */
-function viewerStake(expense: ExpensePayload, viewerId: number): string {
+function ViewerStake({
+    expense,
+    viewerId,
+}: {
+    expense: ExpensePayload;
+    viewerId: number;
+}) {
     const own =
         expense.shares.find((share) => share.user_id === viewerId)?.amount ?? 0;
+    const lent = expense.paid_by_id === viewerId ? expense.amount - own : 0;
+    const [label, amount, direction] =
+        expense.paid_by_id === viewerId
+            ? lent > 0
+                ? ['you lent', lent, 'in']
+                : ['all yours', 0, null]
+            : own > 0
+              ? ['you owe', own, 'out']
+              : ['not involved', 0, null];
 
-    if (expense.paid_by_id === viewerId) {
-        return expense.amount > own
-            ? `you lent ${formatMoney(expense.amount - own)}`
-            : 'all yours';
-    }
+    return (
+        <span className="mailbox-expense-figure">
+            {label}
+            {direction && (
+                <>
+                    {' '}
+                    <strong
+                        className="mailbox-expense-amount"
+                        data-direction={direction}
+                    >
+                        {formatMoney(amount)}
+                    </strong>
+                </>
+            )}
+        </span>
+    );
+}
 
-    return own > 0 ? `you owe ${formatMoney(own)}` : 'not involved';
+/* A ledger's date column: the month over the day, the year only when it isn't this one. */
+function DateStub({ date, today }: { date: string; today: string }) {
+    const thisYear = date.slice(0, 4) === today.slice(0, 4);
+
+    return (
+        <span className="mailbox-expense-date" aria-hidden="true">
+            {formatPlainDate(date, {
+                intl: thisYear
+                    ? { month: 'short' }
+                    : { month: 'short', year: '2-digit' },
+            })}
+            <span className="mailbox-expense-date-day">
+                {formatPlainDate(date, { intl: { day: 'numeric' } })}
+            </span>
+        </span>
+    );
 }
 
 function RestoreButton({ expenseId }: { expenseId: number }) {
@@ -110,12 +156,14 @@ export default function ExpensesGroup({
     expenses,
     sort,
     q,
+    totals,
     suggestions,
     tab,
     activity,
     focus,
 }: Props) {
-    const viewerId = usePage().props.auth.user?.id ?? 0;
+    const { auth, today } = usePage().props;
+    const viewerId = auth.user?.id ?? 0;
     const navigation = useListNavigation();
     const adding = useSheetSession<true>();
     const editing = useSheetSession<ExpensePayload>();
@@ -152,7 +200,7 @@ export default function ExpensesGroup({
 
     const renderExpense = (expense: ExpensePayload) => {
         const rowClass = cn(
-            'mailbox-card mailbox-expense-item shell-card-stretch',
+            'mailbox-expense-item shell-card-stretch',
             expense.id === focus && 'focused',
         );
         const date = formatPlainDate(expense.spent_on);
@@ -166,10 +214,18 @@ export default function ExpensesGroup({
                     tabIndex={-1}
                     className={cn(rowClass, 'mailbox-expense-item--payment')}
                 >
+                    <DateStub date={expense.spent_on} today={today} />
+                    <span className="mailbox-expense-icon">
+                        <HandCoins aria-hidden="true" strokeWidth={1.5} />
+                    </span>
                     <div className="mailbox-expense-item-main">
                         <span>{line}</span>
                         <span className="mailbox-expense-meta">
-                            Payment · {date}
+                            Repayment
+                            <span className="mailbox-expense-meta-date">
+                                {' '}
+                                · {date}
+                            </span>
                         </span>
                     </div>
                     {canWrite && (
@@ -180,7 +236,7 @@ export default function ExpensesGroup({
                             busyText="Deleting…"
                             onClick={() => setDeleting(expense)}
                             aria-label={`Delete payment: ${line}`}
-                            className="mailbox-btn-neutral mailbox-btn-danger"
+                            className="mailbox-expense-item-action mailbox-btn-neutral mailbox-btn-danger"
                         >
                             Delete
                         </SubmitButton>
@@ -189,12 +245,24 @@ export default function ExpensesGroup({
             );
         }
 
+        const icon = expense.icon ?? 'receipt-text';
+
         return (
             <article
                 id={`mailbox-expense-${expense.id}`}
                 tabIndex={-1}
-                className={cn(rowClass, canWrite && 'shell-lift')}
+                className={rowClass}
             >
+                <DateStub date={expense.spent_on} today={today} />
+                <span className="mailbox-expense-icon">
+                    <LinkableIcon
+                        name={icon}
+                        size={22}
+                        aria-hidden="true"
+                        strokeWidth={1.5}
+                    />
+                    <span className="sr-only">{iconLabel(icon)}: </span>
+                </span>
                 <div className="mailbox-expense-item-main">
                     {canWrite ? (
                         <button
@@ -210,13 +278,14 @@ export default function ExpensesGroup({
                         </span>
                     )}
                     <span className="mailbox-expense-meta">
-                        {date} · {Who(expense.paid_by_id)} paid{' '}
+                        <span className="mailbox-expense-meta-date">
+                            {date} ·{' '}
+                        </span>
+                        {Who(expense.paid_by_id)} paid{' '}
                         {formatMoney(expense.amount)}
                     </span>
                 </div>
-                <span className="mailbox-expense-stake">
-                    {viewerStake(expense, viewerId)}
-                </span>
+                <ViewerStake expense={expense} viewerId={viewerId} />
             </article>
         );
     };
@@ -244,6 +313,7 @@ export default function ExpensesGroup({
     return (
         <MailboxLayout>
             <Page
+                tier="prose"
                 title={group.name}
                 room={MAILBOX_ROOM}
                 back={{ href: index.url(), label: 'Expenses' }}
@@ -276,6 +346,23 @@ export default function ExpensesGroup({
                             This group is archived: nothing in it can change
                             until someone unarchives it.
                         </p>
+                    )}
+
+                    {totals.spent > 0 && (
+                        <dl className="mailbox-expense-totals">
+                            <div>
+                                <dt>Spent together</dt>
+                                <dd className="mailbox-expense-amount">
+                                    {formatMoney(totals.spent)}
+                                </dd>
+                            </div>
+                            <div>
+                                <dt>Your share</dt>
+                                <dd className="mailbox-expense-amount">
+                                    {formatMoney(totals.yours)}
+                                </dd>
+                            </div>
+                        </dl>
                     )}
 
                     <section aria-labelledby="expense-group-balances">
@@ -314,7 +401,22 @@ export default function ExpensesGroup({
                                                     ? 'pay'
                                                     : 'pays'}{' '}
                                                 {who(payment.to_id)}{' '}
-                                                {formatMoney(payment.amount)}
+                                                <strong
+                                                    className="mailbox-expense-amount"
+                                                    data-direction={
+                                                        payment.to_id ===
+                                                        viewerId
+                                                            ? 'in'
+                                                            : payment.from_id ===
+                                                                viewerId
+                                                              ? 'out'
+                                                              : undefined
+                                                    }
+                                                >
+                                                    {formatMoney(
+                                                        payment.amount,
+                                                    )}
+                                                </strong>
                                             </span>
                                             {canWrite && (
                                                 <SubmitButton

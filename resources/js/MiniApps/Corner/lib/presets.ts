@@ -104,3 +104,23 @@ export const BLANK_LIST: ListSettings = {
     done_icon: 'check',
     notify_on_add: true,
 };
+
+/* The icon picker shows these first, before a search: the household kinds of thing a list holds. */
+export const LIST_ICONS = [
+    'bookmark',
+    'music',
+    'film',
+    'book-open',
+    'utensils',
+    'chef-hat',
+    'map-pin',
+    'plane',
+    'tent',
+    'dices',
+    'gamepad-2',
+    'gift',
+    'heart',
+    'star',
+    'shopping-bag',
+    'sprout',
+];

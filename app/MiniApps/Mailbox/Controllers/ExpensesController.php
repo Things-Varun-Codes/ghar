@@ -7,14 +7,17 @@ use App\MiniApps\Mailbox\Http\Resources\ExpenseResource;
 use App\MiniApps\Mailbox\Models\Expense;
 use App\MiniApps\Mailbox\Models\ExpenseActivity;
 use App\MiniApps\Mailbox\Models\ExpenseGroup;
+use App\MiniApps\Mailbox\Models\ExpenseShare;
 use App\MiniApps\Mailbox\Support\ExpenseBalances;
 use App\MiniApps\Mailbox\Support\ExpenseMath;
 use App\Shell\Models\User;
 use App\Shell\Services\Household;
 use App\Shell\Support\FlashToast;
 use App\Shell\Support\ListPage;
+use App\Shell\Support\LucideIcon;
 use App\Shell\Support\Person;
 use App\Shell\Support\Region;
+use Closure;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
@@ -92,6 +95,7 @@ class ExpensesController
                 fn (int $userId): array => ['user_id' => $userId, 'net' => $nets[$userId] ?? 0],
                 array_values(array_unique([...$memberIds, ...array_keys($nets)])),
             ),
+            'totals' => self::totals($group, $request->user()),
             'suggestions' => array_map(
                 fn (array $payment): array => ['from_id' => $payment['from'], 'to_id' => $payment['to'], 'amount' => $payment['amount']],
                 ExpenseMath::simplify($nets),
@@ -225,7 +229,25 @@ class ExpensesController
             ->all();
     }
 
-    /** @return array{title: string, amount: int, spent_on: string, paid_by_id: int, split_mode: string, participant_ids: list<int>, shares: array<int, int>} */
+    /**
+     * What the group has spent, and the viewer's part of it: repayments move money, they don't spend it.
+     *
+     * @return array{spent: int, yours: int}
+     */
+    private static function totals(ExpenseGroup $group, User $viewer): array
+    {
+        $spent = Expense::query()->where('group_id', $group->id)->where('is_settlement', false);
+
+        return [
+            'spent' => (int) $spent->clone()->sum('amount'),
+            'yours' => (int) ExpenseShare::query()
+                ->where('user_id', $viewer->id)
+                ->whereIn('expense_id', $spent->clone()->select('id'))
+                ->sum('amount'),
+        ];
+    }
+
+    /** @return array{title: string, amount: int, spent_on: string, paid_by_id: int, split_mode: string, icon: string|null, participant_ids: list<int>, shares: array<int, int>} */
     private static function input(Request $request): array
     {
         $data = $request->validate([
@@ -234,6 +256,11 @@ class ExpensesController
             'spent_on' => ['required', 'date_format:Y-m-d', 'before_or_equal:'.Region::today()->toDateString()],
             'paid_by_id' => ['required', 'integer'],
             'split_mode' => ['required', Rule::in([Expense::SPLIT_EQUAL, Expense::SPLIT_EXACT])],
+            'icon' => ['nullable', 'string', 'max:64', function (string $attribute, mixed $value, Closure $fail): void {
+                if (! is_string($value) || ! LucideIcon::isValid($value)) {
+                    $fail('Choose one of the icons.');
+                }
+            }],
             'participant_ids' => ['required_if:split_mode,'.Expense::SPLIT_EQUAL, 'nullable', 'array', 'min:1'],
             'participant_ids.*' => ['integer', 'distinct'],
             'shares' => ['required_if:split_mode,'.Expense::SPLIT_EXACT, 'nullable', 'array', 'min:1'],
@@ -258,6 +285,7 @@ class ExpensesController
             'spent_on' => $data['spent_on'],
             'paid_by_id' => (int) $data['paid_by_id'],
             'split_mode' => $data['split_mode'],
+            'icon' => $data['icon'] ?? null,
             'participant_ids' => $exact ? [] : array_values(array_map(intval(...), $data['participant_ids'])),
             'shares' => $shares,
         ];

@@ -19,6 +19,7 @@ type Snapshot = {
     spent_on: string;
     paid_by_id: number;
     split_mode: string;
+    icon: string | null;
 };
 
 const list = new Intl.ListFormat('en', { type: 'conjunction' });
@@ -52,6 +53,10 @@ function changes(
         parts.push(
             `changed who paid for ${named} from ${who(before.paid_by_id ?? 0)} to ${who(after.paid_by_id)}`,
         );
+    }
+
+    if (after.icon !== undefined) {
+        parts.push(`changed the icon of ${named}`);
     }
 
     // A new total moves every share with it: only a split changed on its own is news.

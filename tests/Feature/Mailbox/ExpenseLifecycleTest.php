@@ -319,4 +319,34 @@ class ExpenseLifecycleTest extends TestCase
                 ['from_id' => $this->kabir->id, 'to_id' => $this->ravi->id, 'amount' => 3000],
             ]));
     }
+
+    public function test_an_icon_is_kept_checked_and_a_change_to_it_is_logged(): void
+    {
+        $expense = $this->addDinner(['icon' => 'utensils-crossed']);
+        $this->assertSame('utensils-crossed', $expense->icon);
+
+        $this->get(self::BASE."/groups/{$this->trip->id}")
+            ->assertInertia(fn ($page) => $page->where('expenses.data.0.icon', 'utensils-crossed'));
+
+        $this->post(self::BASE."/groups/{$this->trip->id}/expenses", $this->dinner(['icon' => 'spaceship']))
+            ->assertSessionHasErrors('icon');
+
+        $this->patch(self::BASE."/{$expense->id}", $this->dinner(['icon' => 'ticket']))->assertSessionHasNoErrors();
+        $this->assertSame('ticket', $expense->fresh()?->icon);
+        $logged = ExpenseActivity::query()->where('action', 'expense.updated')->latest('id')->firstOrFail();
+        $this->assertSame(['icon' => 'ticket'], $logged->data['after']);
+    }
+
+    public function test_the_group_totals_leave_out_repayments_and_deleted_expenses(): void
+    {
+        $this->addDinner();
+        $this->addDinner(['amount' => 3000, 'participant_ids' => [$this->meera->id, $this->kabir->id]]);
+        $this->addDinner(['amount' => 99000])->delete();
+        $this->actingAs($this->meera)->post(self::BASE."/groups/{$this->trip->id}/settlements", [
+            'from_id' => $this->meera->id, 'to_id' => $this->ravi->id, 'amount' => 3000,
+        ])->assertSessionHasNoErrors();
+
+        $this->actingAs($this->kabir)->get(self::BASE."/groups/{$this->trip->id}")
+            ->assertInertia(fn ($page) => $page->where('totals', ['spent' => 12000, 'yours' => 4500]));
+    }
 }

@@ -128,6 +128,10 @@
     --shell-night-edge: light-dark(transparent, var(--shell-border));
 
     --shell-destructive-fg: light-dark(oklch(1 0 0), oklch(0.2 0.04 25));
+    /* Which way money goes: sage for what comes to you, amber for what you owe. Never alone:
+       "you lent", "you owe" say it in words too. Both hold 4.5:1 on the surface. */
+    --shell-money-in: light-dark(oklch(0.5 0.09 155), oklch(0.78 0.1 155));
+    --shell-money-out: light-dark(oklch(0.53 0.12 65), oklch(0.8 0.12 72));
     /* A map's water and green: the palette's only cool and green hues, dusty so a coral pin
        still leads. A theme sets its own pair. */
     --shell-map-water: light-dark(oklch(0.86 0.032 225), oklch(0.33 0.035 235));
@@ -2166,6 +2170,256 @@ a:hover .os-feed-action {
     .shell-form-sheet-header {
         padding-right: 64px;
     }
+}
+
+/*
+ * The icon picker (IconPicker). A room gives it its look through --icon-picker-* declared in its
+ * [data-app] scope; the popover and sheet carry data-app themselves, so they read the same ones.
+ */
+.icon-picker-trigger {
+    display: inline-flex;
+    align-items: center;
+    gap: 12px;
+    min-height: 52px;
+    padding: 4px 14px 4px 4px;
+    border: 1px solid var(--icon-picker-border-input, var(--shell-border-input));
+    border-radius: var(--radius-field);
+    background: var(--icon-picker-paper, var(--shell-surface));
+    color: var(--icon-picker-ink, var(--shell-text));
+    font-family: var(--icon-picker-font, var(--font-sans));
+    font-size: var(--text-body);
+    cursor: pointer;
+}
+
+.icon-picker-trigger:hover {
+    background: var(--icon-picker-hover, var(--shell-hover-wash));
+}
+
+.icon-picker-trigger[aria-expanded='true'] {
+    border-color: var(--icon-picker-accent, var(--shell-accent-text));
+}
+
+.icon-picker-trigger-mark {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    border-radius: var(--radius-inner);
+    background: var(
+        --icon-picker-mark-wash,
+        color-mix(in oklab, var(--shell-accent) 15%, var(--shell-surface))
+    );
+    color: var(--icon-picker-mark-ink, var(--shell-accent-text));
+}
+
+.icon-picker-trigger-action {
+    display: inline-flex;
+    align-items: center;
+    gap: 2px;
+    margin-left: 8px;
+    font-size: var(--text-small);
+    font-weight: 400;
+    color: var(--icon-picker-accent, var(--shell-accent-text));
+}
+
+.icon-picker-popover {
+    background: var(--icon-picker-paper, var(--shell-surface));
+    color: var(--icon-picker-ink, var(--shell-text));
+    border: 1px solid var(--icon-picker-border, var(--shell-border));
+    border-radius: var(--radius-pop);
+    overflow: hidden;
+}
+
+.icon-picker-sheet {
+    display: flex;
+    flex-direction: column;
+    /* A bottom sheet sizes to its content; this one holds a scroller, so it needs a height. */
+    height: 80dvh;
+    background: var(--icon-picker-paper, var(--shell-surface));
+    color: var(--icon-picker-ink, var(--shell-text));
+}
+
+.icon-picker-sheet-title {
+    padding: 18px 64px 4px 16px;
+    font-family: var(--icon-picker-font-display, var(--font-display));
+    font-size: var(--text-title);
+    font-weight: var(--weight-display);
+}
+
+.icon-picker-panel {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    height: 440px;
+    padding: 12px;
+}
+
+.icon-picker-panel--roomy {
+    flex: 1;
+    min-height: 0;
+    height: auto;
+    padding: 8px 16px max(12px, env(safe-area-inset-bottom));
+}
+
+.icon-picker-search {
+    position: relative;
+    flex: none;
+}
+
+.icon-picker-search > svg {
+    position: absolute;
+    top: 50%;
+    left: 14px;
+    transform: translateY(-50%);
+    color: var(--icon-picker-ink-soft, var(--shell-text-muted));
+    pointer-events: none;
+}
+
+.icon-picker-search input {
+    padding-left: 38px;
+}
+
+.icon-picker-jump {
+    flex: none;
+}
+
+.icon-picker-jump-select {
+    width: 100%;
+    min-height: 40px;
+    padding: 0 12px;
+    border: 1px solid var(--icon-picker-border-input, var(--shell-border-input));
+    border-radius: var(--radius-field);
+    background: var(--icon-picker-paper, var(--shell-surface));
+    color: var(--icon-picker-ink, var(--shell-text));
+    font-family: var(--icon-picker-font, var(--font-sans));
+    font-size: var(--text-small);
+}
+
+/* One scrolling grid; only the rows near the visible band exist. */
+.icon-picker-scroll {
+    position: relative;
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+}
+
+.icon-picker-canvas {
+    position: relative;
+}
+
+.icon-picker-heading,
+.icon-picker-sticky {
+    display: flex;
+    align-items: center;
+    height: 32px;
+    padding: 0 4px;
+    font-size: var(--text-meta);
+    font-weight: 400;
+    color: var(--icon-picker-ink-soft, var(--shell-text-muted));
+    background: var(--icon-picker-paper, var(--shell-surface));
+}
+
+.icon-picker-heading {
+    position: absolute;
+    left: 0;
+    right: 0;
+}
+
+/* The heading of the category being scrolled through stays at the top. */
+.icon-picker-sticky {
+    position: sticky;
+    top: 0;
+    z-index: 1;
+    margin-bottom: -32px;
+}
+
+.icon-picker-row {
+    position: absolute;
+    left: 0;
+    right: 0;
+    display: flex;
+    gap: 4px;
+}
+
+.icon-picker-option {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex: none;
+    border: 1px solid transparent;
+    border-radius: var(--radius-inner);
+    color: var(--icon-picker-ink-soft, var(--shell-text-muted));
+    cursor: pointer;
+}
+
+.icon-picker-option[data-active] {
+    background: var(--icon-picker-hover, var(--shell-hover-wash));
+    color: var(--icon-picker-ink, var(--shell-text));
+    outline: 2px solid var(--icon-picker-focus, var(--shell-action));
+    outline-offset: -2px;
+}
+
+.icon-picker-option[aria-selected='true'] {
+    border-color: var(--icon-picker-accent, var(--shell-accent-text));
+    background: var(
+        --icon-picker-selected-wash,
+        color-mix(in oklab, var(--shell-accent) 15%, var(--shell-surface))
+    );
+    color: var(--icon-picker-accent, var(--shell-accent-text));
+}
+
+.icon-picker-footer {
+    flex: none;
+    margin: 0;
+    padding-top: 6px;
+    border-top: 1px solid var(--icon-picker-border, var(--shell-border));
+    font-size: var(--text-small);
+    font-weight: 400;
+    color: var(--icon-picker-ink-soft, var(--shell-text-muted));
+}
+
+.icon-picker-empty,
+.icon-picker-state {
+    padding: 24px 8px;
+    text-align: center;
+}
+
+.icon-picker-empty p {
+    margin: 0 0 4px;
+}
+
+.icon-picker-hint {
+    margin: 4px 0 0 0;
+    font-size: var(--text-small);
+    line-height: 1.5;
+    color: var(--icon-picker-ink-soft, var(--shell-text-muted));
+}
+
+.icon-picker-text-button {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    min-height: 44px;
+    padding: 0;
+    border: none;
+    background: transparent;
+    color: var(--icon-picker-accent, var(--shell-accent-text));
+    font-family: var(--icon-picker-font, var(--font-sans));
+    font-size: var(--text-small);
+    font-weight: 400;
+    cursor: pointer;
+}
+
+.icon-picker-text-button:hover {
+    color: var(--icon-picker-ink, var(--shell-text));
+}
+
+.icon-picker-text-button:focus-visible {
+    outline: 2px solid var(--icon-picker-focus, var(--shell-action));
+    outline-offset: 2px;
+    border-radius: var(--radius-inner);
 }
 
 /*

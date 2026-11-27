@@ -33,12 +33,13 @@ import { useIsPhone } from '@/hooks/use-breakpoint';
 import { useOverlayHistory } from '@/hooks/use-overlay-history';
 import { count } from '@/lib/plural';
 import { cn } from '@/lib/utils';
-import type { Row, Section } from '@/MiniApps/Corner/lib/icon-picker';
+import ErrorState from '@/Shell/Components/ErrorState';
+import LoadingState from '@/Shell/Components/LoadingState';
+import type { Row, Section } from '@/Shell/lib/icon-picker';
 import {
     CELL,
     HEADING_HEIGHT,
     ROW_HEIGHT,
-    SUGGESTED,
     columnsFor,
     layoutRows,
     moveActive,
@@ -46,9 +47,7 @@ import {
     rememberIcon,
     searchIcons,
     sectionAt,
-} from '@/MiniApps/Corner/lib/icon-picker';
-import ErrorState from '@/Shell/Components/ErrorState';
-import LoadingState from '@/Shell/Components/LoadingState';
+} from '@/Shell/lib/icon-picker';
 import LinkableIcon from '@/Shell/linkables/LinkableIcon';
 import type { IconIndex, IconPaths } from '@/Shell/linkables/lucide';
 import {
@@ -60,6 +59,10 @@ import {
 type Props = {
     value: string;
     onChange: (icon: string) => void;
+    /* Shown first, after the current and recent icons, before anything is searched. */
+    suggested: string[];
+    /* Where this caller's recent icons are kept, so each kind of thing remembers its own. */
+    recentKey: string;
     /* For FormField: its label points at the trigger, and an error describes it. */
     id?: string;
     'aria-describedby'?: string;
@@ -83,6 +86,8 @@ function preload(): void {
 export default function IconPicker({
     value,
     onChange,
+    suggested,
+    recentKey,
     id,
     'aria-describedby': describedBy,
     'aria-invalid': invalid,
@@ -94,7 +99,7 @@ export default function IconPicker({
     useOverlayHistory(open, () => setOpen(false));
 
     const choose = (icon: string) => {
-        rememberIcon(icon);
+        rememberIcon(recentKey, icon);
         onChange(icon);
         setOpen(false);
     };
@@ -111,20 +116,27 @@ export default function IconPicker({
             onPointerEnter={preload}
             onFocus={preload}
             onClick={() => setOpen(true)}
-            className="corner-icon-trigger shell-press"
+            className="icon-picker-trigger shell-press"
         >
-            <span className="corner-icon-trigger-mark">
+            <span className="icon-picker-trigger-mark">
                 <LinkableIcon name={value} size={22} strokeWidth={1.5} />
             </span>
-            <span className="corner-icon-trigger-name">{iconLabel(value)}</span>
-            <span className="corner-icon-trigger-action">
+            <span className="icon-picker-trigger-name">{iconLabel(value)}</span>
+            <span className="icon-picker-trigger-action">
                 Change
                 <ChevronDown aria-hidden="true" size={16} strokeWidth={1.5} />
             </span>
         </button>
     );
 
-    const panel = <IconPanel value={value} onChoose={choose} roomy={isPhone} />;
+    const panel = (
+        <IconPanel
+            value={value}
+            onChoose={choose}
+            roomy={isPhone}
+            first={() => [value, ...recentIcons(recentKey), ...suggested]}
+        />
+    );
 
     if (isPhone) {
         return (
@@ -133,10 +145,10 @@ export default function IconPicker({
                 <Sheet open={open} onOpenChange={setOpen}>
                     <SheetContent
                         side="bottom"
-                        className="corner-icon-sheet h-[80dvh] gap-0 p-0"
+                        className="icon-picker-sheet gap-0 p-0"
                         finalFocus={trigger}
                     >
-                        <SheetTitle className="corner-icon-sheet-title">
+                        <SheetTitle className="icon-picker-sheet-title">
                             Choose an icon
                         </SheetTitle>
                         <SheetDescription className="sr-only">
@@ -154,7 +166,7 @@ export default function IconPicker({
             <PopoverTrigger render={button} />
             <PopoverContent
                 align="start"
-                className="corner-icon-popover w-[372px] p-0"
+                className="icon-picker-popover w-[372px] p-0"
                 aria-label="Choose an icon"
                 // The panel focuses its own search field.
                 initialFocus={false}
@@ -169,10 +181,12 @@ function IconPanel({
     value,
     onChoose,
     roomy,
+    first,
 }: {
     value: string;
     onChoose: (icon: string) => void;
     roomy: boolean;
+    first: () => string[];
 }) {
     const [catalog, setCatalog] = useState<Catalog | null>(null);
     const [failed, setFailed] = useState(false);
@@ -184,7 +198,7 @@ function IconPanel({
             .catch((error: unknown) => {
                 Sentry.captureException(error, {
                     tags: {
-                        component: 'Corner/IconPicker',
+                        component: 'Shell/IconPicker',
                         action: 'load-icons',
                     },
                 });
@@ -208,11 +222,12 @@ function IconPanel({
                 value={value}
                 onChoose={onChoose}
                 searchRef={search}
+                first={first}
             />
         );
     } else if (failed) {
         body = (
-            <div className="corner-icon-state">
+            <div className="icon-picker-state">
                 <ErrorState
                     variant="inline"
                     message="Couldn't load the icons."
@@ -222,7 +237,7 @@ function IconPanel({
         );
     } else {
         body = (
-            <div className="corner-icon-state" aria-busy="true">
+            <div className="icon-picker-state" aria-busy="true">
                 <LoadingState rows={4} variant="list" />
             </div>
         );
@@ -231,12 +246,12 @@ function IconPanel({
     return (
         <div
             className={cn(
-                'corner-icon-panel',
-                roomy && 'corner-icon-panel--roomy',
+                'icon-picker-panel',
+                roomy && 'icon-picker-panel--roomy',
             )}
         >
             {!catalog && (
-                <div className="corner-icon-search">
+                <div className="icon-picker-search">
                     <Search aria-hidden="true" size={16} strokeWidth={1.5} />
                     <Input
                         ref={search}
@@ -257,11 +272,13 @@ function IconBrowser({
     value,
     onChoose,
     searchRef,
+    first,
 }: {
     catalog: Catalog;
     value: string;
     onChoose: (icon: string) => void;
     searchRef: React.RefObject<HTMLInputElement | null>;
+    first: () => string[];
 }) {
     // The virtualizer hands back the same object with new rows on every scroll; the compiler's
     // memoising would keep drawing the first ones.
@@ -282,9 +299,9 @@ function IconBrowser({
 
     // Read when the panel opens: choosing an icon closes it, so this row never goes stale.
     const [firstRow] = useState(() =>
-        [
-            ...new Set([value, ...recentIcons(), ...SUGGESTED].map(canonical)),
-        ].filter((name) => name in catalog.paths.paths),
+        [...new Set(first().map(canonical))].filter(
+            (name) => name in catalog.paths.paths,
+        ),
     );
 
     useEffect(() => {
@@ -433,7 +450,7 @@ function IconBrowser({
 
     return (
         <>
-            <div className="corner-icon-search">
+            <div className="icon-picker-search">
                 <Search aria-hidden="true" size={16} strokeWidth={1.5} />
                 <Input
                     ref={searchRef}
@@ -458,13 +475,13 @@ function IconBrowser({
             </div>
 
             {!searching && (
-                <label className="corner-icon-jump">
+                <label className="icon-picker-jump">
                     <span className="sr-only">Jump to a category</span>
                     <NativeSelect
                         value={current?.key ?? ''}
                         onChange={(e) => jumpTo(e.target.value)}
                         wrapperClassName="w-full"
-                        className="corner-icon-jump-select"
+                        className="icon-picker-jump-select"
                     >
                         {sections
                             .filter((section) => section.icons.length > 0)
@@ -480,17 +497,17 @@ function IconBrowser({
                 </label>
             )}
 
-            <div ref={scroller} className="corner-icon-scroll">
+            <div ref={scroller} className="icon-picker-scroll">
                 {rows.length === 0 ? (
-                    <div className="corner-icon-empty" role="status">
+                    <div className="icon-picker-empty" role="status">
                         <p>No icon matches “{query.trim()}”.</p>
-                        <p className="corner-form-hint">
+                        <p className="icon-picker-hint">
                             Try a simpler word, like food, home or travel.
                         </p>
                         <Button
                             type="button"
                             variant="link"
-                            className="corner-text-button"
+                            className="icon-picker-text-button"
                             onClick={() => {
                                 setQuery('');
                                 searchRef.current?.focus();
@@ -503,7 +520,7 @@ function IconBrowser({
                     <>
                         {current && (
                             <div
-                                className="corner-icon-sticky"
+                                className="icon-picker-sticky"
                                 aria-hidden="true"
                             >
                                 {current.title}
@@ -513,7 +530,7 @@ function IconBrowser({
                             id={`${ids}-grid`}
                             role="listbox"
                             aria-label={searching ? 'Matching icons' : 'Icons'}
-                            className="corner-icon-canvas"
+                            className="icon-picker-canvas"
                             style={{ height: virtualizer.getTotalSize() }}
                         >
                             {shown.map((virtual) => (
@@ -532,7 +549,7 @@ function IconBrowser({
                 )}
             </div>
 
-            <p className="corner-icon-footer" aria-hidden="true">
+            <p className="icon-picker-footer" aria-hidden="true">
                 {iconLabel(named)}
             </p>
         </>
@@ -558,7 +575,7 @@ function GridRow({
         return (
             <div
                 role="presentation"
-                className="corner-icon-heading"
+                className="icon-picker-heading"
                 style={{ top: row.top, height: HEADING_HEIGHT }}
             >
                 {row.section.title}
@@ -569,7 +586,7 @@ function GridRow({
     return (
         <div
             role="presentation"
-            className="corner-icon-row"
+            className="icon-picker-row"
             style={{ top: row.top, height: ROW_HEIGHT }}
         >
             {row.icons.map((icon, i) => {
@@ -588,7 +605,7 @@ function GridRow({
                         onPointerEnter={() => onHover(index)}
                         onPointerDown={(event) => event.preventDefault()}
                         onClick={() => onChoose(icon)}
-                        className="corner-icon-option"
+                        className="icon-picker-option"
                         style={{ width: CELL, height: CELL }}
                     >
                         <LinkableIcon name={icon} size={20} strokeWidth={1.5} />

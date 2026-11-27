@@ -13,7 +13,7 @@ vi.mock('@/hooks/use-overlay-history', () => ({
     useOverlayHistory: () => undefined,
 }));
 
-import IconPicker from '@/MiniApps/Corner/Components/IconPicker';
+import IconPicker from '@/Shell/Components/IconPicker';
 
 /*
  * jsdom lays nothing out, so the scroller is given the popover's size: 300px tall and wide
@@ -59,7 +59,14 @@ afterAll(() => {
 });
 
 async function openPicker(onChange = vi.fn()) {
-    render(<IconPicker value="music" onChange={onChange} />);
+    render(
+        <IconPicker
+            value="music"
+            onChange={onChange}
+            suggested={['bookmark', 'film', 'gift']}
+            recentKey="test.recent-icons"
+        />,
+    );
     fireEvent.click(screen.getByRole('button', { name: /music/i }));
 
     const grid = await screen.findByRole('listbox', { name: 'Icons' });
