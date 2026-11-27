@@ -9,6 +9,13 @@ Minor and patch versions don't.
 Before any upgrade, back up the database and the media volume (DEPLOY.md, "Backups and restore").
 Migrations only run forward.
 
+## [2.1.1] - 2026-11-27
+
+### Fixed
+
+- In a household of two, New group in Expenses could not be created: it kept asking you to choose
+  who is in it.
+
 ## [2.1.0] - 2026-11-27
 
 ### Added
