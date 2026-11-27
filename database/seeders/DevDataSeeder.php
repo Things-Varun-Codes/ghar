@@ -99,6 +99,8 @@ class DevDataSeeder extends Seeder
         (new HistoryData)->seed($household, $links);
         (new MailboxData)->seed($household);
         (new FormerMemberData)->seed($household, $nisha);
+        // Settling up reads every balance in General, so it comes after the last thing seeded there.
+        (new MailboxData)->settleUp($household);
     }
 
     /**
