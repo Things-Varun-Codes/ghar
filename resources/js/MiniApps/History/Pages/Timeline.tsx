@@ -2,9 +2,10 @@ import type { InfiniteScrollRef } from '@inertiajs/core';
 import { usePage } from '@inertiajs/react';
 import { Plus } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Settle, SettleItem } from '@/components/motion';
+import { ScrollFill, Settle, SettleItem } from '@/components/motion';
 import { region } from '@/lib/dates';
-import { scrollBehavior } from '@/lib/motion';
+import { pageIsOpening, scrollBehavior } from '@/lib/motion';
+import { cn } from '@/lib/utils';
 import EventCard from '@/MiniApps/History/Components/EventCard';
 import EventSheet from '@/MiniApps/History/Components/EventSheet';
 import OnThisDayStrip from '@/MiniApps/History/Components/OnThisDayStrip';
@@ -239,6 +240,7 @@ export default function Timeline({
     };
 
     const isEmpty = loadedEvents.length === 0;
+    const [opening] = useState(pageIsOpening);
 
     return (
         <HistoryLayout
@@ -285,10 +287,13 @@ export default function Timeline({
                 <div className="timeline history-timeline-wrapper history-timeline-body relative m-0">
                     <div
                         aria-hidden="true"
-                        className="history-timeline-rail history-rail-line"
+                        className={cn(
+                            'history-timeline-rail history-rail-line',
+                            opening && 'history-rail-line--draw',
+                        )}
                     />
 
-                    {/* Only the first page settles in; rows loaded later appear in place. */}
+                    {/* The first rows settle in; every row after rises in as it scrolls into view. */}
                     <Settle>
                         <LoadMoreScroll
                             prop="events"
@@ -299,7 +304,12 @@ export default function Timeline({
                             {yearGroups.map(({ year, events: yearEvents }) => (
                                 // The anchor is the year's section, not its pinned heading: once
                                 // scrolled past, the heading sits at the section's end.
-                                <div key={year} id={`year-${year}`}>
+                                <ScrollFill
+                                    key={year}
+                                    id={`year-${year}`}
+                                    className="relative"
+                                    fillClassName="history-rail-fill"
+                                >
                                     <YearBanner
                                         year={year}
                                         count={
@@ -314,6 +324,7 @@ export default function Timeline({
                                             key={event.id}
                                             index={rowIndex.get(event.id) ?? 0}
                                             className="relative"
+                                            reveal
                                         >
                                             <EventCard
                                                 event={event}
@@ -327,7 +338,7 @@ export default function Timeline({
                                             />
                                         </SettleItem>
                                     ))}
-                                </div>
+                                </ScrollFill>
                             ))}
                         </LoadMoreScroll>
                     </Settle>

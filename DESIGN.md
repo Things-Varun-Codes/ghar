@@ -115,7 +115,9 @@ Soft and with a reason. One easing (`--ease-ui`) and the `--dur-*` durations; le
 than arriving; nothing bounces, overshoots or loops, and there are no page transitions. Overlays
 use Base UI's own CSS animations. Everything else uses the presets in `resources/js/components/motion`, on a
 wrapper, never on an element with `.shell-press` or `.shell-lift`, or above a `Fab`. A page's first
-rows settle in once; later rows appear in place. Small things that change (a tick, a stamp) scale
+rows settle in once; later rows appear in place. The History timeline is the one exception: its
+rows rise in as they scroll into view (`SettleItem`'s `reveal`) and its rail fills with the scroll
+(`ScrollFill`). Small things that change (a tick, a stamp) scale
 in. Reduced motion is already handled; don't add a media query for it.
 
 ## Rooms
