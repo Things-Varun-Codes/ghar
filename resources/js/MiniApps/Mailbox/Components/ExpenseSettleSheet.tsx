@@ -2,19 +2,11 @@ import { useForm } from '@inertiajs/react';
 import type { FormEvent } from 'react';
 import { useId } from 'react';
 
-import { Input } from '@/components/ui/input';
-import {
-    NativeSelect,
-    NativeSelectOption,
-} from '@/components/ui/native-select';
 import { formSubmitOptions } from '@/lib/mutation';
-import {
-    formatMoney,
-    moneyInput,
-    parseMoney,
-} from '@/MiniApps/Mailbox/lib/money';
+import MoneyField from '@/MiniApps/Mailbox/Components/MoneyField';
+import PersonChoice from '@/MiniApps/Mailbox/Components/PersonChoice';
+import { moneyInput, parseMoney } from '@/MiniApps/Mailbox/lib/money';
 import { store } from '@/routes/apps/our-exchange/expenses/settlements';
-import FormField from '@/Shell/Components/FormField';
 import FormSheet from '@/Shell/Components/FormSheet';
 import SubmitButton from '@/Shell/Components/SubmitButton';
 import type { Person } from '@/types/person';
@@ -26,6 +18,7 @@ type Props = {
     onOpenChange: (open: boolean) => void;
     groupId: number;
     members: Person[];
+    viewerId: number;
     /* The suggested payment it opens with. */
     payment: ExpensePayment;
 };
@@ -38,6 +31,7 @@ export default function ExpenseSettleSheet({
     onOpenChange,
     groupId,
     members,
+    viewerId,
     payment,
 }: Props) {
     const hintId = useId();
@@ -76,33 +70,6 @@ export default function ExpenseSettleSheet({
         });
     };
 
-    const person = (
-        field: 'from_id' | 'to_id',
-        label: string,
-        name: string,
-    ) => (
-        <FormField
-            label={label}
-            name={name}
-            error={errors[field]}
-            className="mailbox-form-field"
-        >
-            <NativeSelect
-                id={name}
-                value={data[field]}
-                onChange={(e) => setData(field, Number(e.target.value))}
-                wrapperClassName="w-full"
-                className="mailbox-field"
-            >
-                {members.map((member) => (
-                    <NativeSelectOption key={member.id} value={member.id}>
-                        {member.name}
-                    </NativeSelectOption>
-                ))}
-            </NativeSelect>
-        </FormField>
-    );
-
     return (
         <FormSheet
             open={open}
@@ -124,28 +91,32 @@ export default function ExpenseSettleSheet({
                 </SubmitButton>
             }
         >
-            {person('from_id', 'Who paid', 'expense-settle-from')}
-            {person('to_id', 'Paid to', 'expense-settle-to')}
-
-            <FormField
-                label="Amount"
-                name="expense-settle-amount"
+            <PersonChoice
+                legend="Who paid"
+                name="expense-settle-from"
+                people={members}
+                viewerId={viewerId}
+                value={data.from_id}
+                onChange={(id) => setData('from_id', id)}
+                error={errors.from_id}
+            />
+            <PersonChoice
+                legend="Paid to"
+                name="expense-settle-to"
+                people={members}
+                viewerId={viewerId}
+                value={data.to_id}
+                onChange={(id) => setData('to_id', id)}
+                error={errors.to_id}
+            />
+            <MoneyField
+                id="expense-settle-amount"
+                label="How much"
+                value={data.amount}
+                onChange={(value) => setData('amount', value)}
+                amount={amount}
                 error={errors.amount}
-                helper={amount ? formatMoney(amount) : undefined}
-                required
-                className="mailbox-form-field"
-            >
-                <Input
-                    id="expense-settle-amount"
-                    type="text"
-                    inputMode="decimal"
-                    autoComplete="off"
-                    value={data.amount}
-                    onChange={(e) => setData('amount', e.target.value)}
-                    aria-required="true"
-                    className="mailbox-field tabular-nums"
-                />
-            </FormField>
+            />
         </FormSheet>
     );
 }

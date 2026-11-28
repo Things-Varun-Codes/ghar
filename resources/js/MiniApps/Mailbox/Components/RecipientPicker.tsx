@@ -23,6 +23,8 @@ type Props = {
     onChange: (ids: number[]) => void;
     errors?: Record<string, string | undefined>;
     legend?: string;
+    /* Reads as "You" for this person, where the viewer is among the choices. */
+    viewerId?: number;
 };
 
 /*
@@ -35,6 +37,7 @@ export default function RecipientPicker({
     onChange,
     errors = {},
     legend = 'Send to',
+    viewerId,
 }: Props) {
     const noteId = useId();
     const error = Object.entries(errors).find(([key]) =>
@@ -84,7 +87,7 @@ export default function RecipientPicker({
             {members.length === 1 ? (
                 <p className="mailbox-recipient-solo">
                     <PersonAvatar person={members[0]} size={24} />
-                    {members[0].name}
+                    {members[0].id === viewerId ? 'You' : members[0].name}
                 </p>
             ) : (
                 <div className="mailbox-recipient-list">
@@ -100,7 +103,7 @@ export default function RecipientPicker({
                                 onChange={() => toggle(member.id)}
                             />
                             <PersonAvatar person={member} size={24} />
-                            {member.name}
+                            {member.id === viewerId ? 'You' : member.name}
                         </label>
                     ))}
                 </div>

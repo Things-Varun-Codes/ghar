@@ -20,6 +20,7 @@ use App\Shell\Support\PersonalOrder;
 use App\Shell\Support\Region;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Validation\Rule;
 use Inertia\Inertia;
@@ -44,10 +45,7 @@ class ExpensesController
         )->get();
 
         $nets = ExpenseBalances::nets($groups->modelKeys());
-        $overview = ExpenseBalances::overview($viewer);
         $everyone = $household->members();
-        // Former members too: what is owed between them and the viewer can still be settled.
-        $owing = $household->everyone()->whereKey(array_keys($overview))->orderBy('name')->orderBy('id')->get();
 
         return Inertia::render('MiniApps/Mailbox/Pages/Expenses/Index', [
             'groups' => $groups->map(fn (ExpenseGroup $group): array => [
@@ -55,11 +53,51 @@ class ExpensesController
                 'can' => self::abilities($group, $nets[$group->id], (bool) $group->getAttribute('has_expenses')),
                 'net' => $nets[$group->id][$viewer->id] ?? 0,
             ])->all(),
+            // Minor units: positive when the viewer is owed overall. Who owes whom is on its own page.
+            'overall' => array_sum(ExpenseBalances::overview($viewer)),
+            'members' => $everyone->map(fn (User $member): array => Person::short($member))->all(),
+        ]);
+    }
+
+    /** What stands between the viewer and each person, across every group, and settling it. */
+    public function balances(Request $request, Household $household): Response
+    {
+        $overview = ExpenseBalances::overview($request->user());
+        // Former members too: what is owed between them and the viewer can still be settled.
+        $owing = $household->everyone()->whereKey(array_keys($overview))->orderBy('name')->orderBy('id')->get();
+
+        return Inertia::render('MiniApps/Mailbox/Pages/Expenses/Balances', [
+            'overall' => array_sum($overview),
             'overview' => $owing
                 ->map(fn (User $member): array => ['person' => Person::short($member), 'net' => $overview[$member->id]])
                 ->values()
                 ->all(),
-            'members' => $everyone->map(fn (User $member): array => Person::short($member))->all(),
+        ]);
+    }
+
+    /** One expense or repayment: what it was, who shares it, and what has happened to it. */
+    public function expense(Request $request, Expense $expense, Household $household): Response
+    {
+        Gate::authorize('view', $expense);
+
+        $group = $expense->group;
+        $expense->load('shares');
+        $everyone = self::onTheBooks($group, $household, [$expense->paid_by_id, ...$expense->shares->pluck('user_id')->all()]);
+        $open = $group->archived_at === null;
+
+        return Inertia::render('MiniApps/Mailbox/Pages/Expenses/Show', [
+            'expense' => app(ExpenseResource::class)($expense),
+            'deleted' => $expense->trashed(),
+            'group' => ['id' => $group->id, 'name' => $group->name],
+            'members' => $everyone->whereIn('id', $group->memberIds())->map(fn (User $member): array => Person::short($member))->values()->all(),
+            'household' => $everyone->map(fn (User $member): array => Person::short($member))->all(),
+            'categories' => ExpenseCategory::forPage(),
+            'activity' => self::activity($group, $expense),
+            'can' => [
+                // A repayment is deleted and recorded again, never edited.
+                'edit' => $open && ! $expense->trashed() && ! $expense->is_settlement,
+                'delete' => $open && ! $expense->trashed(),
+            ],
         ]);
     }
 
@@ -71,11 +109,7 @@ class ExpensesController
         $focus = $request->query('focus');
         $memberIds = $group->memberIds();
         $nets = ExpenseBalances::netsIn($group);
-        $onTheBooks = [...$memberIds, ...array_keys($nets)];
-        // Current members, and any former member this group's books still name.
-        $everyone = $household->everyone()->orderBy('name')->orderBy('id')->get()
-            ->filter(fn (User $person): bool => ! $person->isFormer() || in_array($person->id, $onTheBooks, true))
-            ->values();
+        $everyone = self::onTheBooks($group, $household, array_keys($nets));
         $used = Expense::query()->where('group_id', $group->id)->whereNotNull('category')->distinct()->pluck('category')
             ->map(fn (ExpenseCategory $category): string => $category->value)->all();
         // A category, or "none" for the expenses with none: either way, repayments drop out.
@@ -143,7 +177,8 @@ class ExpensesController
 
         FlashToast::success($expense->is_settlement ? 'Payment deleted.' : 'Expense deleted.');
 
-        return redirect()->back();
+        // Deleted from its own page, which has nothing left to show.
+        return redirect()->route('apps.our-exchange.expenses.groups.show', $expense->group_id);
     }
 
     public function restore(Request $request, Expense $expense, ExpenseLedger $ledger): RedirectResponse
@@ -201,6 +236,21 @@ class ExpensesController
         ];
     }
 
+    /**
+     * Current members, and any former member the group's books still name.
+     *
+     * @param  list<int>  $named
+     * @return Collection<int, User>
+     */
+    private static function onTheBooks(ExpenseGroup $group, Household $household, array $named): Collection
+    {
+        $onTheBooks = [...$group->memberIds(), ...$named];
+
+        return $household->everyone()->orderBy('name')->orderBy('id')->get()
+            ->filter(fn (User $person): bool => ! $person->isFormer() || in_array($person->id, $onTheBooks, true))
+            ->values();
+    }
+
     /** @return array{id: int, name: string, is_general: bool, archived: bool, member_ids: list<int>} */
     private static function group(ExpenseGroup $group): array
     {
@@ -221,7 +271,7 @@ class ExpensesController
      *
      * @return list<array<string, mixed>>
      */
-    private static function activity(ExpenseGroup $group): array
+    private static function activity(ExpenseGroup $group, ?Expense $only = null): array
     {
         // Only the latest deletion of an expense that is still deleted offers to restore it.
         $restorable = $group->archived_at !== null ? [] : ExpenseActivity::query()
@@ -236,6 +286,7 @@ class ExpensesController
 
         return ExpenseActivity::query()
             ->where('group_id', $group->id)
+            ->when($only !== null, fn ($query) => $query->where('expense_id', $only?->id))
             ->with('actor')
             ->latest('id')
             ->limit(self::ACTIVITY_LIMIT)

@@ -30,12 +30,12 @@ class ExpenseFormerMemberTest extends TestCase
     {
         $this->assertSame([$this->ravi->id => 6000, $this->meera->id => -3000, $this->kabir->id => -3000], $this->nets());
 
-        $this->actingAs($this->ravi)->get(self::BASE)->assertOk()->assertInertia(fn ($page) => $page
+        $this->actingAs($this->ravi)->get(self::BASE.'/balances')->assertOk()->assertInertia(fn ($page) => $page
             ->where('overview.0.person.name', 'Kabir (deleted)')
             ->where('overview.0.person.former', true)
             ->where('overview.0.net', 3000)
-            ->missing('members.3')
         );
+        $this->get(self::BASE)->assertOk()->assertInertia(fn ($page) => $page->missing('members.3'));
 
         $this->get(self::BASE."/groups/{$this->trip->id}")->assertOk()->assertInertia(fn ($page) => $page
             ->where('members', fn ($members) => collect($members)->contains(fn ($person) => $person['id'] === $this->kabir->id && $person['former'] === true))

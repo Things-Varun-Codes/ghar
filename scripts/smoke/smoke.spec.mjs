@@ -160,8 +160,7 @@ const routes = [
     {
         path: '/apps/our-shelf/{corner.place.slug}/{corner.place.item}',
         auth: true,
-        description:
-            '/apps/our-shelf/{list}/{item} (a place: a map link)',
+        description: '/apps/our-shelf/{list}/{item} (a place: a map link)',
     },
     {
         path: '/apps/our-shelf/{corner.nameOnly.slug}/{corner.nameOnly.item}',
@@ -227,6 +226,17 @@ const routes = [
         description:
             '/apps/our-exchange/expenses/groups/{group} (an expense group)',
     },
+    {
+        path: '/apps/our-exchange/expenses/balances',
+        auth: true,
+        description:
+            '/apps/our-exchange/expenses/balances (who owes whom, and settling up)',
+    },
+    {
+        path: '/apps/our-exchange/expenses/{mailboxExpenseId}',
+        auth: true,
+        description: '/apps/our-exchange/expenses/{expense} (one expense)',
+    },
     // JSON, no React app: the heading checks don't apply. The scheduler and a worker
     // run first, so the heartbeats it reads are fresh.
     {
@@ -267,6 +277,7 @@ echo json_encode([
     'mailboxCitationId'  => Citation::where('recipient_id', $admin->id)->firstOrFail()->id,
     'mailboxCouponId'   => Coupon::where('recipient_id', $admin->id)->firstOrFail()->id,
     'mailboxExpenseGroupId' => ExpenseGroup::general()->id,
+    'mailboxExpenseId' => ExpenseGroup::general()->expenses()->where('is_settlement', false)->orderBy('id')->firstOrFail()->id,
     // A plain member, never the logged-in account, so no self-edit or
     // last-admin guard gets in the way of the edit page.
     'otherUserId'       => $kabir->id,

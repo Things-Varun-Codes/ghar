@@ -39,7 +39,7 @@ export default function ExpenseBalanceRow({ person, net }: ExpenseBalance) {
     };
 
     return (
-        <li className="mailbox-expense-row mailbox-expense-balance">
+        <li>
             <PersonAvatar person={person} size={24} />
             <span className="mailbox-expense-row-main">
                 {net === 0
@@ -58,13 +58,13 @@ export default function ExpenseBalanceRow({ person, net }: ExpenseBalance) {
             )}
             <SubmitButton
                 type="button"
-                variant="ghost"
+                variant="outline"
                 size="sm"
                 processing={pending}
                 busyText="Settling…"
                 onClick={() => setConfirming(true)}
                 aria-label={`Settle up with ${person.name}`}
-                className="mailbox-btn-quiet"
+                className="mailbox-btn-neutral"
             >
                 Settle up
             </SubmitButton>

@@ -413,7 +413,7 @@
     margin-left: auto;
 }
 
-/* Expenses: the top lines of the ledger, who owes whom. */
+/* Expenses: where the viewer stands, on a strip of the slip. */
 [data-app='our-exchange'] .mailbox-door-expense {
     display: flex;
     flex-direction: column;
@@ -421,7 +421,8 @@
     width: 100%;
     padding: 8px 16px;
     background: var(--mailbox-paper);
-    box-shadow: inset 0 0 0 1.5px var(--mailbox-ink);
+    /* The slip's own rule, so it reads as paper, not a framed box. */
+    box-shadow: inset 0 0 0 1px var(--mailbox-expense-rule);
     border-radius: inherit;
 }
 
@@ -1469,6 +1470,7 @@
 
 /* Dense row actions on a list card. */
 [data-app='our-exchange'] .mailbox-btn-primary-row,
+[data-app='our-exchange'] .mailbox-slip .mailbox-btn-neutral,
 [data-app='our-exchange'] .mailbox-card .mailbox-btn-neutral {
     min-height: 36px;
     padding: 0 16px;
@@ -1476,6 +1478,7 @@
 }
 @media (pointer: coarse) {
     [data-app='our-exchange'] .mailbox-btn-primary-row,
+    [data-app='our-exchange'] .mailbox-slip .mailbox-btn-neutral,
     [data-app='our-exchange'] .mailbox-card .mailbox-btn-neutral {
         min-height: 44px;
     }
@@ -1569,12 +1572,6 @@
 
 /* ── Expenses ────────────────────────────────────────────────────────── */
 
-[data-app='our-exchange'] .mailbox-expense-page {
-    display: grid;
-    gap: 24px;
-    margin: 16px 0 24px;
-}
-
 [data-app='our-exchange'] .mailbox-expense-heading {
     margin: 0 0 12px;
     font-family: var(--mailbox-font-display);
@@ -1604,7 +1601,6 @@
     color: var(--mailbox-ink-soft);
 }
 
-/* The one line that answers "where do I stand?", before any list. */
 [data-app='our-exchange'] .mailbox-expense-summary {
     margin: 0;
     font-family: var(--mailbox-font-display);
@@ -1618,39 +1614,42 @@
 
 /* Money as a figure: lining, even-width digits so a column of amounts lines up. */
 [data-app='our-exchange'] .mailbox-expense-amount {
-    font-weight: inherit;
+    font-weight: 600;
     font-variant-numeric: lining-nums tabular-nums;
     color: var(--mailbox-ink);
     white-space: nowrap;
 }
+[data-app='our-exchange'] .mailbox-expense-summary .mailbox-expense-amount,
+[data-app='our-exchange'] .mailbox-expense-quiet .mailbox-expense-amount {
+    font-weight: inherit;
+}
+[data-app='our-exchange'] .mailbox-expense-quiet .mailbox-expense-amount {
+    color: inherit;
+}
+/* Only an amount and the words that say what it is take a money colour. */
 [data-app='our-exchange'] .mailbox-expense-amount[data-direction='in'],
-[data-app='our-exchange'] .mailbox-expense-figure:has([data-direction='in']) {
+[data-app='our-exchange'] .mailbox-expense-words[data-direction='in'] {
     color: var(--mailbox-money-in);
 }
 [data-app='our-exchange'] .mailbox-expense-amount[data-direction='out'],
-[data-app='our-exchange'] .mailbox-expense-figure:has([data-direction='out']) {
+[data-app='our-exchange'] .mailbox-expense-words[data-direction='out'] {
     color: var(--mailbox-money-out);
 }
-[data-app='our-exchange'] .mailbox-expense-row-main .mailbox-expense-amount {
-    display: block;
-    font-family: var(--mailbox-font-display);
-    font-weight: var(--weight-display);
-    font-size: var(--text-subhead);
-    line-height: 1.3;
-}
 
-/* A ledger's right-hand column: what it means for you, small, over the amount. */
+/* The figure column: the amount on the title's line, what it means for you under it. */
 [data-app='our-exchange'] .mailbox-expense-figure {
     display: grid;
     justify-items: end;
     text-align: right;
     font-size: var(--text-meta);
-    line-height: 1.4;
+    line-height: 1.5;
     color: var(--mailbox-ink-soft);
 }
 [data-app='our-exchange'] .mailbox-expense-figure .mailbox-expense-amount {
     font-size: var(--text-body);
-    line-height: 1.4;
+}
+[data-app='our-exchange'] .mailbox-expense-words {
+    white-space: nowrap;
 }
 
 [data-app='our-exchange'] .mailbox-expense-meta {
@@ -1659,47 +1658,44 @@
     color: var(--mailbox-ink-soft);
 }
 
-/* Lines of a ledger: who owes whom, what to pay, what happened. */
-[data-app='our-exchange'] .mailbox-expense-rows,
-[data-app='our-exchange'] .mailbox-expense-activity {
+/* A sheet of the book: paper, with a rule between its lines. */
+[data-app='our-exchange'] .mailbox-card.mailbox-expense-rows {
+    display: block;
     margin: 0;
-    padding: 0;
+    padding: 4px 20px;
     list-style: none;
 }
-[data-app='our-exchange'] .mailbox-card.mailbox-expense-rows {
-    padding: 4px 20px;
+/* Drawn apart from the line itself, whose rounded hover wash would bend it. */
+[data-app='our-exchange'] .mailbox-expense-rows > * {
+    position: relative;
 }
-[data-app='our-exchange'] .mailbox-expense-activity {
-    margin-top: 16px;
+[data-app='our-exchange'] .mailbox-expense-rows > * + *::before {
+    content: '';
+    position: absolute;
+    inset: 0 0 auto;
+    border-top: 1px solid var(--mailbox-expense-rule);
+}
+@media (max-width: 639px) {
+    [data-app='our-exchange'] .mailbox-card.mailbox-expense-rows {
+        padding-inline: 16px;
+    }
 }
 
 [data-app='our-exchange'] .mailbox-expense-row {
     display: flex;
-    flex-wrap: wrap;
     align-items: center;
-    gap: 8px 12px;
+    gap: 12px;
     padding: 12px 0;
     font-size: var(--text-body);
     line-height: 1.5;
     color: var(--mailbox-ink);
 }
-[data-app='our-exchange'] .mailbox-expense-row + .mailbox-expense-row {
-    border-top: 1px solid var(--mailbox-expense-rule);
-}
 [data-app='our-exchange'] .mailbox-expense-row-main {
-    flex: 1 1 12ch;
+    flex: 1 1 0;
     min-width: 0;
     overflow-wrap: anywhere;
 }
 
-/* A balance is one line: who, the amount, and a quiet settle. */
-[data-app='our-exchange'] .mailbox-expense-row.mailbox-expense-balance {
-    flex-wrap: nowrap;
-    padding: 8px 0;
-}
-[data-app='our-exchange'] .mailbox-expense-balance .mailbox-expense-amount {
-    font-weight: 600;
-}
 [data-app='our-exchange'] .mailbox-btn-quiet {
     margin-inline-end: -8px;
     padding-inline: 8px;
@@ -1717,31 +1713,25 @@
     }
 }
 
-[data-app='our-exchange'] .mailbox-expense-row.mailbox-expense-group {
-    flex-wrap: nowrap;
-    /* The hover wash reaches past the text into the card's padding. */
-    margin-inline: -12px;
-    padding: 14px 12px;
+/* A line that opens something: its hover wash reaches past the text into the sheet's padding. */
+[data-app='our-exchange'] .mailbox-expense-item {
+    margin-inline: -8px;
+    padding: 12px 8px;
     border-radius: var(--radius-inner);
     transition: background-color var(--dur-out) var(--ease-ui);
 }
-[data-app='our-exchange'] .mailbox-expense-group .mailbox-expense-row-main {
-    display: grid;
+@media (hover: hover) and (pointer: fine) {
+    [data-app='our-exchange']
+        .mailbox-expense-item:has(.shell-card-link):hover {
+        background-color: var(--mailbox-hover-wash);
+        transition-duration: var(--dur-card);
+    }
 }
-/* A group with no menu (General) keeps its figure in the same column as the ones that have one. */
-[data-app='our-exchange']
-    .mailbox-expense-rows:has(.mailbox-card-menu)
-    .mailbox-expense-group:not(:has(.mailbox-card-menu)) {
-    padding-inline-end: calc(12px + 32px + 12px);
-}
-[data-app='our-exchange'] .mailbox-expense-group-name {
-    font-family: var(--mailbox-font-display);
-    font-weight: var(--weight-display);
-    font-size: var(--text-subhead);
-    line-height: 1.2;
+
+/* A group with nothing owed is stamped, like a paid citation. */
+[data-app='our-exchange'] .mailbox-coupon-stamp.mailbox-expense-stamp {
+    margin: 0;
     color: var(--mailbox-ink);
-    text-decoration: none;
-    overflow-wrap: anywhere;
 }
 
 [data-app='our-exchange'] .mailbox-expense-archived-toggle {
@@ -1766,37 +1756,15 @@
     transform: rotate(180deg);
 }
 
-/* Expenses read as a ledger on the page, not a stack of cards: date, what, and what it means for you. */
-[data-app='our-exchange'] .mailbox-feed.mailbox-expense-feed {
-    gap: 0;
+/* An entry: its mark, what it was and who paid, and the figure column. */
+[data-app='our-exchange'] .mailbox-expense-rows.mailbox-expense-feed {
+    margin-top: 16px;
 }
 [data-app='our-exchange'] .mailbox-expense-item {
     display: grid;
-    grid-template-columns: 2.5rem 2.5rem minmax(0, 1fr) auto;
+    grid-template-columns: 2.5rem minmax(0, 1fr) auto auto;
     align-items: center;
-    gap: 16px;
-    padding: 14px 8px;
-    border-bottom: 1px solid var(--mailbox-expense-rule);
-    border-radius: var(--radius-card);
-    border-bottom-left-radius: 0;
-    border-bottom-right-radius: 0;
-    transition: background-color var(--dur-out) var(--ease-ui);
-}
-@media (hover: hover) and (pointer: fine) {
-    [data-app='our-exchange'] .mailbox-expense-item:has(.shell-card-link):hover,
-    [data-app='our-exchange']
-        .mailbox-expense-group:has(.shell-card-link):hover {
-        background-color: var(--mailbox-hover-wash);
-        transition-duration: var(--dur-card);
-    }
-}
-/* A repayment is a slip between the expenses, not one of them. */
-[data-app='our-exchange'] .mailbox-expense-item--payment {
-    margin: 6px 0;
-    background: var(--mailbox-expense-tint);
-    border: 1px dashed var(--mailbox-expense-rule);
-    border-radius: var(--radius-card);
-    font-size: var(--text-small);
+    gap: 12px;
 }
 [data-app='our-exchange'] .mailbox-expense-item.focused {
     box-shadow: 0 0 0 2px var(--mailbox-accent-text);
@@ -1819,40 +1787,13 @@
     width: 22px;
     height: 22px;
 }
-
-/* The group's two running figures, side by side. */
-[data-app='our-exchange'] .mailbox-expense-totals {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 16px;
-    margin: 0;
-}
-[data-app='our-exchange'] .mailbox-expense-totals dt {
-    font-size: var(--text-small);
+/* A repayment's mark has no tile: money handed back, not money spent. */
+[data-app='our-exchange'] .mailbox-expense-item--payment .mailbox-expense-icon {
+    background: none;
+    box-shadow: inset 0 0 0 1px var(--mailbox-expense-rule);
     color: var(--mailbox-ink-soft);
 }
-[data-app='our-exchange'] .mailbox-expense-totals dd {
-    display: block;
-    margin: 0;
-    font-family: var(--mailbox-font-display);
-    font-weight: var(--weight-display);
-    font-size: var(--text-title);
-    line-height: 1.2;
-}
 
-[data-app='our-exchange'] .mailbox-expense-date {
-    display: grid;
-    justify-items: center;
-    font-size: var(--text-meta);
-    line-height: 1.2;
-    color: var(--mailbox-ink-soft);
-    font-variant-numeric: lining-nums tabular-nums;
-}
-[data-app='our-exchange'] .mailbox-expense-date-day {
-    font-size: var(--text-subhead);
-    line-height: 1.2;
-    color: var(--mailbox-ink);
-}
 [data-app='our-exchange'] .mailbox-expense-title {
     padding: 0;
     border: 0;
@@ -1869,46 +1810,336 @@
     cursor: auto;
 }
 
-/* The date in words beside who paid: read out always, shown when the date column is not. */
-[data-app='our-exchange'] .mailbox-expense-meta-date {
-    position: absolute;
-    width: 1px;
-    height: 1px;
-    overflow: hidden;
-    clip-path: inset(50%);
-    white-space: nowrap;
+/*
+ * The slip: the room's paper as a till receipt. It says where you stand, lists what would
+ * settle it between dashed rules, totals over a dotted leader, and tears off along the bottom.
+ */
+[data-app='our-exchange'] .mailbox-slip {
+    /* A receipt is narrow: on a wide phone or a tablet it doesn't stretch to the page. */
+    max-width: 480px;
+    /* The paper is masked to its torn edge, so the edge and lift are drawn as drop shadows. */
+    filter: drop-shadow(
+            0 0 0.5px color-mix(in oklab, var(--shell-text) 50%, transparent)
+        )
+        drop-shadow(
+            0 2px 3px
+                color-mix(in oklab, var(--shell-shadow-ink) 8%, transparent)
+        );
+}
+[data-app='our-exchange'] .mailbox-slip-paper {
+    grid-template-columns: minmax(0, 1fr);
+    --mailbox-slip-tooth: 12px;
+    display: grid;
+    gap: 16px;
+    padding: 20px 20px calc(20px + var(--mailbox-slip-tooth) / 2);
+    background: var(--mailbox-card);
+    color: var(--mailbox-ink);
+    border-radius: var(--mailbox-paper-radius) var(--mailbox-paper-radius) 0 0;
+    mask:
+        conic-gradient(
+                from -45deg at 50% 100%,
+                var(--shell-ink-fixed) 90deg,
+                transparent 0
+            )
+            50% 100% / var(--mailbox-slip-tooth)
+            calc(var(--mailbox-slip-tooth) / 2) repeat-x,
+        linear-gradient(var(--shell-ink-fixed) 0 0) 0 0 / 100%
+            calc(100% - var(--mailbox-slip-tooth) / 2) no-repeat;
+}
+[data-app='our-exchange'] .mailbox-slip-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    min-height: 32px;
+}
+[data-app='our-exchange'] .mailbox-expense-faces {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-width: 0;
+    font-size: var(--text-meta);
+    line-height: 1.5;
+    color: var(--mailbox-ink-soft);
+}
+[data-app='our-exchange']
+    :is(.mailbox-slip, .mailbox-door-expense)
+    [data-slot='avatar-group']
+    > * {
+    --tw-ring-color: var(--mailbox-card);
+}
+[data-app='our-exchange'] .mailbox-slip-paper > .mailbox-expense-stamp {
+    justify-self: start;
 }
 
-/* A phone: tighter columns, and a slip's button gets its own line. */
-@media (max-width: 399px) {
-    [data-app='our-exchange'] .mailbox-expense-item {
-        gap: 12px;
-    }
-    [data-app='our-exchange'] .mailbox-expense-item-action {
-        grid-column: 3 / -1;
-        justify-self: start;
-    }
+[data-app='our-exchange'] .mailbox-slip-lines {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    border-block: 1px dashed var(--mailbox-expense-rule);
+}
+[data-app='our-exchange'] .mailbox-slip-lines > li {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 4px 8px;
+    min-height: 48px;
+    padding: 6px 0;
+    font-size: var(--text-body);
+    line-height: 1.4;
+}
+/* A long name or a long figure: the amount and its action drop to a line of their own. */
+[data-app='our-exchange'] .mailbox-slip-lines .mailbox-expense-row-main {
+    flex: 1 1 9ch;
+}
+[data-app='our-exchange'] .mailbox-slip-lines .mailbox-btn-neutral {
+    padding-inline: 12px;
+}
+[data-app='our-exchange']
+    .mailbox-slip-lines
+    > li
+    > :is(button, .mailbox-expense-amount):last-child {
+    margin-inline-start: auto;
+}
+[data-app='our-exchange'] .mailbox-slip-lines:last-child {
+    margin-bottom: -12px;
+    border-bottom: 0;
+}
+[data-app='our-exchange'] .mailbox-slip-lines > li + li {
+    border-top: 1px dashed var(--mailbox-expense-rule);
 }
 
-/* A narrow phone: the date column gives its room to the title, and the date joins the meta line. */
-@media (max-width: 359px) {
-    [data-app='our-exchange'] .mailbox-expense-item {
-        grid-template-columns: 2.5rem minmax(0, 1fr) auto;
+/* A receipt's foot: a word, a dotted leader, the figure. */
+[data-app='our-exchange'] .mailbox-slip-totals {
+    grid-template-columns: minmax(0, 1fr);
+    display: grid;
+    gap: 4px;
+    margin: 0;
+    font-size: var(--text-small);
+    line-height: 1.5;
+    color: var(--mailbox-ink-soft);
+}
+[data-app='our-exchange'] .mailbox-slip-totals > div {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+}
+[data-app='our-exchange'] .mailbox-slip-totals > div::after {
+    content: '';
+    order: 1;
+    flex: 1 1 16px;
+    border-bottom: 2px dotted var(--mailbox-expense-rule);
+    translate: 0 -3px;
+}
+[data-app='our-exchange'] .mailbox-slip-totals dd {
+    order: 2;
+    margin: 0;
+    font-weight: 600;
+    font-variant-numeric: lining-nums tabular-nums;
+    color: var(--mailbox-ink);
+}
+
+/* The page: the slip beside what it sums up, once there is room for both. */
+[data-app='our-exchange'] .mailbox-expense-layout {
+    grid-template-columns: minmax(0, 1fr);
+    display: grid;
+    gap: 28px;
+    margin: 16px 0 24px;
+}
+[data-app='our-exchange'] .mailbox-expense-layout > * {
+    min-width: 0;
+}
+[data-app='our-exchange'] .mailbox-expense-main {
+    grid-template-columns: minmax(0, 1fr);
+    display: grid;
+    align-content: start;
+}
+/* The band brings its own space above the list. */
+[data-app='our-exchange']
+    .mailbox-expense-main
+    .mailbox-expense-rows.mailbox-expense-feed {
+    margin-top: 0;
+}
+[data-app='our-exchange'] .mailbox-expense-main > * + .mailbox-expense-rows,
+[data-app='our-exchange'] .mailbox-expense-main > section + * {
+    margin-top: 16px;
+}
+@media (min-width: 1024px) {
+    [data-app='our-exchange'] .mailbox-expense-layout {
+        grid-template-columns: minmax(300px, 360px) minmax(0, 1fr);
+        align-items: start;
+        gap: 48px;
+        margin-top: 24px;
     }
-    [data-app='our-exchange'] .mailbox-expense-item .mailbox-expense-date {
+    [data-app='our-exchange'] .mailbox-expense-aside {
+        position: sticky;
+        top: 24px;
+    }
+}
+/* On a phone the Activity tab is only the activity. */
+@media (max-width: 1023px) {
+    [data-app='our-exchange']
+        .mailbox-expense-layout[data-tab='activity']
+        .mailbox-expense-aside {
         display: none;
     }
-    [data-app='our-exchange'] .mailbox-expense-meta-date {
-        position: static;
-        width: auto;
-        height: auto;
-        overflow: visible;
-        clip-path: none;
+}
+
+/* A group's door carries its menu beside its name. */
+[data-app='our-exchange'] .mailbox-door-head {
+    display: flex;
+    align-items: flex-start;
+    gap: 4px;
+    min-width: 0;
+}
+[data-app='our-exchange'] .mailbox-door-head .mailbox-door-name {
+    flex: 1;
+    min-width: 0;
+    overflow-wrap: anywhere;
+}
+[data-app='our-exchange'] .mailbox-door-head .mailbox-card-menu {
+    margin: 8px 0 0;
+}
+/* A group's peek is one line of its slip, so the door is no taller than that. */
+[data-app='our-exchange'] .mailbox-door-group .shell-door-peek {
+    height: auto;
+}
+[data-app='our-exchange'] .mailbox-door-group .mailbox-door-expense {
+    padding-block: 12px;
+}
+[data-app='our-exchange'] .mailbox-door-group .mailbox-door-expense-line {
+    justify-content: space-between;
+    align-items: center;
+    min-height: 32px;
+    padding: 0;
+    font-size: var(--text-body);
+    color: var(--mailbox-ink);
+}
+[data-app='our-exchange'] .mailbox-door-group .shell-door-live {
+    margin-top: 6px;
+}
+
+/* A line opens its own page: a quiet chevron says so where there is no hover. */
+[data-app='our-exchange'] .mailbox-expense-chevron {
+    margin-inline: -6px -4px;
+    color: var(--mailbox-ink-soft);
+}
+[data-app='our-exchange'] a.mailbox-expense-title {
+    text-decoration: none;
+}
+
+/* The slip's one link: where it opens. */
+[data-app='our-exchange'] .mailbox-slip-more {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    justify-self: start;
+    min-height: 24px;
+    font-size: var(--text-small);
+    font-weight: 600;
+    color: var(--mailbox-accent-text);
+    text-decoration: none;
+}
+
+/* Beside the slip the list is narrower than a page: its search takes the row. */
+[data-app='our-exchange']
+    .mailbox-expense-main
+    .list-nav-band
+    > div:last-child {
+    flex: 1 1 100%;
+}
+[data-app='our-exchange'] .mailbox-expense-main .list-nav-band-controls {
+    width: 100%;
+}
+[data-app='our-exchange'] .mailbox-expense-main .list-nav-band-search {
+    flex: 1 1 auto;
+    width: auto;
+    min-width: 0;
+}
+
+/* A phone: the slip and the ledger give their padding and gaps to the words. */
+@media (max-width: 639px) {
+    [data-app='our-exchange'] .mailbox-slip-paper {
+        padding-inline: 16px;
+    }
+}
+@media (max-width: 379px) {
+    [data-app='our-exchange'] .mailbox-expense-item {
+        grid-template-columns: 2rem minmax(0, 1fr) auto auto;
+        gap: 8px;
+    }
+    [data-app='our-exchange'] .mailbox-expense-item .mailbox-expense-icon {
+        width: 2rem;
+    }
+    [data-app='our-exchange'] .mailbox-expense-item .mailbox-expense-icon svg {
+        width: 18px;
+        height: 18px;
+    }
+    [data-app='our-exchange'] .mailbox-expense-item .mailbox-expense-words {
+        max-width: 11ch;
         white-space: normal;
     }
-    [data-app='our-exchange'] .mailbox-expense-item-action {
-        grid-column: 2 / -1;
-    }
+}
+
+/* The ledger's months: a heading inside the sheet, over that month's lines. */
+[data-app='our-exchange'] .mailbox-expense-month {
+    margin: 0;
+    padding: 16px 0 4px;
+    font-family: var(--mailbox-font-display);
+    font-weight: var(--weight-display);
+    font-size: var(--text-subhead);
+    line-height: 1.2;
+    color: var(--mailbox-ink);
+}
+
+/* The amount on a form: the bill's total, set large. */
+[data-app='our-exchange'] .mailbox-money-box {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    padding: 4px 16px;
+    background: var(--mailbox-paper);
+    border: 1px solid var(--mailbox-border-input);
+    border-radius: var(--radius-field);
+    cursor: text;
+}
+[data-app='our-exchange'] .mailbox-money-box:focus-within {
+    border-color: var(--mailbox-action);
+    box-shadow: var(--shell-field-focus);
+}
+[data-app='our-exchange'] .mailbox-money-symbol,
+[data-app='our-exchange'] input.mailbox-money-input {
+    font-family: var(--mailbox-font-display);
+    font-weight: var(--weight-display);
+    font-size: var(--text-page);
+    line-height: 1.3;
+    letter-spacing: var(--tracking-display);
+    font-variant-numeric: lining-nums tabular-nums;
+}
+[data-app='our-exchange'] .mailbox-money-symbol {
+    color: var(--mailbox-ink-soft);
+}
+[data-app='our-exchange'] input.mailbox-money-input {
+    flex: 1 1 0;
+    min-width: 0;
+    height: auto;
+    padding: 0;
+    border: 0;
+    border-radius: 0;
+    background: none;
+    box-shadow: none;
+    outline: none;
+    color: var(--mailbox-ink);
+}
+[data-app='our-exchange'] input.mailbox-money-input::placeholder {
+    color: color-mix(in oklab, var(--mailbox-ink-soft) 60%, transparent);
+}
+
+[data-app='our-exchange'] .mailbox-expense-share-who {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-width: 0;
 }
 
 /* An exact split: a name and what they owe, one person a line. */

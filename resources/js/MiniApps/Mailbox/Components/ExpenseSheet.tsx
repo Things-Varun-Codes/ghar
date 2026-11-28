@@ -5,10 +5,6 @@ import type { HistoryEntry } from 'whatcategory';
 
 import { FieldError } from '@/components/ui/field';
 import { Input } from '@/components/ui/input';
-import {
-    NativeSelect,
-    NativeSelectOption,
-} from '@/components/ui/native-select';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import {
     Select,
@@ -19,6 +15,8 @@ import {
 import { formSubmitOptions } from '@/lib/mutation';
 import CharCount from '@/MiniApps/Mailbox/Components/CharCount';
 import ExpenseDeleteDialog from '@/MiniApps/Mailbox/Components/ExpenseDeleteDialog';
+import MoneyField from '@/MiniApps/Mailbox/Components/MoneyField';
+import PersonChoice from '@/MiniApps/Mailbox/Components/PersonChoice';
 import RecipientPicker from '@/MiniApps/Mailbox/Components/RecipientPicker';
 import {
     NO_CATEGORY_ICON,
@@ -34,6 +32,7 @@ import {
 import { store, update } from '@/routes/apps/our-exchange/expenses';
 import FormField from '@/Shell/Components/FormField';
 import FormSheet from '@/Shell/Components/FormSheet';
+import PersonAvatar from '@/Shell/Components/PersonAvatar';
 import SubmitButton from '@/Shell/Components/SubmitButton';
 import LinkableIcon from '@/Shell/linkables/LinkableIcon';
 import type { Person } from '@/types/person';
@@ -185,6 +184,13 @@ export default function ExpenseSheet({
         (text, index) => text.trim() !== '' && shares[index] === null,
     );
 
+    // The server's split hands the odd minor units out one by one, so an uneven share is "about".
+    const sharers = data.participant_ids.length;
+    const eachText =
+        total && sharers > 1
+            ? `${total % sharers === 0 ? '' : 'About '}${formatMoney(Math.floor(total / sharers))} each.`
+            : null;
+
     const leftText =
         left === null
             ? null
@@ -194,20 +200,19 @@ export default function ExpenseSheet({
                 ? `${formatMoney(left)} left to assign.`
                 : `${formatMoney(-left)} over the total.`;
 
-    const hint =
-        data.title.trim() === ''
-            ? 'Say what it was for.'
-            : !total
-              ? 'Enter the amount.'
-              : !exact
-                ? data.participant_ids.length === 0
-                    ? 'Choose who shares it.'
-                    : null
-                : unreadable
-                  ? 'Check what each person owes.'
-                  : left !== 0
-                    ? 'Make the amounts add up to the total.'
-                    : null;
+    const hint = !total
+        ? 'Enter the amount.'
+        : data.title.trim() === ''
+          ? 'Say what it was for.'
+          : !exact
+            ? data.participant_ids.length === 0
+                ? 'Choose who shares it.'
+                : null
+            : unreadable
+              ? 'Check what each person owes.'
+              : left !== 0
+                ? 'Make the amounts add up to the total.'
+                : null;
     const busy = processing || deleting;
     const disabled = busy || hint !== null;
 
@@ -263,7 +268,7 @@ export default function ExpenseSheet({
             open={open}
             onOpenChange={onOpenChange}
             title={expense ? 'Edit expense' : 'Add an expense'}
-            description="Say what it was, who paid, and who shares it."
+            description="Say how much, what for, who paid, and who shares it."
             isDirty={form.isDirty}
             discardTitle="Discard this expense?"
             discardDescription="The details you entered will be lost."
@@ -296,6 +301,15 @@ export default function ExpenseSheet({
                 </>
             }
         >
+            <MoneyField
+                id="expense-amount"
+                label="How much"
+                value={data.amount}
+                onChange={(value) => setData('amount', value)}
+                amount={total}
+                error={errors.amount}
+            />
+
             <div>
                 <FormField
                     label="What was it for"
@@ -318,62 +332,41 @@ export default function ExpenseSheet({
                 <CharCount length={data.title.length} max={TITLE_MAX} />
             </div>
 
-            <FormField
-                label="Category"
-                name="expense-category"
-                error={errors.category}
-                className="mailbox-form-field"
-            >
-                <Select
-                    value={category?.key ?? NONE}
-                    onValueChange={(key) => {
-                        setPicked(true);
-                        setData(
-                            'category',
-                            key === NONE || key === null ? null : key,
-                        );
-                    }}
-                >
-                    <SelectTrigger
-                        id="expense-category"
-                        className="mailbox-field w-full"
-                        aria-invalid={errors.category ? true : undefined}
-                    >
-                        <CategoryChoice category={category} />
-                    </SelectTrigger>
-                    <SelectContent>
-                        <SelectItem value={NONE}>
-                            <CategoryChoice />
-                        </SelectItem>
-                        {categories.map((item) => (
-                            <SelectItem key={item.key} value={item.key}>
-                                <CategoryChoice category={item} />
-                            </SelectItem>
-                        ))}
-                    </SelectContent>
-                </Select>
-            </FormField>
-
             <div className="grid grid-cols-[minmax(0,1fr)_minmax(0,1fr)] gap-3">
                 <FormField
-                    label="Amount"
-                    name="expense-amount"
-                    error={errors.amount}
-                    helper={total ? formatMoney(total) : undefined}
-                    required
+                    label="Category"
+                    name="expense-category"
+                    error={errors.category}
                     className="mailbox-form-field"
                 >
-                    <Input
-                        id="expense-amount"
-                        type="text"
-                        inputMode="decimal"
-                        autoComplete="off"
-                        value={data.amount}
-                        onChange={(e) => setData('amount', e.target.value)}
-                        aria-required="true"
-                        placeholder="0"
-                        className="mailbox-field tabular-nums"
-                    />
+                    <Select
+                        value={category?.key ?? NONE}
+                        onValueChange={(key) => {
+                            setPicked(true);
+                            setData(
+                                'category',
+                                key === NONE || key === null ? null : key,
+                            );
+                        }}
+                    >
+                        <SelectTrigger
+                            id="expense-category"
+                            className="mailbox-field w-full"
+                            aria-invalid={errors.category ? true : undefined}
+                        >
+                            <CategoryChoice category={category} />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value={NONE}>
+                                <CategoryChoice />
+                            </SelectItem>
+                            {categories.map((item) => (
+                                <SelectItem key={item.key} value={item.key}>
+                                    <CategoryChoice category={item} />
+                                </SelectItem>
+                            ))}
+                        </SelectContent>
+                    </Select>
                 </FormField>
                 <FormField
                     label="Date"
@@ -392,28 +385,15 @@ export default function ExpenseSheet({
                 </FormField>
             </div>
 
-            <FormField
-                label="Paid by"
+            <PersonChoice
+                legend="Who paid"
                 name="expense-paid-by"
+                people={members}
+                value={data.paid_by_id}
+                onChange={(id) => setData('paid_by_id', id)}
+                viewerId={viewerId}
                 error={errors.paid_by_id}
-                className="mailbox-form-field"
-            >
-                <NativeSelect
-                    id="expense-paid-by"
-                    value={data.paid_by_id}
-                    onChange={(e) =>
-                        setData('paid_by_id', Number(e.target.value))
-                    }
-                    wrapperClassName="w-full"
-                    className="mailbox-field"
-                >
-                    {members.map((member) => (
-                        <NativeSelectOption key={member.id} value={member.id}>
-                            {member.id === viewerId ? 'You' : member.name}
-                        </NativeSelectOption>
-                    ))}
-                </NativeSelect>
-            </FormField>
+            />
 
             <div>
                 <p id={splitLabelId} className="mailbox-field-label">
@@ -449,7 +429,12 @@ export default function ExpenseSheet({
                                 key={member.id}
                                 className="mailbox-expense-share"
                             >
-                                <span>{member.name}</span>
+                                <span className="mailbox-expense-share-who">
+                                    <PersonAvatar person={member} size={24} />
+                                    {member.id === viewerId
+                                        ? 'You'
+                                        : member.name}
+                                </span>
                                 <Input
                                     type="text"
                                     inputMode="decimal"
@@ -479,15 +464,23 @@ export default function ExpenseSheet({
                     )}
                 </fieldset>
             ) : (
-                <RecipientPicker
-                    legend="Split between"
-                    members={members}
-                    value={data.participant_ids}
-                    onChange={(ids) => setData('participant_ids', ids)}
-                    errors={{
-                        recipient_ids: errorFor(errors, 'participant_ids'),
-                    }}
-                />
+                <div>
+                    <RecipientPicker
+                        legend="Split between"
+                        members={members}
+                        viewerId={viewerId}
+                        value={data.participant_ids}
+                        onChange={(ids) => setData('participant_ids', ids)}
+                        errors={{
+                            recipient_ids: errorFor(errors, 'participant_ids'),
+                        }}
+                    />
+                    {eachText && (
+                        <p className="mailbox-field-helper" aria-live="polite">
+                            {eachText}
+                        </p>
+                    )}
+                </div>
             )}
 
             {expense && (
