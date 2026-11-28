@@ -9,6 +9,78 @@ Minor and patch versions don't.
 Before any upgrade, back up the database and the media volume (DEPLOY.md, "Backups and restore").
 Migrations only run forward.
 
+## [2.2.0] - 2026-11-28
+
+### Added
+
+- Expenses now have categories, such as Groceries, Eating out, Rent and Taxis, each with its own
+  icon. A group's list can be filtered by category.
+    - When you add an expense, its category is picked from what you type: "Groceries" gets Groceries,
+      "Taxi" gets Taxis, and a title the group has used before gets the category it had last time.
+      Choosing one yourself always wins.
+    - The suggestion works offline and in the household's language. When it isn't sure, it leaves the
+      expense without a category.
+
+### Changed
+
+- Expenses now show where you stand at a glance: an overall total at the top, amounts in green when
+  money comes to you and amber when you owe, and each group's expenses as a dated list.
+    - A group's page shows what the group has spent together and your share of it.
+- Expenses has a new look, built around a paper slip like a till receipt, and shows one total: what
+  you owe or are owed. Tapping it opens Balances, where you see each person and settle up.
+    - The Exchange and Expenses show only your overall total; the Exchange door now shows the same
+      figure as Expenses.
+    - Balances lists each person you owe or who owes you, with Settle up.
+    - On Expenses, each group is a card showing where you stand in it and who is in it; a group with
+      nothing owed is stamped Settled.
+    - A group's slip lists only the payments you make or receive, with Mark paid, then what was spent
+      together and your share. Its "⋯" menu renames, archives or deletes the group from there.
+    - A group's expenses are listed by month, each with its date, who paid, the amount and your share.
+    - Tapping an expense or a repayment opens its own page: who shares it, what has happened to it,
+      and a "⋯" menu to edit or delete it. A deleted one can still be opened and restored.
+    - Adding an expense starts with the amount, set large, and you choose who paid by tapping a face.
+      An equal split says what each person pays. Recording a payment works the same way.
+    - On a phone, a group's Activity tab shows only the activity.
+- Admin → Users now removes someone from the household instead of deleting them. A former member
+  can't sign in and isn't offered anywhere new, but everything they made stays, shown as "Name
+  (deleted)".
+    - Balances with a former member stay in Expenses and can still be settled.
+    - Notes, postcards, coupons and citations they shared stay with the other person. Their coupons
+      can't be requested and their citations can't be paid.
+    - Restore brings them back. Someone who never used Exchange or Shelf can also be deleted for good.
+- On a phone or tablet, a page's title is shown once, in the bar at the top, so what's on the page
+  starts higher up.
+    - Our Shelf adds a list with the round + button in the corner, like a list adds a thing.
+    - A list's settings and delete are in its "⋯" on the Our Shelf page, no longer repeated inside the
+      list.
+- Everyone now puts Our Shelf's lists and their expense groups in their own order, and nobody else's
+  changes. "Change order" (in a list's menu, or beside Groups on the Expenses page) opens them all
+  to drag by the handle or move with the arrows.
+    - Until someone changes it, lists and groups are oldest first, and anything new goes at the
+      bottom. The shelf's old shared order is not kept.
+    - Notes, Postcards, Citations and Coupons show how many are in Received and in Sent (or Issued) on
+      their tabs, as a Shelf list does on its own. The count line above the search is gone from all of
+      them, and while you search the tab counts show the matches.
+    - On Expenses, each balance is one line: who owes whom, the amount, and Settle up.
+    - On the History timeline, the year and its count of moments share one line, and stay in full view
+      under the tabs as you scroll.
+- The tabs at the top of a page (History's Timeline, Calendar, Gallery and Map, a Shelf list's
+  filters, and Received and Sent in the Exchange) are now a bar under the title that stays in place
+  as you scroll, with a coral line under the one you're on.
+    - In an expense group, Expenses and Activity now sit above the totals. The group's ⋯ menu (name
+      and members, archive, delete) moved to its row on the Expenses page.
+    - Gallery's photo and video choice stays a small switch, so it doesn't look like another set of
+      tabs.
+- The History timeline moves more smoothly: its line draws in when you open it, fills with colour as
+  you scroll through each year, and every moment rises in as it comes into view.
+    - Hovering a moment highlights its dot or face on the line.
+
+### Fixed
+
+- Adding an expense sometimes suggested a category from a word that only looked like it: "Gym
+  membership" and "Hiking trail" suggested Trains. Those titles now get no suggestion, and more
+  plural and other word forms are recognised in other languages, such as "pizze" in Italian.
+
 ## [2.1.1] - 2026-11-27
 
 ### Fixed
