@@ -3,6 +3,7 @@ import { afterEach, describe, expect, it } from 'vitest';
 import { setRegion } from '@/lib/dates';
 
 import {
+    currencySymbol,
     formatMoney,
     leftToAssign,
     MAX_AMOUNT,
@@ -15,6 +16,16 @@ function use(locale: string, currency: string) {
 }
 
 afterEach(() => use('en-GB', 'INR'));
+
+describe('currencySymbol', () => {
+    it("is the mark the household's currency prints with", () => {
+        use('en-IN', 'INR');
+        expect(currencySymbol()).toBe('₹');
+
+        use('en-GB', 'GBP');
+        expect(currencySymbol()).toBe('£');
+    });
+});
 
 describe('formatMoney', () => {
     it('takes the fraction digits from the currency', () => {

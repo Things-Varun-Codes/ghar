@@ -21,6 +21,20 @@ export function formatMoney(minor: number): string {
     return currencyFormat().format(minor / 10 ** fractionDigits());
 }
 
+/*
+ * The household's currency mark, for the front of an amount field.
+ *
+ * shortcut: always drawn before the figure; read its side from Intl if a household whose
+ * currency follows the number turns up.
+ */
+export function currencySymbol(): string {
+    return (
+        currencyFormat()
+            .formatToParts(0)
+            .find((part) => part.type === 'currency')?.value ?? ''
+    );
+}
+
 /* Minor units as plain text for an amount field: 240050 is "2400.50", 240000 is "2400". */
 export function moneyInput(minor: number): string {
     const digits = fractionDigits();

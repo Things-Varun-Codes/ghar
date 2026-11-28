@@ -11,6 +11,11 @@ describe('initials', () => {
         expect(initials('Kabir Rao', 1)).toBe('K');
     });
 
+    it('skips a word that is not part of the name', () => {
+        expect(initials('Nisha (deleted)')).toBe('N');
+        expect(initials('Élodie 2')).toBe('É');
+    });
+
     it('falls back to a question mark', () => {
         expect(initials('   ')).toBe('?');
     });

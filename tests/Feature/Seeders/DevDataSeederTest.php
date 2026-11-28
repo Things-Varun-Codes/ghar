@@ -254,10 +254,10 @@ class DevDataSeederTest extends TestCase
         $this->assertSame([], array_filter(ExpenseBalances::netsIn($house)));
         $this->assertArrayNotHasKey($admin->id, ExpenseBalances::overview($meera));
         $repayments = Expense::query()->where('is_settlement', true)->where('paid_by_id', $meera->id)->orderBy('id')->get();
-        $this->assertSame(
-            [[$house->id, 100000], [$general->id, 23334], [$house->id, 255000]],
-            $repayments->map(fn (Expense $payment): array => [$payment->group_id, $payment->amount])->all(),
-        );
+        $this->assertSame([$house->id, $general->id, $house->id], $repayments->pluck('group_id')->all());
+        $this->assertSame([100000, 255000], [$repayments[0]->amount, $repayments[2]->amount]);
+        // The odd paisa of "Auto to the station" lands by the expense's id, which a test run doesn't fix.
+        $this->assertContains($repayments[1]->amount, [23333, 23334]);
         $this->assertSame(1, $repayments->skip(1)->pluck('spent_on')->map->toDateString()->unique()->count(), 'one settle-up, one day');
         $this->assertEqualsCanonicalizing(
             ['groceries', 'taxis', 'stays', 'eating-out', 'gifts', 'furniture', 'internet', 'gas'],

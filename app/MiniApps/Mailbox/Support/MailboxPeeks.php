@@ -16,8 +16,7 @@ use Throwable;
  * One object per door on the Mailbox landing. Notes and postcards come only from what the viewer
  * received; citations and coupons only from what they issued or received, preferring the one
  * waiting on them. Showing a note or postcard here doesn't mark it read. An entry type that is off
- * has no peek. Expenses show the viewer's own balances with up to three people, whoever they
- * owe first.
+ * has no peek, and expenses have none: their door shows one figure from the summary.
  */
 final class MailboxPeeks
 {
@@ -31,7 +30,6 @@ final class MailboxPeeks
      *     postcards: array{image_url: string, from: string}|null,
      *     citations: array{ref_no: ?string, status: string, offence: string, issuer: string, recipient: string}|null,
      *     coupons: array{title: string, remaining: int, quantity: int, status: string, is_expired: bool, issuer: string, recipient: string}|null,
-     *     expenses: list<array{name: string, net: int}>|null,
      * }
      */
     public function forUser(User $user): array
@@ -41,30 +39,7 @@ final class MailboxPeeks
             'postcards' => EntryTypes::on(EntryTypes::POSTCARDS) ? $this->postcard($user) : null,
             'citations' => EntryTypes::on(EntryTypes::CITATIONS) ? $this->citation($user) : null,
             'coupons' => EntryTypes::on(EntryTypes::COUPONS) ? $this->coupon($user) : null,
-            'expenses' => EntryTypes::on(EntryTypes::EXPENSES) ? self::balances($user) : null,
         ];
-    }
-
-    /**
-     * `net` is minor units: negative when the viewer owes them, positive when they owe the viewer.
-     *
-     * @return list<array{name: string, net: int}>|null
-     */
-    private static function balances(User $user): ?array
-    {
-        $overview = array_filter(ExpenseBalances::overview($user));
-        asort($overview);
-
-        $people = User::query()->whereKey(array_keys(array_slice($overview, 0, 3, preserve_keys: true)))->get()->keyBy('id');
-        $peek = [];
-
-        foreach ($overview as $userId => $net) {
-            if ($people->has($userId)) {
-                $peek[] = ['name' => app(Household::class)->shortName($people[$userId]), 'net' => $net];
-            }
-        }
-
-        return $peek === [] ? null : $peek;
     }
 
     /**

@@ -72,6 +72,8 @@ Route::prefix('apps/our-exchange')->name('apps.our-exchange.')->group(function (
     Route::middleware($type(EntryTypes::EXPENSES))->prefix('expenses')->name('expenses.')->group(function () {
         Route::get('/', [ExpensesController::class, 'index'])->name('index');
         Route::get('/groups/{group}', [ExpensesController::class, 'show'])->name('groups.show');
+        Route::get('/balances', [ExpensesController::class, 'balances'])->name('balances');
+        Route::get('/{expense}', [ExpensesController::class, 'expense'])->whereNumber('expense')->withTrashed()->name('show');
 
         Route::middleware('throttle:mailbox-mutations')->group(function () {
             Route::post('/groups', [ExpenseGroupsController::class, 'store'])->name('groups.store');

@@ -133,6 +133,13 @@ in. Reduced motion is already handled; don't add a media query for it.
   with no picture, the list's icon sits on the accent wash.
 - **Our Exchange:** paper. Ruled notes with a red margin, the citation as an official form, the
   coupon as a voucher, all in the house ink. The stamp is the only thing in capitals. Coral only
-  for what you press. Expenses read as a ledger: a date, its category's icon in ink, and on the
-  right what it means for you, in words over the amount. Only amounts and their words take the
-  money colours, and never without the words.
+  for what you press. Expenses read as a till receipt: a slip (torn along its foot) says
+  where you stand as one sentence with one coloured figure, and from 1024px sits beside what it
+  sums up. The landing and Expenses show only that total; who owes whom, and settling it, is the
+  Balances page the slip opens. A group's slip lists only the payments you make or receive.
+  Groups are doors, each showing one line of its slip. The ledger is a paper sheet of ruled lines
+  under month headings: a line has its category's icon in ink, what it was, the amount and your
+  share of it, and opens that expense's own receipt, with its activity and a "⋯" to edit or
+  delete. Only a standing or a payment takes the money colours, and never without its words; a
+  share is ink. Nothing owed is stamped Settled. What clears a debt is an outlined button. On a
+  form the amount comes first, set large, and people are chosen by face, the viewer as "You".

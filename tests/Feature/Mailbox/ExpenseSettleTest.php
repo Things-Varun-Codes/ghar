@@ -277,11 +277,12 @@ class ExpenseSettleTest extends TestCase
         $this->actingAs($this->meera)->get('/apps/our-exchange')->assertInertia(fn ($page) => $page
             ->where('mailboxSummary.expenses', ['owed' => 2500, 'owing' => 2000])
             ->where('mailboxSummary.expenses_action_needed', 1)
-            ->where('mailboxPeeks.expenses', [['name' => 'Ravi', 'net' => -2000], ['name' => 'Asha', 'net' => 2500]]));
+            // The door shows one figure; who owes whom is on the Balances page alone.
+            ->missing('mailboxPeeks.expenses'));
 
         $this->app->forgetScopedInstances();
         $this->actingAs($this->kabir)->get('/apps/our-exchange')->assertInertia(fn ($page) => $page
             ->where('mailboxSummary.expenses', ['owed' => 0, 'owing' => 3000])
-            ->where('mailboxPeeks.expenses', [['name' => 'Ravi', 'net' => -3000]]));
+            ->missing('mailboxPeeks.expenses'));
     }
 }

@@ -4,6 +4,7 @@ import { Settle } from '@/components/motion';
 import { count } from '@/lib/plural';
 
 import { cn } from '@/lib/utils';
+import ExpenseStanding from '@/MiniApps/Mailbox/Components/ExpenseStanding';
 import MailboxLayout, {
     MAILBOX_ROOM,
 } from '@/MiniApps/Mailbox/Layouts/MailboxLayout';
@@ -53,14 +54,11 @@ type CouponPeek = {
     recipient: string;
 };
 /* `net` is minor units: positive when they owe the viewer, negative when the viewer owes them. */
-type BalancePeek = { name: string; net: number };
-
 type MailboxPeeks = {
     notes: NotePeek | null;
     postcards: PostcardPeek | null;
     citations: CitationPeek | null;
     coupons: CouponPeek | null;
-    expenses: BalancePeek[] | null;
 };
 
 type Props = {
@@ -247,30 +245,12 @@ function CouponStub({ coupon }: { coupon: CouponPeek | null }) {
     );
 }
 
-function LedgerSlip({ balances }: { balances: BalancePeek[] | null }) {
+function LedgerSlip({ net }: { net: number }) {
     return (
         <div className="mailbox-door-expense">
-            {balances ? (
-                balances.map((balance) => (
-                    <span
-                        key={balance.name}
-                        className="mailbox-door-expense-line"
-                    >
-                        <span>
-                            {balance.net > 0
-                                ? `${balance.name} owes you`
-                                : `You owe ${balance.name}`}
-                        </span>
-                        <span className="tabular-nums">
-                            {formatMoney(Math.abs(balance.net))}
-                        </span>
-                    </span>
-                ))
-            ) : (
-                <span className="mailbox-door-expense-line">
-                    Nobody owes anybody
-                </span>
-            )}
+            <p className="mailbox-expense-summary">
+                <ExpenseStanding net={net} even="Nobody owes anybody" />
+            </p>
         </div>
     );
 }
@@ -331,24 +311,23 @@ const DOORS: Record<
             ),
         peek: <CouponStub coupon={peeks.coupons} />,
     }),
-    expenses: (summary, peeks) => ({
-        href: expensesIndex.url(),
-        prefetch: true,
-        live:
-            summary.expenses.owing > 0
-                ? {
-                      text: `You owe ${formatMoney(summary.expenses.owing)}`,
-                      alert: true,
-                  }
-                : {
-                      text:
-                          summary.expenses.owed > 0
-                              ? `You're owed ${formatMoney(summary.expenses.owed)}`
-                              : 'All settled',
-                      alert: false,
-                  },
-        peek: <LedgerSlip balances={peeks.expenses} />,
-    }),
+    expenses: (summary) => {
+        // One figure, the same one Expenses opens with: what is owed to you less what you owe.
+        const net = summary.expenses.owed - summary.expenses.owing;
+
+        return {
+            href: expensesIndex.url(),
+            prefetch: true,
+            live: {
+                text:
+                    net === 0
+                        ? 'All settled'
+                        : `${net > 0 ? 'You are owed' : 'You owe'} ${formatMoney(Math.abs(net))}`,
+                alert: net < 0,
+            },
+            peek: <LedgerSlip net={net} />,
+        };
+    },
 };
 
 export default function Landing({
